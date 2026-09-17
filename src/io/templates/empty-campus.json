@@ -1,0 +1,20 @@
+{
+  "version": "2.0",
+  "id": "scene-template-empty",
+  "name": "未命名场景",
+  "environment": { "preset": "day" },
+  "layers": [
+    { "id": "layer-template-empty-0", "name": "未分类", "visible": true, "locked": false, "opacity": 1, "order": 0, "objectIds": [] },
+    { "id": "layer-template-empty-1", "name": "水面", "visible": true, "locked": false, "opacity": 1, "order": 1, "objectIds": [] },
+    { "id": "layer-template-empty-2", "name": "绿地", "visible": true, "locked": false, "opacity": 1, "order": 2, "objectIds": [] },
+    { "id": "layer-template-empty-3", "name": "广场", "visible": true, "locked": false, "opacity": 1, "order": 3, "objectIds": [] },
+    { "id": "layer-template-empty-4", "name": "停车场", "visible": true, "locked": false, "opacity": 1, "order": 4, "objectIds": [] },
+    { "id": "layer-template-empty-5", "name": "裸地", "visible": true, "locked": false, "opacity": 1, "order": 5, "objectIds": [] },
+    { "id": "layer-template-empty-6", "name": "道路", "visible": true, "locked": false, "opacity": 1, "order": 6, "objectIds": [] },
+    { "id": "layer-template-empty-7", "name": "建筑", "visible": true, "locked": false, "opacity": 1, "order": 7, "objectIds": [] },
+    { "id": "layer-template-empty-8", "name": "POI", "visible": true, "locked": false, "opacity": 1, "order": 8, "objectIds": [] },
+    { "id": "layer-template-empty-9", "name": "自定义", "visible": true, "locked": false, "opacity": 1, "order": 9, "objectIds": [] },
+    { "id": "layer-template-empty-10", "name": "模型", "visible": true, "locked": false, "opacity": 1, "order": 10, "objectIds": [] }
+  ],
+  "objects": []
+}

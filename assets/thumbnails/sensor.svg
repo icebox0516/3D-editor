@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="64" viewBox="0 0 96 64" role="img">
+<rect width="96" height="64" fill="#4f8a8a"/>
+<text x="48" y="30" font-family="Consolas, Menlo, monospace" font-size="30" font-weight="600" fill="#f2f4f8" text-anchor="middle" dominant-baseline="central">环</text>
+<text x="48" y="55" font-family="Consolas, Menlo, monospace" font-size="8" fill="#f2f4f8" fill-opacity="0.75" text-anchor="middle">设备</text>
+</svg>

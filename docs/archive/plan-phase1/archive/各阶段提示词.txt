@@ -1,0 +1,367 @@
+### 提示词使用说明
+以下提示词按「**初始化 → 核心层 → 数据层 → 运行时 → 编辑器 → IO → 闭环验证**」的顺序分批使用，适合增量式 vibecoding。每轮喂给 AI 一个模块的提示词，生成代码验证后再进入下一个，确保每层边界不被突破。
+技术栈默认：**TypeScript + Three.js**，纯逻辑核心与 UI 解耦，不绑定任何前端框架。
+
+---
+
+## 第一组：项目初始化 + 核心层
+> 用来搭项目骨架，定义最底层的基础能力，这一层不涉及任何业务和渲染
+
+```
+帮我搭建一个三维园区编辑器的核心项目骨架，严格遵循六层单向依赖架构：core -> scene -> domain -> editor -> runtime -> io。
+
+【核心约束】
+1. 全程严格遵守「业务数据与 Three.js 渲染对象彻底分离」原则，业务层绝对不能直接操作 THREE.Object3D
+2. 所有层单向依赖，下层不能依赖上层
+3. 纯 TypeScript 实现，只输出逻辑代码，不做 UI
+
+【任务】
+1. 初始化目录结构，严格按照以下目录输出文件：
+src/
+├── core/
+│   ├── id/
+│   ├── events/
+│   ├── math/
+│   ├── types/
+│   └── utils/
+├── scene/
+├── domain/
+├── editor/
+├── runtime/
+├── io/
+└── registries/
+
+2. 实现 core 层全部基础能力：
+- types：定义 ID 类型（string）、Vector3、Euler、Transform 基础接口
+- id：实现 createId 函数，生成 scene_xxx / element_xxx 格式的稳定业务ID
+- events：实现 EventBus 事件总线，支持 on/off/emit，事件类型用字符串枚举
+- math：基础向量运算工具（只做业务计算用，不用替代Three.js数学）
+- utils：基础工具函数
+
+【输出要求】
+每个文件输出完整的 TS 代码，带类型定义，注释清晰标注每个模块的职责和边界。
+```
+
+---
+
+## 第二组：场景层 + 领域层数据模型
+> 实现纯数据层，这一层只有数据结构和增删改查，没有业务逻辑、没有渲染
+
+```
+继续实现场景层和领域层的**纯数据模型**，严格遵守「数据层不碰渲染、不碰业务逻辑」的边界。
+
+【核心约束】
+1. Scene 层只存纯数据，只做增删改查，不校验、不计算
+2. Domain 层的所有几何、样式、要素都是纯业务数据，绝对不能出现任何 THREE 开头的类型
+3. 场景数据是唯一数据源，运行时只是表现
+
+【任务】
+1. 场景层 scene：
+- SceneObject 基础接口：id/type/name/parentId/layerId/visible/locked/transform/properties/metadata
+- Layer 接口：id/name/visible/locked/opacity/order/objectIds
+- SceneData 根接口：version/id/name/environment/layers/objects
+- SceneManager 类：提供 getObject/addObject/removeObject/updateObject/getObjects/clear 方法，只操作数据
+- SelectionManager 类：select/add/remove/clear/selectMany/getSelectedIds/isSelected，通过事件总线广播变更
+
+2. 领域层 domain：
+- Geometry 数据类型：Point/LineString/Polygon 三种核心几何数据接口，coordinates 是纯数组
+- Element 基础接口：继承 SceneObject，包含 geometry、style 引用、业务属性
+- 具体要素类型：BuildingElement、RoadElement、GreenElement、WaterElement、ParkingElement
+- Style 相关：StyleDefinition、StyleReference、StyleParameter、ShaderDefinition 接口
+- Asset 相关：Asset、AssetReference、ModelAsset、AssetDefaults 接口
+- ModelObject 接口：继承 SceneObject，包含 asset 引用和实例配置
+
+【输出要求】
+所有接口用 TypeScript interface 定义，SceneManager 和 SelectionManager 实现为类，方法只操作数据，通过 EventBus 发出 object:created/object:updated/selection:changed 事件。
+```
+
+---
+
+## 第三组：Registry 注册体系
+> 实现扩展机制，所有要素、样式、资源、工具都通过注册接入，禁止 switch(type) 散落代码
+
+```
+实现整套 Registry 注册扩展体系，这是系统的扩展入口，严格遵循「注册-定义-工厂-实例」的模式。
+
+【核心约束】
+1. 所有类型判断都通过 Registry 完成，业务代码里禁止出现 if(type === 'building') 这种硬编码判断
+2. 新增要素、样式、工具只需要注册，不需要修改核心代码
+
+【任务】
+在 registries 目录下实现 5 个 Registry：
+1. ElementRegistry：
+- register/unregister/get/has/list/create 方法
+- 接收 ElementDefinition 定义：type/label/geometryTypes/createDefault/createRenderer/validate/serialize/deserialize
+- create 方法根据 type 生成对应 Element 实例
+
+2. StyleRegistry：
+- register/unregister/get/list/findByType
+- 管理 StyleDefinition，支持按类型查找样式
+
+3. AssetRegistry：
+- register/unregister/get/list/findByCategory/search
+- 管理 Asset 定义，支持分类和关键词搜索
+
+4. ToolRegistry：
+- register/unregister/get/list
+- 管理 Tool 实例
+
+5. CommandRegistry：
+- register/create
+- 按类型注册命令工厂，根据类型和数据创建 Command 实例
+
+【附带实现】
+给出 BuildingDefinition 的注册示例，演示如何注册一个建筑要素定义，包含 createDefault 方法返回默认 BuildingElement。
+
+【输出要求】
+每个 Registry 单独一个文件，全部用 TypeScript 实现，带完整类型。
+```
+
+---
+
+## 第四组：运行时渲染适配层
+> 把业务数据映射成 Three.js 对象，这一层只读业务数据，绝对不能反向修改 Scene 数据
+
+```
+实现 runtime 运行时渲染层，核心职责是「业务数据 → Three.js 对象」的单向映射。
+
+【核心约束】
+1. 运行时层**只读不改** Scene 数据，绝对不能反向修改 SceneObject 的任何属性
+2. 所有业务对象通过 Adapter 映射到 Three.js，不能直接把 THREE.Mesh 当业务对象用
+3. userData 只能存 objectId 做映射辅助，不能存业务数据
+
+【任务】
+1. RuntimeObjectMap 类：
+- 用 Map 维护 业务ID -> THREE.Object3D 的映射
+- set/get/delete 方法，支持通过 object.userData.objectId 反向查找业务ID
+
+2. ObjectAdapter 抽象类：
+- create/update/dispose 三个核心方法
+- 接收 SceneObject，生成对应的 THREE.Object3D
+
+3. ElementRenderer 体系：
+- 基类 ElementRenderer，接口：supports/create/update/dispose
+- 实现 BuildingRenderer：接收 BuildingElement，用 ExtrudeGeometry 把 Polygon 挤出高度生成 Mesh
+- 实现基础的 GreenRenderer、WaterRenderer：用平面几何体生成面对象
+- 样式应用：根据 StyleReference 从 StyleRegistry 取样式，生成对应材质
+
+4. AssetLoader 类：
+- load 方法加载 ModelAsset，返回 THREE.Group
+- 基础缓存机制，同一 assetId 不重复加载
+- 支持 InstancedMesh 实例化渲染，同一个资产多个实例共享几何体和材质
+
+5. Renderer 基类：
+- 初始化 Three.js 场景、相机、光照、地面
+- 提供 attach/update/detach 方法，接收 SceneObject 同步到渲染场景
+
+【输出要求】
+所有渲染相关代码都在 runtime 目录，业务层完全不感知 Three.js 的存在。
+```
+
+---
+
+## 第五组：编辑器命令与历史系统
+> 所有场景修改都必须走 Command，统一支持撤销重做，这是专业编辑器的核心
+
+```
+实现编辑器的 Command 命令体系和 History 历史管理，严格执行「任何可见的场景修改都必须通过 Command」。
+
+【核心约束】
+1. 禁止任何地方直接修改 Scene 数据，所有变更必须通过 Command 执行
+2. 所有命令都保存 before/after 数据，支持完整撤销和重做
+3. 命令执行后通过 EventBus 广播事件，UI 和渲染层响应事件更新
+
+【任务】
+1. Command 基础接口：
+- id/name/execute/undo/redo/canExecute
+- CommandContext 上下文：sceneManager/runtime/selection/history
+
+2. 基础命令实现（commands 目录）：
+- CreateObjectCommand：创建对象，execute 添加到场景，undo 移除
+- DeleteObjectCommand：删除对象，execute 移除，undo 恢复
+- TransformCommand：移动/旋转/缩放，保存 before/after 两个 Transform
+- ChangePropertyCommand：修改对象属性，保存 before/after
+- ChangeStyleCommand：修改对象样式引用，保存 before/after
+- ChangeGeometryCommand：修改几何数据，保存完整的 before/after GeometryData
+- ChangeLayerCommand：修改对象图层
+
+3. BatchCommand 批量命令：
+- 包含多个子 Command，execute/undo/redo 批量执行
+- 用于连续放置、批量修改等场景，合并为一次撤销记录
+
+4. HistoryManager 类：
+- execute(command)：执行命令并入栈
+- undo()/redo()
+- canUndo()/canRedo()/clear()
+- 维护撤销栈和重做栈
+
+【输出要求】
+每个命令单独文件，HistoryManager 统一管理，命令执行成功后触发 scene:changed 事件。
+```
+
+---
+
+## 第六组：编辑器工具系统
+> 工具代表用户当前操作，同一时间只能有一个激活工具，工具只产生命令，不直接改数据
+
+```
+实现编辑器 Tool 工具系统，严格遵循「工具产生意图，Command 落地修改」的原则。
+
+【核心约束】
+1. 工具不能直接修改 Scene 数据，不能直接操作渲染对象
+2. 任何修改都通过创建 Command 交给 HistoryManager 执行
+3. 同一时刻只能有一个激活工具，切换工具自动停用上一个
+
+【任务】
+1. Tool 基础接口：
+- id/name/activate/deactivate/onPointerDown/onPointerMove/onPointerUp/onKeyDown/cancel
+- ToolContext 上下文：scene/selection/commands/camera/renderer/input/viewport
+
+2. ToolManager 类：
+- register/activate/deactivate/getActiveTool/cancel
+- 管理工具激活状态，切换工具自动清理上一个工具的状态
+
+3. 核心工具实现：
+- SelectTool：点击射线检测，选中对象，更新 SelectionManager，支持多选
+- TransformTool：调用 Transform Gizmo，拖拽结束生成 TransformCommand
+- PlacementTool：模型放置工具，接收 assetId，鼠标移动显示 Ghost 预览，左键点击生成 CreateObjectCommand，支持连续放置，右键/ESC 取消
+  - 支持随机旋转、随机缩放参数
+  - Ghost 预览属于临时对象，不进入正式 Scene
+
+4. PreviewManager 预览管理器：
+- 管理所有临时预览对象（绘制预览、放置Ghost、Gizmo）
+- show/update/hide/clear
+- 预览对象单独管理，和正式场景完全隔离
+
+【输出要求】
+所有工具在 editor/tools 目录下，每个工具单独文件夹。工具只负责交互逻辑，修改全部走 Command。
+```
+
+---
+
+## 第七组：IO 与数据导入导出
+> 序列化和导入导出，输入输出都是标准 SceneData，不直接生成 Mesh
+
+```
+实现 IO 层，负责场景序列化和外部数据导入，严格遵循「导入产物是标准 Element，不是不可编辑的 Mesh」。
+
+【核心约束】
+1. SceneSerializer 只做 SceneData 和 JSON 的互转，不包含任何业务逻辑
+2. JSON 导入必须生成标准 Element 对象，导入后可以正常编辑、改样式、改高度
+3. 场景文件只保存数据定义和引用，不保存模型文件本体
+
+【任务】
+1. SceneSerializer：
+- serialize(sceneData): string
+- deserialize(jsonString): SceneData
+- 带版本号校验
+
+2. JSON Importer：
+- 配置化映射机制：通过映射配置文件，定义 JSON 字段 -> Element类型、Geometry格式、默认Style 的对应关系
+- parse 方法把外部 JSON 转成标准 SceneObject 数组
+- 导入的对象必须是标准的 BuildingElement/RoadElement 等，不能是自定义类型
+- 导入失败给出字段级错误提示
+
+3. 基础 Exporter：
+- 导出标准 Scene JSON
+
+【输出要求】
+所有 IO 代码在 io 目录，导入输出的对象可以直接加入 SceneManager，和手绘的对象完全一致。
+```
+
+---
+
+## 第八组：阶段一闭环联调
+> 把前面的模块串起来，跑通第一个完整闭环，验证架构正确性
+
+```
+把前面实现的所有模块串联起来，跑通阶段一的完整闭环，验证架构的正确性。
+
+【验收流程必须跑通】
+1. 新建场景：初始化 SceneData，包含默认天空、无限地面、默认图层
+2. 导入 JSON：调用 JSONImporter，导入一份建筑多边形数据，生成 BuildingElement
+3. 样式切换：选中建筑，调用 ChangeStyleCommand 切换不同建筑样式，几何不变
+4. 修改高度：修改建筑 height 属性，通过 ChangePropertyCommand 执行，渲染实时更新
+5. 撤销重做：Ctrl+Z 撤销修改，Ctrl+Shift+Z 重做
+6. 模型放置：从 AssetRegistry 取一个树模型，用 PlacementTool 连续放置3个
+7. 保存加载：序列化场景为 JSON，反序列化后重新加载，所有对象完整恢复
+
+【核心校验点】
+- 全程没有任何地方直接操作 THREE.Mesh 的 position/scale 等属性
+- 所有修改都有 Command 记录，都可以撤销
+- 重新加载场景后，所有属性、样式、位置完全一致
+- 导入的建筑和手绘的建筑是同一种数据结构
+
+【任务】
+写出串联的入口代码和调用示例，标注每个环节的数据流，验证分层边界没有被突破。
+```
+
+---
+
+## 第九组：阶段二 资产库与放置增强
+> 完善资产体系和放置体验，优化性能
+
+```
+实现阶段二的模型资产库能力和放置体验增强，以及性能优化。
+
+【任务】
+1. AssetManifest 资产清单：
+- 扫描 /assets/models 目录生成 manifest.json
+- 启动时读取清单，不重复全量扫描
+- 自动生成缩略图缓存机制
+
+2. PlacementTool 增强：
+- 放置中滚轮缩放预览、R键旋转预览
+- 随机旋转、随机缩放范围配置
+- 地面吸附
+- 连续放置的 BatchCommand 合并选项（可配置是否合并为一次撤销）
+
+3. InstancedMesh 性能优化：
+- AssetRuntime 层自动合并同一资产的多个实例
+- 业务层无感知，正常操作 ModelObject，运行时自动用 InstancedMesh 渲染
+- 支持上千个树木、路灯模型不卡顿
+
+4. 图层系统完善：
+- 图层显示隐藏、锁定、透明度控制
+- 场景树层级结构
+
+【输出要求】
+所有增强功能不破坏原有架构，业务层依然不感知渲染优化。
+```
+
+---
+
+## 第十组：阶段三 绘制系统
+> 补齐点线面绘制能力，形成完整编辑器闭环
+
+```
+实现完整的绘制工具系统，严格遵循「绘制半成品不进入正式 Scene」的原则。
+
+【核心约束】
+1. 绘制过程在 DrawSession 中临时管理，完成后才通过 Command 进入正式场景
+2. 绘制模式只是相机切换到顶视图，底层还是同一个三维场景
+3. 绘制几何必须经过校验，非法多边形拦截
+
+【任务】
+1. DrawSession 绘制会话：
+- geometryType、coordinates 临时坐标、预览状态
+- addPoint/updatePreview/complete/cancel
+- complete 方法返回标准 GeometryData
+
+2. 三个绘制工具：
+- DrawPointTool：点击生成 Point 几何，对应要素放置
+- DrawLineTool：点击加点，双击结束，生成 LineString 几何，实时显示长度
+- DrawPolygonTool：点击加点，双击闭合，生成 Polygon 几何，校验自相交、最少顶点
+
+3. 绘制模式：
+- 进入绘制模式自动切换顶视图、开启网格、限制相机旋转
+- 保留透视绘制开关
+- 绘制辅助：实时显示长度、面积、顶点坐标
+- 正交锁定、45°角锁定
+
+4. 绘制流程：
+选择要素类型 -> 选择几何类型 -> 开始绘制 -> 完成几何 -> 创建 Element -> 应用默认样式 -> 生成 Command -> 进入场景
+
+【输出要求】
+所有绘制工具在 editor/tools/draw 目录下，绘制过程不污染正式场景和历史记录。
+```

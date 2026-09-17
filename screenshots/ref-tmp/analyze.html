@@ -1,0 +1,98 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>shot pixel canary</title>
+<body style="margin:0;background:#111;color:#ddd;font:12px monospace">
+<img id="src" style="display:none">
+<canvas id="cv" style="max-width:49%;vertical-align:top"></canvas>
+<pre id="out" style="display:inline-block;vertical-align:top;white-space:pre-wrap"></pre>
+<script>
+const img = document.getElementById('src');
+const imgB = document.createElement('img');
+const cv = document.getElementById('cv');
+const out = document.getElementById('out');
+const q = new URLSearchParams(location.search).get('img') || 'shot.png';
+const qB = new URLSearchParams(location.search).get('imgB');
+const diffMode = !!qB;
+if (diffMode) {
+  let da = null, db = null;
+  const tryDiff = () => {
+    if (!da || !db) return;
+    const W = da.width, H = da.height;
+    const p = new URLSearchParams(location.search);
+    const rx0 = Math.floor(W * parseFloat(p.get('rx0') ?? '0')), ry0 = Math.floor(H * parseFloat(p.get('ry0') ?? '0'));
+    const rx1 = Math.floor(W * parseFloat(p.get('rx1') ?? '1')), ry1 = Math.floor(H * parseFloat(p.get('ry1') ?? '1'));
+    const A = da.data, B = db.data;
+    let changed = 0, n = 0, maxDelta = 0, sumDelta = 0;
+    for (let y = ry0; y < ry1; y++) {
+      for (let x = rx0; x < rx1; x++) {
+        const i = (y * W + x) * 4;
+        const d = Math.abs(A[i] - B[i]) + Math.abs(A[i + 1] - B[i + 1]) + Math.abs(A[i + 2] - B[i + 2]);
+        if (d > 6) changed++;
+        if (d > maxDelta) maxDelta = d;
+        sumDelta += d;
+        n++;
+      }
+    }
+    cv.width = W; cv.height = H;
+    const ctx = cv.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    out.textContent = JSON.stringify({ imgA: q, imgB: qB, size: `${W}x${H}`, region: [rx0, ry0, rx1, ry1], changedPct: (changed / n * 100).toFixed(3), meanDelta: (sumDelta / n / 3).toFixed(2), maxDelta }, null, 1);
+  };
+  img.onload = () => {
+    const c1 = document.createElement('canvas');
+    c1.width = img.naturalWidth; c1.height = img.naturalHeight;
+    const x1 = c1.getContext('2d', { willReadFrequently: true });
+    x1.drawImage(img, 0, 0);
+    da = x1.getImageData(0, 0, c1.width, c1.height);
+    tryDiff();
+  };
+  imgB.onload = () => {
+    const c2 = document.createElement('canvas');
+    c2.width = imgB.naturalWidth; c2.height = imgB.naturalHeight;
+    const x2 = c2.getContext('2d', { willReadFrequently: true });
+    x2.drawImage(imgB, 0, 0);
+    db = x2.getImageData(0, 0, c2.width, c2.height);
+    tryDiff();
+  };
+  imgB.onerror = () => (out.textContent = 'load failed: ' + qB);
+  imgB.src = qB;
+}
+img.onerror = () => (out.textContent = 'load failed: ' + q);
+img.src = q;
+if (!diffMode) {
+img.onload = () => {
+  cv.width = img.naturalWidth; cv.height = img.naturalHeight;
+  const ctx = cv.getContext('2d', { willReadFrequently: true });
+  ctx.drawImage(img, 0, 0);
+  const { width: W, height: H } = cv;
+  const stat = (x0, y0, x1, y1) => {
+    const d = ctx.getImageData(x0, y0, x1 - x0, y1 - y0).data;
+    let n = 0, sr = 0, sg = 0, sb = 0, green = 0, brown = 0, lums = [];
+    for (let i = 0; i < d.length; i += 4) {
+      const r = d[i], g = d[i + 1], b = d[i + 2];
+      sr += r; sg += g; sb += b; n++;
+      const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      lums.push(lum);
+      if (g > r && g > b && g > 40) green++;
+      if (r > g && r > b && r > 30 && r < 200 && g > b * 0.6) brown++;
+    }
+    const mean = lums.reduce((a, b2) => a + b2, 0) / n;
+    const varr = lums.reduce((a, b2) => a + (b2 - mean) ** 2, 0) / n;
+    return { n, r: sr / n, g: sg / n, b: sb / n, greenPct: (green / n * 100).toFixed(1), brownPct: (brown / n * 100).toFixed(1), lumMean: mean.toFixed(1), lumStd: Math.sqrt(varr).toFixed(1) };
+  };
+  const R = (fx0, fy0, fx1, fy1) => stat(Math.floor(W * fx0), Math.floor(H * fy0), Math.floor(W * fx1), Math.floor(H * fy1));
+  const report = {
+    img: q, size: `${W}x${H}`,
+    full: R(0, 0, 1, 1),
+    upper_canopy: R(0.2, 0.05, 0.8, 0.45),
+    mid_band: R(0.2, 0.45, 0.8, 0.75),
+    lower_band: R(0.35, 0.75, 0.65, 1.0),
+    left_margin: R(0, 0.2, 0.15, 0.8),
+    right_margin: R(0.85, 0.2, 1, 0.8),
+  };
+  out.textContent = JSON.stringify(report, null, 1);
+};
+}
+img.onerror = () => (out.textContent = 'load failed: ' + q);
+img.src = q;
+</script>

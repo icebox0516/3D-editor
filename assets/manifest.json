@@ -1,0 +1,355 @@
+{
+  "version": "1.0",
+  "generator": "scripts/scan-assets.mjs",
+  "assets": [
+    {
+      "id": "asset_pavilion",
+      "name": "凉亭",
+      "category": "building",
+      "file": "models/building/pavilion.glb",
+      "thumbnail": "thumbnails/pavilion.svg",
+      "tags": [
+        "建筑",
+        "亭",
+        "pavilion"
+      ],
+      "defaultScale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "defaultRotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "metadata": {
+        "placeholder": true,
+        "categoryLabel": "建筑",
+        "triangles": 240,
+        "bytes": 23092
+      }
+    },
+    {
+      "id": "asset_建筑1",
+      "name": "建筑1",
+      "category": "building",
+      "file": "models/building/建筑1.glb",
+      "thumbnail": "thumbnails/建筑1.svg",
+      "tags": [
+        "建筑",
+        "建筑1"
+      ],
+      "defaultScale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "defaultRotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "metadata": {
+        "categoryLabel": "建筑",
+        "bytes": 6622320
+      }
+    },
+    {
+      "id": "asset_建筑2",
+      "name": "建筑2",
+      "category": "building",
+      "file": "models/building/建筑2.glb",
+      "thumbnail": "thumbnails/建筑2.svg",
+      "tags": [
+        "建筑",
+        "建筑2"
+      ],
+      "defaultScale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "defaultRotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "metadata": {
+        "categoryLabel": "建筑",
+        "bytes": 1850420
+      }
+    },
+    {
+      "id": "asset_建筑3",
+      "name": "建筑3",
+      "category": "building",
+      "file": "models/building/建筑3.glb",
+      "thumbnail": "thumbnails/建筑3.svg",
+      "tags": [
+        "建筑",
+        "建筑3"
+      ],
+      "defaultScale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "defaultRotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "metadata": {
+        "categoryLabel": "建筑",
+        "bytes": 1709672
+      }
+    },
+    {
+      "id": "asset_person",
+      "name": "行人",
+      "category": "character",
+      "file": "models/character/person.glb",
+      "thumbnail": "thumbnails/person.svg",
+      "tags": [
+        "人物",
+        "行人",
+        "person"
+      ],
+      "defaultScale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "defaultRotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "metadata": {
+        "placeholder": true,
+        "categoryLabel": "人物",
+        "triangles": 140,
+        "bytes": 14508
+      }
+    },
+    {
+      "id": "asset_sensor",
+      "name": "环境传感器",
+      "category": "device",
+      "file": "models/device/sensor.glb",
+      "thumbnail": "thumbnails/sensor.svg",
+      "tags": [
+        "设备",
+        "传感器",
+        "sensor"
+      ],
+      "defaultScale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "defaultRotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "metadata": {
+        "placeholder": true,
+        "categoryLabel": "设备",
+        "triangles": 148,
+        "bytes": 14420
+      }
+    },
+    {
+      "id": "asset_extinguisher",
+      "name": "灭火器",
+      "category": "fire-safety",
+      "file": "models/fire-safety/extinguisher.glb",
+      "thumbnail": "thumbnails/extinguisher.svg",
+      "tags": [
+        "消防设施",
+        "灭火器",
+        "extinguisher"
+      ],
+      "defaultScale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "defaultRotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "metadata": {
+        "placeholder": true,
+        "categoryLabel": "消防设施",
+        "triangles": 136,
+        "bytes": 13536
+      }
+    },
+    {
+      "id": "asset_tree",
+      "name": "行道树",
+      "category": "plant",
+      "file": "models/plant/tree.glb",
+      "thumbnail": "thumbnails/tree.svg",
+      "tags": [
+        "植物",
+        "树",
+        "tree"
+      ],
+      "defaultScale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "defaultRotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "metadata": {
+        "placeholder": true,
+        "categoryLabel": "植物",
+        "triangles": 64,
+        "bytes": 6996
+      }
+    },
+    {
+      "id": "asset_树1",
+      "name": "树1",
+      "category": "plant",
+      "file": "models/plant/树1.glb",
+      "thumbnail": "thumbnails/树1.svg",
+      "tags": [
+        "植物",
+        "树1"
+      ],
+      "defaultScale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "defaultRotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "metadata": {
+        "categoryLabel": "植物",
+        "bytes": 994940
+      }
+    },
+    {
+      "id": "asset_树2",
+      "name": "树2",
+      "category": "plant",
+      "file": "models/plant/树2.glb",
+      "thumbnail": "thumbnails/树2.svg",
+      "tags": [
+        "植物",
+        "树2"
+      ],
+      "defaultScale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "defaultRotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "metadata": {
+        "categoryLabel": "植物",
+        "bytes": 995664
+      }
+    },
+    {
+      "id": "asset_bench",
+      "name": "长椅",
+      "category": "public-facility",
+      "file": "models/public-facility/bench.glb",
+      "thumbnail": "thumbnails/bench.svg",
+      "tags": [
+        "公共设施",
+        "座椅",
+        "bench"
+      ],
+      "defaultScale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "defaultRotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "metadata": {
+        "placeholder": true,
+        "categoryLabel": "公共设施",
+        "triangles": 48,
+        "bytes": 6496
+      }
+    },
+    {
+      "id": "asset_streetlight",
+      "name": "路灯",
+      "category": "road-facility",
+      "file": "models/road-facility/streetlight.glb",
+      "thumbnail": "thumbnails/streetlight.svg",
+      "tags": [
+        "道路设施",
+        "灯",
+        "streetlight"
+      ],
+      "defaultScale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "defaultRotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "metadata": {
+        "placeholder": true,
+        "categoryLabel": "道路设施",
+        "triangles": 100,
+        "bytes": 10876
+      }
+    },
+    {
+      "id": "asset_car",
+      "name": "轿车",
+      "category": "vehicle",
+      "file": "models/vehicle/car.glb",
+      "thumbnail": "thumbnails/car.svg",
+      "tags": [
+        "车辆",
+        "汽车",
+        "car"
+      ],
+      "defaultScale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "defaultRotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "metadata": {
+        "placeholder": true,
+        "categoryLabel": "车辆",
+        "triangles": 184,
+        "bytes": 17736
+      }
+    }
+  ]
+}

@@ -1,0 +1,138 @@
+/**
+ * ui/styles/tokens.css —— 编辑器设计系统令牌（唯一色板/字体/间距/圆角/阴影来源）。
+ *
+ * 方向：A 暗色专业工作台 →「夜间制图台」（见 DESIGN.md）。
+ * 规则：面板/组件只引用本文件变量，禁止散落硬编码颜色与字体；
+ *      新增令牌先在此声明并在 DESIGN.md 记录语义，再在组件使用。
+ * 命名：--surface-N 表面层级（数字越大越靠近用户）/ --line-N 线 / --ink-N 文字 /
+ *      --accent-* 唯一强调色 / --sp-N 间距 / --text-* 字号 / --radius-N / --shadow-N / --dur-N。
+ */
+
+/* 字体：Archivo（工业感 grotesque，UI 正文/标签）+ IBM Plex Mono（仪表读数/坐标数值）。
+   网络不可达时回退至系统 CJK 无衬线与 Consolas/Menlo，布局不变。 */
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root {
+  color-scheme: dark;
+
+  /* ── 表面层级（石墨蓝，由深到浅）──────────────────────── */
+  --surface-0: #0f1115; /* 应用底 / 视口外框 */
+  --surface-1: #16181d; /* 面板底 */
+  --surface-2: #1c1f26; /* 面板内分组 / 输入框底 */
+  --surface-3: #232730; /* 悬停 / 抬起 */
+  --surface-4: #2b3040; /* 按压 / 激活行 */
+
+  /* ── 线（细边框优先，低饱和）─────────────────────────── */
+  --line-1: #262a33; /* hairline 分隔 */
+  --line-2: #343a47; /* 输入框边 / 强分隔 */
+  --line-3: #465066; /* 悬停边 */
+
+  /* ── 文字（对比度：ink-2 ≥ 9:1，ink-3 ≥ 4.9:1 于 surface-1）── */
+  --ink-1: #e6e9ef;
+  --ink-2: #b4bac6;
+  --ink-3: #7f879a; /* 标签 / 单位 / 占位 */
+  --ink-disabled: #4f5665;
+  --ink-inverse: #0f1115;
+
+  /* ── 唯一强调色：琥珀（工作灯）──────────────────────── */
+  --accent: #e8a33d;
+  --accent-hover: #f2b654;
+  --accent-active: #d18f2a;
+  --accent-ink: #1b1305; /* 强调底上的文字 */
+  --accent-soft: rgba(232, 163, 61, 0.14);
+  --accent-soft-strong: rgba(232, 163, 61, 0.26);
+  --accent-line: rgba(232, 163, 61, 0.55);
+  --accent-glow: 0 0 0 1px var(--accent), 0 0 0 4px rgba(232, 163, 61, 0.18);
+
+  /* ── 状态色（低饱和，仅极少量提示）──────────────────── */
+  --danger: #d9534f;
+  --danger-soft: rgba(217, 83, 79, 0.16);
+  --success: #5faf7a;
+  --success-soft: rgba(95, 175, 122, 0.16);
+  --warning: var(--accent);
+
+  /* ── 工作模式专属色（T7.1；T10.2 增 measure 第七枚）：低饱和功能色，与琥珀同一
+     明度/饱和带。仅用于模式徽标/引导卡的圆点、描边与文字（≤12px 色量），不作大面积
+     填充、不侵犯「琥珀 = 正在操作」语义；语义登记见 DESIGN.md §2。
+     --mode-measure 同时是测量覆盖层 WebGL 用色的 CSS 侧对照（§5.22 单一对照源，
+     色值须与琥珀参考线 #e8a33d、足迹幽灵蓝 #4ec9ff 三方可区分）。 */
+  --mode-scene: var(--accent);      /* 场景：琥珀（基准工作灯） */
+  --mode-build: #d98d6a;            /* 建造：赤陶 */
+  --mode-road: #7ea6c9;             /* 道路：钢蓝 */
+  --mode-terrain: #74ad8a;          /* 地形：苔绿 */
+  --mode-decoration: #6db8ab;       /* 装饰：青碧 */
+  --mode-annotation: #c98ba6;       /* 标注：绯玫 */
+  --mode-measure: #ab9ee6;          /* 测量：藤紫（T10.2；覆盖层对照色 0xab9ee6） */
+
+  /* ── 字体 ──────────────────────────────────────────── */
+  --font-ui: 'Archivo', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Cascadia Mono', 'Consolas', 'Menlo', 'SF Mono', monospace;
+
+  --text-2xs: 10px;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-md: 13px;
+  --text-lg: 15px;
+  --text-xl: 18px;
+
+  --leading-tight: 1.2;
+  --leading: 1.45;
+  --tracking-caps: 0.08em; /* 小型大写分组标题 */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  /* ── 间距（2px 基准网格，高密度）───────────────────── */
+  --sp-1: 2px;
+  --sp-2: 4px;
+  --sp-3: 6px;
+  --sp-4: 8px;
+  --sp-5: 12px;
+  --sp-6: 16px;
+  --sp-7: 24px;
+  --sp-8: 32px;
+
+  /* ── 尺寸 ──────────────────────────────────────────── */
+  --control-h: 24px; /* 输入框 / 按钮标准高 */
+  --control-h-lg: 28px;
+  --row-h: 26px; /* 列表行 */
+  --toolbar-h: 38px; /* 旧单条工具条（留存兼容；顶部两段已由下方令牌接替） */
+  --menubar-h: 32px; /* T5.1 四区一层：主菜单条行高 */
+  --contextbar-h: 34px; /* 上下文工具条行高（T5.6 填充） */
+  --vtool-w: 48px; /* 左侧垂直工具条常驻宽（48–56 固定，取 48；T5.6 填充） */
+  --panel-w-left: 260px; /* 左面板列默认宽（可拖 180–420；覆盖旧 232px，需求 §四） */
+  --panel-w-right: 320px; /* 右面板列默认宽（可拖 240–480；覆盖旧 288px） */
+  --browser-h-compact: 60px; /* 底部浏览器紧凑高（= 钳制下界） */
+  --browser-h-expanded: 280px; /* 底部浏览器展开目标高（T5.5 内容浏览器） */
+  --statusbar-h: 22px;
+
+  /* ── 圆角（技术感：锐利）──────────────────────────── */
+  --radius-1: 2px;
+  --radius-2: 3px;
+  --radius-3: 5px;
+
+  /* ── 阴影 / 高光 ─────────────────────────────────── */
+  --shadow-1: 0 1px 0 rgba(0, 0, 0, 0.45);
+  --shadow-2: 0 6px 18px rgba(0, 0, 0, 0.5);
+  --highlight-top: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  --inset-field: inset 0 1px 2px rgba(0, 0, 0, 0.45);
+
+  /* ── 纹理：制图台细斜纹（仅用于应用底与页头，不进内容区）── */
+  --texture-hatch: repeating-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.018) 0 1px,
+    transparent 1px 7px
+  );
+
+  /* ── 动效 ──────────────────────────────────────────── */
+  --dur-1: 80ms;
+  --dur-2: 160ms;
+  --dur-3: 280ms;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  /* ── 层级 ──────────────────────────────────────────── */
+  --z-panel: 10;
+  --z-hud: 20;
+  --z-popover: 100;
+  --z-toast: 1000;
+}

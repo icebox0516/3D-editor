@@ -1,0 +1,15 @@
+{
+  "version": "2.0",
+  "rootArray": "data.buildings",
+  "semanticType": "building",
+  "geometry": {
+    "path": "footprint",
+    "format": "xy-array",
+    "shape": "polygon"
+  },
+  "fields": {
+    "name": "name",
+    "height": "floors*3"
+  },
+  "defaults": {}
+}

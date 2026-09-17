@@ -1,0 +1,3988 @@
+/**
+ * ui/styles/app.css —— 编辑器外壳与组件样式（仅引用 tokens.css 变量，禁止硬编码色/字）。
+ *
+ * 结构：重置 → 应用网格 → 工具条 → 按钮/键帽 → 面板/分组/字段/输入 → 资产列表 → 视口/HUD → 动效。
+ * 约定：类名 ed- 前缀（BEM 风格 block__element--modifier），见 DESIGN.md §5。
+ */
+
+/* ── 重置 ─────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--surface-0);
+  color: var(--ink-1);
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  line-height: var(--leading);
+  font-weight: var(--weight-regular);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow: hidden;
+  user-select: none;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--surface-4);
+  border: 2px solid var(--surface-1);
+  border-radius: var(--radius-3);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ── 应用网格（T5.1 四区一层 + 边缘垂直工具条）：菜单条 / 上下文条 / 主行（垂直条+左右面板+视口）/
+      底部浏览器行 / 状态栏。面板隐藏 = 该列/行宽高归零（--zone-* 内联变量，App 注入），
+      视口 1fr 自动扩展不留空白（需求 §四）；显隐过渡 --dur-2，拖宽期间经 body.ed-dragging 关闭 ── */
+.ed-app {
+  height: 100vh;
+  display: grid;
+  grid-template-rows:
+    var(--menubar-h)
+    var(--contextbar-h)
+    minmax(0, 1fr)
+    var(--zone-bottom-h, var(--browser-h-compact))
+    var(--statusbar-h);
+  grid-template-columns:
+    var(--vtool-w)
+    var(--zone-left-w, var(--panel-w-left))
+    minmax(0, 1fr)
+    var(--zone-right-w, var(--panel-w-right));
+  grid-template-areas:
+    'menubar menubar menubar menubar'
+    'contextbar contextbar contextbar contextbar'
+    'vtool left viewport right'
+    'browser browser browser browser'
+    'statusbar statusbar statusbar statusbar';
+  transition:
+    grid-template-rows var(--dur-2) var(--ease),
+    grid-template-columns var(--dur-2) var(--ease);
+  background-color: var(--surface-0);
+  background-image: var(--texture-hatch);
+}
+
+/* ── T7.4 纯三维模式：App 装配层在 pure3d 时内联覆写 vtool/contextbar/statusbar
+      三 token 为 0px 并挂本类（面板区三 --zone-* 变量同路归零）。归零槽内工具条补
+      overflow:hidden 防内容溢出残留（.ed-side 已有同款）；border 归零防 1px 分隔线
+      在 0px 槽内残留（box-sizing:border-box 下 0 高 + 1px 边框仍渲染约 1px）。
+      进入/退出沿 .ed-app 既有 --dur-2(160ms) 网格过渡；退出方向过渡期短暂内容
+      溢出可接受（T7.8 GUI 像素复核） ── */
+.ed-app--pure3d .ed-vtool,
+.ed-app--pure3d .ed-contextbar,
+.ed-app--pure3d .ed-statusbar {
+  overflow: hidden;
+  border: 0;
+}
+
+/* ── 上下文工具条（--contextbar-h）：T5.6 ContextToolbar 入驻左段（QWER + 吸附/网格 +
+      绘制中段 + 模式徽标/Scene 选择器）+ 视图按钮（T5.7 HUD 收编前临时归宿）+
+      右端三个区域显隐开关 ── */
+.ed-contextbar {
+  grid-area: contextbar;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: 0 var(--sp-4);
+  background-color: var(--surface-1);
+  border-bottom: 1px solid var(--line-1);
+  z-index: var(--z-panel);
+}
+.ed-contextbar__group {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.ed-contextbar__group + .ed-contextbar__group {
+  padding-left: var(--sp-4);
+  border-left: 1px solid var(--line-1);
+}
+.ed-contextbar__end {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.ed-zone-toggle {
+  height: var(--control-h);
+  padding: 0 var(--sp-4);
+  display: inline-flex;
+  align-items: center;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-2);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-caps);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease);
+}
+.ed-zone-toggle:hover {
+  background: var(--surface-3);
+  border-color: var(--line-3);
+  color: var(--ink-1);
+}
+.ed-zone-toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+/* 面板组已隐藏：透明底 + 禁用档文字（“熄灭”读数，非琥珀——隐藏不是被操作） */
+.ed-zone-toggle--hidden {
+  background: transparent;
+  border-color: var(--line-1);
+  color: var(--ink-disabled);
+}
+.ed-zone-toggle--hidden:hover {
+  background: var(--surface-2);
+  color: var(--ink-3);
+}
+
+/* ── Context Toolbar（T5.6）：QWER 组 + 吸附/网格 toggle + 绘制中段 + 模式徽标/Scene 选择器 ── */
+.ed-ctx {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
+.ed-ctx__group {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+.ed-ctx__group + .ed-ctx__group {
+  padding-left: var(--sp-4);
+  border-left: 1px solid var(--line-1);
+}
+.ed-ctx__btn {
+  height: var(--control-h);
+  padding: 0 var(--sp-2);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  background: transparent;
+  color: var(--ink-2);
+  border: none;
+  border-radius: var(--radius-2);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease);
+}
+.ed-ctx__btn:hover:not(:disabled) {
+  background: var(--surface-3);
+  color: var(--ink-1);
+}
+.ed-ctx__btn:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+.ed-ctx__btn:disabled {
+  color: var(--ink-disabled);
+  cursor: default;
+}
+/* QWER 激活 = 正在使用的工具（琥珀 soft 底 + 琥珀字） */
+.ed-ctx__btn--active,
+.ed-ctx__btn--active:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+/* toggle 开启位（吸附/网格）：与激活同语义 */
+.ed-ctx__toggle--on,
+.ed-ctx__toggle--on:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+/* 绘制上下文中段：要素/几何芯片（复用 .ed-chip）+ 完成提示 + 退出 */
+.ed-ctx__draw {
+  gap: var(--sp-3);
+  min-width: 0;
+  overflow: hidden;
+}
+.ed-ctx__switch {
+  display: inline-flex;
+  gap: var(--sp-2);
+  flex: none;
+}
+.ed-ctx__chip {
+  height: 18px;
+  padding: 0 var(--sp-3);
+}
+.ed-ctx__draw-hint {
+  font-size: var(--text-2xs);
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ed-ctx__exit {
+  flex: none;
+  color: var(--ink-3);
+}
+.ed-ctx__exit:hover:not(:disabled) {
+  color: var(--ink-1);
+}
+/* 测量态中段（阶段 10 T10.2，DESIGN §5.22）：条目计数等宽读数（删除/清除按钮可用态旁证） */
+.ed-ctx__measure-count {
+  flex: none;
+  font-size: var(--text-2xs);
+  color: var(--ink-3);
+}
+/* 右段：模式徽标（琥珀描边芯片，T5.7 HUD 数据就绪）+ Scene ▼ 选择器 */
+.ed-ctx__end {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.ed-ctx__mode-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--radius-1);
+  color: var(--accent);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-caps);
+  white-space: nowrap;
+}
+.ed-ctx__mode-btn--open,
+.ed-ctx__mode-btn--open:hover {
+  background: var(--surface-3);
+  color: var(--accent);
+}
+.ed-ctx__caret--open {
+  transform: rotate(180deg);
+  transition: transform var(--dur-1) var(--ease);
+}
+/* 模式徽标专属色（T7.1）：--mode-accent 由组件按模式令牌注入（--mode-scene 等）；
+   色量克制（6px 圆点 + 文字/描边），不作大面积填充 */
+.ed-ctx__mode-badge {
+  color: var(--mode-accent, var(--accent));
+  border-color: color-mix(in srgb, var(--mode-accent, var(--accent)) 55%, transparent);
+}
+.ed-ctx__mode-dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--mode-accent, var(--accent));
+}
+/* 无选中时中段模式引导芯片（T7.1 联动 1）：低调一行，不抢 QWER 组 */
+.ed-ctx__guide {
+  min-width: 0;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: 18px;
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-1);
+  font-size: var(--text-2xs);
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.ed-ctx__guide-dot {
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--mode-accent, var(--accent));
+}
+.ed-ctx__guide-hint {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── 上下文工具矩阵（T7.1 门 Q4 + T7.6 占位转正）：动作钮 / 步进器 ── */
+.ed-ctx__actions {
+  gap: var(--sp-2);
+  min-width: 0;
+  overflow: hidden;
+}
+.ed-ctx__stepper {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  height: var(--control-h);
+  padding: 0 var(--sp-2);
+  background: var(--surface-2);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-2);
+}
+.ed-ctx__stepper-label {
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.ed-ctx__stepper-btn {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-1);
+  color: var(--ink-2);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease);
+}
+.ed-ctx__stepper-btn:hover:not(:disabled) {
+  background: var(--surface-4);
+  color: var(--ink-1);
+}
+.ed-ctx__stepper-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+.ed-ctx__stepper-btn:disabled {
+  color: var(--ink-disabled);
+  cursor: default;
+}
+/* 步进器读数：等宽 tabular（改值不抖动）+ 单位 ink-3 */
+.ed-ctx__stepper-value {
+  min-width: 3em;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-xs);
+  color: var(--ink-1);
+}
+.ed-ctx__stepper-unit {
+  font-size: var(--text-2xs);
+  color: var(--ink-3);
+}
+
+/* ── 对齐弹层 / 阵列 popover（T7.6，复用 .ed-menu 弹层原语） ── */
+.ed-ctx__action-menu {
+  flex: none;
+}
+.ed-ctx__align-popup {
+  min-width: 148px;
+}
+/* 阵列 popover：字段行（标签 + 控件）+ 方向芯片 4×2 网格 + 底部确认条 */
+.ed-ctx__array-popover {
+  min-width: 240px;
+  padding: var(--sp-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.ed-ctx__field {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.ed-ctx__field-label {
+  flex: none;
+  width: 3em;
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+}
+.ed-ctx__field-value {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+.ed-ctx__field-value .ed-input {
+  width: 6.5em;
+  height: 22px;
+  padding: 0 var(--sp-2);
+  font-size: var(--text-xs);
+}
+.ed-ctx__dir-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--sp-1);
+  flex: 1;
+  min-width: 0;
+}
+.ed-ctx__dir-chip {
+  height: 20px;
+  padding: 0 var(--sp-2);
+  justify-content: center;
+}
+.ed-ctx__array-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  border-top: 1px solid var(--line-1);
+  padding-top: var(--sp-2);
+}
+.ed-ctx__array-actions {
+  display: inline-flex;
+  gap: var(--sp-2);
+}
+
+/* ── 左侧垂直工具条（T5.6 填充）：48px 列六绘制入口（40×40 图标按钮）──
+   T9.1：不参与 panel 档 z（z auto）——列内 tooltip 保留纯 CSS 贴靠方案（不逃逸），
+   去 z 解除层叠陷阱使 tooltip 的 --z-popover 直达根层（网格分格互不重叠，
+   去 z 无视觉变化；flyout/抽屉弹层经根浮层容器逃逸，不依赖本列 z） */
+.ed-vtool {
+  grid-area: vtool;
+  min-width: 0;
+  background-color: var(--surface-1);
+  border-right: 1px solid var(--line-1);
+}
+.ed-vtool__items {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3) 0;
+}
+.ed-vtool__btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--ink-2);
+  border: none;
+  border-radius: var(--radius-2);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease);
+}
+.ed-vtool__btn:hover:not(:disabled) {
+  background: var(--surface-3);
+  color: var(--ink-1);
+}
+.ed-vtool__btn:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+.ed-vtool__btn:disabled {
+  color: var(--ink-disabled);
+  cursor: default;
+}
+/* 激活态：琥珀左缘竖线（贴 48px 列左缘）+ soft 底（沿面板「正在操作」语言） */
+.ed-vtool__btn--active,
+.ed-vtool__btn--active:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.ed-vtool__btn--active::before {
+  content: '';
+  position: absolute;
+  left: -4px; /* 贴齐 48px 列左缘（40px 钮居中，两侧各余 4px） */
+  top: 7px;
+  bottom: 7px;
+  width: 2px;
+  background: var(--accent);
+  border-radius: 1px;
+}
+
+/* ── 区域组分裂按钮（T6.5）：主钮（记忆子工具）+ 角标展开五子工具下拉 ──────
+   48px 列内不放横向并排钮：chevron 角标绝对定位于主钮右下角（flyout 通行惯例），
+   主钮保持 40×40 触达；下拉弹层自列右缘向右展开（复用 .ed-menu__popup 原语） */
+.ed-vtool__split {
+  position: relative;
+}
+.ed-vtool__chevron {
+  position: absolute;
+  right: -2px; /* 贴主钮右下角（40px 钮居中于 48px 列，右侧余 4px） */
+  bottom: -2px;
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-2);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-1);
+  color: var(--ink-3);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease),
+    transform var(--dur-1) var(--ease);
+}
+.ed-vtool__chevron:hover:not(:disabled),
+.ed-vtool__chevron--open {
+  background: var(--surface-4);
+  color: var(--ink-1);
+}
+.ed-vtool__chevron--open {
+  color: var(--accent); /* 展开态 = 正在操作（琥珀，与菜单展开同语义） */
+  transform: rotate(180deg);
+}
+.ed-vtool__chevron:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+.ed-vtool__menu {
+  /* T9.1：弹层经根浮层容器挂载，贴锚定位（列右缘外 4px / 顶对锚顶）由组件计算 */
+  min-width: 176px;
+}
+
+/* ── 模式置顶分组 +「更多」抽屉（T7.1 联动 3）：本模式组外工具折叠，抽屉内可激活 ── */
+.ed-vtool__drawer {
+  position: relative; /* 抽屉弹层锚点 */
+}
+.ed-vtool__drawer-btn {
+  width: 40px;
+  height: 28px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-2);
+  color: var(--ink-3);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease);
+}
+.ed-vtool__drawer-btn:hover:not(:disabled),
+.ed-vtool__drawer-btn:focus-visible {
+  background: var(--surface-3);
+  color: var(--ink-1);
+  outline: none;
+}
+.ed-vtool__drawer-btn--open {
+  background: var(--surface-3);
+  color: var(--ink-1);
+}
+.ed-vtool__drawer-label {
+  font-size: 9px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+}
+.ed-vtool__drawer-menu {
+  /* T9.1：同 .ed-vtool__menu——根浮层容器挂载，贴锚定位由组件计算 */
+  min-width: 208px;
+}
+
+/* ── 三步流类型/样式快选（T6.5）：Context Toolbar 内嵌段（类型芯片 + 预设色样条）── */
+.ed-qa {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  overflow: hidden;
+}
+.ed-qa__label {
+  flex: none;
+  color: var(--ink-3);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-caps);
+}
+.ed-qa__chips,
+.ed-qa__presets {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  min-width: 0;
+  overflow-x: auto; /* 长条横向滚动，不撑破上下文条 */
+  scrollbar-width: none;
+}
+.ed-qa__chips::-webkit-scrollbar,
+.ed-qa__presets::-webkit-scrollbar {
+  display: none;
+}
+.ed-qa__chip {
+  height: 18px;
+  flex: none;
+  padding: 0 var(--sp-2);
+}
+/* 暂存态（已点未应用）：琥珀描边 + soft 底——「正在被操作」但未提交 */
+.ed-qa__chip--staged,
+.ed-qa__chip--staged:hover {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.ed-qa__chip--more {
+  gap: 2px;
+  color: var(--ink-3);
+}
+/* 预设色样快选钮：色样块 + 名称（紧凑读条） */
+.ed-qa__preset {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex: none;
+  height: 20px;
+  padding: 0 var(--sp-2);
+  background: var(--surface-2);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-2);
+  color: var(--ink-2);
+  font-size: var(--text-2xs);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease);
+}
+.ed-qa__preset:hover {
+  background: var(--surface-3);
+  border-color: var(--line-3);
+  color: var(--ink-1);
+}
+.ed-qa__preset:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+.ed-qa__preset:active {
+  background: var(--accent-soft-strong); /* 点按即一步应用（主动作瞬时琥珀） */
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+.ed-qa__swatch {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  border-radius: var(--radius-1);
+  background: var(--surface-4); /* 无色样参数的熄灭占位 */
+  box-shadow: inset 0 0 0 1px var(--line-3);
+}
+.ed-qa__preset-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Tooltip（T5.6）：hover/focus 延迟提示浮层（延迟由组件定时器控制 ≤300ms）── */
+.ed-tooltip__host {
+  position: relative;
+  display: inline-flex;
+}
+.ed-tooltip {
+  position: absolute;
+  z-index: var(--z-popover);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  padding: var(--sp-2) var(--sp-3);
+  background-color: var(--surface-2);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-2);
+  box-shadow: var(--shadow-2);
+  color: var(--ink-1);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+  pointer-events: none;
+  animation: ed-tooltip-in var(--dur-2) var(--ease) both;
+}
+.ed-tooltip__label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-weight: var(--weight-medium);
+}
+.ed-tooltip__hint {
+  font-size: var(--text-2xs);
+  color: var(--ink-3);
+  max-width: 220px;
+  white-space: normal;
+}
+/* 贴靠方向（缺省 right：垂直条右侧；contextbar 用 bottom） */
+.ed-tooltip__host--right .ed-tooltip {
+  left: calc(100% + var(--sp-4));
+  top: 50%;
+  transform: translateY(-50%);
+}
+.ed-tooltip__host--bottom .ed-tooltip {
+  top: calc(100% + var(--sp-2));
+  left: 50%;
+  transform: translateX(-50%);
+}
+.ed-tooltip__host--top .ed-tooltip {
+  bottom: calc(100% + var(--sp-2));
+  left: 50%;
+  transform: translateX(-50%);
+}
+.ed-tooltip__host--left .ed-tooltip {
+  right: calc(100% + var(--sp-4));
+  top: 50%;
+  transform: translateY(-50%);
+}
+@keyframes ed-tooltip-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ── 主菜单条（T5.2：七菜单 + 右侧常驻撤销/重做/保存/状态点 + 提示条）── */
+.ed-menubar {
+  grid-area: menubar;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 0 var(--sp-5);
+  background-color: var(--surface-1);
+  background-image: var(--texture-hatch);
+  border-bottom: 1px solid var(--line-1);
+  box-shadow: var(--highlight-top);
+  z-index: var(--z-panel);
+}
+
+.ed-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-right: var(--sp-5);
+  padding-right: var(--sp-5);
+  border-right: 1px solid var(--line-1);
+  height: 100%;
+}
+.ed-brand__mark {
+  width: 9px;
+  height: 9px;
+  background: var(--accent);
+  border-radius: 1px;
+  transform: rotate(45deg);
+  box-shadow: 0 0 10px var(--accent-line);
+}
+.ed-brand__name {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.ed-brand__tag {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+  padding-top: 2px;
+}
+
+/* ── 菜单条导航与弹层（T5.2）：顶层按钮 / 下拉菜单 / 菜单项 / 勾选位 / 键帽 ── */
+.ed-menubar__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+.ed-menubar__spacer {
+  flex: 1;
+}
+.ed-menubar__end {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+.ed-menubar__group {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding-left: var(--sp-3);
+  border-left: 1px solid var(--line-1);
+}
+
+.ed-menu {
+  position: relative; /* 弹层定位锚 */
+}
+.ed-menu__btn {
+  height: var(--menubar-h);
+  padding: 0 var(--sp-4);
+  display: inline-flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  color: var(--ink-2);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease);
+}
+.ed-menu__btn:hover {
+  background: var(--surface-3);
+  color: var(--ink-1);
+}
+.ed-menu__btn:focus-visible {
+  outline: none;
+  box-shadow: inset var(--accent-glow);
+}
+/* 展开态：琥珀文字 = 正在操作（与「激活工具」同一强调语义，不用大面积填充） */
+.ed-menu__btn--open,
+.ed-menu__btn--open:hover {
+  background: var(--surface-3);
+  color: var(--accent);
+}
+
+.ed-menu__popup {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 208px;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: var(--sp-2) 0;
+  background-color: var(--surface-1);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-2);
+  box-shadow: var(--shadow-2), var(--highlight-top);
+  z-index: var(--z-popover);
+  animation: ed-rise var(--dur-1) var(--ease) both;
+}
+.ed-menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  min-height: 24px;
+  padding: 0 var(--sp-4) 0 var(--sp-2);
+  background: transparent;
+  border: none;
+  color: var(--ink-1);
+  font-size: var(--text-xs);
+  line-height: 1;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.ed-menu__item:hover,
+.ed-menu__item:focus-visible {
+  background: var(--surface-3);
+  outline: none;
+}
+/* 当前位（下拉内的现行项，T6.5 垂直条区域子工具）：soft 底 + 主文，勾选位仍琥珀 */
+.ed-menu__item--current,
+.ed-menu__item--current:hover {
+  background: var(--accent-soft);
+  color: var(--ink-1);
+}
+.ed-menu__item:focus-visible {
+  box-shadow: inset var(--accent-glow);
+}
+.ed-menu__check {
+  flex: none;
+  width: var(--sp-5);
+  text-align: center;
+  font-size: var(--text-xs);
+  color: var(--accent); /* 勾选 = 生效中（琥珀唯一强调） */
+}
+.ed-menu__label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ed-menu__item .ed-kbd {
+  flex: none;
+  margin-left: var(--sp-5);
+}
+/* 禁用占位项：灰显可见不隐藏（需求 §39）；hover 仅微亮提示可读 */
+.ed-menu__item--disabled {
+  color: var(--ink-disabled);
+  cursor: default;
+}
+.ed-menu__item--disabled .ed-menu__check {
+  color: var(--ink-disabled);
+}
+.ed-menu__item--disabled .ed-kbd {
+  color: var(--ink-disabled);
+  border-color: var(--line-1);
+}
+.ed-menu__item--disabled:hover,
+.ed-menu__item--disabled:focus-visible {
+  background: transparent;
+  box-shadow: none;
+}
+/* 破坏性操作（删除）：danger 色文字 */
+.ed-menu__item--danger .ed-menu__label {
+  color: var(--danger);
+}
+.ed-menu__sep {
+  height: 1px;
+  margin: var(--sp-2) var(--sp-4);
+  background: var(--line-1);
+}
+
+/* ── 主菜单子菜单（T7.1「视图 → 工作模式」）：子弹层经 AnchoredPopup portal 至根浮层
+   容器（T9.1），贴锚展开（锚右缘外 4px、顶上移 4px 抵消弹层 padding）不再被父弹层
+   max-height/overflow 滚动容器裁剪；外观复用 .ed-menu__popup 原语，.ed-menu__sub
+   仅作语义标记（无专属样式） ── */
+.ed-menu__item-wrap {
+  position: relative;
+}
+.ed-menu__caret {
+  flex: none;
+  margin-left: var(--sp-3);
+  font-size: var(--text-2xs);
+  color: var(--ink-3);
+}
+
+/* ── 右键上下文菜单（T5.8）：复用 .ed-menu__popup/__item 原语，fixed 定位 + 子菜单 ── */
+.ed-context__popup {
+  position: fixed; /* 右键点按坐标为 client 像素；越界翻转/收边由组件测量计算 */
+  top: auto;
+  left: auto;
+}
+.ed-context__expand {
+  flex: none;
+  margin-left: var(--sp-3);
+  font-size: var(--text-2xs);
+  color: var(--ink-3);
+}
+.ed-context__sub {
+  position: fixed; /* 子菜单同系 fixed（右缘翻转由组件计算，不随父滚动裁切） */
+}
+
+/* ── 根浮层容器（T9.1 层叠治理）：弹层逃逸宿主层叠上下文的统一挂载点 ──
+   App 根部渲染（ContextMenu / sceneDialogs / Toasts 之前，同档 z 之下让位后者）；
+   fixed 全屏铺位不参与 .ed-app 网格布局；pointer-events 透穿不拦截下层交互，
+   直属子元素（各 AnchoredPopup / 弹层）单独放开；z 取 --z-popover（弹层档）。
+   硬规则：带 z-index 的 grid/flex 工具条容器内禁止渲染弹层——一律经此容器逃逸。 */
+.ed-popup-root {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-popover);
+  pointer-events: none;
+}
+.ed-popup-root > * {
+  pointer-events: auto;
+}
+
+/* ── 保存状态点（右侧常驻）：四态着色 + 等宽小字读数 ── */
+.ed-savestate {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 0 var(--sp-2);
+  font-size: var(--text-2xs);
+  color: var(--ink-3);
+  letter-spacing: var(--tracking-caps);
+  white-space: nowrap;
+}
+.ed-savestate__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink-3);
+}
+.ed-savestate--saved {
+  color: var(--ink-3);
+}
+.ed-savestate--saved .ed-savestate__dot {
+  background: var(--success);
+}
+.ed-savestate--saving {
+  color: var(--accent);
+}
+.ed-savestate--saving .ed-savestate__dot {
+  background: var(--accent);
+  animation: ed-pulse 1s var(--ease) infinite;
+}
+.ed-savestate--dirty .ed-savestate__dot {
+  background: var(--ink-3);
+}
+.ed-savestate--error {
+  color: var(--danger);
+}
+.ed-savestate--error .ed-savestate__dot {
+  background: var(--danger);
+}
+
+/* ── 帮助弹层（快捷键表 / 关于）：scrim + 对话框（零新增令牌，surface 遮罩）── */
+.ed-dialog__scrim {
+  position: fixed;
+  inset: 0;
+  background: var(--surface-0);
+  opacity: 0.55;
+  z-index: var(--z-popover);
+}
+.ed-dialog {
+  position: fixed;
+  top: 18vh;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(440px, calc(100vw - 48px));
+  max-height: 64vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--surface-1);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-3);
+  box-shadow: var(--shadow-2), var(--highlight-top);
+  z-index: calc(var(--z-popover) + 1);
+  animation: ed-rise var(--dur-2) var(--ease) both;
+}
+.ed-dialog__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--line-1);
+}
+.ed-dialog__title {
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.ed-dialog__body {
+  padding: var(--sp-5);
+  overflow-y: auto;
+}
+
+/* 快捷键表：分组标题 + 行（左说明右键帽，等宽对齐） */
+.ed-shortcuts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+.ed-shortcuts__group-title {
+  margin-bottom: var(--sp-2);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.ed-shortcuts__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-5);
+  min-height: 22px;
+}
+.ed-shortcuts__label {
+  font-size: var(--text-xs);
+  color: var(--ink-1);
+}
+
+/* 关于：产品名 + 事实表 + 说明 */
+.ed-about__name {
+  margin-bottom: var(--sp-4);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+}
+.ed-about__facts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin: 0 0 var(--sp-4);
+}
+.ed-about__desc {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+/* ── Toast 浮层（T5.8；.ed-notice 顶部提示条退役——见 DESIGN.md §5.11 退役登记）── */
+.ed-toasts {
+  position: fixed;
+  right: var(--sp-5);
+  bottom: calc(var(--statusbar-h) + var(--sp-5));
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  z-index: var(--z-toast);
+  pointer-events: none; /* 容器透穿，不遮挡视口；条目单独放开 */
+  max-width: min(46ch, 60vw);
+}
+.ed-toast {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4) var(--sp-3) var(--sp-5);
+  background-color: var(--surface-1);
+  border: 1px solid var(--line-2);
+  border-left: 2px solid var(--accent);
+  border-radius: var(--radius-2);
+  box-shadow: var(--shadow-2), var(--highlight-top);
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+  pointer-events: auto; /* 手动关闭可达 */
+  animation: ed-rise var(--dur-2) var(--ease) both;
+}
+.ed-toast--error {
+  border-left-color: var(--danger);
+  color: var(--ink-1);
+}
+.ed-toast__text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ed-toast__close {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-1);
+  color: var(--ink-3);
+  font-size: var(--text-sm);
+  line-height: 1;
+  cursor: pointer;
+}
+.ed-toast__close:hover {
+  background: var(--surface-3);
+  color: var(--ink-1);
+}
+
+/* ── 按钮 / 键帽 ─────────────────────────────────────── */
+.ed-btn {
+  height: var(--control-h);
+  padding: 0 var(--sp-4);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  background: var(--surface-2);
+  color: var(--ink-1);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-2);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease);
+}
+.ed-btn:hover {
+  background: var(--surface-3);
+  border-color: var(--line-3);
+}
+.ed-btn:active {
+  background: var(--surface-4);
+}
+.ed-btn:disabled {
+  color: var(--ink-disabled);
+  border-color: var(--line-1);
+  background: transparent;
+  cursor: default;
+}
+.ed-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+.ed-btn--primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: transparent;
+}
+.ed-btn--primary:hover {
+  background: var(--accent-hover);
+  border-color: transparent;
+}
+.ed-btn--primary:active {
+  background: var(--accent-active);
+}
+.ed-btn--ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-2);
+}
+.ed-btn--ghost:hover {
+  background: var(--surface-3);
+  color: var(--ink-1);
+}
+/* 顶点编辑中激活态（T6.8）：琥珀软底 + 描边——「正在被操作」语义与视口句柄配色一致 */
+.ed-btn--ghost-active {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+.ed-btn--ghost-active:hover {
+  background: var(--accent-soft-strong);
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+
+.ed-kbd {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  line-height: 14px;
+  color: var(--ink-3);
+  padding: 0 var(--sp-1);
+  border: 1px solid var(--line-2);
+  border-bottom-width: 2px;
+  border-radius: var(--radius-1);
+  background: var(--surface-1);
+}
+.ed-btn:disabled .ed-kbd {
+  color: var(--ink-disabled);
+  border-color: var(--line-1);
+}
+
+.ed-hidden {
+  display: none;
+}
+
+/* ── 面板 ─────────────────────────────────────────────── */
+.ed-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  background: var(--surface-1);
+  overflow: hidden;
+  z-index: var(--z-panel);
+}
+/* ── 区域容器（T5.1 四区一层）：左右列 / 底部行为可隐藏网格槽。
+   宽/高由 --zone-* 内联变量驱动（隐藏 = 0px），overflow:hidden 保证收起无残留；
+   布局 = [面板纵列 __panels] + [Splitter 拖柄]（左列拖柄在右缘，右列在左缘，底行在上缘）── */
+.ed-side {
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--surface-1);
+}
+.ed-side--left {
+  grid-area: left;
+  flex-direction: row;
+}
+.ed-side--right {
+  grid-area: right;
+  flex-direction: row;
+}
+.ed-side--bottom {
+  grid-area: browser;
+  flex-direction: column;
+}
+.ed-side__panels {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── PanelFrame：统一面板壳（T5.1）──────────────────
+   视觉沿 .ed-panel（同挂两类）；此处只补折叠与区域隐藏行为 */
+.ed-frame__head {
+  gap: var(--sp-3);
+}
+.ed-frame__toggle {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--sp-2);
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: color var(--dur-1) var(--ease);
+}
+.ed-frame__toggle:hover {
+  color: var(--ink-1);
+}
+.ed-frame__toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+  border-radius: var(--radius-1);
+}
+.ed-frame__caret {
+  font-size: 8px;
+  line-height: 1;
+  color: var(--ink-3);
+  transition: transform var(--dur-1) var(--ease);
+}
+.ed-frame--collapsed .ed-frame__caret {
+  transform: rotate(-90deg);
+}
+.ed-frame__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ed-frame__hide {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-1);
+  color: var(--ink-3);
+  font-size: var(--text-md);
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color var(--dur-1) var(--ease),
+    background-color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease);
+}
+.ed-frame__hide:hover {
+  color: var(--ink-1);
+  background: var(--surface-3);
+  border-color: var(--line-2);
+}
+.ed-frame__hide:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+.ed-frame__content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  animation: ed-rise var(--dur-2) var(--ease); /* 展开时 160ms 柔和浮现（折叠瞬时收起） */
+}
+/* 折叠收成 28px 标题条：内容挂起（保留滚动位置 / 草稿，不卸载） */
+.ed-frame--collapsed .ed-frame__content {
+  display: none;
+}
+.ed-frame--collapsed .ed-panel__title {
+  border-bottom: none;
+}
+
+/* ── Splitter：区域分隔拖柄（T5.1）────────────────── */
+.ed-splitter {
+  flex: none;
+  position: relative;
+  z-index: calc(var(--z-panel) + 1);
+  touch-action: none;
+}
+.ed-splitter::after {
+  content: '';
+  position: absolute;
+  background: var(--line-1);
+  transition: background-color var(--dur-1) var(--ease);
+}
+.ed-splitter--x {
+  width: 4px;
+  cursor: col-resize;
+}
+.ed-splitter--x::after {
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  transform: translateX(-0.5px);
+}
+.ed-splitter--y {
+  height: 4px;
+  cursor: row-resize;
+}
+.ed-splitter--y::after {
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  transform: translateY(-0.5px);
+}
+.ed-splitter:hover::after,
+.ed-splitter:focus-visible::after {
+  background: var(--line-3);
+}
+.ed-splitter:active::after {
+  background: var(--accent-line); /* 正在被操作的分隔线 */
+}
+.ed-splitter:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+
+/* 拖拽期间：全局禁选 + 统一 resize 光标 + 关闭网格轨道过渡（保证拖宽跟手） */
+body.ed-dragging {
+  user-select: none;
+}
+body.ed-dragging--x {
+  cursor: col-resize;
+}
+body.ed-dragging--y {
+  cursor: row-resize;
+}
+body.ed-dragging .ed-app {
+  transition: none;
+}
+.ed-panel--fill {
+  flex: 1 1 0;
+}
+/* 图层面板尺寸类（--layers）随 T5.3 Outliner 收编退役；
+   环境/网格面板尺寸类（--environment/--grid）随 T5.4 Inspector 三标签收编退役 */
+.ed-panel__title {
+  flex: none;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--sp-5);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--ink-3);
+  border-bottom: 1px solid var(--line-1);
+  background-image: var(--texture-hatch);
+}
+.ed-panel__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.ed-readout {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-2xs);
+  color: var(--ink-3);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.ed-empty {
+  padding: var(--sp-8) var(--sp-6);
+  color: var(--ink-3);
+  font-size: var(--text-xs);
+  text-align: center;
+  line-height: var(--leading);
+}
+.ed-empty strong {
+  display: block;
+  color: var(--ink-2);
+  font-weight: var(--weight-medium);
+  margin-bottom: var(--sp-2);
+}
+
+/* ── 分组 / 字段 / 输入 ──────────────────────────────── */
+.ed-section {
+  padding: var(--sp-4) var(--sp-5) var(--sp-5);
+  border-bottom: 1px solid var(--line-1);
+}
+.ed-section__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 var(--sp-3);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.ed-field {
+  display: grid;
+  grid-template-columns: 60px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: var(--control-h);
+}
+.ed-field + .ed-field {
+  margin-top: var(--sp-2);
+}
+.ed-field__label {
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ed-field__value {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+.ed-field__unit {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--ink-3);
+  flex: none;
+}
+
+/* 散布参数组（T003.3）：配比只读行 + seed 只读读数 */
+.ed-scatter-mix {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ed-scatter-mix li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  font-size: var(--text-xs);
+  min-width: 0;
+}
+.ed-scatter-mix__asset {
+  color: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ed-scatter-mix__percent {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--ink-3);
+  flex: none;
+}
+.ed-scatter-seed {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.ed-triplet {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sp-2);
+  min-width: 0;
+}
+.ed-axis {
+  position: relative;
+  min-width: 0;
+}
+.ed-axis::before {
+  content: attr(data-axis);
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--ink-3);
+  pointer-events: none;
+}
+.ed-axis .ed-input {
+  padding-left: 15px;
+}
+
+.ed-input {
+  height: var(--control-h);
+  width: 100%;
+  min-width: 0;
+  padding: 0 var(--sp-3);
+  background: var(--surface-2);
+  color: var(--ink-1);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-2);
+  font-size: var(--text-xs);
+  box-shadow: var(--inset-field);
+  transition:
+    border-color var(--dur-1) var(--ease),
+    box-shadow var(--dur-1) var(--ease);
+}
+.ed-input:hover {
+  border-color: var(--line-3);
+}
+.ed-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--accent-glow), var(--inset-field);
+}
+.ed-input[readonly] {
+  color: var(--ink-2);
+  background: transparent;
+  border-style: dashed;
+  box-shadow: none;
+}
+.ed-input--num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.ed-input--num::-webkit-inner-spin-button,
+.ed-input--num::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.ed-select-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.ed-select-wrap::after {
+  content: '';
+  position: absolute;
+  right: 9px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-right: 1px solid var(--ink-3);
+  border-bottom: 1px solid var(--ink-3);
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
+.ed-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 24px;
+  cursor: pointer;
+}
+
+.ed-swatch {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-1);
+  border: 1px solid var(--line-3);
+  background: var(--swatch, transparent);
+}
+
+.ed-check {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--accent);
+}
+
+/* ── 属性面板：对象头 ────────────────────────────────── */
+.ed-object {
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--line-1);
+  display: grid;
+  gap: var(--sp-2);
+}
+.ed-object__name {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--ink-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ed-object__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+.ed-object__id {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ed-tag {
+  flex: none;
+  padding: 0 var(--sp-2);
+  border: 1px solid var(--accent-line);
+  color: var(--accent);
+  border-radius: var(--radius-1);
+  font-size: 9px;
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  line-height: 14px;
+}
+
+/* ── 资产库（T2.1 分组/筛选栏样式随 T5.5 ContentBrowser 收编退役；搜索清除键规则沿用）── */
+.ed-browser__search::-webkit-search-cancel-button {
+  display: none; /* 用系统清除语义替代原生样式，保持暗色一致 */
+}
+
+/* 筛选芯片：默认 surface-2 行；当前筛选琥珀（= 正在被操作的东西） */
+.ed-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  height: 20px;
+  padding: 0 var(--sp-3);
+  background: var(--surface-2);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-2);
+  color: var(--ink-2);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease);
+}
+.ed-chip:hover {
+  background: var(--surface-3);
+  border-color: var(--line-3);
+  color: var(--ink-1);
+}
+.ed-chip:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+.ed-chip--active,
+.ed-chip--active:hover {
+  background: var(--accent-soft-strong);
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+.ed-chip__count {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 9px;
+  color: var(--ink-3);
+}
+.ed-chip--active .ed-chip__count {
+  color: var(--accent);
+}
+
+/* ── 资产卡片网格（缩略图 / 名称 / 分类色标 / 收藏星标）────
+   T5.5 起随 ContentBrowser 铺满底部行宽：auto-fill 自适应列（≥150px），
+   紧凑高度下滚动查看；旧双列定宽（左栏时代）退役 */
+.ed-asset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4) var(--sp-5);
+  align-content: start;
+}
+.ed-card {
+  position: relative;
+  border-radius: var(--radius-2);
+}
+.ed-card__main {
+  display: grid;
+  width: 100%;
+  padding: var(--sp-2);
+  background: var(--surface-2);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-2);
+  box-shadow: var(--highlight-top);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background-color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease);
+}
+.ed-card__main:hover {
+  background: var(--surface-3);
+  border-color: var(--line-3);
+}
+.ed-card__main:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+/* 正在放置的资产：琥珀边 + soft 底（DESIGN.md「琥珀=正在被操作」） */
+.ed-card--active .ed-card__main,
+.ed-card--active .ed-card__main:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.ed-card__thumb {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 3 / 2;
+  margin-bottom: var(--sp-2);
+  background: var(--surface-1);
+  border-radius: var(--radius-1);
+  overflow: hidden;
+}
+.ed-card__thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+}
+/* 缩略图缺失时的占位字形（与脚本占位 SVG 同构：首字 + 等宽） */
+.ed-card__glyph {
+  font-family: var(--font-mono);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--ink-3);
+}
+.ed-card--active .ed-card__glyph {
+  color: var(--accent);
+}
+.ed-card__name {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--ink-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ed-card__tags {
+  display: block;
+  margin-top: var(--sp-1);
+  font-size: 9px;
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* kind 角标（T002.2 程序化资产）：缩略图左上角，与右上星标对称；来源标注非激活语义，
+   用 ink 中性色不入琥珀强调；pointer-events 穿透（不与卡片点击/拖拽抢事件） */
+.ed-card__kind {
+  position: absolute;
+  top: var(--sp-2);
+  left: var(--sp-2);
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  color: var(--ink-3);
+  background: color-mix(in srgb, var(--surface-1) 78%, transparent);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-1);
+  pointer-events: none;
+}
+/* 收藏星标：覆盖缩略图右上角；已收藏 = 琥珀填充 */
+.ed-card__star {
+  position: absolute;
+  top: var(--sp-2);
+  right: var(--sp-2);
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  background: color-mix(in srgb, var(--surface-1) 78%, transparent);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-1);
+  cursor: pointer;
+  transition:
+    border-color var(--dur-1) var(--ease),
+    background-color var(--dur-1) var(--ease);
+}
+.ed-card__star svg path {
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 1.2;
+  transition: fill var(--dur-1) var(--ease), stroke var(--dur-1) var(--ease);
+}
+.ed-card__star:hover {
+  border-color: var(--line-3);
+  background: var(--surface-3);
+}
+.ed-card__star:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+.ed-card__star--on svg path,
+.ed-card__star--on:hover svg path {
+  fill: var(--accent);
+  stroke: var(--accent);
+}
+/* 分类色标（数据编码色，inline style 注入；不表达激活语义——琥珀专属） */
+.ed-card__cat {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  margin-top: var(--sp-1);
+  font-size: 9px;
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ed-card__cat-dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+/* 卡片可拖拽：悬停抬起（surface-3 同 __main:hover），拖拽中抓取光标 */
+.ed-card[draggable='true'] {
+  cursor: grab;
+}
+.ed-card[draggable='true']:active {
+  cursor: grabbing;
+}
+
+/* ── Content Browser（T5.5 双态：紧凑 60 = 单行工具条 / 展开 = 顶行 + 左分类栏 + 右网格）── */
+.ed-browser {
+  position: relative;
+}
+/* 顶部行：紧凑态独占整行（flex:1 垂直居中）；展开态固定自然高，让位主体 */
+.ed-browser__bar {
+  flex: 1 1 auto;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: 0 var(--sp-4);
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--line-1);
+  overflow: hidden;
+}
+.ed-browser--expanded .ed-browser__bar {
+  flex: 0 0 auto;
+}
+.ed-browser__title {
+  flex: none;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.ed-browser__count {
+  flex: none;
+}
+/* 芯片行：横向滚动（不换行——单行即紧凑态的全部诉求） */
+.ed-browser__chips {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  overflow-x: auto;
+  scrollbar-width: thin;
+  padding: var(--sp-1) 0;
+}
+.ed-browser__search {
+  flex: none;
+  width: 168px;
+}
+/* 双态切换钮：紧凑 ghost 行按钮（≥44px 触达由 bar 行高保证） */
+.ed-browser__toggle {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  height: var(--control-h);
+  padding: 0 var(--sp-3);
+  background: var(--surface-2);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-2);
+  color: var(--ink-2);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease);
+}
+.ed-browser__toggle:hover {
+  background: var(--surface-3);
+  border-color: var(--line-3);
+  color: var(--ink-1);
+}
+.ed-browser__toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+.ed-browser__toggle-caret {
+  font-size: 8px;
+  line-height: 1;
+  color: var(--ink-3);
+  transition: transform var(--dur-2) var(--ease);
+}
+.ed-browser--expanded .ed-browser__toggle-caret {
+  transform: rotate(180deg);
+}
+.ed-browser__hide {
+  flex: none;
+}
+
+/* 展开态主体：左分类纵栏 + 右资产网格（紧凑态整块 display:none 挂起） */
+.ed-browser__body {
+  flex: 1 1 0;
+  min-height: 0;
+  display: none;
+}
+.ed-browser--expanded .ed-browser__body {
+  display: flex;
+}
+.ed-browser__rail {
+  flex: none;
+  width: 148px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--sp-2) var(--sp-2) var(--sp-4);
+  border-right: 1px solid var(--line-1);
+}
+.ed-browser__rail-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  width: 100%;
+  height: var(--row-h);
+  padding: 0 var(--sp-2);
+  background: transparent;
+  border: none;
+  border-left: 2px solid transparent;
+  border-radius: 0 var(--radius-1) var(--radius-1) 0;
+  color: var(--ink-2);
+  font-size: var(--text-xs);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease);
+}
+.ed-browser__rail-item:hover {
+  background: var(--surface-3);
+  color: var(--ink-1);
+}
+.ed-browser__rail-item:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+/* 当前分类 = 琥珀左线 + soft 底（「正在被操作」，与树行/芯片同语义） */
+.ed-browser__rail-item--active,
+.ed-browser__rail-item--active:hover {
+  background: var(--accent-soft);
+  border-left-color: var(--accent);
+  color: var(--ink-1);
+}
+.ed-browser__rail-dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.ed-browser__rail-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ed-browser__rail-count {
+  flex: none;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 9px;
+  color: var(--ink-3);
+}
+.ed-browser__rail-item--active .ed-browser__rail-count {
+  color: var(--accent);
+}
+.ed-browser__grid {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.ed-browser__grid .ed-empty {
+  margin: auto; /* 空态在剩余空间垂直居中 */
+}
+
+/* ── 拖放落点高亮（T5.5）：资产拖至视口上空 = 琥珀描边 + 边缘内光（像素可辨；瞬时态
+      = 「正在被操作」的琥珀语义，不与常态大面积填充冲突）── */
+.ed-viewport--drop-target::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--accent-line);
+  box-shadow: inset 0 0 24px var(--accent-soft);
+  border-radius: var(--radius-1);
+  pointer-events: none; /* 不拦截 drop/dragover 事件目标 */
+}
+
+/* ── 视口 / HUD（T5.7 四角容器：角位经修饰类定位，pointer-events 透穿）── */
+.ed-viewport {
+  grid-area: viewport;
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  background: var(--surface-0);
+}
+.ed-viewport__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  outline: none;
+  touch-action: none;
+}
+/* 左下角坐标轴指示器（runtime AxesIndicator 自建 canvas；类名 = runtime↔ui 唯一约定） */
+.ed-viewport__axes {
+  position: absolute;
+  left: var(--sp-5);
+  bottom: var(--sp-5);
+  width: 88px;
+  height: 88px;
+  pointer-events: none;
+  z-index: var(--z-hud);
+}
+/* 右下角园区导航小地图（T7.7；runtime MinimapRenderer 自建 canvas，类名 = runtime↔ui
+   唯一约定）。弱存在感：半透明面板底 + 细边框 + 轻模糊（HUD 芯片同语言）；拖拽/点击
+   平移相机视角 → pointer-events 单独放开（HUD 透穿先例） */
+.ed-viewport__minimap {
+  position: absolute;
+  right: var(--sp-5);
+  bottom: var(--sp-5);
+  width: 200px;
+  height: 140px;
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: var(--z-hud);
+  background: color-mix(in srgb, var(--surface-1) 72%, transparent);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-2);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  touch-action: none; /* 拖拽导航手势归 pointer 事件，不触发页面滚动 */
+}
+.ed-hud {
+  position: absolute;
+  display: flex;
+  gap: var(--sp-2);
+  z-index: var(--z-hud);
+  pointer-events: none; /* 不遮挡中心场景；可交互容器（下拉/齿轮）单独放开 */
+}
+.ed-hud--tl {
+  top: var(--sp-5);
+  left: var(--sp-5);
+  flex-direction: column; /* T7.1：芯片行 + 模式引导行（hudHint）两行堆叠 */
+  align-items: flex-start;
+}
+.ed-hud__row {
+  display: flex;
+  gap: var(--sp-2);
+}
+.ed-hud--tr {
+  top: var(--sp-5);
+  right: var(--sp-5);
+}
+.ed-hud--br {
+  bottom: var(--sp-5);
+  right: var(--sp-5);
+}
+/* T7.4 纯三维模式底部居中提示（基础操作一行速查；芯片样式沿 .ed-hud__chip 既有语言） */
+.ed-hud--bc {
+  bottom: var(--sp-5);
+  left: 50%;
+  transform: translateX(-50%);
+}
+.ed-hud__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  height: 22px;
+  padding: 0 var(--sp-4);
+  background: color-mix(in srgb, var(--surface-1) 86%, transparent);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-2);
+  font-size: var(--text-2xs);
+  color: var(--ink-2);
+  backdrop-filter: blur(6px);
+  white-space: nowrap;
+}
+.ed-hud__chip--name {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* T8.4 islands 计数角标（孤岛高亮激活期间的右上芯片）：沿 .ed-hud__chip 既有语言，
+   计数等宽防跳变（归层操作实时收敛），琥珀已归「正在被操作」语义故保持中性灰 */
+.ed-hud__chip--islands {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-1);
+}
+.ed-hud__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent-line);
+}
+.ed-hud__dot--idle {
+  background: var(--ink-disabled);
+  box-shadow: none;
+}
+.ed-hud__label {
+  color: var(--ink-1);
+  font-weight: var(--weight-medium);
+}
+.ed-hud__hint {
+  color: var(--ink-3);
+}
+/* HUD 模式徽标（T7.1）：圆点与文字着模式专属色（--mode-accent 组件注入） */
+.ed-hud__chip--mode {
+  color: var(--mode-accent, var(--accent));
+  border-color: color-mix(in srgb, var(--mode-accent, var(--accent)) 45%, var(--line-2));
+}
+.ed-hud__chip--mode .ed-hud__dot {
+  background: var(--mode-accent, var(--accent));
+  box-shadow: 0 0 6px color-mix(in srgb, var(--mode-accent, var(--accent)) 55%, transparent);
+}
+/* HUD 模式引导行（hudHint）：徽标下一行低调操作引导 */
+.ed-hud__mode-hint {
+  max-width: 360px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-2xs);
+  color: var(--ink-3);
+  background: color-mix(in srgb, var(--surface-1) 72%, transparent);
+  padding: 1px var(--sp-3);
+  border-radius: var(--radius-1);
+  backdrop-filter: blur(6px);
+}
+
+/* HUD 右上控制排：下拉与齿轮（可交互容器放开 pointer-events） */
+.ed-hud__menu {
+  position: relative; /* 下拉弹层锚点 */
+  pointer-events: auto;
+}
+.ed-hud__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  height: 22px;
+  padding: 0 var(--sp-3);
+  background: color-mix(in srgb, var(--surface-1) 86%, transparent);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-2);
+  font-size: var(--text-2xs);
+  font-family: var(--font-ui);
+  color: var(--ink-2);
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease),
+    background-color var(--dur-1) var(--ease);
+}
+.ed-hud__btn:hover:not(:disabled) {
+  color: var(--ink-1);
+  border-color: var(--line-3);
+  background: var(--surface-3);
+}
+.ed-hud__btn:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+.ed-hud__btn:disabled {
+  color: var(--ink-disabled);
+  cursor: default;
+}
+.ed-hud__btn--open {
+  color: var(--accent);
+  border-color: var(--accent-line);
+}
+.ed-hud__btn-label {
+  font-weight: var(--weight-medium);
+}
+.ed-hud__caret--open {
+  transform: rotate(180deg);
+}
+/* HUD 下拉弹层沿 .ed-menu__popup 通用原语（surface-1 + line-2 + shadow-2）；右缘向下展开，
+   紧凑最小宽（机位/模式清单短，208px 缺省过宽） */
+.ed-hud--tr .ed-menu__popup {
+  right: 0;
+  top: calc(100% + var(--sp-2));
+  left: auto;
+  min-width: 128px;
+}
+
+/* ── T2.4 控件：图标开关 / 滑杆 / 取色器 ─────────────── */
+.ed-icon-toggle {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-1);
+  color: var(--ink-3);
+  cursor: pointer;
+  transition:
+    color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease),
+    background-color var(--dur-1) var(--ease);
+}
+.ed-icon-toggle:hover {
+  color: var(--ink-1);
+  border-color: var(--line-2);
+}
+.ed-icon-toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+/* 开启态：琥珀（= 正在被操作/生效中的东西） */
+.ed-icon-toggle--on,
+.ed-icon-toggle--on:hover {
+  color: var(--accent);
+}
+/* boolean 样式参数开关：轨道式 */
+.ed-icon-toggle__track {
+  width: 22px;
+  height: 12px;
+  border-radius: 6px;
+  background: var(--surface-4);
+  border: 1px solid var(--line-2);
+  position: relative;
+  transition: background-color var(--dur-1) var(--ease);
+}
+.ed-icon-toggle__track::after {
+  content: '';
+  position: absolute;
+  left: 1px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ink-3);
+  transition:
+    left var(--dur-1) var(--ease),
+    background-color var(--dur-1) var(--ease);
+}
+.ed-icon-toggle--on .ed-icon-toggle__track {
+  background: var(--accent-soft-strong);
+  border-color: var(--accent-line);
+}
+.ed-icon-toggle--on .ed-icon-toggle__track::after {
+  left: 11px;
+  background: var(--accent);
+}
+
+.ed-slider {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex: 1;
+  min-width: 0;
+}
+.ed-slider .ed-input {
+  width: 52px;
+  flex: none;
+}
+.ed-slider__range {
+  flex: 1;
+  min-width: 0;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.ed-color {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex: 1;
+  min-width: 0;
+}
+.ed-color input[type='color'] {
+  width: var(--control-h);
+  height: var(--control-h);
+  padding: 2px;
+  background: var(--surface-2);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-2);
+  cursor: pointer;
+}
+.ed-color input[type='color']:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+.ed-color__hex {
+  flex: none;
+}
+
+/* 样式参数表单：字段之间紧凑排布 */
+.ed-style-params .ed-field {
+  grid-template-columns: 64px minmax(0, 1fr);
+}
+
+/* ── T5.4 Inspector：折叠分组（28px 组头）/ 多选只读汇总 / 空态图标 / 禁用占位 ── */
+/* 分组：组间 hairline；组头 28px 条（▸ 指示 + 小型大写标题 + 只读附注），整条可点折叠 */
+.ed-inspector__group {
+  border-bottom: 1px solid var(--line-1);
+}
+.ed-inspector__group-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  width: 100%;
+  height: 28px;
+  padding: 0 var(--sp-3) 0 var(--sp-2);
+  background: transparent;
+  border: none;
+  color: var(--ink-3);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    color var(--dur-1) var(--ease),
+    background-color var(--dur-1) var(--ease);
+}
+.ed-inspector__group-head:hover {
+  color: var(--ink-1);
+  background: var(--surface-2);
+}
+.ed-inspector__group-head:focus-visible {
+  outline: none;
+  box-shadow: inset var(--accent-glow);
+}
+.ed-inspector__group-caret {
+  flex: none;
+  font-size: 9px;
+  line-height: 1;
+  transform: rotate(90deg); /* 展开 = 向下 ▾ */
+  transition: transform var(--dur-1) var(--ease);
+}
+.ed-inspector__group--collapsed .ed-inspector__group-caret {
+  transform: none; /* 折叠 = 向前 ▸ */
+}
+.ed-inspector__group-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ed-inspector__group-body {
+  padding: var(--sp-3) var(--sp-5) var(--sp-4);
+}
+
+/* 多选只读汇总条：surface-2 抬起一块 + 类型分布行 + 阶段提示（P0 无编辑控件） */
+.ed-inspector__summary {
+  display: grid;
+  gap: var(--sp-2);
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--line-1);
+  background: var(--surface-2);
+}
+.ed-inspector__summary-title {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--ink-1);
+}
+.ed-inspector__summary-types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-4);
+}
+.ed-inspector__summary-type {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+.ed-inspector__summary-hint {
+  font-size: var(--text-2xs);
+  color: var(--ink-3);
+}
+
+/* ── T7.5 多选批量编辑：Mixed 占位与批量字段行 ──
+   Mixed = 选中集该字段异值：占位 ink-2 斜体（区别于可输入的真实值）、字段仍可聚焦
+   输入新值覆盖全部对象该键；旁侧 Mixed 标签用于无法内联占位的控件（开关/取色器） */
+.ed-input--mixed::placeholder {
+  color: var(--ink-2);
+  font-style: italic;
+}
+.ed-inspector__mixed-tag {
+  flex: none;
+  font-size: var(--text-2xs);
+  color: var(--ink-3);
+  border: 1px dashed var(--line-3);
+  border-radius: var(--radius-1);
+  padding: 0 var(--sp-2);
+  line-height: 16px;
+}
+.ed-field__value--multi {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+}
+
+/* 空态图标：等宽字符 ⌖（选择意向），熄灭档颜色 */
+.ed-inspector__empty-glyph {
+  display: block;
+  margin: 0 auto var(--sp-3);
+  font-family: var(--font-mono);
+  font-size: 22px;
+  line-height: 1;
+  color: var(--ink-disabled);
+}
+
+/* ── 模式引导卡（T7.1 联动 4）：Inspector 空态随显示模式切换的引导（数据驱动纯展示） ──
+   surface-2 抬起 + 模式专属色圆点/描边细线（--mode-accent 组件注入）；快速开始行
+   提为 ink-2 主文 + 键帽提示可读 */
+.ed-guide {
+  display: grid;
+  gap: var(--sp-3);
+  margin: var(--sp-5);
+  padding: var(--sp-5);
+  background: var(--surface-2);
+  border: 1px solid var(--line-1);
+  border-top: 2px solid var(--mode-accent, var(--accent));
+  border-radius: var(--radius-2);
+  text-align: left;
+}
+.ed-guide__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.ed-guide__dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--mode-accent, var(--accent));
+}
+.ed-guide__title {
+  color: var(--ink-1);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}
+.ed-guide__desc {
+  color: var(--ink-2);
+  font-size: var(--text-xs);
+  line-height: var(--leading);
+}
+.ed-guide__quick {
+  display: grid;
+  gap: var(--sp-2);
+  color: var(--ink-2);
+  font-size: var(--text-xs);
+  line-height: var(--leading);
+}
+.ed-guide__quick-title {
+  color: var(--ink-3);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+.ed-guide__empty-hint {
+  padding: 0 var(--sp-5) var(--sp-5);
+  color: var(--ink-3);
+  font-size: var(--text-xs);
+  text-align: center;
+}
+
+/* 禁用占位输入（无数据源字段：可见不隐藏，需求 §39） */
+.ed-input:disabled {
+  color: var(--ink-disabled);
+  background: transparent;
+  border-color: var(--line-1);
+  box-shadow: none;
+  cursor: default;
+}
+.ed-input:disabled::placeholder {
+  color: var(--ink-disabled);
+}
+
+/* ── T6.6 Region 表现样式：预设缩略图网格（表现样式组；类名风格沿快选条 ed-qa__preset）── */
+.ed-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+}
+/* 预设瓦片：缩略图/色块 + 名称；选中 = 琥珀描边 + soft 底（正在使用） */
+.ed-preset-grid__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  min-height: 44px; /* ≥40px 触达 */
+  padding: var(--sp-1);
+  background: var(--surface-2);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-2);
+  color: var(--ink-2);
+  font-size: var(--text-2xs);
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease);
+}
+.ed-preset-grid__item:hover {
+  background: var(--surface-3);
+  border-color: var(--line-3);
+  color: var(--ink-1);
+}
+.ed-preset-grid__item:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+.ed-preset-grid__item:active {
+  background: var(--accent-soft-strong); /* 点按即应用（主动作瞬时琥珀，沿快选条先例） */
+  border-color: var(--accent-line);
+}
+.ed-preset-grid__item--active,
+.ed-preset-grid__item--active:hover {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.ed-preset-grid__thumb {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-1);
+  background: var(--surface-3);
+}
+.ed-preset-grid__swatch {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-1);
+  background: var(--surface-4); /* 无色样参数的熄灭占位 */
+  box-shadow: inset 0 0 0 1px var(--line-3);
+}
+.ed-preset-grid__item--active .ed-preset-grid__swatch {
+  box-shadow: inset 0 0 0 1px var(--accent-line);
+}
+.ed-preset-grid__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+
+/* ── 场景大纲（按要素类型分组，T5.3 Outliner）────────── */
+.ed-tree__group {
+  padding: var(--sp-1) 0 var(--sp-2);
+}
+.ed-tree__group + .ed-tree__group {
+  border-top: 1px solid var(--line-1);
+}
+/* 组行：折叠 caret + 类型名（点选全组）+ 计数 + 组级 eye/lock（hover 浮显） */
+.ed-tree__group-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: var(--row-h);
+  padding: 0 var(--sp-3) 0 var(--sp-1);
+}
+.ed-tree__group-toggle {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-1);
+  color: var(--ink-3);
+  cursor: pointer;
+  transition:
+    color var(--dur-1) var(--ease),
+    background-color var(--dur-1) var(--ease);
+}
+.ed-tree__group-toggle:hover {
+  color: var(--ink-1);
+  background: var(--surface-3);
+}
+.ed-tree__group-toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+.ed-tree__caret {
+  display: inline-block;
+  font-size: 10px;
+  line-height: 1;
+  transition: transform var(--dur-1) var(--ease);
+}
+.ed-tree__group-row--collapsed .ed-tree__caret {
+  transform: rotate(-90deg);
+}
+.ed-tree__group-label {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: color var(--dur-1) var(--ease);
+}
+.ed-tree__group-label:hover {
+  color: var(--ink-1);
+}
+.ed-tree__group-label:focus-visible {
+  outline: none;
+  border-radius: var(--radius-1);
+  box-shadow: var(--accent-glow);
+}
+.ed-tree__row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: var(--row-h);
+  padding: 0 var(--sp-4) 0 var(--sp-3);
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: background-color var(--dur-1) var(--ease);
+}
+.ed-tree__row:hover {
+  background: var(--surface-3);
+}
+.ed-tree__row:focus-visible {
+  outline: none;
+  box-shadow: inset var(--accent-glow);
+}
+/* 选中行：琥珀左线 + soft 底（DESIGN.md「琥珀=正在被操作」） */
+.ed-tree__row--selected,
+.ed-tree__row--selected:hover {
+  background: var(--accent-soft);
+  border-left-color: var(--accent);
+}
+.ed-tree__row--locked .ed-tree__name {
+  color: var(--ink-disabled);
+}
+/* 行/组级 eye/lock hover 浮显（降低视觉噪音）；生效中（--on）与键盘聚焦常显 */
+.ed-tree__row > .ed-icon-toggle,
+.ed-tree__group-row > .ed-icon-toggle {
+  opacity: 0;
+  transition:
+    opacity var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease);
+}
+.ed-tree__row:hover > .ed-icon-toggle,
+.ed-tree__row:focus-within > .ed-icon-toggle,
+.ed-tree__row > .ed-icon-toggle--on,
+.ed-tree__group-row:hover > .ed-icon-toggle,
+.ed-tree__group-row:focus-within > .ed-icon-toggle,
+.ed-tree__group-row > .ed-icon-toggle--on {
+  opacity: 1;
+}
+.ed-tree__name {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-xs);
+  color: var(--ink-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ed-tree__rename {
+  flex: 1;
+  min-width: 0;
+  height: 18px;
+  font-size: var(--text-xs);
+  padding: 0 var(--sp-2);
+}
+.ed-tree__focus {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-1);
+  color: var(--ink-3);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease);
+}
+.ed-tree__row:hover .ed-tree__focus,
+.ed-tree__focus:focus-visible {
+  opacity: 1;
+}
+.ed-tree__focus:hover {
+  color: var(--accent);
+}
+.ed-tree__focus:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+
+/* ── 层级树（T8.5：缩进 / 组行 / drop indicator 三态）──────── */
+/* 组行：caret + 名称（半粗）+ 直接成员计数；无 eye/lock（组为纯组织节点，
+   可见性走图层体系——不开关不误导） */
+.ed-tree__row--group {
+  font-weight: var(--weight-semibold);
+}
+.ed-tree__row--group .ed-tree__name {
+  color: var(--ink-2);
+}
+.ed-tree__caret--closed {
+  transform: rotate(-90deg);
+}
+/* 叶行点缀（与组行 caret 对齐的 2px 色点，替代缩进参考线） */
+.ed-tree__leaf-dot {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  background:
+    radial-gradient(
+      circle 2px at center,
+      var(--line-3) 0 2px,
+      transparent 2px
+    );
+}
+/* 拖拽中的源行：压暗提示「正在搬移」 */
+.ed-tree__row--dragging {
+  opacity: 0.45;
+}
+/* drop indicator 三态（琥珀 = 合法落点 / danger = 禁止态）：
+   ① 行上/下半 1px 插入线（排序） ② 行体高亮（挂入） ③ 禁止态 */
+.ed-tree__row--drop-before {
+  box-shadow: inset 0 1px 0 var(--accent);
+}
+.ed-tree__row--drop-after {
+  box-shadow: inset 0 -1px 0 var(--accent);
+}
+.ed-tree__row--drop-into,
+.ed-tree__row--drop-into:hover {
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent-line);
+}
+.ed-tree__row--drop-forbidden,
+.ed-tree__row--drop-forbidden:hover {
+  background: var(--danger-soft);
+  box-shadow: inset 0 0 0 1px var(--danger);
+  cursor: not-allowed;
+}
+/* 根区落点（容器行间隙）：底部 1px 琥珀线 = 上提根级/根级排序 */
+.ed-tree__hierarchy--root-drop {
+  box-shadow: inset 0 -1px 0 var(--accent);
+}
+/* 大纲视图切换（层级 ↔ 分类）：紧邻双钮组 */
+.ed-outliner__view-switch {
+  display: flex;
+  gap: var(--sp-1);
+}
+
+/* ── 图层面板 ────────────────────────────────────────── */
+.ed-layer__row {
+  padding: var(--sp-2) var(--sp-4);
+  border-bottom: 1px solid var(--line-1);
+  display: grid;
+  gap: var(--sp-2);
+}
+.ed-layer__row--dragging {
+  opacity: 0.5;
+}
+.ed-layer__row--drop {
+  box-shadow: inset 0 2px 0 var(--accent);
+}
+.ed-layer__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+.ed-layer__name {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--ink-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ed-layer__opacity {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.ed-layer__opacity .ed-slider__range {
+  height: 12px;
+}
+
+/* ── T5.3 Scene Outliner：标签条 / 大纲工具条 / 图层删除确认 ── */
+/* 面板内标签条：激活 = 琥珀下划线（正在查看的视图），←→ 键盘切换（TabStrip） */
+.ed-tabs {
+  display: flex;
+  align-items: stretch;
+  gap: var(--sp-5);
+  flex: none;
+  padding: 0 var(--sp-5);
+  border-bottom: 1px solid var(--line-1);
+}
+.ed-tabs__tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 var(--sp-1);
+  background: transparent;
+  border: none;
+  color: var(--ink-3);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  line-height: 1;
+  cursor: pointer;
+  transition: color var(--dur-1) var(--ease);
+}
+.ed-tabs__tab:hover {
+  color: var(--ink-1);
+}
+.ed-tabs__tab:focus-visible {
+  outline: none;
+  border-radius: var(--radius-1);
+  box-shadow: inset var(--accent-glow);
+}
+.ed-tabs__tab--active,
+.ed-tabs__tab--active:hover {
+  color: var(--ink-1);
+}
+.ed-tabs__tab--active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--accent);
+}
+
+/* 大纲标签根：工具条（搜索/筛选/展开收起/创建/更多）+ 滚动树体 */
+.ed-outliner {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.ed-outliner__toolbar {
+  flex: none;
+  display: grid;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4) var(--sp-2);
+  border-bottom: 1px solid var(--line-1);
+}
+.ed-outliner__seek {
+  display: flex;
+  gap: var(--sp-2);
+}
+.ed-outliner__search {
+  flex: 1;
+  min-width: 0;
+}
+.ed-outliner__type {
+  flex: none;
+  width: 96px;
+}
+/* T7.5 筛选行「选中全部结果」图标小按钮：筛选/搜索激活时出现（28px 触达；hover/focus 可辨） */
+.ed-outliner__select-all {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 24px;
+  padding: 0;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-2);
+  cursor: pointer;
+  transition:
+    color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease),
+    background-color var(--dur-1) var(--ease);
+}
+.ed-outliner__select-all:hover:not(:disabled) {
+  color: var(--ink-1);
+  border-color: var(--line-3);
+  background: var(--surface-3);
+}
+.ed-outliner__select-all:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--accent-glow);
+}
+.ed-outliner__select-all:disabled {
+  color: var(--ink-disabled);
+  border-color: var(--line-1);
+  background: transparent;
+  cursor: default;
+}
+.ed-outliner__tools {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.ed-outliner__tools .ed-btn,
+.ed-layers__toolbar .ed-btn {
+  height: 20px;
+  padding: 0 var(--sp-3);
+}
+.ed-outliner__spacer {
+  flex: 1;
+}
+/* 创建对象下拉（T9.1：经根浮层容器挂载，右对齐贴锚定位由组件计算——逃逸后不再被
+   .ed-panel/.ed-side 的 overflow:hidden 垂直裁剪）；窄面板内收紧最小宽防裁切 */
+.ed-outliner__create-popup {
+  min-width: 140px;
+}
+.ed-outliner__create-btn--open,
+.ed-outliner__create-btn--open:hover {
+  color: var(--accent);
+}
+
+/* 图层标签根：工具条（层数 + 新建）+ 滚动列表 */
+.ed-layers {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.ed-layers__toolbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-4);
+  border-bottom: 1px solid var(--line-1);
+}
+/* 图层删除按钮：hover 浮显，hover 变 danger */
+.ed-layer__delete {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-1);
+  color: var(--ink-3);
+  font-size: var(--text-md);
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease),
+    background-color var(--dur-1) var(--ease);
+}
+.ed-layer__row:hover .ed-layer__delete,
+.ed-layer__delete:focus-visible {
+  opacity: 1;
+}
+.ed-layer__delete:hover {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+.ed-layer__delete:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+/* 行内两步删除确认（notice/Toast 通道归 App 层，T5.8 前面板内自持） */
+.ed-layer__row--confirming {
+  background: var(--surface-2);
+}
+.ed-layer__confirm {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.ed-layer__confirm-text {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-2xs);
+  color: var(--danger);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ed-layer__confirm-delete {
+  flex: none;
+  height: 20px;
+  padding: 0 var(--sp-3);
+  background: var(--danger);
+  border-color: transparent;
+  color: var(--ink-1);
+}
+.ed-layer__confirm-delete:hover,
+.ed-layer__confirm-delete:active {
+  background: var(--danger);
+  border-color: transparent;
+  color: var(--ink-1);
+}
+.ed-layer__confirm .ed-btn--ghost {
+  flex: none;
+  height: 20px;
+  padding: 0 var(--sp-3);
+}
+
+/* ── T3.3 绘制模式：模式切换 / 视图按钮 / 状态栏 / 绘制面板 / 网格设置 ── */
+/* 模式分段控件：容器一体（surface-2 内嵌轨道），激活段琥珀（= 正在使用的工具） */
+.ed-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  height: var(--control-h);
+  padding: 2px;
+  background: var(--surface-2);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-2);
+}
+.ed-mode__btn {
+  height: 18px;
+  padding: 0 var(--sp-4);
+  display: inline-flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-1);
+  color: var(--ink-2);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease);
+}
+.ed-mode__btn:hover:not(:disabled) {
+  background: var(--surface-3);
+  color: var(--ink-1);
+}
+.ed-mode__btn:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+.ed-mode__btn:disabled {
+  color: var(--ink-disabled);
+  cursor: default;
+}
+.ed-mode__btn--active,
+.ed-mode__btn--active:hover {
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: var(--weight-semibold);
+}
+
+/* 视图按钮行：ghost 小按钮组（透视/顶/前/侧 + F + Home） */
+.ed-view {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+.ed-view__btn {
+  padding: 0 var(--sp-3);
+}
+
+/* 底部状态栏：仪表读数条（长度/面积/坐标等宽 tabular；错误 danger） */
+.ed-statusbar {
+  grid-area: statusbar;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-5);
+  min-width: 0;
+  padding: 0 var(--sp-5);
+  background-color: var(--surface-1);
+  background-image: var(--texture-hatch);
+  border-top: 1px solid var(--line-1);
+  box-shadow: var(--highlight-top);
+  z-index: var(--z-panel);
+}
+.ed-statusbar__segments {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-6);
+  min-width: 0;
+  overflow: hidden;
+}
+.ed-statusbar__segment {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  white-space: nowrap;
+}
+.ed-statusbar__label {
+  font-size: var(--text-2xs);
+  color: var(--ink-3);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+.ed-statusbar__value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-xs);
+  color: var(--ink-1);
+}
+.ed-statusbar__segment--error .ed-statusbar__label,
+.ed-statusbar__segment--error .ed-statusbar__value {
+  color: var(--danger);
+}
+.ed-statusbar__idle {
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+}
+/* 右段指标组（T5.7）：Objects/Triangles/FPS/Unit——复用 __segment 读数原语（零新令牌） */
+.ed-statusbar__metrics {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-6);
+  flex: none;
+}
+.ed-statusbar__hint {
+  flex: none;
+  font-size: var(--text-2xs);
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 绘制面板：每要素一行 = 名称 + 几何芯片（点/线/面，复用 ed-chip） */
+.ed-panel--draw {
+  flex: none;
+  max-height: 34%;
+  border-top: 1px solid var(--line-1);
+}
+.ed-draw__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  min-height: var(--row-h);
+  padding: var(--sp-2) var(--sp-4);
+  border-bottom: 1px solid var(--line-1);
+}
+.ed-draw__row:last-child {
+  border-bottom: none;
+}
+.ed-draw__row--active {
+  background: var(--accent-soft);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+.ed-draw__label {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--ink-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ed-draw__row--active .ed-draw__label {
+  color: var(--accent);
+}
+.ed-draw__chips {
+  display: inline-flex;
+  gap: var(--sp-2);
+  flex: none;
+}
+
+/* 网格设置自 T5.4 起迁入 Inspector「全局设置」标签（沿 .ed-section，原独立面板类退役） */
+
+/* ── 工作区布局弹层（T7.3）：复用 .ed-menu__popup 浮层原语与 .ed-menu__item 行；
+   三段 = 预设（radio）/ 个人布局（应用+删除）/ 动作（保存命名 + 恢复默认）── */
+/* 触发钮（挂 .ed-btn--ghost 上）：展开态琥珀字 = 正在操作（与菜单展开态同语义） */
+.ed-layout__btn--open,
+.ed-layout__btn--open:hover {
+  background: var(--surface-3);
+  color: var(--accent);
+  border-color: var(--accent-line);
+}
+/* 弹层（T9.1：经根浮层容器挂载，右对齐贴锚定位由组件计算），宽于菜单以容纳尺寸读数与命名输入 */
+.ed-layout__popup {
+  width: 264px;
+  padding: var(--sp-3) 0 var(--sp-2);
+}
+.ed-layout__title {
+  padding: var(--sp-1) var(--sp-4);
+  color: var(--ink-3);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+/* 当前预设：soft 底（勾选位仍琥珀，沿 .ed-menu__item--current 语义） */
+.ed-layout__preset--current,
+.ed-layout__preset--current:hover {
+  background: var(--accent-soft);
+}
+/* 自定义态提示行（matchPreset 未命中时呈现） */
+.ed-layout__custom {
+  padding: var(--sp-1) var(--sp-4);
+  color: var(--ink-3);
+  font-size: var(--text-xs);
+}
+/* 个人布局行：名称应用钮 + hover 浮显删除（沿 .ed-layer__delete 先例） */
+.ed-layout__item {
+  display: flex;
+  align-items: center;
+  padding-right: var(--sp-2);
+}
+.ed-layout__apply {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--row-h);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 0 var(--sp-4) 0 var(--sp-5);
+  background: transparent;
+  border: none;
+  color: var(--ink-1);
+  font-size: var(--text-xs);
+  line-height: 1;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--dur-1) var(--ease);
+}
+.ed-layout__apply:hover,
+.ed-layout__apply:focus-visible {
+  background: var(--surface-3);
+  outline: none;
+}
+.ed-layout__apply:focus-visible {
+  box-shadow: inset var(--accent-glow);
+}
+.ed-layout__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* 尺寸读数：等宽 tabular（改值不抖动），仪表注记档 */
+.ed-layout__meta {
+  flex: none;
+  color: var(--ink-3);
+  font-size: var(--text-2xs);
+}
+.ed-layout__delete {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  margin-left: var(--sp-1);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-1);
+  color: var(--ink-3);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease),
+    background-color var(--dur-1) var(--ease);
+}
+.ed-layout__item:hover .ed-layout__delete,
+.ed-layout__delete:focus-visible {
+  opacity: 1;
+}
+.ed-layout__delete:hover {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+.ed-layout__delete:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+/* 空列表友好占位 */
+.ed-layout__empty {
+  padding: var(--sp-2) var(--sp-4);
+  color: var(--ink-3);
+  font-size: var(--text-xs);
+  line-height: var(--leading);
+}
+/* 「保存当前布局」行内命名卡（surface-2 抬起，与图层确认条同构） */
+.ed-layout__save {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin: var(--sp-2) var(--sp-3) var(--sp-1);
+  padding: var(--sp-2);
+  background: var(--surface-2);
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-2);
+}
+.ed-layout__save-input {
+  height: var(--control-h);
+}
+.ed-layout__save-actions {
+  display: flex;
+  gap: var(--sp-2);
+}
+.ed-layout__save-actions .ed-btn {
+  flex: 1;
+  justify-content: center;
+}
+.ed-layout__hint {
+  color: var(--ink-3);
+  font-size: var(--text-2xs);
+  line-height: var(--leading-tight);
+}
+
+/* ── 场景模板与批量导入弹层（T8.2）：全部复用 .ed-dialog 原语与既有令牌，零新增令牌 ── */
+
+/* 弹层引导语（.ed-dialog__body 内首行） */
+.ed-scenedlg__lead {
+  margin: 0 0 var(--sp-4);
+  color: var(--ink-2);
+  font-size: var(--text-sm);
+  line-height: var(--leading);
+}
+/* 三行摘要（模板名 / 来源 / 规模）：.ed-field 标签左值右 + 等宽读数 */
+.ed-scenedlg__summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin: 0 0 var(--sp-5);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface-2);
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-2);
+}
+.ed-scenedlg__input {
+  margin-bottom: var(--sp-2);
+}
+/* 状态反馈行（空名提示 / 重名「将覆盖」/ 说明文案）——沿 .ed-layout__hint 语言 */
+.ed-scenedlg__hint {
+  margin: 0 0 var(--sp-4);
+  color: var(--ink-3);
+  font-size: var(--text-2xs);
+  line-height: var(--leading-tight);
+}
+/* 弹层底部动作区（取消在左、主钮在右） */
+.ed-scenedlg__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-3);
+}
+/* 分区标题（个人模板 / 内置模板）——沿 .ed-layout__title 小型大写语言 */
+.ed-scenedlg__section-title {
+  margin-bottom: var(--sp-2);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.ed-scenedlg__section-title:not(:first-child) {
+  margin-top: var(--sp-5);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--line-1);
+}
+.ed-scenedlg__empty {
+  padding: var(--sp-2) 0 var(--sp-1);
+  color: var(--ink-3);
+  font-size: var(--text-xs);
+  line-height: var(--leading);
+}
+
+/* ── T8.3：批量重命名弹层 / 布局 IO 图标钮 / 图层合并 / 资产标签行（零新增令牌） ── */
+
+/* 批量重命名：模式切换（复用 .ed-chip 芯片语言，激活 = 琥珀） */
+.ed-batch-rename__modes {
+  display: flex;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-4);
+}
+.ed-batch-rename__mode {
+  cursor: pointer;
+}
+.ed-batch-rename__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-4);
+}
+/* 实时预览：surface-2 摘要卡（沿 .ed-scenedlg__summary 语言）；新名等宽读数 */
+.ed-batch-rename__preview {
+  margin-bottom: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface-2);
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-2);
+}
+.ed-batch-rename__preview-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--sp-2);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.ed-batch-rename__row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: 1px 0;
+  font-size: var(--text-sm);
+}
+.ed-batch-rename__from {
+  flex: 1;
+  min-width: 0;
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ed-batch-rename__arrow {
+  flex: none;
+  color: var(--ink-3);
+}
+.ed-batch-rename__to {
+  flex: 1;
+  min-width: 0;
+  color: var(--ink-1);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ed-batch-rename__more {
+  padding-top: var(--sp-2);
+  color: var(--ink-3);
+}
+
+/* 布局弹层：行尾图标钮（重命名 Pencil / 导出 Download——与删除同构、hover 浮显、
+   ::before 扩展 ≥40px 触达沿 T8.2 __rowbtn 规范写法）；导入隐藏 file input */
+.ed-layout__iconbtn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-1);
+  color: var(--ink-3);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease),
+    background-color var(--dur-1) var(--ease);
+}
+.ed-layout__iconbtn::before {
+  content: '';
+  position: absolute;
+  inset: -11px; /* 18px 视觉 + 44px 触达 */
+}
+.ed-layout__item:hover .ed-layout__iconbtn,
+.ed-layout__iconbtn:focus-visible {
+  opacity: 1;
+}
+.ed-layout__iconbtn:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.ed-layout__iconbtn:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+.ed-layout__file-input {
+  display: none;
+}
+/* 行内重命名卡（沿保存命名卡语言，占满行宽） */
+.ed-layout__rename {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+/* 图层合并：源行按钮（Combine 图标，hover 浮显 + 琥珀 hover；展开态常显） */
+.ed-layer__merge-btn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-1);
+  color: var(--ink-3);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease),
+    background-color var(--dur-1) var(--ease);
+}
+.ed-layer__merge-btn::before {
+  content: '';
+  position: absolute;
+  inset: -11px; /* ≥40px 触达 */
+}
+.ed-layer__row:hover .ed-layer__merge-btn,
+.ed-layer__merge-btn:focus-visible {
+  opacity: 1;
+}
+.ed-layer__merge-btn:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.ed-layer__merge-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+.ed-layer__merge-btn:disabled {
+  cursor: default;
+}
+.ed-layer__merge-btn--open {
+  opacity: 1;
+  color: var(--accent);
+}
+/* 合并目标选择条（沿删除确认条同构：surface-2 抬起 + 说明 + 动作钮） */
+.ed-layer__row:has(.ed-layer__merge) {
+  background: var(--surface-2);
+}
+.ed-layer__merge {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) 0;
+}
+.ed-layer__merge .ed-layer__confirm-text {
+  color: var(--ink-2); /* 非破坏性说明（删除条为 danger 色） */
+}
+.ed-layer__merge-targets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  flex: 1;
+  min-width: 0;
+}
+.ed-layer__merge-targets .ed-btn--ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: 20px;
+  padding: 0 var(--sp-3);
+  cursor: pointer;
+}
+.ed-layer__merge-targets .ed-btn--ghost:hover {
+  color: var(--accent);
+  border-color: var(--accent-line);
+}
+
+/* 内容浏览器展开态标签/排序工具行（紧凑态不渲染） */
+.ed-browser__tags {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 0 var(--sp-4) var(--sp-2);
+  border-bottom: 1px solid var(--line-1);
+}
+.ed-browser__tags .ed-browser__chips {
+  flex: 1;
+  min-width: 0;
+}
+.ed-browser__tags .ed-chip {
+  cursor: pointer;
+}
+.ed-browser__sort {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.ed-browser__sort .ed-select {
+  width: auto;
+  min-width: 72px;
+}
+
+/* 模板清单行（管理弹层）：名称 + 等宽计数 meta + 行尾图标按钮 */
+.ed-tpl__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.ed-tpl__item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: var(--row-h);
+  padding: var(--sp-1) 0;
+}
+.ed-tpl__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-1);
+  font-size: var(--text-sm);
+}
+.ed-tpl__meta {
+  flex: none;
+  color: var(--ink-3);
+  font-size: var(--text-2xs);
+}
+/* 内置模板只读行：灰显 + 「内置」标签（不可改名/删除） */
+.ed-tpl__item--builtin {
+  opacity: 0.75;
+}
+.ed-tpl__item--builtin .ed-tpl__name {
+  color: var(--ink-2);
+}
+.ed-tpl__builtin-tag {
+  flex: none;
+  padding: 0 var(--sp-2);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-1);
+  color: var(--ink-3);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-caps);
+}
+/* 行尾图标按钮：视觉 24px、::before 扩展触达 ≥40px（沿图标按钮触达先例） */
+.ed-tpl__rowbtn {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-1);
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: color var(--dur-1) var(--ease), background-color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease);
+}
+.ed-tpl__rowbtn::before {
+  content: '';
+  position: absolute;
+  inset: -8px; /* 24 + 16 = 40px 触达 */
+}
+.ed-tpl__rowbtn:hover,
+.ed-tpl__rowbtn:focus-visible {
+  color: var(--ink-1);
+  background: var(--surface-3);
+  border-color: var(--line-2);
+  outline: none;
+}
+.ed-tpl__rowbtn:focus-visible {
+  box-shadow: var(--accent-glow);
+}
+.ed-tpl__rowbtn--danger:hover,
+.ed-tpl__rowbtn--danger:focus-visible {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+/* 行内重命名（沿 .ed-layout__save 命名卡语言） */
+.ed-tpl__item--renaming {
+  gap: var(--sp-2);
+}
+.ed-tpl__rename-input {
+  flex: 1;
+  min-width: 0;
+}
+.ed-tpl__rename-save {
+  flex: none;
+}
+
+/* 批量导入预览行（Ant Upload file list 惯例：状态图标 + 文件名 + 状态描述计数） */
+.ed-import__list {
+  list-style: none;
+  margin: 0 0 var(--sp-4);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+.ed-import__row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: var(--row-h);
+  padding: var(--sp-1) var(--sp-3);
+  background: var(--surface-2);
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-2);
+}
+.ed-import__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+}
+.ed-import__icon--ok {
+  color: var(--success);
+}
+.ed-import__icon--warn {
+  color: var(--warning);
+}
+.ed-import__icon--fail {
+  color: var(--danger);
+}
+.ed-import__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-1);
+  font-size: var(--text-sm);
+}
+.ed-import__desc {
+  flex: none;
+  color: var(--ink-3);
+  font-size: var(--text-2xs);
+}
+/* 文件级失败行置灰（不阻断其余行展示） */
+.ed-import__row--failed .ed-import__name,
+.ed-import__row--failed .ed-import__desc {
+  color: var(--ink-disabled);
+}
+/* 汇总行（合计 N 对象 / W 告警 / X 失败文件；等宽读数） */
+.ed-import__summary {
+  margin-bottom: var(--sp-5);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface-2);
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-2);
+  color: var(--ink-2);
+  font-size: var(--text-sm);
+}
+.ed-import__summary .ed-readout {
+  color: var(--ink-1);
+}
+
+/* ── 动效：启动一次性错落浮现 + 保存中状态点呼吸 ── */
+@keyframes ed-rise {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ed-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.ed-menubar,
+.ed-panel,
+.ed-hud {
+  animation: ed-rise var(--dur-3) var(--ease) both;
+}
+.ed-panel--left {
+  animation-delay: 40ms;
+}
+.ed-panel--right {
+  animation-delay: 80ms;
+}
+.ed-hud {
+  animation-delay: 160ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

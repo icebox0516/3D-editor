@@ -1,0 +1,170 @@
+{
+  "version": "2.0",
+  "id": "scene-template-sample",
+  "name": "示例园区",
+  "environment": { "preset": "day" },
+  "layers": [
+    { "id": "layer-template-uncategorized", "name": "未分类", "visible": true, "locked": false, "opacity": 1, "order": 0, "objectIds": [] },
+    { "id": "layer-template-water", "name": "水面", "visible": true, "locked": false, "opacity": 1, "order": 1, "objectIds": ["region-template-lake"] },
+    { "id": "layer-template-grass", "name": "绿地", "visible": true, "locked": false, "opacity": 1, "order": 2, "objectIds": ["region-template-green"] },
+    { "id": "layer-template-plaza", "name": "广场", "visible": true, "locked": false, "opacity": 1, "order": 3, "objectIds": [] },
+    { "id": "layer-template-parking", "name": "停车场", "visible": true, "locked": false, "opacity": 1, "order": 4, "objectIds": [] },
+    { "id": "layer-template-bare", "name": "裸地", "visible": true, "locked": false, "opacity": 1, "order": 5, "objectIds": [] },
+    { "id": "layer-template-road", "name": "道路", "visible": true, "locked": false, "opacity": 1, "order": 6, "objectIds": ["region-template-road"] },
+    { "id": "layer-template-building", "name": "建筑", "visible": true, "locked": false, "opacity": 1, "order": 7, "objectIds": ["region-template-office", "region-template-rd"] },
+    { "id": "layer-template-poi", "name": "POI", "visible": true, "locked": false, "opacity": 1, "order": 8, "objectIds": ["region-template-gate"] },
+    { "id": "layer-template-custom", "name": "自定义", "visible": true, "locked": false, "opacity": 1, "order": 9, "objectIds": [] },
+    { "id": "layer-template-model", "name": "模型", "visible": true, "locked": false, "opacity": 1, "order": 10, "objectIds": [] }
+  ],
+  "objects": [
+    {
+      "id": "region-template-office",
+      "type": "region",
+      "name": "综合办公楼",
+      "parentId": null,
+      "layerId": "layer-template-building",
+      "visible": true,
+      "locked": false,
+      "transform": { "position": { "x": 0, "y": 0, "z": 0 }, "rotation": { "x": 0, "y": 0, "z": 0 }, "scale": { "x": 1, "y": 1, "z": 1 } },
+      "properties": {},
+      "shape": {
+        "type": "polygon",
+        "points": [
+          { "x": -40, "y": -28 },
+          { "x": -18, "y": -28 },
+          { "x": -18, "y": -12 },
+          { "x": -40, "y": -12 },
+          { "x": -40, "y": -28 }
+        ],
+        "baseHeight": 0,
+        "closed": true
+      },
+      "semantic": { "type": "building", "properties": { "height": 9 } },
+      "style": { "presetId": "building.default", "overrides": {} },
+      "metadata": { "layerName": "建筑" }
+    },
+    {
+      "id": "region-template-rd",
+      "type": "region",
+      "name": "研发中心",
+      "parentId": null,
+      "layerId": "layer-template-building",
+      "visible": true,
+      "locked": false,
+      "transform": { "position": { "x": 0, "y": 0, "z": 0 }, "rotation": { "x": 0, "y": 0, "z": 0 }, "scale": { "x": 1, "y": 1, "z": 1 } },
+      "properties": {},
+      "shape": {
+        "type": "polygon",
+        "points": [
+          { "x": 8, "y": -30 },
+          { "x": 26, "y": -30 },
+          { "x": 26, "y": -16 },
+          { "x": 8, "y": -16 },
+          { "x": 8, "y": -30 }
+        ],
+        "baseHeight": 0,
+        "closed": true
+      },
+      "semantic": { "type": "building", "properties": { "height": 15 } },
+      "style": { "presetId": "building.default", "overrides": {} },
+      "metadata": { "layerName": "建筑" }
+    },
+    {
+      "id": "region-template-road",
+      "type": "region",
+      "name": "园区主路",
+      "parentId": null,
+      "layerId": "layer-template-road",
+      "visible": true,
+      "locked": false,
+      "transform": { "position": { "x": 0, "y": 0, "z": 0 }, "rotation": { "x": 0, "y": 0, "z": 0 }, "scale": { "x": 1, "y": 1, "z": 1 } },
+      "properties": {},
+      "shape": {
+        "type": "line",
+        "points": [
+          { "x": -50, "y": 2 },
+          { "x": -15, "y": 2 },
+          { "x": 20, "y": 2 },
+          { "x": 55, "y": 2 }
+        ],
+        "baseHeight": 0.06,
+        "closed": false
+      },
+      "semantic": { "type": "road", "properties": { "width": 8 } },
+      "style": { "presetId": "road.standard", "overrides": {} },
+      "metadata": { "layerName": "道路" }
+    },
+    {
+      "id": "region-template-green",
+      "type": "region",
+      "name": "中央绿地",
+      "parentId": null,
+      "layerId": "layer-template-grass",
+      "visible": true,
+      "locked": false,
+      "transform": { "position": { "x": 0, "y": 0, "z": 0 }, "rotation": { "x": 0, "y": 0, "z": 0 }, "scale": { "x": 1, "y": 1, "z": 1 } },
+      "properties": {},
+      "shape": {
+        "type": "polygon",
+        "points": [
+          { "x": -12, "y": 8 },
+          { "x": 12, "y": 8 },
+          { "x": 12, "y": 22 },
+          { "x": -12, "y": 22 },
+          { "x": -12, "y": 8 }
+        ],
+        "baseHeight": 0.12,
+        "closed": true
+      },
+      "semantic": { "type": "grass", "properties": {} },
+      "style": { "presetId": "grass.lawn", "overrides": {} },
+      "metadata": { "layerName": "绿地" }
+    },
+    {
+      "id": "region-template-lake",
+      "type": "region",
+      "name": "景观湖",
+      "parentId": null,
+      "layerId": "layer-template-water",
+      "visible": true,
+      "locked": false,
+      "transform": { "position": { "x": 0, "y": 0, "z": 0 }, "rotation": { "x": 0, "y": 0, "z": 0 }, "scale": { "x": 1, "y": 1, "z": 1 } },
+      "properties": {},
+      "shape": {
+        "type": "polygon",
+        "points": [
+          { "x": 28, "y": 8 },
+          { "x": 44, "y": 8 },
+          { "x": 44, "y": 20 },
+          { "x": 28, "y": 20 },
+          { "x": 28, "y": 8 }
+        ],
+        "baseHeight": 0.18,
+        "closed": true
+      },
+      "semantic": { "type": "water", "properties": {} },
+      "style": { "presetId": "water.standard", "overrides": {} },
+      "metadata": { "layerName": "水面" }
+    },
+    {
+      "id": "region-template-gate",
+      "type": "region",
+      "name": "南门",
+      "parentId": null,
+      "layerId": "layer-template-poi",
+      "visible": true,
+      "locked": false,
+      "transform": { "position": { "x": 0, "y": 0, "z": 0 }, "rotation": { "x": 0, "y": 0, "z": 0 }, "scale": { "x": 1, "y": 1, "z": 1 } },
+      "properties": {},
+      "shape": {
+        "type": "point",
+        "points": [{ "x": 0, "y": 45 }],
+        "baseHeight": 0,
+        "closed": false
+      },
+      "semantic": { "type": "poi", "properties": {} },
+      "style": { "presetId": "poi.billboard", "overrides": {} },
+      "metadata": { "layerName": "POI" }
+    }
+  ]
+}
