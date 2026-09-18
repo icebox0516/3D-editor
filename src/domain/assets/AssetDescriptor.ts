@@ -37,12 +37,12 @@ export interface ProceduralVariants {
 }
 
 /**
- * LOD 档位声明（T003.4 接口位占位，T006/006.1 实装消费）。
- * 本阶段每资产恒单档 'high'（细模即唯一档）：纯数据声明、管线零消费，build 契约
- * （无参同步单产物）不随档位扩展——多档 build 路由到 T006 再定。
+ * LOD 档位声明——levels 是资产内容声明（D23 职责切分：T009.6 首次提供多档夏栎实现
+ * 并落地 Runtime level 维度；T006 只负责运行时距离切换/Chunk/Batch 消费）。
+ * 类型形态不变；'medium' / 'low' 由资产按家族预算实测填充。
  */
 export interface ProceduralLevelDescriptor {
-  /** 档位 id：'high' = 细模（当前唯一档）；'medium' / 'low' 预留给 T006 */
+  /** 档位 id：'high' = 细模；'medium' / 'low' 由各资产 LOD 任务提供内容 */
   id: 'high' | 'medium' | 'low';
 }
 
@@ -57,10 +57,10 @@ export interface ProceduralAssetMeta extends AssetCommonMeta {
    *  （是资产配置而非协议常量——具体数值由声明方资产的任务锁定，本类型不写死）；
    *  声明后对象 seed 经三流域派生路由到槽（domain/assets/shapeFamily） */
   shapeFamily?: { size: number };
-  /** 细模三角形实数（面数纪律声明：单株 ≤2000 是撒点预算与 LOD 压线前提；
-   *  可选字段，声明即与几何实测一致，由资产测试锁定） */
+  /** 三角形实数（D23：实际内容统计值/预算记录字段——具体预算由资产族与 LOD 验收锁定，
+   *  不构成公共硬契约；旧「单株 ≤2000」为 003.4 旧小植物时期口径，仅存历史记录） */
   triangleCount?: number;
-  /** LOD 档位（接口位占位；缺省视为单档细模，与显式声明单档等价） */
+  /** LOD 档位（缺省视为单档细模，与显式声明单档等价；多档内容由 T009.6 起提供，D23） */
   levels?: ProceduralLevelDescriptor[];
 }
 

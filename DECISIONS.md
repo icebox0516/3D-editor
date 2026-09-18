@@ -172,3 +172,17 @@
 - **family** = 族层级（broadleaf / conifer / shrub …），支撑植物库三级树（Trees → Broadleaf → 夏栎）与非植物族扩展；
 - 支撑 T016 资产管理器「大类 → 小类/族 → 具体资产」浏览直接消费，一次定契约避免资产二次迁移；
 - 尺寸类植物语义（heightRange / crownWidthRange）放 proceduralProfile / family 层，禁止植物术语进公共协议（D20.6）。
+
+---
+
+## 2026-09-18 · D23 LOD 职责澄清与契约注释纪律（修正 D17/D11 历史表述，append-only 不回改）
+
+**背景**：D17 曾表述「LOD 到 T006 再扩展 build 签名」、D11 曾表述「LOD 本期完整交付（T006）」；植物资产路线立项（D20）后 LOD 职责重划，为免后续读取冲突追加本条澄清——历史决策原文保留，本条为后续执行依据。
+
+1. **LOD 职责切分**：T009.6 负责首次真实资产的 level 内容落地与 Runtime level 维度验证（夏栎 High/Mid/Low 从占位变实装）；T006 负责距离切换、Chunk 分块、Batch 消费。**LOD 内容属资产/Runtime，切换属 T006。**
+2. **level 契约**：level 为 Procedural Build 可选 Runtime 参数（`build({ seed?, preset?, level? })`），**不参与 shapeSlot / morphSeed / sourceKey 形态身份计算**；sourceKey 只表达形态身份（assetId + preset + shapeSlot），Runtime Cache 以「sourceKey + level」为档位缓存维度——双维缓存语义：形态身份由 sourceKey 定义、具体几何 Source 由 sourceKey + level 决定；`sourceKeyOf()` 本身不改，level 不掺入形态身份（与 D19 不冲突）。
+3. **triangleCount 语义**：实际内容统计值/预算记录字段，具体预算由资产族与 LOD 验收锁定；旧「单株 ≤2000」为 003.4 旧小植物时期口径，仅存历史任务记录，**不构成公共硬契约**。
+4. **公共分类边界维持现状**：`category: string` 暂不动，T010.2 一次性完成「大类 enum + 可选 family」公共分类契约；**不提前引入 PlantAssetDescriptor / TreeAssetDescriptor 联合类型**（防植物专属平台提前成形，与 D20.3 一致）。
+5. **职责边界不重划**：Router（file/procedural 分派）/ Cache（程序化 Source 生命周期）/ Pool（实例化与桶）/ Scatter（区域派生实例）现行边界与「Asset / Feature 两通路分离」（D21）一致，不重构——只补 Shadow/LOD 契约（T009.5/T009.6）；T009.5 对 Scatter 仅契约兼容的限制继续保持。
+6. **核心 Runtime 注释纪律**：InstancedAssetPool 等核心 Runtime 文件类头只保留**稳定契约**（aSeed 必须 geometry 绑定、池不 dispose Source、Ghost 不走本池等）；实现事实（材质未声明 aSeed 时的行为、诊断 split 具体细节、单实例 hue 出现时机等）落任务完成记录，不继续向类头堆积——防止核心 Runtime 文件演变为第二份任务板。
+7. **AGENTS 人工门例外（D16 补充）**：常规视觉验收在 epic 末验收门执行；任务明确标注人工锚点/形态筛选门时（如 008.3 锚点门、009.3 逐槽裁定），可在子任务阶段进行用户裁定，结果作为后续验收基线。
