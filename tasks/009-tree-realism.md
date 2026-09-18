@@ -38,7 +38,7 @@
 
 ## 子任务（2026-09-18 立项拆分，D16 会话粒度）
 
-- [ ] T009.1 枝干结构真实性 → [009.1-branch-structure.md](009.1-branch-structure.md)
+- [x] T009.1 枝干结构真实性（done 2026-09-18：shapeProfile 参数面 + 主次分级 + 冠内通透三规则 + slot-0 重校；29520 面 -8%；+9 测试 → 2452 全绿；四机位视觉裁定过，取证 `docs/acceptance/t009/009.1/`）→ [009.1-branch-structure.md](009.1-branch-structure.md)
 - [ ] T009.2 夏栎叶簇生成 → [009.2-leaf-cluster.md](009.2-leaf-cluster.md)
 - [ ] T009.3 8 槽形态向量表 → [009.3-shape-slots.md](009.3-shape-slots.md)
 - [ ] T009.4 树皮近景微起伏 → [009.4-bark-relief.md](009.4-bark-relief.md)
@@ -51,3 +51,4 @@
 ## 进度
 
 - 2026-09-18 立项：植物资产路线 grill（三轮拷问 + 两轮修正）→ D20，0/7。前置 = 008.4 + 008.6 均完成（二者锚点门后可并行）。
+- 2026-09-18 T009.1 完成（1/7）：shapeProfile 夏栎私有参数面（tree3aShapeProfile.ts，逐字段 Spec 依据 + Evidence Status 标注，Unknown 不编造）落地，LEVELS/TRUNK/CHILD_PLAN/LEAF 硬编码全部改 profile 消费（ProceduralBuild 公共签名未动，morphSeed→slot→profile 查表路由）；主次分级（rank 势差 + 逐级半径比低级陡 + L1 锥度 0.7 + wander 姿态分级，L1/L5 起径比 29.8）；冠内通透三显式规则（枝干通道 / 内层密度场 q 梯度 / 局部空腔球——内核保留率 0.330 vs 外壳 0.985）；slot-0 锚点重校（已符合项全部保持，冠幅比裁决留 009.3）。29520 面（-8%）不回落；2443 → 2452 全绿。主代理四机位取证 + 视觉裁定四判据全过；延期项：spec 附录#16 小枝材质分化（破「恰 2 组」或动材质，去向 009.4/材质专项）。下一步 009.2 夏栎叶簇生成（叶形长宽比最重偏差 + 叶卡尺寸 + 叶背粉绿）。

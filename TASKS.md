@@ -4,8 +4,9 @@
 
 ## Current
 
-- [ ] T009 夏栎结构真实性与生产化（0/7；2026-09-18 解锁）→ [tasks/009-tree-realism.md](tasks/009-tree-realism.md)
-  - [ ] T009.1 枝干结构真实性（进行中：shapeProfile 参数面 + 主次分级 + 冠内通透显式规则 + slot-0 重校）→ [tasks/009.1-branch-structure.md](tasks/009.1-branch-structure.md)
+- [ ] T009 夏栎结构真实性与生产化（1/7；2026-09-18 解锁）→ [tasks/009-tree-realism.md](tasks/009-tree-realism.md)
+  - [x] T009.1 枝干结构真实性（done 2026-09-18：shapeProfile 参数面 + 主次分级 + 冠内通透三规则；29520 面 -8%；+9 测试 → 2452 全绿；四机位取证 `docs/acceptance/t009/009.1/`）→ [tasks/009.1-branch-structure.md](tasks/009.1-branch-structure.md)
+  - [ ] T009.2 夏栎叶簇生成（下一个：叶形长宽比最重偏差 + 叶卡尺寸 + 叶背粉绿）→ [tasks/009.2-leaf-cluster.md](tasks/009.2-leaf-cluster.md)
 - [ ] T008 程序化树木（5/6；008.5 收官门后置于 T009 全部完成）→ [tasks/008-procedural-tree.md](tasks/008-procedural-tree.md)
   - [ ] T008.5 T008 收官验收门（修订版 → D20，后置于 T009 全部完成）→ [tasks/008.5-acceptance.md](tasks/008.5-acceptance.md)
   - [x] T008.6 夏栎视觉参考研究（done 2026-09-18：spec 1.0 + plant-schema v0.2 + 对照 7/3/6/2；用户过目门按放行处置——「继续任务」指令后问询未获回答，异议窗口开放，见任务书处置记档）→ [tasks/008.6-plant-reference.md](tasks/008.6-plant-reference.md)

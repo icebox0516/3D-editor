@@ -12,7 +12,8 @@
  * - 几何健康：法线无 NaN 有限、包围盒有限、minY ∈ [-0.01, 0.01]（贴地）、顶高与冠幅落
  *   任务书带（7–9m / 5–7.5m）、恰 2 材质组且材质对应（皮 FrontSide / 叶 DoubleSide 占位）；
  * - 预算与声明：皮 1.5–3 万面 / 叶卡 2000–6000 张（初始目标预算）；triangleCount 实测
- *   一致（±5%——结构计数固定实为恒等）；两次 build 资源新实例（缓存契约）；
+ *   一致（T009.1 起叶卡数随冠内通透规则确定：slot-0 声明实数、同槽恒等、跨槽差异为
+ *   8 槽形态向量设计预期）；两次 build 资源新实例（缓存契约）；
  * - 契约第一锁（D19，缓存路径）：同槽两对象 seed → 同 Source 同引用；异槽异 Source；
  *   8 槽健康横扫（法线/minY/带内——008.5 扩槽的前置保障）。
  * 边界：测试内 build/load 产物 afterEach 统一 dispose 兜底，不跨测试泄漏 GPU 资源。
@@ -57,7 +58,7 @@ describe('meta 契约', () => {
   it('variants 参照 asset_oak 量级 / levels 接口位单档 high / triangleCount 实数声明', () => {
     expect(meta.variants).toEqual({ scaleJitter: 0.16, rotationJitter: 180, hueJitter: 9 });
     expect(meta.levels).toEqual([{ id: 'high' }]);
-    expect(meta.triangleCount).toBe(32064);
+    expect(meta.triangleCount).toBe(29520); // T009.1：皮 20724 恒定 + slot-0 叶卡 4398×2（通透规则确定值）
   });
 });
 
@@ -271,20 +272,30 @@ describe('契约第一锁（缓存路径，D19）', () => {
     expect(s3.geometry).not.toBe(s1.geometry);
     cache.dispose();
   }, 30000);
-  it('8 槽健康横扫：法线有限 / minY 贴地 / 顶高与面数在带（008.5 扩槽前置保障）', () => {
+  it('8 槽健康横扫：法线有限 / minY 贴地 / 顶高在带 / 同槽重复构建面数恒等（009.3 扩槽前置保障）', () => {
     for (let slot = 0; slot < 8; slot++) {
-      const { geometry } = buildTracked(morphSeedOf('asset_tree_3a', slot));
+      const seed = morphSeedOf('asset_tree_3a', slot);
+      const first = buildTracked(seed);
       let nonFinite = 0;
-      const normal = geometry.getAttribute('normal');
+      const normal = first.geometry.getAttribute('normal');
       for (let i = 0; i < normal.array.length; i++) if (!Number.isFinite(normal.array[i])) nonFinite++;
       expect(nonFinite, `slot${slot} 法线应有限`).toBe(0);
-      geometry.computeBoundingBox();
-      const box = geometry.boundingBox!;
+      first.geometry.computeBoundingBox();
+      const box = first.geometry.boundingBox!;
       expect(box.min.y).toBeGreaterThanOrEqual(-0.01);
       expect(box.min.y).toBeLessThanOrEqual(0.01);
       expect(box.max.y).toBeGreaterThanOrEqual(6.8); // 全槽放宽下沿（锚点槽另由上一组锁定 7–9）
       expect(box.max.y).toBeLessThanOrEqual(9.2);
-      expect(geometry.getAttribute('position').count / 3).toBe(meta.triangleCount); // 面数槽间恒定
+      // T009.1：叶卡数随冠内通透规则确定——槽间面数差异为 8 槽形态向量设计预期，
+      // 恒等要求收窄为「同槽同 seed 重复构建面数恒等」（D19 确定性延续）
+      const second = buildTracked(seed);
+      expect(second.geometry.getAttribute('position').count, `slot${slot} 同槽面数应恒等`).toBe(
+        first.geometry.getAttribute('position').count,
+      );
+      if (slot === 0) {
+        // slot-0 锚点 = triangleCount 声明实数（结构计数锁）
+        expect(first.geometry.getAttribute('position').count / 3).toBe(meta.triangleCount);
+      }
     }
   }, 60000);
 });

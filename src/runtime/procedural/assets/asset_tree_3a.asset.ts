@@ -3,8 +3,10 @@
  *
  * 职责：D19 契约链上的 slot-0 锚点形态资产——build(params?) 以 mulberry32(params.seed)
  *      驱动全部分枝/叶簇随机量（**rng 消费顺序即契约**：同 seed 逐位同结果），几何生成
- *      全部在 ./tree/broadleafGeometry（五级递归分枝 + 锥度枝干 + 叶卡烘焙，结构计数
- *      固定 → 面数恒定）。params.seed 缺省回落 slot-0 锚点 morphSeed
+ *      全部在 ./tree/broadleafGeometry（五级递归分枝 + 锥度枝干 + 叶卡烘焙；T009.1 起
+ *      形态参数消费 ./tree/tree3aShapeProfile 的夏栎私有 shapeProfile——build 内做
+ *      morphSeed → slot → profile 路由，公共签名不变；皮拓扑恒定皮面数恒等、叶卡数
+ *      随冠内通透规则在同槽同 seed 下恒定）。params.seed 缺省回落 slot-0 锚点 morphSeed
  *      （morphSeedOf('asset_tree_3a', 0)——domain 纯函数，与 ProceduralSourceCache
  *      传入值逐位一致：无参路径 = 缓存路径 = 同一棵锚点树，008.3 调材质看到的永远是它）。
  *      尺度参照真实乔木：总高 7.4–8.5m、冠幅 5.4–6.6m；原点 = 底部中心 minY 精确 0。
@@ -34,6 +36,7 @@ import type { ProceduralAssetMeta } from '../../../domain/assets';
 import type { InstanceSource } from '../../instancing/InstancedAssetPool';
 import type { ProceduralBuildParams } from '../types';
 import { buildBroadleafGeometry } from '../tree/broadleafGeometry';
+import { TREE3A_SHAPE_PROFILES } from '../tree/tree3aShapeProfile';
 import { createTree3aBarkMaterial, createTree3aLeafMaterial } from '../tree/tree3aMaterials';
 
 export const meta: ProceduralAssetMeta = {
@@ -45,14 +48,28 @@ export const meta: ProceduralAssetMeta = {
   defaultRotation: { x: 0, y: 0, z: 0 },
   shapeFamily: { size: 8 }, // D19：8 形态槽（本任务只做 slot-0 锚点；跨槽差异归 008.5）
   variants: { scaleJitter: 0.16, rotationJitter: 180, hueJitter: 9 }, // 参照 asset_oak 量级
-  triangleCount: 32064, // 实数 = 结构计数恒定值（皮 20724 + 叶卡 5670×2；见完成记录）
+  triangleCount: 29520, // 实数 = slot-0 锚点结构计数（皮 20724 恒定 + 叶卡 4398×2 随通透规则确定；见完成记录）
   levels: [{ id: 'high' }], // LOD 接口位：单档细模占位
 };
 
+/**
+ * morphSeed → shapeProfile 路由（T009.1 slot → 结构配置）：枚举 8 槽 morphSeedOf
+ * 逐位比对还原 slot 索引（O(8) 纯查表，确定性）；非槽种子（如测试直传任意 seed）
+ * 与未填槽一并回落 slot-0 标准组合（009.3 前后行为兼容——未列槽结构一致，
+ * 差异仅来自 morphSeed 随机流）。**不扩展 ProceduralBuild 公共签名**。
+ */
+function profileForSeed(seed: number) {
+  for (let slot = 0; slot < 8; slot++) {
+    if (seed === morphSeedOf(meta.id, slot)) return TREE3A_SHAPE_PROFILES[Math.min(slot, TREE3A_SHAPE_PROFILES.length - 1)]!;
+  }
+  return TREE3A_SHAPE_PROFILES[0]!;
+}
+
 export function build(params?: ProceduralBuildParams): InstanceSource {
   // params.seed = morphSeed（SourceCache 传 morphSeedOf(assetId, slot)；缺省 = slot-0 锚点）
-  const rng = mulberry32(params?.seed ?? morphSeedOf(meta.id, 0));
-  const { geometry } = buildBroadleafGeometry(rng);
+  const seed = params?.seed ?? morphSeedOf(meta.id, 0);
+  const rng = mulberry32(seed);
+  const { geometry } = buildBroadleafGeometry(rng, profileForSeed(seed));
   const bark = createTree3aBarkMaterial(); // 组 0（契约序 [皮, 叶]——mergeGeometries 层序）
   const leaf = createTree3aLeafMaterial();
   return { geometry, material: [bark, leaf] };
