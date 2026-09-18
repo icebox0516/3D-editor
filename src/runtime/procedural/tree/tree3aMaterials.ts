@@ -6,14 +6,15 @@
  *   原句保留后追加 / <color_fragment> 绝不触碰——instanceColor 逐实例色相乘算链安全，
  *   注入乘法与 vColor 乘法交换律安全）：
  *   - 叶（组 1）：SDF 程序化橡树叶形 alpha（uv 域 0–1 四边形，零贴图 D13）——卵形包络
- *     + 4 对圆裂（cos 波内切）+ 叶缘微锯齿（高频值噪声扰动半宽）+ 中脉/侧脉明暗（纯 ALU）；
+ *     + 4 对圆裂（cos 波内切）+ 叶缘锯齿（齿载波+噪声合成 ±0.022 半宽）+ 中脉/沟侧翼/
+ *     侧脉明暗（纯 ALU）；
  *     裁切走 alphaTest 0.5 + alphaToCoverage（MSAA 抗锯边；不 transparent——实例化 +
  *     深度排序灾难）；背光透射项（太阳在冠后时叶背透暖绿——近观层级感）；逐叶 aLeafRand
  *     变奏（色相通道摆幅 ≤15% 纪律内）+ 冠内竖向自遮蔽梯度 + 中频叶团斑块（位置域）。
- *   - 皮（组 0）：脊-沟-板结构语言（整数脊数纵向沟脊 + 平方三角剖面沟底 AO + 低频游走 +
+ *   - 皮（组 0）：脊-沟-板结构语言（整数脊数纵向沟脊 + 立方三角剖面沟底 AO + 低频游走 +
  *     各向异性竖长板块斑驳）新调参针对真实锥度管几何，另加节疤（低频噪声高带——同噪两用
- *     零额外采样，暗斑 + 脊线局部压平 + 粗糙上翘）与苔痕（冠下竖向门控 × 双噪声高带 ×
- *     方位调制，乘性偏绿）。
+ *     零额外采样，暗斑 + 愈伤环 + 脊线局部压平 + 粗糙上翘）与苔痕（冠下竖向门控 × 双噪声
+ *     高带 × 方位门控，乘性偏绿）。
  *   - 风动（D19.7 分工语义：uTime = 全局风刮到哪一帧，aSeed = 每棵树各吹各的）：两材质
  *     共用同一公式同一常数（皮不动叶动会撕裂穿帮）——整树缓摆 ~0.18Hz / 顶部 ~4.5cm，
  *     权重 = 归一物体高度²（干基钉地）、相位 = hash(aSeed)；叶片快颤 2.2–3.7Hz / ≤11mm，
@@ -33,9 +34,28 @@
  *   不进 depth pass（静态影，摆幅 cm 级 + 影贴图 ~16cm/_texel 下不可辨，已知取舍）。
  * 成本记账（10 万实例每像素纪律，hash21=1× / vnoise=3× 口径；模块头记账）：
  *   - 叶片元 = 6× 噪声（叶缘锯齿 1× vnoise + 叶团斑块 1× vnoise）+ SDF/叶脉/透光纯 ALU
- *     （sin/cos/smoothstep 折算 ≈ 3×）≈ 9× ≤ 10× 预算；
- *   - 皮片元 = 2× vnoise = 6×（节疤/苔痕为既有噪声高带/门控复用，零额外采样）；
+ *     （sin/cos/smoothstep 折算 ≈ 4×——R1 加齿载波与脉侧翼）≈ 10× 压线预算（再增先降载）；
+ *   - 皮片元 = 2× vnoise = 6× + 脊沟强化/愈伤环/苔痕门控 smoothstep 纯 ALU ≈ 1.5× ≈ 7.5×
+ *     （节疤/苔痕为既有噪声高带/门控复用，零额外采样）；
  *   - 顶点 = 两次 sin + 一次法线乘，无循环；深度片元 = SDF 纯 ALU（影 pass 不吃噪声）。
+ * **2026-09-18 锚点门第 1 轮微调记档（用户裁定四项，近观 8m「可感知但不夸张」）**：
+ *   1) 树皮沟壑加深：脊剖面 0.55+0.45·tri² → 0.44+0.56·tri³（沟底均值 0.70→0.58、暗端
+ *      0.46→0.33）+ 沟内 AO 式冷灰压暗/脊顶微暖（smoothstep(0.08,0.72,tri) 双端 mix）+
+ *      脊顶糙度 −0.10（掠射高光骑脊 → 深度线索）。未做切线空间法线扰动——管状几何 TBN
+ *      近似跨干/枝姿态不可靠，脊对比走反照率+粗糙度通道（零新 varying 零新采样）。
+ *   2) 节疤/苔痕：节疤核带 0.66–0.84 → 0.72–0.84 收紧 + darkening 0.28→0.42 + 新增愈伤环
+ *      t3aBarkRim（核外亮带 +0.14，同场 smoothstep 复用零采样）+ 粗糙上翘 0.06→0.09；
+ *      苔痕方位 0.55+0.45·sin → smoothstep(−0.15,0.75,·)（一侧干净一侧集中）、强度
+ *      0.75→0.82、绿偏移 (0.82,0.98,0.62)→(0.80,0.99,0.58)。
+ *   3) 叶形细节：锯齿 ±0.015 纯噪声 → ±0.022 齿载波 pow³(0.5+0.5·cos)·0.7 + 噪声·0.3
+ *      合成 ×taper 两端全缘（齿形可辨、噪声频率 42 不升——alphaTest 0.5 下升频会裁切闪烁，
+ *      振幅 ≤ 覆盖率坡宽 0.03 的 75% 保证齿沿干净穿越 0 等值线）；中脉带 0.006–0.018 →
+ *      0.008–0.024、对比 0.45→0.58、脉色 (1.24,1.15,0.72)→(1.28,1.17,0.68)，新增中脉沟
+ *      侧翼压暗 −0.07（限中段）；侧脉 pow 8→7、对比 0.35→0.42。SDF 单一来源，深度材质
+ *      影裁切齿形自动同步。
+ *   4) 透光：峰值系数 0.45→0.65（区间 0.6–0.75 取中偏低）——透射色 (0.62,0.94,0.34) 绿分量
+ *      最先触顶、红蓝余量大 → 冠缘读作暖绿而非泛白；NoToneMapping 白化风险有界，
+ *      t3aTransVar∈[0.45,1.0] 逐叶变奏压住均值叶不过曝。
  * 边界：工厂每次调用 new 全部材质（D17 所有权随调用移交，禁止模块级共享对象）；零贴图/
  *   零 DataTexture（D13）；GLSL float 字面量全带小数点；aSeed=0（DEV 普通 Mesh 无该属性，
  *   WebGL 缺省属性值 0）路径相位退化为正常数——hash 无除法无 NaN。
@@ -83,8 +103,10 @@ uniform float uTime;
 /**
  * 橡树叶形覆盖率（uv 域：u 横向 0–1、v 卡根 0 → 叶尖 1）：
  * 卵形包络（sin^0.75，两端收零=叶柄贴枝/圆钝叶尖）× 4 对圆裂（cos 波 42% 内切，裂幅两端
- * 收敛为全缘）× 高频锯齿（值噪声 ±0.015 半宽扰动 ≈ ±3mm @0.2m 卡）；返回近似符号距离的
- * 覆盖率坡（edge/0.03 —— alphaToCoverage 的 fwidth smoothstep 吃这条坡抗锯边）。
+ * 收敛为全缘）× 叶缘锯齿（齿载波 0.7 + 值噪声抖动 0.3 合成 ±0.022 半宽 ≈ ±4.4mm @0.2m 卡；
+ * 载波 pow³ 锐化齿尖使齿形可辨，噪声频率 42 维持不升——alphaTest 0.5 下更高频会裁切闪烁，
+ * ×taper 两端收敛全缘）；返回近似符号距离的覆盖率坡（edge/0.03 —— alphaToCoverage 的
+ * fwidth smoothstep 吃这条坡抗锯边）。
  */
 const TREE3A_LEAF_SDF = /* glsl */ `
 float t3aLeafAlpha(vec2 t3aUv, float t3aRand) {
@@ -93,7 +115,9 @@ float t3aLeafAlpha(vec2 t3aUv, float t3aRand) {
   float t3aTaper = smoothstep(0.04, 0.32, t3aP.y) * (1.0 - smoothstep(0.70, 0.96, t3aP.y));
   float t3aLobe = 0.5 + 0.5 * cos(t3aP.y * 25.13 + (t3aRand - 0.5) * 0.9); // 25.13 = 2π·4 圆裂
   float t3aMargin = 0.5 * t3aEnv * (1.0 - 0.42 * t3aTaper * t3aLobe);
-  float t3aSerr = (facVnoise(vec2(t3aP.y * 42.0, t3aRand * 13.0)) - 0.5) * 0.03;
+  // 齿载波：2π·6 ≈ 6 齿/叶，pow³ 出窄峰宽谷（齿尖外凸/齿缺内凹），逐叶 -rand·2π 相位错开
+  float t3aTooth = pow(0.5 + 0.5 * cos(t3aP.y * 37.7 - t3aRand * 6.28), 3.0);
+  float t3aSerr = (t3aTooth * 0.7 + facVnoise(vec2(t3aP.y * 42.0, t3aRand * 13.0)) * 0.3 - 0.5) * 0.045 * t3aTaper;
   float t3aEdge = t3aMargin + t3aSerr - abs(t3aP.x);
   return clamp(t3aEdge / 0.03 + 0.5, 0.0, 1.0);
 }
@@ -111,13 +135,16 @@ float t3aLuma = 0.90 + 0.20 * fract(vLeafRand * 3.117 + 0.61);
 // 冠内：竖向自遮蔽（底暗顶亮，伪装冠层 AO）+ 中频叶团斑块（波长 ~1.1m ≈ 叶团身份差）
 float t3aClump = facVnoise(vec2(vTreePos.x + vTreePos.z * 0.71, vTreePos.y - vTreePos.z * 0.53) * 0.9 + vec2(9.4, 3.1));
 float t3aShade = clamp((vTreePos.y - 2.6) / 3.6, 0.0, 1.0);
-// 叶脉明暗：中脉细带 + 斜出侧脉（幂次锐化），浅黄绿（叶脉比叶肉亮）；纯 ALU 零采样
+// 叶脉明暗：中脉亮带（加宽锐化）+ 中脉沟侧翼压暗（立体感）+ 斜出侧脉（幂次锐化），
+// 浅黄绿（叶脉比叶肉亮）；纯 ALU 零采样
 vec2 t3aP = vec2(vUv.x - 0.5, vUv.y);
-float t3aVeinMid = 1.0 - smoothstep(0.006, 0.018, abs(t3aP.x));
-float t3aVeinLat = pow(max(0.0, sin(t3aP.y * 34.0 - abs(t3aP.x) * 26.0 + (vLeafRand - 0.5) * 0.6)), 8.0)
+float t3aVeinMid = 1.0 - smoothstep(0.008, 0.024, abs(t3aP.x));
+float t3aVeinFlank = (1.0 - t3aVeinMid) * (1.0 - smoothstep(0.024, 0.070, abs(t3aP.x))); // 中脉两侧沟影带
+float t3aVeinLat = pow(max(0.0, sin(t3aP.y * 34.0 - abs(t3aP.x) * 26.0 + (vLeafRand - 0.5) * 0.6)), 7.0)
   * (1.0 - t3aVeinMid) * smoothstep(0.03, 0.20, t3aP.y) * (1.0 - smoothstep(0.78, 0.97, t3aP.y));
 vec3 t3aMul = t3aHue * t3aLuma * (0.76 + 0.24 * t3aShade) * (0.94 + 0.12 * t3aClump);
-t3aMul = mix(t3aMul, t3aMul * vec3(1.24, 1.15, 0.72), t3aVeinMid * 0.45 + t3aVeinLat * 0.35);
+t3aMul *= 1.0 - 0.07 * t3aVeinFlank * smoothstep(0.05, 0.28, t3aP.y) * (1.0 - smoothstep(0.74, 0.96, t3aP.y)); // 沟影限中段（两端收）
+t3aMul = mix(t3aMul, t3aMul * vec3(1.28, 1.17, 0.68), t3aVeinMid * 0.58 + t3aVeinLat * 0.42);
 diffuseColor.rgb *= t3aMul;
 `;
 
@@ -127,8 +154,10 @@ const TREE3A_LEAF_TRANSLUCENCY = /* glsl */ `
 #if NUM_DIR_LIGHTS > 0
   float t3aBack = saturate(dot(normalize(vViewPosition), -directionalLights[0].direction));
   float t3aTransVar = 0.45 + 0.55 * fract(vLeafRand * 7.717 + 0.44); // 逐叶透光强度变奏
+  // 峰值 0.65（锚点门 R1：0.45 → 0.65）——透射色绿分量最先触顶、红蓝余量大，
+  // 冠缘读作暖绿而非白（NoToneMapping 白化风险有界；t3aTransVar 下限 0.45 压住均值叶）
   outgoingLight += vec3(0.62, 0.94, 0.34) * directionalLights[0].color
-    * pow(t3aBack, 3.0) * t3aTransVar * t3aAlpha * 0.45;
+    * pow(t3aBack, 3.0) * t3aTransVar * t3aAlpha * 0.65;
 #endif
 `;
 
@@ -137,18 +166,22 @@ const TREE3A_BARK_BODY = /* glsl */ `
 // tree3a:bark —— 脊-沟-板 + 节疤 + 苔痕（成熟橡皮矩形龟裂；整数脊数 → u 缝相位连续）
 float t3aBarkWarp = facVnoise(vec2(vUv.x * 2.7, vUv.y * 2.1) + vec2(11.7, 3.9)); // 脊线游走（低频）
 float t3aBarkTri = abs(fract(vUv.x * 14.0 + t3aBarkWarp * 1.35) * 2.0 - 1.0);
-float t3aBarkRidge = 0.55 + 0.45 * t3aBarkTri * t3aBarkTri; // 深沟：沟底 0.55（× 板块暗端 ≈0.46）
+// 深沟：tri³ 剖面（脊更窄亮/坡更暗）+ 沟底 0.44（× 板块暗端 × 沟内冷灰 ≈ 0.33 —— 深沟灰褐）
+float t3aBarkRidge = 0.44 + 0.56 * t3aBarkTri * t3aBarkTri * t3aBarkTri;
 float t3aBarkPlate = facVnoise(vec2(vUv.x * 4.6, vUv.y * 13.5) + vec2(23.1, 8.3)); // 环疏纵密 → 竖长板
-// 节疤：低频游走噪声高带（稀疏圆斑；同噪两用零额外采样）——暗斑 + 脊线压平 + 粗糙上翘
-float t3aBarkKnot = smoothstep(0.66, 0.84, t3aBarkWarp + t3aBarkPlate * 0.2);
-// 苔痕：冠下竖向门控（树冠 ~2.7m 起，其下背阴）× 双噪声高带 × 方位调制（一侧偏多）
+// 节疤：低频游走噪声高带（稀疏圆斑；同噪两用零额外采样）——核带收紧（更清晰）+ 愈伤环
+float t3aBarkKnotF = t3aBarkWarp + t3aBarkPlate * 0.2;
+float t3aBarkKnot = smoothstep(0.72, 0.84, t3aBarkKnotF); // 核：暗斑 + 脊线压平 + 粗糙上翘
+float t3aBarkRim = smoothstep(0.62, 0.72, t3aBarkKnotF) * (1.0 - smoothstep(0.80, 0.90, t3aBarkKnotF)); // 愈伤环：核外亮带
+// 苔痕：冠下竖向门控（树冠 ~2.7m 起，其下背阴）× 双噪声高带 × 方位门控（一侧集中一侧干净）
 float t3aBarkMoss = (1.0 - smoothstep(2.0, 5.2, vTreePos.y))
   * smoothstep(0.56, 0.86, t3aBarkWarp * 0.6 + t3aBarkPlate * 0.55)
-  * (0.55 + 0.45 * sin(vUv.x * 6.28318 + 1.2));
+  * smoothstep(-0.15, 0.75, sin(vUv.x * 6.28318 + 1.2));
 vec3 t3aBarkMul = mix(t3aBarkRidge, 0.74 + 0.2 * t3aBarkRidge, t3aBarkKnot)
   * mix(vec3(0.84, 0.86, 0.88), vec3(1.13, 1.07, 1.00), t3aBarkPlate);
-t3aBarkMul *= 1.0 - 0.28 * t3aBarkKnot;
-t3aBarkMul = mix(t3aBarkMul, t3aBarkMul * vec3(0.82, 0.98, 0.62), t3aBarkMoss * 0.75);
+t3aBarkMul *= mix(vec3(0.89, 0.87, 0.97), vec3(1.05, 1.02, 0.98), smoothstep(0.08, 0.72, t3aBarkTri)); // 沟内 AO 式冷灰压暗、脊顶微暖
+t3aBarkMul *= 1.0 - 0.42 * t3aBarkKnot + 0.14 * t3aBarkRim; // 节疤核加深 + 愈伤环微亮
+t3aBarkMul = mix(t3aBarkMul, t3aBarkMul * vec3(0.80, 0.99, 0.58), t3aBarkMoss * 0.82);
 diffuseColor.rgb *= t3aBarkMul;
 `;
 
@@ -266,7 +299,7 @@ ${TREE3A_BARK_BODY}`,
       shader.fragmentShader,
       '#include <roughnessmap_fragment>',
       `#include <roughnessmap_fragment>
-roughnessFactor = clamp(roughnessFactor + (t3aBarkPlate - 0.5) * 0.05 + t3aBarkKnot * 0.06 + t3aBarkMoss * 0.05, 0.05, 1.0);`,
+roughnessFactor = clamp(roughnessFactor + (t3aBarkPlate - 0.5) * 0.05 + t3aBarkKnot * 0.09 + t3aBarkMoss * 0.05 - t3aBarkTri * t3aBarkTri * t3aBarkTri * 0.10, 0.05, 1.0); // 脊顶 -0.10 光滑（掠射高光骑脊 → 深度线索）`,
     );
   };
   material.customProgramCacheKey = () => 'tree3a:bark';

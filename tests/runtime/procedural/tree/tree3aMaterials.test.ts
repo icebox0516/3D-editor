@@ -15,6 +15,9 @@
  * - SDF 叶形：alphaTest 0.5 + alphaToCoverage；片元含 t3aLeafAlpha 计算式与 alpha 写入；
  *   深度材质（叶影裁切）含同一 SDF 函数（单一来源）+ 树皮组守卫（aLeafRand=0 实心）+
  *   USE_UV + alphaTest；透光项存在且 NUM_DIR_LIGHTS 守卫；
+ * - 锚点门 R1 微调参数锚定（2026-09-18 四项）：树皮 tri³ 深沟剖面/沟内冷灰 AO/节疤核+
+ *   愈伤环/苔痕方位门控；叶齿载波合成锯齿（噪声频率 42 不升——alphaTest 裁切闪烁纪律）/
+ *   中脉沟侧翼/透光峰值 0.65；深度材质同一 SDF 齿形同步；
  * - program 键纪律：叶/皮/深度三键互异；两次工厂调用材质对象不同（无模块级共享）但键相同；
  * - 成本记账（10 万实例每像素预算，hash21=1×/vnoise=3×）：叶片元 facVnoise 调用 2 处
  *   （锯齿+斑块；另 1 处为库定义）= 6×、皮 2 处 = 6×；顶点/深度零噪声；全源零循环/
@@ -179,6 +182,28 @@ describe('SDF 叶形与透光', () => {
     expect(fragmentShader).toContain('#if NUM_DIR_LIGHTS > 0');
     expect(fragmentShader).toContain('directionalLights[0]');
     expect(fragmentShader).toContain('outgoingLight +='); // 透射进完整色调映射管线
+  });
+});
+
+describe('锚点门第 1 轮微调参数锚定（2026-09-18 四项，近观 8m）', () => {
+  it('树皮：tri³ 深沟剖面 + 沟内冷灰 AO + 节疤核收紧/愈伤环 + 苔痕方位门控 + 脊顶糙度回落', () => {
+    const { fragmentShader } = assemble(track(createTree3aBarkMaterial()), THREE.ShaderLib.physical);
+    expect(fragmentShader).toContain('0.44 + 0.56 * t3aBarkTri * t3aBarkTri * t3aBarkTri'); // 沟底 0.55·tri² → 0.44·tri³
+    expect(fragmentShader).toContain('smoothstep(0.08, 0.72, t3aBarkTri)'); // 沟内 AO 式冷灰压暗
+    expect(fragmentShader).toContain('smoothstep(0.72, 0.84, t3aBarkKnotF)'); // 节疤核带收紧（0.66–0.84 → 0.72–0.84）
+    expect(fragmentShader).toContain('1.0 - 0.42 * t3aBarkKnot + 0.14 * t3aBarkRim'); // 核加深 0.28→0.42 + 愈伤环 +0.14
+    expect(fragmentShader).toContain('smoothstep(-0.15, 0.75, sin(vUv.x * 6.28318 + 1.2))'); // 苔痕方位门控（一侧干净一侧集中）
+    expect(fragmentShader).toContain('t3aBarkTri * t3aBarkTri * t3aBarkTri * 0.10'); // 脊顶糙度 −0.10（高光骑脊深度线索）
+  });
+
+  it('叶：齿载波合成锯齿（噪声频率 42 不升防裁切闪烁）+ 中脉沟侧翼 + 透光峰值 0.65；深度同 SDF 同步', () => {
+    const leaf = assemble(track(createTree3aLeafMaterial()), THREE.ShaderLib.physical);
+    expect(leaf.fragmentShader).toContain('float t3aTooth = pow(0.5 + 0.5 * cos(t3aP.y * 37.7 - t3aRand * 6.28), 3.0);'); // 齿载波（纯 ALU）
+    expect(leaf.fragmentShader).toContain('t3aP.y * 42.0'); // 锯齿噪声频率维持（升频 → alphaTest 0.5 裁切闪烁）
+    expect(leaf.fragmentShader).toContain('t3aVeinFlank'); // 中脉沟侧翼压暗（立体感）
+    expect(leaf.fragmentShader).toContain('* t3aTransVar * t3aAlpha * 0.65;'); // 透光峰值 0.45 → 0.65
+    const depth = assemble(track(createTree3aLeafDepthMaterial()), THREE.ShaderLib.depth);
+    expect(depth.fragmentShader).toContain('t3aTooth'); // SDF 单一来源——影裁切齿形自动同步
   });
 });
 
