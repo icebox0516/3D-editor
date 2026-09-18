@@ -12,14 +12,23 @@
  *      舞台自持 Mesh 有挂载点，产品路径 InstanceSource 无此通道，取舍见 tree3aMaterials
  *      头记档）+ castShadow；freezeTime/unfreezeTime 转调注入的 time deps（锚点取证
  *      冻结风相位，固定机位三距离截图可比）。
+ *      T009.3 扩展：mountSlots 8 槽批量出图面——slot i 各 build({seed: morphSeedOf(id,i)})
+ *      独立 Mesh（跨槽几何各异，InstancedMesh 不适用）4×2 行主序网格（间距缺省 11m——
+ *      展开槽冠幅 ≈8.9m 防交叠）挂 slots 组直挂 scene 兄弟层；viewSlots 全景 / viewSlot(i)
+ *      单槽特写固定机位（球坐标同 view 语义——「批量出图 → 分轮裁定」的取证载体）；
+ *      stats 扩逐槽账目（皮面数槽间恒等 = 拓扑不变量；叶卡数随槽形态向量在向量表落地后
+ *      各异——**本模块不感知槽内容**，morphSeed → slot → shapeProfile 路由全在 build 内）；
+ *      转台旋转目标 = 当前挂载的主组（单树 / slots；风动排不转——平排观察语义不变）。
  * 边界：DEV 专用（组合根 import.meta.env.DEV 守卫挂 window，生产零痕迹）；资源所有权
  *      归本句柄——unmount/dispose 摘自己的 group 并 dispose 自建 geometry/material/
- *      深度材质/InstancedMesh 实例缓冲（build 契约每次 new 全部资源，绝无缓存共享误拆）；
- *      rAF 成对取消、unmount/dispose 幂等（StrictMode 双挂载下先卸载者只拆自己的）；
- *      time deps 未注入时 freeze/unfreeze 为 no-op（测试注桩/独立使用安全）。
+ *      深度材质/InstancedMesh 实例缓冲（build 契约每次 new 全部资源，绝无缓存共享误拆；
+ *      slots 模式 = 8 份 source + 8 份深度材质逐一释放）；rAF 成对取消、unmount/dispose
+ *      幂等（StrictMode 双挂载下先卸载者只拆自己的）；time deps 未注入时 freeze/unfreeze
+ *      为 no-op（测试注桩/独立使用安全）。
  */
 import * as THREE from 'three';
-import { build } from '../assets/asset_tree_3a.asset';
+import { build, meta } from '../assets/asset_tree_3a.asset';
+import { morphSeedOf } from '../../../domain/assets';
 import { createTree3aLeafDepthMaterial } from './tree3aMaterials';
 import type { InstanceSource } from '../../instancing/InstancedAssetPool';
 
@@ -33,6 +42,14 @@ export interface Tree3aStageDeps {
   time?: { freeze(): void; unfreeze(): void };
 }
 
+/** mountSlots 模式逐槽账目（slot 序号 + 该槽皮/叶三角与叶卡数） */
+export interface Tree3aSlotStats {
+  slot: number;
+  barkTriangles: number;
+  leafTriangles: number;
+  leafCards: number;
+}
+
 /** window.__tree3a 句柄（类型在 runtime，bootstrap 经 import type 声明 window 槽） */
 export interface Tree3aHandle {
   /** 构建锚点树并挂载（已挂则先摘再建——同位重建）；x/z 为落点（缺省原点） */
@@ -40,18 +57,39 @@ export interface Tree3aHandle {
   /** 风动演示：build() 一次锚点源 → InstancedMesh ×N（缺省 3）间距 8m 一排挂 scene 兄弟组；
    *  桶几何挂 aSeed 各异（≥2 棵同槽树不同相位摆动的验收载体）；已挂先摘再建 */
   mountWindDemo(count?: number): void;
-  /** 摘除并释放本句柄自建的全部资源（单树 + 风动演示；幂等） */
+  /** 8 槽批量挂载（T009.3 批量出图面）：slot i ∈ 0..7 各 build({seed: morphSeedOf(id,i)})
+   *  独立 Mesh（跨槽几何各异——InstancedMesh 不适用）挂一个 'tree3a-dev-slots' 组直挂 scene
+   *  兄弟层；4×2 行主序网格（slot 0–3 前排 z=0、slot 4–7 后排 z=+spacing；x=(i%4−1.5)×spacing）；
+   *  spacing 缺省 11m（展开槽冠幅 ≈8.9m 防交叠）；每 Mesh castShadow + customDepthMaterial
+   *  （与 mount 单树同待遇）；与 mount/mountWindDemo 互斥（先 unmount 再建） */
+  mountSlots(opts?: { spacing?: number }): void;
+  /** 摘除并释放本句柄自建的全部资源（单树 + 风动演示 + 8 槽批量——8 份 source 与深度材质
+   *  逐一释放；幂等） */
   unmount(): void;
-  /** 冻结 uTime 时钟（deps.time 未注入 no-op）——锚点取证固定风相位 */
+  /** 冻结 uTime 时钟（deps.time 未注入 no-op）——锚点取证固定风相位（slots 模式同生效） */
   freezeTime(): void;
   /** 解冻 uTime 时钟（deps.time 未注入 no-op） */
   unfreezeTime(): void;
-  /** 转台：speed rad/s（缺省 0.3；0 或负 = 停）；自有 rAF 每帧转 group */
+  /** 转台：speed rad/s（缺省 0.3；0 或负 = 停）；自有 rAF 每帧转当前挂载的主组（单树 / slots） */
   turntable(speed?: number): void;
   /** 固定机位取景：distance 米（缺省 25）/ azimuthDeg 方位（缺省 35）/ elevationDeg 仰角（缺省 8，水平为 0） */
   view(opts?: { distance?: number; azimuthDeg?: number; elevationDeg?: number }): void;
-  /** 账目：挂载态 + 面数（皮/叶三角 + 叶卡数） */
-  stats(): { mounted: boolean; barkTriangles: number; leafTriangles: number; leafCards: number };
+  /** 8 槽全景固定机位：目标 = 网格中心（组位 + (0, 3.6, spacing/2)）；缺省 distance 42 /
+   *  azimuth 35 / elevation 16——4×2×11m 网格含冠幅实宽 ≈3×11+8.9 ≈ 42m、纵深 ≈20m，
+   *  42m 距离 35° 斜视 16° 俯角下 8 棵可辨且留边（垂直半角需求 ≈10° < 典型 fov 25° 余量） */
+  viewSlots(opts?: { distance?: number; azimuthDeg?: number; elevationDeg?: number }): void;
+  /** 单槽特写机位：球坐标绕该槽树位（复用 view 公式，目标 = 该槽 x/z、视心高 ≈3.6）；
+   *  缺省 distance 25 / azimuth 35 / elevation 8（同 view）；slot 越界（<0 或 >7）warn + no-op */
+  viewSlot(slot: number, opts?: { distance?: number; azimuthDeg?: number; elevationDeg?: number }): void;
+  /** 账目：挂载态 + 面数（皮/叶三角 + 叶卡数——顶层恒「总量」语义，slots 模式 = 8 棵合计） */
+  stats(): {
+    mounted: boolean;
+    barkTriangles: number;
+    leafTriangles: number;
+    leafCards: number;
+    /** mountSlots 模式逐槽账目（8 项；单树/风动/未挂 = undefined） */
+    slots?: Tree3aSlotStats[];
+  };
   /** 终结：unmount + 停转台（幂等；window 槽摘除由组合根负责） */
   dispose(): void;
 }
@@ -60,6 +98,12 @@ export interface Tree3aHandle {
 const WIND_DEMO_SEEDS = [0.13, 0.41, 0.87];
 /** 风动演示实例间距（米）——同槽树一排摆动差异的观察距离 */
 const WIND_DEMO_SPACING = 8;
+/** 形态族槽位数（meta.shapeFamily.size = 8——常量镜像，避免仅取整数为 import 整个 meta 类型面） */
+const SLOT_COUNT = 8;
+/** slots 网格列数（4×2 行主序：slot 0–3 前排、slot 4–7 后排） */
+const SLOT_COLUMNS = 4;
+/** slots 缺省间距（米）——展开槽冠幅 ≈8.9m，11m 留 ≈2m 防交叠 */
+const SLOTS_DEFAULT_SPACING = 11;
 
 /** 句柄工厂：资源全封闭于闭包，句柄间零共享 */
 export function createTree3aHandle(deps: Tree3aStageDeps): Tree3aHandle {
@@ -71,6 +115,12 @@ export function createTree3aHandle(deps: Tree3aStageDeps): Tree3aHandle {
   let windGroup: THREE.Group | null = null;
   let windSource: InstanceSource | null = null;
   let windLeafDepth: THREE.MeshDepthMaterial | null = null;
+  /** 8 槽批量组与逐槽资源（mountSlots 自建；unmount 逐一 dispose——8 份 source + 8 份深度材质） */
+  let slotsGroup: THREE.Group | null = null;
+  let slotsSources: InstanceSource[] = [];
+  let slotsLeafDepths: THREE.MeshDepthMaterial[] = [];
+  /** 当前 slots 网格间距（viewSlots/viewSlot 机位复算用；unmount 归位缺省） */
+  let slotsSpacing = SLOTS_DEFAULT_SPACING;
   let rafId = 0;
   let speed = 0;
   let lastT = 0;
@@ -82,11 +132,13 @@ export function createTree3aHandle(deps: Tree3aStageDeps): Tree3aHandle {
   };
 
   const spin = (t: number): void => {
-    if (speed <= 0 || !group) {
+    // 转台旋转目标 = 当前挂载的主组（单树 / slots 互斥至多其一；风动排不转——平排观察语义）
+    const target = group ?? slotsGroup;
+    if (speed <= 0 || !target) {
       rafId = 0;
       return;
     }
-    if (lastT !== 0) group.rotation.y += speed * ((t - lastT) / 1000);
+    if (lastT !== 0) target.rotation.y += speed * ((t - lastT) / 1000);
     lastT = t;
     rafId = requestAnimationFrame(spin);
   };
@@ -98,6 +150,35 @@ export function createTree3aHandle(deps: Tree3aStageDeps): Tree3aHandle {
     const material = target.material;
     if (Array.isArray(material)) for (const m of material) m.dispose();
     else material.dispose();
+  };
+
+  /** 槽 i 网格落点（行主序 4×2：col=i%4 定 x 等距、row=floor(i/4) 定 z——前排 0 / 后排 +spacing） */
+  const slotOffsetX = (slot: number): number => ((slot % SLOT_COLUMNS) - (SLOT_COLUMNS - 1) / 2) * slotsSpacing;
+  const slotOffsetZ = (slot: number): number => Math.floor(slot / SLOT_COLUMNS) * slotsSpacing;
+
+  /** 球坐标取景落位（view/viewSlots/viewSlot 共用语义）：绕 (tx, targetY, tz) 以方位/仰角定距放相机 */
+  const placeCamera = (
+    tx: number,
+    tz: number,
+    targetY: number,
+    distance: number,
+    azimuthDeg: number,
+    elevationDeg: number,
+  ): void => {
+    const az = (azimuthDeg * Math.PI) / 180;
+    const el = (elevationDeg * Math.PI) / 180;
+    const cosEl = Math.cos(el);
+    if (deps.camera) {
+      deps.camera.position.set(
+        tx + distance * cosEl * Math.cos(az),
+        targetY + distance * Math.sin(el),
+        tz + distance * cosEl * Math.sin(az),
+      );
+    }
+    if (deps.controls) {
+      deps.controls.target.set(tx, targetY, tz);
+      deps.controls.update();
+    }
   };
 
   return {
@@ -139,6 +220,25 @@ export function createTree3aHandle(deps: Tree3aStageDeps): Tree3aHandle {
       windGroup.add(mesh);
       deps.scene.add(windGroup);
     },
+    mountSlots(opts = {}) {
+      this.unmount();
+      slotsSpacing = opts.spacing ?? SLOTS_DEFAULT_SPACING;
+      slotsGroup = new THREE.Group();
+      slotsGroup.name = 'tree3a-dev-slots';
+      for (let slot = 0; slot < SLOT_COUNT; slot++) {
+        // 槽形态路由全在 build 内（morphSeed → slot → shapeProfile）；本模块不感知槽内容
+        const tree = build({ seed: morphSeedOf(meta.id, slot) });
+        slotsSources.push(tree);
+        const mesh = new THREE.Mesh(tree.geometry, tree.material); // 跨槽几何各异——独立 Mesh
+        mesh.castShadow = true; // 批量取证含树影（与 mount 单树同待遇）
+        const depth = createTree3aLeafDepthMaterial(); // 逐槽叶影 SDF 裁切深度材质
+        slotsLeafDepths.push(depth);
+        mesh.customDepthMaterial = depth;
+        mesh.position.set(slotOffsetX(slot), 0, slotOffsetZ(slot));
+        slotsGroup.add(mesh);
+      }
+      deps.scene.add(slotsGroup);
+    },
     unmount() {
       stopTurntable();
       speed = 0;
@@ -154,6 +254,13 @@ export function createTree3aHandle(deps: Tree3aStageDeps): Tree3aHandle {
       windSource = null;
       if (windLeafDepth) windLeafDepth.dispose();
       windLeafDepth = null;
+      if (slotsGroup) deps.scene.remove(slotsGroup);
+      slotsGroup = null;
+      for (const tree of slotsSources) disposeSource(tree); // 8 份 source（几何+双材质）逐一释放
+      slotsSources = [];
+      for (const depth of slotsLeafDepths) depth.dispose();
+      slotsLeafDepths = [];
+      slotsSpacing = SLOTS_DEFAULT_SPACING;
     },
     freezeTime() {
       deps.time?.freeze();
@@ -170,27 +277,38 @@ export function createTree3aHandle(deps: Tree3aStageDeps): Tree3aHandle {
       if (rafId === 0 && typeof requestAnimationFrame === 'function') rafId = requestAnimationFrame(spin);
     },
     view(opts = {}) {
-      const distance = opts.distance ?? 25;
-      const az = ((opts.azimuthDeg ?? 35) * Math.PI) / 180;
-      const el = ((opts.elevationDeg ?? 8) * Math.PI) / 180;
-      const gx = group?.position.x ?? 0;
-      const gz = group?.position.z ?? 0;
       // 目标高 ≈ 树半高（7.5m 锚点树取 ~3.6m 视心；树未挂时回退原点）
-      const targetY = 3.6;
-      const cosEl = Math.cos(el);
-      if (deps.camera) {
-        deps.camera.position.set(
-          gx + distance * cosEl * Math.cos(az),
-          targetY + distance * Math.sin(el),
-          gz + distance * cosEl * Math.sin(az),
-        );
+      placeCamera(group?.position.x ?? 0, group?.position.z ?? 0, 3.6, opts.distance ?? 25, opts.azimuthDeg ?? 35, opts.elevationDeg ?? 8);
+    },
+    viewSlots(opts = {}) {
+      // 目标 = 网格中心：组位 + 后排偏移一半（4×2 网格 z 向重心在 spacing/2；未挂时按缺省间距落位）
+      const gx = slotsGroup?.position.x ?? 0;
+      const gz = slotsGroup?.position.z ?? 0;
+      placeCamera(gx, gz + slotsSpacing / 2, 3.6, opts.distance ?? 42, opts.azimuthDeg ?? 35, opts.elevationDeg ?? 16);
+    },
+    viewSlot(slot, opts = {}) {
+      if (slot < 0 || slot >= SLOT_COUNT) {
+        console.warn(`[tree3aStage] viewSlot: slot ${slot} 越界（0..${SLOT_COUNT - 1}）——no-op`);
+        return;
       }
-      if (deps.controls) {
-        deps.controls.target.set(gx, targetY, gz);
-        deps.controls.update();
-      }
+      const gx = slotsGroup?.position.x ?? 0;
+      const gz = slotsGroup?.position.z ?? 0;
+      placeCamera(gx + slotOffsetX(slot), gz + slotOffsetZ(slot), 3.6, opts.distance ?? 25, opts.azimuthDeg ?? 35, opts.elevationDeg ?? 8);
     },
     stats() {
+      if (slotsSources.length > 0) {
+        let bark = 0;
+        let leaf = 0;
+        const slots: Tree3aSlotStats[] = slotsSources.map((tree, slot) => {
+          const slotBark = tree.geometry.groups[0]?.count ?? 0;
+          const slotLeaf = tree.geometry.groups[1]?.count ?? 0;
+          bark += slotBark;
+          leaf += slotLeaf;
+          return { slot, barkTriangles: slotBark / 3, leafTriangles: slotLeaf / 3, leafCards: slotLeaf / 6 };
+        });
+        // 顶层保持「总量」语义（8 棵合计）
+        return { mounted: slotsGroup !== null, barkTriangles: bark / 3, leafTriangles: leaf / 3, leafCards: leaf / 6, slots };
+      }
       const geometry = source?.geometry ?? windSource?.geometry;
       const bark = geometry?.groups[0]?.count ?? 0;
       const leaf = geometry?.groups[1]?.count ?? 0;
