@@ -1,6 +1,6 @@
 /**
  * runtime/procedural/tree/broadleafGeometry —— 夏栎（橡树系）CPU 几何生成器
- * （T008.2 建立，T009.1 结构真实性升级，T009.2 枝梢驱动叶簇）。
+ * （T008.2 建立，T009.1 结构真实性升级，T009.2 枝梢驱动叶簇，T009.4 树皮近景微起伏）。
  *
  * 职责：morphRng（mulberry32 流，消费顺序即契约——同 seed 逐位同结果）驱动的五级递归
  *      分枝拓扑 → 锥度管状枝干（平行传输标架，径向分段随枝级递减 12→4、主干到枝梢锥度
@@ -8,6 +8,15 @@
  *      mergeGeometries(useGroups=true) 恰 2 组（D15 免组膨胀：树皮 0 / 叶 1）。
  *      形态参数全部来自 shapeProfile（./tree3aShapeProfile——夏栎私有参数面，build 只
  *      负责 slot → profile 路由，不进 ProceduralBuild 公共签名）。
+ * 树皮近景微起伏（T009.4，emitTube 顶点域）：管半径叠加低频环向谐波位移
+ *      d(θ,s) = A·Σₘ wₘ(s)·cos(kₘθ + φₘ(s))（整数谐波 k∈{3,4,5} ≤ 主干 radial 12 的
+ *      奈奎斯特域；φₘ/wₘ 沿弧长 s 缓慢演化——脊沿轴向伸展 + 缓慢游走，非环形箍纹），
+ *      A = amplitudeRatio × 局部半径（主干强末梢弱的比例式量级挂钩；主干基环 ≈1.1–
+ *      1.4cm、末梢 <1mm）。起伏是管参数的**纯确定性函数**（相位源 = 管起点的 sin 散列，
+ *      零 rng 消费——009.3 rng 消费次数恒等不破）；拓扑/uv/绕序全不变（皮面数恒等）；
+ *      环级共享预算值使 wrap 位（θ=2π ≡ 0）与相邻四边形浮点级无缝；法线自参数面导数
+ *      解析修正（详见 emitTube）。参数面 = shapeProfile.barkRelief（Spec 依据与共性
+ *      标注见该文件——bark_archetype/bark_relief，成熟个体较弱浮雕端）。
  * 主次分级（T009.1）：①骨架枝内部 rank 强弱势差（首枝主导 ×1.14 强化自 ×1.08）；
  *      ②逐级子/父起径比低级陡末级缓（0.46→0.62，自 008.2 近平的 0.55+0.03·level）；
  *      ③L1 锥度 0.7 通体粗壮（Spec「骨架枝粗壮有力」Verified 的方向性表达）；
@@ -51,7 +60,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { TREE3A_SLOT0_PROFILE } from './tree3aShapeProfile';
-import type { Tree3aShapeProfile } from './tree3aShapeProfile';
+import type { Tree3aBarkRelief, Tree3aShapeProfile } from './tree3aShapeProfile';
 
 /** 叶卡描述子：烘焙前先收集（候选 → 通透过滤 → 两段式烘焙，冠内高度权重需存活卡 Y 域） */
 interface LeafCard {
@@ -205,10 +214,182 @@ function distToSegmentSq(
   return dx * dx + dy * dy + dz * dz;
 }
 
+// ── 树皮近景微起伏（T009.4）：固定形态常数——非槽差异维度，可调面全在
+//    shapeProfile.barkRelief 三字段（幅度比/谐波数/游走率）──
+/** 谐波权重基线（低次主导——窄脊读向；按 harmonics 序循环取用后归一） */
+const BARK_RELIEF_WEIGHT_BASE = [0.42, 0.33, 0.25];
+/** 相位游走正弦项频率（rad/m）/幅度（rad）——脊沿轴缓变游走 */
+const BARK_RELIEF_WANDER_FREQ = 1.6;
+const BARK_RELIEF_WANDER_AMP = 0.5;
+/** 脊深呼吸（权重沿轴调制）频率（rad/m）/幅度——脊沟深浅沿干交错（bark_archetype
+ *  「深沟窄脊交错」Verified [3][4] 定性方向的工程映射，幅度工程设定） */
+const BARK_RELIEF_BREATHE_FREQ = 2.4;
+const BARK_RELIEF_BREATHE_AMP = 0.3;
+/** 亚视觉幅度地板（米，峰值）：管起径 × amplitudeRatio < 此值 → 该管整体跳过起伏
+ *  （近景不可辨的亚毫米层，兼免低径向段细枝上高次谐波混叠成无意义计算） */
+const BARK_RELIEF_MIN_EFFECTIVE = 0.0015;
+
+/** x → [0,1)（确定性散列分量） */
+function fract01(x: number): number {
+  return x - Math.floor(x);
+}
+
+/** 管起点确定性相位源：位置 + 起径的 sin 散列（零 rng；同位同相位——确定性不破，
+ *  跨 seed 因起径/站位差异自然去克隆——主干起点虽恒原点，r0 随 seed 变化） */
+function barkReliefPhaseSeed(px: number, py: number, pz: number, r0: number): number {
+  return fract01(Math.sin(px * 12.9898 + py * 78.233 + pz * 37.719 + r0 * 53.71) * 43758.5453);
+}
+
+/** 单谐波沿轴缓变函数的常量系数（由管起点散列派生；phi(s)/w(s) 见 computeReliefRing） */
+interface ReliefHarmonic {
+  /** 环向谐波数（整数——θ 周期性的来源） */
+  k: number;
+  /** 相位原点 */
+  psi: number;
+  /** 轴向游走率（±drift 域内确定性取值——脊沿轴向缓慢游走，反箍纹） */
+  driftRate: number;
+  /** 游走正弦相位 */
+  chi: number;
+  /** 呼吸正弦相位 */
+  omega: number;
+  /** 权重基线（归一） */
+  baseW: number;
+}
+
+/** 单环起伏预算：径向各 θ 位的位移与解析导数（顶点位置/法线共用；cos/sin 一并预算） */
+interface ReliefRing {
+  d: Float64Array;
+  dTheta: Float64Array;
+  dS: Float64Array;
+  cos: Float64Array;
+  sin: Float64Array;
+}
+
+/** 逐站点谐波沿轴相位/权重状态（emitTube 单管私有 scratch，避免逐环分配） */
+interface ReliefPhaseScratch {
+  phi: Float64Array;
+  dPhi: Float64Array;
+  w: Float64Array;
+  dW: Float64Array;
+}
+
+/** 管谐波状态：harmonics 序 → 权重基线（循环取 BARK_RELIEF_WEIGHT_BASE 后归一）+
+ *  相位/游走/呼吸系数（管起点散列派生的确定性纯函数，零 rng） */
+function buildReliefHarmonics(origin: THREE.Vector3, r0: number, relief: Tree3aBarkRelief): ReliefHarmonic[] {
+  const seed = barkReliefPhaseSeed(origin.x, origin.y, origin.z, r0);
+  const raw = relief.harmonics.map((_, m) => BARK_RELIEF_WEIGHT_BASE[m % BARK_RELIEF_WEIGHT_BASE.length]!);
+  const wSum = raw.reduce((sum, w) => sum + w, 0);
+  return relief.harmonics.map((k, m) => ({
+    k,
+    psi: Math.PI * 2 * fract01(seed * (7.31 + 2.93 * m)),
+    driftRate: relief.drift * (2 * fract01(seed * (3.77 + 1.71 * m)) - 1),
+    chi: Math.PI * 2 * fract01(seed * (5.13 + 2.37 * m)),
+    omega: Math.PI * 2 * fract01(seed * (9.29 + 3.17 * m)),
+    baseW: raw[m]! / wSum,
+  }));
+}
+
+/**
+ * 填充单环起伏预算：d(θ,s) = A·Σₘ wₘ(s)·cos(kₘθ + φₘ(s))，A = amplitudeRatio × 环基准
+ * 半径；d_θ/d_s 为解析导数（法线修正源）。φₘ(s) = ψₘ + driftₘ·s + wander 正弦项（脊沿
+ * 轴游走）、wₘ(s) = baseWₘ·(1 + breathe 正弦项)（脊深呼吸）——均弧长 s 的低频缓变函数。
+ * amplitudeRatio ≤ 0（亚视觉地板跳过路径）时三数组清零——环 cos/sin 仍预算（发射共享）。
+ */
+function computeReliefRing(
+  out: ReliefRing,
+  scratch: ReliefPhaseScratch,
+  radial: number,
+  s: number,
+  rBase: number,
+  harmonics: ReliefHarmonic[],
+  amplitudeRatio: number,
+): void {
+  for (let j = 0; j < radial; j++) {
+    const th = (j / radial) * Math.PI * 2;
+    out.cos[j] = Math.cos(th);
+    out.sin[j] = Math.sin(th);
+  }
+  if (amplitudeRatio <= 0) {
+    out.d.fill(0);
+    out.dTheta.fill(0);
+    out.dS.fill(0);
+    return;
+  }
+  const M = harmonics.length;
+  for (let m = 0; m < M; m++) {
+    const h = harmonics[m]!;
+    const wanderArg = BARK_RELIEF_WANDER_FREQ * s + h.chi;
+    const breatheArg = BARK_RELIEF_BREATHE_FREQ * s + h.omega;
+    scratch.phi[m] = h.psi + h.driftRate * s + BARK_RELIEF_WANDER_AMP * Math.sin(wanderArg);
+    scratch.dPhi[m] = h.driftRate + BARK_RELIEF_WANDER_AMP * BARK_RELIEF_WANDER_FREQ * Math.cos(wanderArg);
+    scratch.w[m] = h.baseW * (1 + BARK_RELIEF_BREATHE_AMP * Math.sin(breatheArg));
+    scratch.dW[m] = h.baseW * BARK_RELIEF_BREATHE_AMP * BARK_RELIEF_BREATHE_FREQ * Math.cos(breatheArg);
+  }
+  const A = amplitudeRatio * rBase;
+  for (let j = 0; j < radial; j++) {
+    const th = (j / radial) * Math.PI * 2;
+    let d = 0;
+    let dTheta = 0;
+    let dS = 0;
+    for (let m = 0; m < M; m++) {
+      const h = harmonics[m]!;
+      const arg = h.k * th + scratch.phi[m]!;
+      const ca = Math.cos(arg);
+      const sa = Math.sin(arg);
+      const w = scratch.w[m]!;
+      d += w * ca;
+      dTheta -= w * h.k * sa;
+      dS += scratch.dW[m]! * ca - w * scratch.dPhi[m]! * sa;
+    }
+    out.d[j] = A * d;
+    out.dTheta[j] = A * dTheta;
+    out.dS[j] = A * dS;
+  }
+}
+
+/**
+ * 发射单个起伏管顶点：位置 = p + R·(cosθ·N + sinθ·B)（R = r + d——位移沿环向外向）；
+ * 法线 = 参数面 X(θ,s) = C(s) + R·e(θ) 导数的解析修正：n ∝ e − (d_θ/R)·ē − d_s·T
+ * （ē = −sinθ·N + cosθ·B；量纲：θ 的米制弧长 = R·dθ → 环向坡度 = d_θ/R，s 已是米 →
+ * 轴向坡度 = d_s 直接使用不除 R；锥度项沿现状约定忽略——起伏坡度倾斜进法线、平滑
+ * 外向、禁平面着色化）；uv 透传不变。
+ */
+function emitReliefVertex(
+  sink: BarkSink,
+  ring: ReliefRing,
+  j: number,
+  p: THREE.Vector3,
+  n: THREE.Vector3,
+  b: THREE.Vector3,
+  t: THREE.Vector3,
+  rBase: number,
+  u: number,
+  vT: number,
+): void {
+  const c = ring.cos[j]!;
+  const s = ring.sin[j]!;
+  const R = rBase + ring.d[j]!;
+  const g = ring.dTheta[j]! / R; // 环向坡度（θ 米制弧长 = R·dθ → 除 R）
+  const h = ring.dS[j]!; // 轴向坡度（s 已是米——不除 R）
+  const nx = c + g * s;
+  const ny = s - g * c;
+  const nz = -h;
+  const inv = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+  sink.pos.push(p.x + (n.x * c + b.x * s) * R, p.y + (n.y * c + b.y * s) * R, p.z + (n.z * c + b.z * s) * R);
+  sink.nrm.push(
+    (nx * n.x + ny * b.x + nz * t.x) * inv,
+    (nx * n.y + ny * b.y + nz * t.y) * inv,
+    (nx * n.z + ny * b.z + nz * t.z) * inv,
+  );
+  sink.uv.push(u, vT);
+}
+
 /**
  * 锥度管发射：沿站点序列（points/radii 等长）平行传输标架，逐段发射外向绕制四边形
  * （三角形 (a0,b1,b0)/(a0,a1,b1)——右手系 (N,B,T) 下外向），uv = 环向 θ/2π × 累计弧长。
- * 法线取环向径向解析值（cosθ·N + sinθ·B；锥度近 1 时偏差可忽略）。
+ * 树皮近景微起伏（T009.4）：每环预算 ReliefRing（位移 + 导数 + cos/sin）后发射——同一
+ * 环顶点跨相邻四边形复用同一预算值，wrap 位（j=radial−1 的 th1）直接取 j=0 的预算值，
+ * 环向浮点级无缝（顶点位置差恰为 0）；拓扑/绕序/uv 与无起伏路径完全一致。
  */
 function emitTube(
   sink: BarkSink,
@@ -216,6 +397,7 @@ function emitTube(
   radii: number[],
   radial: number,
   vScale: number,
+  relief: Tree3aBarkRelief,
 ): void {
   const stations = points.length;
   const tangents: THREE.Vector3[] = [];
@@ -238,6 +420,29 @@ function emitTube(
   const arcs: number[] = [0];
   for (let i = 1; i < stations; i++) arcs.push(arcs[i - 1]! + points[i]!.distanceTo(points[i - 1]!));
 
+  // 起伏预算流：逐管谐波状态（起点散列派生）+ 双环 ping-pong（环 A 沿段间传递复用）。
+  // 亚视觉地板：起径 × 幅度比 < 1.5mm 的管（L3 以下细枝典型域）整体按 0 起伏发射——
+  // 近景不可辨的亚毫米层不值得算，比例式量级挂钩的主干强末梢弱读向不变
+  const effectiveAmplitude =
+    relief.amplitudeRatio * radii[0]! >= BARK_RELIEF_MIN_EFFECTIVE ? relief.amplitudeRatio : 0;
+  const harmonics = buildReliefHarmonics(points[0]!, radii[0]!, relief);
+  const scratch: ReliefPhaseScratch = {
+    phi: new Float64Array(harmonics.length),
+    dPhi: new Float64Array(harmonics.length),
+    w: new Float64Array(harmonics.length),
+    dW: new Float64Array(harmonics.length),
+  };
+  const makeRing = (): ReliefRing => ({
+    d: new Float64Array(radial),
+    dTheta: new Float64Array(radial),
+    dS: new Float64Array(radial),
+    cos: new Float64Array(radial),
+    sin: new Float64Array(radial),
+  });
+  let ringA = makeRing();
+  let ringB = makeRing();
+  computeReliefRing(ringA, scratch, radial, arcs[0]!, radii[0]!, harmonics, effectiveAmplitude);
+
   for (let i = 0; i < stations - 1; i++) {
     const tA = tangents[i]!;
     const nA = normals[i]!;
@@ -251,37 +456,27 @@ function emitTube(
     const rB = radii[i + 1]!;
     const vA = arcs[i]! * vScale;
     const vB = arcs[i + 1]! * vScale;
+    computeReliefRing(ringB, scratch, radial, arcs[i + 1]!, rB, harmonics, effectiveAmplitude);
     for (let j = 0; j < radial; j++) {
-      const th0 = (j / radial) * Math.PI * 2;
-      const th1 = ((j + 1) / radial) * Math.PI * 2;
-      const c0 = Math.cos(th0);
-      const s0 = Math.sin(th0);
-      const c1 = Math.cos(th1);
-      const s1 = Math.sin(th1);
-      const a0 = pA.clone().addScaledVector(nA, rA * c0).addScaledVector(bA, rA * s0);
-      const a1 = pA.clone().addScaledVector(nA, rA * c1).addScaledVector(bA, rA * s1);
-      const b0 = pB.clone().addScaledVector(nB, rB * c0).addScaledVector(bB, rB * s0);
-      const b1 = pB.clone().addScaledVector(nB, rB * c1).addScaledVector(bB, rB * s1);
-      // 顶点流：a0 a1 b1 | a0 b1 b0（外向绕制，法线解析写入）
+      const j1 = (j + 1) % radial; // wrap 位取 j=0 预算值——θ=2π ≡ 0 浮点级一致
       const u0 = j / radial;
       const u1 = (j + 1) / radial;
-      for (const [v, n, u, vT] of [
-        [a0, [c0, s0], u0, vA],
-        [a1, [c1, s1], u1, vA],
-        [b1, [c1, s1], u1, vB],
-        [a0, [c0, s0], u0, vA],
-        [b1, [c1, s1], u1, vB],
-        [b0, [c0, s0], u0, vB],
-      ] as const) {
-        sink.pos.push(v.x, v.y, v.z);
-        sink.nrm.push(n[0] * nA.x + n[1] * bA.x, n[0] * nA.y + n[1] * bA.y, n[0] * nA.z + n[1] * bA.z);
-        sink.uv.push(u, vT);
-      }
+      // 顶点流：a0 a1 b1 | a0 b1 b0（外向绕制——绕序与起伏无关，保持不变）
+      emitReliefVertex(sink, ringA, j, pA, nA, bA, tA, rA, u0, vA);
+      emitReliefVertex(sink, ringA, j1, pA, nA, bA, tA, rA, u1, vA);
+      emitReliefVertex(sink, ringB, j1, pB, nB, bB, tB, rB, u1, vB);
+      emitReliefVertex(sink, ringA, j, pA, nA, bA, tA, rA, u0, vA);
+      emitReliefVertex(sink, ringB, j1, pB, nB, bB, tB, rB, u1, vB);
+      emitReliefVertex(sink, ringB, j, pB, nB, bB, tB, rB, u0, vB);
     }
+    const swap = ringA;
+    ringA = ringB;
+    ringB = swap;
   }
 }
 
-/** 主干底盖：封住从上方斜看进空心干身的可见洞；扇面 (c, V_j, V_{j+1})，法线 +Y */
+/** 主干底盖：封住从上方斜看进空心干身的可见洞；扇面 (c, V_j, V_{j+1})，法线 +Y。
+ *  保持无起伏（T009.4 独立性说明见调用点注释）。 */
 function emitBaseCapTri(sink: BarkSink, center: THREE.Vector3, radius: number, radial: number): void {
   const tangent = new THREE.Vector3(0, 1, 0); // 主干首站切向恒近 +Y（lean 幅度 ≤4°）
   const seed = Math.abs(tangent.y) < 0.9 ? UP : new THREE.Vector3(1, 0, 0);
@@ -351,7 +546,11 @@ export function buildBroadleafGeometry(
       p = p.clone().addScaledVector(dir, trunkH / profile.trunk.segs);
     }
   }
-  emitTube(bark, trunkPts, trunkRadii, profile.trunk.radial, 0.5);
+  emitTube(bark, trunkPts, trunkRadii, profile.trunk.radial, 0.5, profile.barkRelief);
+  // 底盖独立性说明（T009.4）：emitBaseCapTri 保持无起伏（近地视角不可见——树基 minY=0
+  // 贴地，盖沿与管壁首环的 ≤ amplitudeRatio×r0（≈1.3cm）环形错位由地面遮挡；自上方斜看
+  // 空心干身的封洞功能不受影响）。盖自带 +Y 切向标架，与管首站标架不同源，若强行对齐
+  // 需共享管帧——收益不可见，不做。
   emitBaseCapTri(bark, trunkPts[0]!, trunkRadii[0]!, profile.trunk.radial);
   ctx.maxY = Math.max(ctx.maxY, trunkPts[trunkPts.length - 1]!.y);
 
@@ -631,7 +830,8 @@ function segOf(a: THREE.Vector3, b: THREE.Vector3, radius: number): ChannelSeg {
  * 分枝递归：level 0–4（L1–L5）；路径 = 起点方向 + 每步游走 + 上扬偏置（夏栎横枝末段
  * 上翘）；起径 = 父径 × profile.radiusRatio[level]（低级陡末级缓——主次分级）、末径 =
  * 起径 × profile.endRatio[level]（L1 0.7 通体粗壮）；子枝挂点内埋父径内（起点回退
- * 2.5×子径，杜绝接缝黑洞）；末两级挂枝梢驱动叶簇（T009.2：簇挂点外段/枝端、簇方向 =
+ * 2.5×子径，杜绝接缝黑洞——树皮微起伏幅度 ≈ 3.3% 局部半径，≪ 内埋余量，接缝安全
+ * 不变）；末两级挂枝梢驱动叶簇（T009.2：簇挂点外段/枝端、簇方向 =
  * 局部切向、簇内壳偏置发叶片候选；通透过滤在收冠后统一执行，内层稀疏由密度场接管）。
  */
 function growBranch(
@@ -664,7 +864,7 @@ function growBranch(
       p = p.clone().addScaledVector(d, length / spec.segs);
     }
   }
-  emitTube(ctx.bark, pts, radii, spec.radial, 0.5);
+  emitTube(ctx.bark, pts, radii, spec.radial, 0.5, profile.barkRelief);
   ctx.levelBranches[level]!++;
   ctx.levelRadiusSum[level]! += startR;
   ctx.maxY = Math.max(ctx.maxY, pts[pts.length - 1]!.y);

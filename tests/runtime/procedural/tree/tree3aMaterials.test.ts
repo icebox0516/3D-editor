@@ -22,6 +22,9 @@
  *   包络指数 1.4（最宽点 ≈61% 叶长）/5 对圆裂（31.42 = 2π·5）/基部耳形 t3aEar（振幅
  *   ≤ 坡宽 0.03×75%）/齿载波与噪声频率维持；深度材质 SDF 单一来源同步；叶背粉绿
  *   gl_FrontFacing 双面调制（纯 ALU）；旧 4 对裂常数 25.13 退役；
+ * - T009.4 树皮底色灰度校正（Spec tree3a-reference 1.0 bark_color Verified [6] / 附录
+ *   #15）：底色锁灰主调灰褐 #5c534a——暖差减半（R−G 18→9、R−B 36→18）微暖保留、
+ *   相对亮度持平（0.0890→0.0896，整树明度无跳变）；旧暖褐 #63513f 退役；
  * - program 键纪律：叶/皮/深度三键互异；两次工厂调用材质对象不同（无模块级共享）但键相同；
  * - 成本记账（10 万实例每像素预算，hash21=1×/vnoise=3×）：叶片元 facVnoise 调用 2 处
  *   （锯齿+斑块；另 1 处为库定义）= 6×、皮 2 处 = 6×；顶点/深度零噪声；全源零循环/
@@ -236,6 +239,19 @@ describe('T009.2 叶形 SDF 重构 + 叶背粉绿（Spec 1.0 附录 #13/#14，Ve
     expect(leaf.fragmentShader).toContain('mix(vec3(0.94, 1.05, 1.16), vec3(1.0), float(gl_FrontFacing))'); // FRPS「叶背粉绿色」调制向量
     const depth = assemble(track(createTree3aLeafDepthMaterial()), THREE.ShaderLib.depth);
     expect(depth.fragmentShader).not.toContain('gl_FrontFacing'); // 深度 pass 只裁 alpha，无面色语义
+  });
+});
+
+describe('T009.4 树皮底色灰度校正（Spec tree3a-reference 1.0 bark_color Verified [6] / 附录 #15，2026-09-18）', () => {
+  it('底色锁灰主调灰褐 #5c534a：暖差减半（R−G 18→9、R−B 36→18）微暖保留、亮度持平；旧暖褐 #63513f 退役', () => {
+    const bark = track(createTree3aBarkMaterial());
+    const hex = bark.color.getHex();
+    expect(hex).toBe(0x5c534a); // 灰为主调（参考照 ref-oak-bark-a 一般表面饱和度 0.152 对照；旧 #63513f 饱和度 0.364 灰味低于真实）
+    const [r, g, b] = [(hex >> 16) & 0xff, (hex >> 8) & 0xff, hex & 0xff];
+    expect(r - g).toBe(9); // R≈G 微暖保留（受光面暖褐语义）；旧 18 减半
+    expect(g - b).toBe(9);
+    expect(r - b).toBe(18); // 红蓝暖差减半（旧 36）——灰味提升、读得出不跳色
+    // 亮度持平：#5c534a 相对亮度 0.0896 ≈ 旧 #63513f 的 0.0890（+0.7%，整树明度无跳变）
   });
 });
 

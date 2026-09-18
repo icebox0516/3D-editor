@@ -81,6 +81,14 @@
  *      亮度 +3%/饱和度 −6%/冷绿偏移 R:B 1.53→1.29——FRPS「叶背粉绿色」Verified [1][2]，
  *      幅度克制读得出不跳色）；mix 线性混合零分支零采样；不触碰 <color_fragment>/vColor；
  *      透射项暖绿（背光透射语义）不动。
+ * **T009.4 树皮底色灰度校正记档（Spec docs/research/tree3a-reference.md 1.0，bark_color
+ *   Verified [6] / 附录 #15：灰褐色、灰为主调、受光局部偏暖褐；2026-09-18）**：底色
+ *   暖灰褐 #63513f → 灰主调灰褐 #5c534a（等亮度去饱和 k=0.5，只动 color 一值、GLSL 配方
+ *   零改动）：R−G 18→9 / R−B 36→18（暖差减半，R≈G 微暖保留）、饱和度 0.364→0.196
+ *   （参考照 ref-oak-bark-a 一般表面中带 0.152 对照）、相对亮度 0.0890→0.0896（+0.7%，
+ *   整树明度无跳变）。乘性调制下灰底不改变色相方向且读感更准：苔痕绿偏移读作灰绿苔
+ *   （苔区 R−G +10→+1，旧底偏橄榄褐）、沟内冷灰 AO 压暖更有效（沟 R−B +20→+8 读冷灰）、
+ *   脊顶受光仍暖褐（R−G +13，Spec「受光局部偏暖褐」维持）。
  * 边界：工厂每次调用 new 全部材质（D17 所有权随调用移交，禁止模块级共享对象）；零贴图/
  *   零 DataTexture（D13）；GLSL float 字面量全带小数点；aSeed=0（DEV 普通 Mesh 无该属性，
  *   WebGL 缺省属性值 0）路径相位退化为正常数——hash 无除法无 NaN。
@@ -290,11 +298,13 @@ roughnessFactor = clamp(roughnessFactor - 0.05 + (t3aClump - 0.5) * 0.08 + (t3aV
 
 /**
  * 树皮材质（组 0）：脊-沟-板 + 节疤 + 苔痕 + 整树缓摆（与叶同公式同相位；aBend 恒 0
- * 快颤层天然不作用）。底参：暖灰褐 #63513f / m 0 / r 0.93（高糙哑光）/ FrontSide。
+ * 快颤层天然不作用）。底参：灰主调灰褐 #5c534a（T009.4 灰度校正——Spec bark_color
+ * Verified [6] / 附录 #15：灰为主调；旧暖灰褐 #63513f 灰味低于真实）/ m 0 / r 0.93（高糙
+ * 哑光）/ FrontSide。
  */
 export function createTree3aBarkMaterial(): THREE.MeshStandardMaterial {
   const material = new THREE.MeshStandardMaterial({
-    color: 0x63513f,
+    color: 0x5c534a, // 灰主调灰褐（T009.4 灰度校正，Spec bark_color Verified [6] / 附录 #15，2026-09-18；旧 #63513f 偏暖褐）
     metalness: 0,
     roughness: 0.93,
     side: THREE.FrontSide,

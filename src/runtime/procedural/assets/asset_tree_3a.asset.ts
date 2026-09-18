@@ -14,7 +14,8 @@
  *      尺度参照真实乔木：总高 7.4–8.5m、冠幅 5.4–6.6m；原点 = 底部中心 minY 精确 0。
  * 材质分层表（materialIndex → 部件 → 材质；配方在 ./tree/tree3aMaterials——onBeforeCompile
  *      注入工厂，SDF 叶形/透光/风动/树皮配方与成本记账见该模块头）：
- *      0 树皮（主干+五级枝+底盖）—— createTree3aBarkMaterial：暖灰褐 #63513f / m 0 /
+ *      0 树皮（主干+五级枝+底盖）—— createTree3aBarkMaterial：灰主调灰褐 #5c534a
+ *        （T009.4 灰度校正，Spec bark_color Verified [6]）/ m 0 /
  *        r 0.93 / FrontSide；脊-沟-板+节疤+苔痕（uv 域+位置域门控）+ 整树缓摆（与叶同
  *        公式同相位；aBend 恒 0 快颤层天然不作用）
  *      1 叶簇卡（L4/L5 枝梢簇内烘焙——T009.2 枝梢驱动叶簇）—— createTree3aLeafMaterial：

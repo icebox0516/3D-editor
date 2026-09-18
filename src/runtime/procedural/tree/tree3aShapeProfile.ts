@@ -33,6 +33,34 @@ export interface ChildPlan {
 }
 
 /**
+ * 树皮近景微起伏参数组（T009.4）：emitTube 顶点域低频环向起伏——近景轮廓的真实树皮
+ * 微起伏层（三距离目标：远景颜色粗糙度 / 中景 Shader 脊沟 / 近景本几何层，互不对齐
+ * 必要）。起伏 = 管参数（θ / 弧长 / 半径）的纯确定性函数（整数谐波环向 + 沿轴缓变相位
+ * 游走），零 rng 消费（009.3 rng 消费次数恒等纪律）。槽间恒等（树皮微起伏非形态差异
+ * 维度——slot-0 定义、slot-1…7 spread 继承）；非结构计数类（改值不改面数）。
+ */
+export interface Tree3aBarkRelief {
+  /** 起伏幅度 / 局部半径（比例式量级挂钩——主干强末梢弱，子枝/末梢绝对量按半径自洽
+   *  衰减且 ≪ 子枝内埋余量 2.5×子径）。Spec：bark_relief 深沟窄脊、浮雕感强为老树/
+   *  ancient 口径、成熟个体较弱（Inferred [6]）——定性方向采信；幅度数值工程设定
+   *  （Spec 无定量，不得编造现实依据）。slot-0 = 0.033：主干基环（含 flare）半径
+   *  0.34–0.42m → 峰幅度 ≈1.1–1.4cm、同环极差 ≈1.5–2.5cm；L1 ≈4mm、L5 末梢 <1mm。
+   *  【幅度 ∝ 半径的量级挂钩 = 阔叶共性候选（粗干起伏强、细枝平滑的通用读向）；
+   *  绝对值 = 夏栎特有（锚中龄公园树「成熟个体较弱浮雕」端）】 */
+  amplitudeRatio: number;
+  /** 环向谐波数（整数谐波 k——纵向脊的周向数量级；≤5 为主干 radial 12 的奈奎斯特
+   *  安全域，径向段更少的细枝上高次谐波自然混叠为无害低频）。Spec：bark_archetype
+   *  成熟纵向开裂脊状（Verified [3][4]）——脊沿轴向伸展的方向性表达；谐波数与混合
+   *  比工程设定。【夏栎特有（橡树系纵沟窄脊原型；幼树光滑端不在本资产龄级口径）】 */
+  harmonics: number[];
+  /** 轴向相位游走基率（rad/m；逐谐波在 ±drift 域内按管起点确定性散列取值——脊沿轴向
+   *  缓慢游走，非环形箍纹的反箍纹保证）。Spec：bark_archetype 纵向脊（Verified [3][4]）
+   *  ——脊近轴向延伸；游走率工程设定。【脊游走机制 = 阔叶共性候选（纵脊树皮共性）；
+   *  速率值 = 夏栎特有】 */
+  drift: number;
+}
+
+/**
  * 夏栎 shapeProfile：字段分五组——冠形 / 骨架 / 逐级分级 / 冠内通透 / 叶簇与拓扑预算。
  * 槽间差异（009.3）= 同字段集不同值组合；结构计数类（radial/segs/childPlan/簇位数/
  * 每簇叶量）保持槽间恒定以维持皮面数恒等与 rng 消费次数恒定（保留簇数与叶卡数随 seed
@@ -168,6 +196,8 @@ export interface Tree3aShapeProfile {
    *  附录#13 收敛，直接采用 Verified 域。【阔叶共性候选】 */
   leafAspectMin: number;
   leafAspectSpan: number;
+  /** 树皮近景微起伏（T009.4——近景轮廓起伏层；槽间恒等非形态差异维度，见 Tree3aBarkRelief） */
+  barkRelief: Tree3aBarkRelief;
   /** 主干拓扑（径向 12 满足近景圆度、环段 14 承载根部 flare 与挂点插值）。工程设定。 */
   trunk: { radial: number; segs: number; wander: number; upturn: number };
   /** 五级枝拓扑（L1 骨架枝 → L5 末梢）。分枝 4–5 级为附录#7 已符合项
@@ -242,6 +272,13 @@ export const TREE3A_SLOT0_PROFILE: Tree3aShapeProfile = {
   leafWidthSpan: 0.05,
   leafAspectMin: 1.6,
   leafAspectSpan: 1.1,
+  // 树皮近景微起伏（T009.4 slot-0 终值——近景轮廓起伏可辨、中远景无观感回归的锚定值；
+  //  逐字段 Spec 依据与共性标注见 Tree3aBarkRelief 注释）
+  barkRelief: {
+    amplitudeRatio: 0.033,
+    harmonics: [3, 4, 5],
+    drift: 0.85,
+  },
   trunk: { radial: 12, segs: 14, wander: 0.05, upturn: 0.06 },
   levels: [
     { radial: 8, segs: 9, wander: 0.12, upturn: 0.3 },
