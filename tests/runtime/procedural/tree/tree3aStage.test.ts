@@ -17,10 +17,21 @@
  *   viewSlots 网格中心机位（球坐标公式复算）+ viewSlot(5) 槽位特写 + 越界 warn no-op；
  *   与 mount/mountWindDemo 互斥重建、unmount/dispose 幂等（slots 模式 stats 归零）。
  *   （8 棵 build 耗时长——相关测试 60000ms）
+ * - T009.6 mountLevels（deps.build 注入 fake——透传断言不依赖真实 level 路由落地时序，
+ *   不锁真实档位面数）：build 恰调 3 次同 seed + level 依次 high/mid/low；3 独立 Mesh
+ *   一字排开（−s/0/+s）castShadow + 逐档深度材质互异；与 mountSlots/mount 互斥
+ *   （既有几何全 dispose）；unmount 3 份 geometry + 6 份双材质 + 3 份深度材质全 dispose
+ *   且幂等；stats.levels 3 行序 high/mid/low + 顶层三档合计；viewLevels 缺省机位
+ *   球坐标复算 + viewLevel 档位特写绕档树位 + 未知档位 warn no-op。
  */
 import { describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 import { createTree3aHandle } from '../../../../src/runtime/procedural/tree/tree3aStage';
+import { meta } from '../../../../src/runtime/procedural/assets/asset_tree_3a.asset';
+import { morphSeedOf } from '../../../../src/domain/assets';
+import type { ProceduralLevel } from '../../../../src/domain/assets';
+import type { ProceduralBuildParams } from '../../../../src/runtime/procedural/types';
+import type { InstanceSource } from '../../../../src/runtime/instancing/InstancedAssetPool';
 
 /** 结构桩控制目标（对 OrbitControls 的 target/update 结构依赖） */
 function makeControlsStub() {
@@ -305,4 +316,209 @@ describe('mountSlots / viewSlots / viewSlot（T009.3 8 槽批量出图面）', (
     expect(stats.leafCards).toBe(0);
     expect(stats.slots).toBeUndefined(); // 仅 mountSlots 模式提供逐槽账目
   }, 60000);
+});
+
+describe('mountLevels / viewLevels / viewLevel（T009.6 档位强制出图面——deps.build 注入 fake）', () => {
+  /** fake build 记录（透传断言）+ 产出引用（dispose 断言） */
+  interface FakeBuildLog {
+    params: (ProceduralBuildParams | undefined)[];
+    sources: InstanceSource[];
+  }
+
+  /** fake build（deps.build seam 注入）：记录调用参数；产出带双材质组的合法 InstanceSource
+   *  ——皮组 30 索引 = 10 三角、叶组 60 索引 = 20 三角 = 10 卡（任意合法值，不锁真实档位面数） */
+  function makeFakeBuild(log: FakeBuildLog): (params?: ProceduralBuildParams) => InstanceSource {
+    return (params) => {
+      log.params.push(params);
+      const geometry = new THREE.BoxGeometry(1, 1, 1);
+      geometry.clearGroups();
+      geometry.addGroup(0, 30, 0);
+      geometry.addGroup(30, 60, 1);
+      const source: InstanceSource = {
+        geometry,
+        material: [new THREE.MeshStandardMaterial(), new THREE.MeshStandardMaterial()],
+      };
+      log.sources.push(source);
+      return source;
+    };
+  }
+
+  function makeLog(): FakeBuildLog {
+    return { params: [], sources: [] };
+  }
+
+  it('mountLevels：build 恰调 3 次、同 seed + level 依次 high/mid/low（透传）；3 独立 Mesh 一字排开（−11/0/+11）castShadow + 逐档深度材质互异；slot/spacing 自定义；slot 越界 warn no-op 不拆现场', () => {
+    const scene = new THREE.Scene();
+    const log = makeLog();
+    const handle = createTree3aHandle({ scene, build: makeFakeBuild(log) });
+    handle.mountLevels(); // 缺省 slot 0 / spacing 11
+    expect(log.params).toHaveLength(3);
+    const expectedSeed = morphSeedOf(meta.id, 0); // seed 口径同 mountSlots：morphSeedOf(id, slot)
+    expect(log.params.map((p) => p?.seed)).toEqual([expectedSeed, expectedSeed, expectedSeed]); // 同槽同 seed——档位是唯一变量
+    expect(log.params.map((p) => p?.level)).toEqual(['high', 'mid', 'low']); // level 透传依次三档
+    expect(scene.children).toHaveLength(1);
+    const group = scene.children[0]!;
+    expect(group.name).toBe('tree3a-dev-levels');
+    const meshes = group.children as THREE.Mesh[];
+    expect(meshes).toHaveLength(3);
+    // 一字排开：high 左（−s）/ mid 中（0）/ low 右（+s）
+    expect(meshes[0]!.position.x).toBeCloseTo(-11, 5);
+    expect(meshes[1]!.position.x).toBeCloseTo(0, 5);
+    expect(meshes[2]!.position.x).toBeCloseTo(11, 5);
+    for (const mesh of meshes) {
+      expect(mesh.position.z).toBeCloseTo(0, 5);
+      expect(mesh).toBeInstanceOf(THREE.Mesh); // 档间几何各异——独立 Mesh
+      expect(mesh.castShadow).toBe(true); // 档位取证含树影
+      expect(mesh.customDepthMaterial).toBeDefined(); // 逐档叶影 SDF 裁切
+    }
+    expect(new Set(meshes.map((m) => m.geometry)).size).toBe(3); // 3 份独立几何（build 契约每次 new）
+    expect(new Set(meshes.map((m) => m.customDepthMaterial)).size).toBe(3); // 3 份独立深度材质实例
+    expect(() => handle.turntable(0.5)).not.toThrow(); // 转台目标含 levels 组（无 rAF 环境安全）
+    // 自定义 slot + spacing：seed 随槽、排距随参
+    log.params.length = 0;
+    handle.mountLevels({ slot: 5, spacing: 7 });
+    expect(log.params.map((p) => p?.seed)).toEqual(Array<number>(3).fill(morphSeedOf(meta.id, 5)));
+    const remeshes = scene.children[0]!.children as THREE.Mesh[];
+    expect(remeshes[0]!.position.x).toBeCloseTo(-7, 5);
+    expect(remeshes[1]!.position.x).toBeCloseTo(0, 5);
+    expect(remeshes[2]!.position.x).toBeCloseTo(7, 5);
+    // slot 越界：warn + no-op 不动既有挂载
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    handle.mountLevels({ slot: 8 });
+    handle.mountLevels({ slot: -1 });
+    expect(warn).toHaveBeenCalledTimes(2);
+    expect(scene.children).toHaveLength(1); // 现场未拆
+    expect(scene.children[0]!.children).toHaveLength(3);
+    warn.mockRestore();
+    handle.dispose();
+    expect(scene.children).toHaveLength(0);
+  });
+
+  it('互斥：mountLevels 先释放 mountSlots 既有 8 份几何（dispose 计数）；反向 mount 释放 levels 3 份；账目字段让位', () => {
+    const scene = new THREE.Scene();
+    const log = makeLog();
+    const handle = createTree3aHandle({ scene, build: makeFakeBuild(log) });
+    handle.mountSlots(); // fake build 下 8 份快速产出
+    const slotsGeometries = log.sources.splice(0).map((s) => s.geometry); // 前 8 份 = slots 的
+    const slotsDisposed = slotsGeometries.map(() => 0);
+    slotsGeometries.forEach((geo, i) => geo.addEventListener('dispose', () => slotsDisposed[i]!++));
+    handle.mountLevels(); // 互斥：先摘 slots
+    expect(scene.children).toHaveLength(1);
+    expect(scene.children[0]!.name).toBe('tree3a-dev-levels');
+    expect(slotsDisposed).toEqual([1, 1, 1, 1, 1, 1, 1, 1]); // 原 slots 资源已全释放
+    let stats = handle.stats();
+    expect(stats.slots).toBeUndefined(); // 逐槽账目让位
+    expect(stats.levels).toHaveLength(3);
+    // 反向互斥：mount 单树释放 levels
+    const levelsGeometries = log.sources.splice(0).map((s) => s.geometry); // 3 份 = levels 的
+    const levelsDisposed = levelsGeometries.map(() => 0);
+    levelsGeometries.forEach((geo, i) => geo.addEventListener('dispose', () => levelsDisposed[i]!++));
+    handle.mount();
+    expect(scene.children[0]!.name).toBe('tree3a-dev-stage');
+    expect(levelsDisposed).toEqual([1, 1, 1]); // levels 资源已全释放
+    stats = handle.stats();
+    expect(stats.levels).toBeUndefined(); // 逐档账目让位
+    handle.dispose();
+    expect(scene.children).toHaveLength(0);
+  });
+
+  it('unmount：3 份 geometry + 6 份双材质 + 3 份深度材质全 dispose；二次调用幂等不重复释放；levels 模式 stats 归零', () => {
+    const scene = new THREE.Scene();
+    const log = makeLog();
+    const handle = createTree3aHandle({ scene, build: makeFakeBuild(log) });
+    handle.mountLevels();
+    const depths = (scene.children[0]!.children as THREE.Mesh[]).map((m) => m.customDepthMaterial as THREE.Material);
+    let geoDisposed = 0;
+    let matDisposed = 0;
+    let depthDisposed = 0;
+    for (const source of log.sources) {
+      source.geometry.addEventListener('dispose', () => geoDisposed++);
+      for (const material of source.material as THREE.Material[]) material.addEventListener('dispose', () => matDisposed++); // 双材质组逐项监听
+    }
+    for (const depth of depths) depth.addEventListener('dispose', () => depthDisposed++);
+    handle.unmount();
+    expect(geoDisposed).toBe(3); // 3 份 source 几何
+    expect(matDisposed).toBe(6); // 双材质组 ×3
+    expect(depthDisposed).toBe(3); // 逐档深度材质
+    handle.unmount(); // 幂等
+    expect(() => handle.dispose()).not.toThrow();
+    expect(geoDisposed).toBe(3); // 不重复释放
+    expect(matDisposed).toBe(6);
+    expect(depthDisposed).toBe(3);
+    expect(scene.children).toHaveLength(0);
+    const stats = handle.stats();
+    expect(stats.mounted).toBe(false);
+    expect(stats.levels).toBeUndefined(); // levels 账目随卸载消失
+    expect(stats.leafCards).toBe(0);
+  });
+
+  it('stats（levels 模式）：3 项逐档账目序 high/mid/low（fake 组账目 10 皮 / 20 叶 / 10 卡）+ 顶层三档合计', () => {
+    const scene = new THREE.Scene();
+    const log = makeLog();
+    const handle = createTree3aHandle({ scene, build: makeFakeBuild(log) });
+    handle.mountLevels();
+    const stats = handle.stats();
+    expect(stats.mounted).toBe(true);
+    expect(stats.levels).toHaveLength(3);
+    expect(stats.levels!.map((l) => l.level)).toEqual(['high', 'mid', 'low']); // 账目序 = 排布序
+    for (const entry of stats.levels!) {
+      expect(entry.barkTriangles).toBe(10); // fake 皮组 30 索引 / 3——任意合法值（真实档位面数归 LOD 侧测试）
+      expect(entry.leafTriangles).toBe(20);
+      expect(entry.leafCards).toBe(10);
+    }
+    expect(stats.barkTriangles).toBe(30); // 顶层保持「总量」语义 = 三档合计
+    expect(stats.leafTriangles).toBe(60);
+    expect(stats.leafCards).toBe(30);
+    expect(stats.slots).toBeUndefined(); // 仅 levels 模式提供逐档账目
+    handle.dispose();
+  });
+
+  it('viewLevels：缺省机位（32/35/16）球坐标公式复算 + target = 排中心 (0, 3.6, 0)；viewLevel 三档特写绕档树位；未知档位 warn no-op 不动相机', () => {
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera();
+    const controls = makeControlsStub();
+    const log = makeLog();
+    const handle = createTree3aHandle({ scene, camera, controls, build: makeFakeBuild(log) });
+    handle.mountLevels(); // spacing 11 → 排中心 = 组位原点
+    handle.viewLevels(); // 缺省 32 / 35° / 16°——公式复算断言
+    const d = 32;
+    const az = (35 * Math.PI) / 180;
+    const el = (16 * Math.PI) / 180;
+    expect(camera.position.x).toBeCloseTo(d * Math.cos(el) * Math.cos(az), 5);
+    expect(camera.position.y).toBeCloseTo(3.6 + d * Math.sin(el), 5);
+    expect(camera.position.z).toBeCloseTo(d * Math.cos(el) * Math.sin(az), 5);
+    expect(controls.target.x).toBeCloseTo(0, 5);
+    expect(controls.target.y).toBeCloseTo(3.6, 5);
+    expect(controls.target.z).toBeCloseTo(0, 5);
+    expect(controls.updates).toBe(1);
+    handle.viewLevel('low', { distance: 20, azimuthDeg: 0, elevationDeg: 0 });
+    // low = +11：az 0°/el 0° 正 +X 方向 20m → 相机 x = 11 + 20、target = 档树位
+    expect(camera.position.x).toBeCloseTo(31, 5);
+    expect(camera.position.y).toBeCloseTo(3.6, 5);
+    expect(camera.position.z).toBeCloseTo(0, 5);
+    expect(controls.target.x).toBeCloseTo(11, 5);
+    expect(controls.updates).toBe(2);
+    handle.viewLevel('high', { azimuthDeg: 0, elevationDeg: 0 });
+    // high = −11：缺省距离 25 → 相机 x = −11 + 25
+    expect(camera.position.x).toBeCloseTo(14, 5);
+    expect(controls.target.x).toBeCloseTo(-11, 5);
+    handle.viewLevel('mid', { azimuthDeg: 0, elevationDeg: 0 });
+    // mid = 0（排中心）：缺省距离 25
+    expect(camera.position.x).toBeCloseTo(25, 5);
+    expect(controls.target.x).toBeCloseTo(0, 5);
+    // 自定义 spacing 复算档位树位：spacing 7 → high = −7
+    handle.mountLevels({ spacing: 7 });
+    handle.viewLevel('high', { azimuthDeg: 0, elevationDeg: 0 });
+    expect(camera.position.x).toBeCloseTo(18, 5); // −7 + 25
+    expect(controls.target.x).toBeCloseTo(-7, 5);
+    // 未知档位（类型外运行时垃圾输入）：warn + no-op 不动相机
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    camera.position.set(99, 99, 99); // 位移哨兵
+    handle.viewLevel('ultra' as unknown as ProceduralLevel);
+    expect(camera.position.x).toBe(99);
+    expect(controls.updates).toBe(5); // 5 次成功取景后 no-op 不触发 update
+    expect(warn).toHaveBeenCalledTimes(1);
+    warn.mockRestore();
+    handle.dispose();
+  });
 });

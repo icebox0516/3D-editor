@@ -32,7 +32,20 @@
  *      aBend（风动摆幅权重 = 离枝距离 + 冠内高度权重，卡内根→尖非降；树皮组恒 0）。
  * 边界：每次调用 new 全部 geometry/material（所有权随调用移交调用方，缓存会 dispose，
  *      禁止模块级共享对象，D17）；8 槽差异归 008.5（本资产只交付 slot-0，shapeFamily
- *      size 8 为槽路由声明面）；levels 为 LOD 接口位占位（恒单档 'high'，T006 消费）。
+ *      size 8 为槽路由声明面）。
+ * LOD（T009.6 夏栎三档交付）：build 透传 params.level（缺省 'high'——旧无参路径逐位
+ *      不变）到几何与皮/叶材质工厂；三档同 rng 流同骨架决策（档间不变量、Mid⊂High 掩码
+ *      口径与发射计划见 broadleafGeometry 模块头 T009.6 段），材质档位变体（Mid 去节疤
+ *      /Low 去透光等）见 tree3aMaterials；levels 声明三档（D27 首版最小化 [{id}]——调度
+ *      阈值归 Runtime 常量不进 Profile，距离切换 T006 消费）。
+ * LOD 预算锁定账目（预算制 D19.8——broadleafGeometry 模块头引用此处）：锁定预算
+ *      （三角形，皮 + 叶 = 总面）High ≤ 40000 / Mid 6000–10000 / Low 1500–3000。
+ *      8 槽 × 3 档实测带（2026-09-19 探针）：High 总面 28754–38780（slot-6 最低 /
+ *      slot-7 最高；叶卡 4015–9028、保留簇 333–455）、Mid 总面 6414–9650（叶卡
+ *      1266–2884 ≈ High 存活卡 × 7/22）、Low 总面 1662–2150（壳卡 = 保留簇 × 2）；
+ *      皮恒 20724 / 3882 / 330、rng 消费三档恒等 177234、minY 三档恒 0。锁定依据：
+ *      候选带为初始参考——High 以 40K 上限锁入（slot-6 实测 28754 略低于候选带下限
+ *      30K，面数预算意义在上限）；Mid/Low 实测带均落候选带内，按候选带锁入。
  */
 import { mulberry32 } from '../../../core/random';
 import { morphSeedOf } from '../../../domain/assets';
@@ -52,8 +65,8 @@ export const meta: ProceduralAssetMeta = {
   defaultRotation: { x: 0, y: 0, z: 0 },
   shapeFamily: { size: 8 }, // D19：8 形态槽（本任务只做 slot-0 锚点；跨槽差异归 008.5）
   variants: { scaleJitter: 0.16, rotationJitter: 180, hueJitter: 9 }, // 参照 asset_oak 量级
-  triangleCount: 35058, // 实数 = slot-0 锚点结构计数（皮 20724 恒定 + 叶簇卡 7167×2，簇级剔除 + 冠内通透规则确定；见完成记录）
-  levels: [{ id: 'high' }], // LOD 接口位：单档细模占位
+  triangleCount: 35058, // 实数 = slot-0 锚点 High 档结构计数（皮 20724 恒定 + 叶簇卡 7167×2，簇级剔除 + 冠内通透规则确定；多档起声明面取细模档；见完成记录）
+  levels: [{ id: 'high' }, { id: 'mid' }, { id: 'low' }], // LOD 三档（T009.6 夏栎内容交付；D27 首版最小化 [{id}]——阈值归 Runtime 常量，不进 Profile）
 };
 
 /**
@@ -72,9 +85,12 @@ function profileForSeed(seed: number) {
 export function build(params?: ProceduralBuildParams): InstanceSource {
   // params.seed = morphSeed（SourceCache 传 morphSeedOf(assetId, slot)；缺省 = slot-0 锚点）
   const seed = params?.seed ?? morphSeedOf(meta.id, 0);
+  // params.level = LOD 档位（D23/D27.7 Runtime 参数，缺省 'high' = 旧路径逐位不变；
+  // 不参与 shapeSlot/morphSeed/sourceKey 形态身份——档位缓存维度归 ProceduralSourceCache）
+  const level = params?.level ?? 'high';
   const rng = mulberry32(seed);
-  const { geometry } = buildBroadleafGeometry(rng, profileForSeed(seed));
-  const bark = createTree3aBarkMaterial(); // 组 0（契约序 [皮, 叶]——mergeGeometries 层序）
-  const leaf = createTree3aLeafMaterial();
+  const { geometry } = buildBroadleafGeometry(rng, profileForSeed(seed), level);
+  const bark = createTree3aBarkMaterial(level); // 组 0（契约序 [皮, 叶]——mergeGeometries 层序）
+  const leaf = createTree3aLeafMaterial(level);
   return { geometry, material: [bark, leaf] };
 }

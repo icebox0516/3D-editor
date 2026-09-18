@@ -4,11 +4,12 @@
 
 ## Current
 
-- [ ] T009 夏栎结构真实性与生产化（4/7；2026-09-18 解锁）→ [tasks/009-tree-realism.md](tasks/009-tree-realism.md)
+- [ ] T009 夏栎结构真实性与生产化（5/7；2026-09-18 解锁）→ [tasks/009-tree-realism.md](tasks/009-tree-realism.md)
   - [x] T009.1 枝干结构真实性（done 2026-09-18：shapeProfile 参数面 + 主次分级 + 冠内通透三规则；29520 面 -8%；+9 测试 → 2452 全绿；四机位取证 `docs/acceptance/t009/009.1/`）→ [tasks/009.1-branch-structure.md](tasks/009.1-branch-structure.md)
   - [x] T009.2 夏栎叶簇生成（done 2026-09-18：枝梢驱动叶簇 + SDF 倒卵形/5 裂/耳形 + 叶背粉绿；35058 面；+7 测试 → 2459 全绿；六机位取证 `docs/acceptance/t009/009.2/`）→ [tasks/009.2-leaf-cluster.md](tasks/009.2-leaf-cluster.md)
   - [x] T009.3 8 槽形态向量表（done 2026-09-18：8 组 shapeProfile 差量展开 + mountSlots 批量出图面；用户裁定门两轮批量 8/8 通过定稿零微调；+14 测试 → 2473 全绿；取证 `docs/acceptance/t009/009.3/`）→ [tasks/009.3-shape-slots.md](tasks/009.3-shape-slots.md)
   - [x] T009.4 树皮近景微起伏（done 2026-09-18：emitTube 低频环向谐波起伏（零 rng/拓扑恒等/法线解析修正）+ 树皮灰度校正 #63513f→#5c534a 并行交付；+9 测试 → 2482 全绿；四机位 vs 009.3 基线取证 `docs/acceptance/t009/009.4/`）→ [tasks/009.4-bark-relief.md](tasks/009.4-bark-relief.md)
+  - [x] T009.6 夏栎 LOD 三档（done 2026-09-19：三档同流派生 + 材质 9 键分档 + 缓存 sourceKey::level 双维 + asset 路由/meta 三档；预算锁定 High ≤40K / Mid 6–10K / Low 1.5–3K；+32 测试 → 2514 全绿；7 图取证 `docs/acceptance/t009/009.6/`）→ [tasks/009.6-lod-levels.md](tasks/009.6-lod-levels.md)
 - [ ] T008 程序化树木（5/6；008.5 收官门后置于 T009 全部完成）→ [tasks/008-procedural-tree.md](tasks/008-procedural-tree.md)
   - [ ] T008.5 T008 收官验收门（修订版 → D20，后置于 T009 全部完成）→ [tasks/008.5-acceptance.md](tasks/008.5-acceptance.md)
   - [x] T008.6 夏栎视觉参考研究（done 2026-09-18：spec 1.0 + plant-schema v0.2 + 对照 7/3/6/2；用户过目门按放行处置——「继续任务」指令后问询未获回答，异议窗口开放，见任务书处置记档）→ [tasks/008.6-plant-reference.md](tasks/008.6-plant-reference.md)

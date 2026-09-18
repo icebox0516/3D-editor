@@ -6,16 +6,16 @@
  *      seed 即 morphSeed，绝非对象 asset.seed——见下条契约第一锁；params.preset 为
  *      协议扩展位，v1 无消费方）。旧资产 `build()` 无参声明天然兼容（TS 少参可赋
  *      多参签名，类型层面即证明；变体烘 transform/instanceColor 不进 build；
- *      LOD 走可选 level 参数由资产 Runtime 统一接入——夏栎三档 T009.6 落地，
- *      距离切换 T006 消费，D23）。
+ *      LOD 走可选 level 参数由资产 Runtime 统一接入——level 契约 T009.6 已落地
+ *      （签名先行，夏栎三档内容紧随），距离切换 T006 消费，D23/D27）。
  * 边界：本文件只有类型，零运行时；build 返回的 InstanceSource 形态真相源在
  *      runtime/instancing/InstancedAssetPool（与 GLB 实例化源同构，池无感混排）。
  */
-import type { ProceduralAssetMeta } from '../../domain/assets';
+import type { ProceduralAssetMeta, ProceduralLevel } from '../../domain/assets';
 import type { InstanceSource } from '../instancing/InstancedAssetPool';
 
 /** build 入参（全可选；缺省 = 旧行为）：seed = 形态 seed（morphSeed）；preset = 协议扩展位。
- *  LOD level 为第三可选 Runtime 参数（D23：'high' | 'medium' | 'low'，T009.6 落地签名）——
+ *  LOD level 为第三可选 Runtime 参数（D23/D27.7：'high' | 'mid' | 'low'，T009.6 已落地）——
  *  不参与 shapeSlot / morphSeed / sourceKey 形态身份计算；档位缓存维度 = sourceKey + level，
  *  由 Runtime Cache 维护（sourceKeyOf 本身不改）。 */
 export interface ProceduralBuildParams {
@@ -27,6 +27,11 @@ export interface ProceduralBuildParams {
   seed?: number;
   /** 预设扩展位（D19.2：v1 无消费方，不进 Inspector） */
   preset?: string;
+  /** LOD 档位 Runtime 参数（D23/D27.7）：缺省 = 'high'（缩略图/Ghost/Preview 固定 High，
+   *  D27.14）；**不参与 shapeSlot / morphSeed / sourceKey 形态身份计算**，档位缓存维度 =
+   *  sourceKey + level 由 ProceduralSourceCache 维护；旧资产 `build()` 无参声明继续兼容
+   *  （TS 少参可赋多参签名）；资产未声明该档时的回落由资产 build 自行决定。 */
+  level?: ProceduralLevel;
 }
 
 /** 程序化构建函数：同步、可选参（D19.2 参数化；缺省调用等价旧无参契约）。

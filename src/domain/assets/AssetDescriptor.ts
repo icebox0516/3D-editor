@@ -37,13 +37,20 @@ export interface ProceduralVariants {
 }
 
 /**
+ * LOD 档位 id 枚举（D27.7 三值定死）：'high' = 细模；'mid' / 'low' 由各资产 LOD 任务提供内容。
+ * proxy/impostor 不进类型枚举（规范语义位归 T010.3）；culled 是调度结果而非声明档位，
+ * 不进枚举。Runtime build/缓存参数直接复用本类型（runtime/procedural/types.ts）。
+ */
+export type ProceduralLevel = 'high' | 'mid' | 'low';
+
+/**
  * LOD 档位声明——levels 是资产内容声明（D23 职责切分：T009.6 首次提供多档夏栎实现
  * 并落地 Runtime level 维度；T006 只负责运行时距离切换/Chunk/Batch 消费）。
- * 类型形态不变；'medium' / 'low' 由资产按家族预算实测填充。
+ * 类型形态不变；'mid' / 'low' 由资产按家族预算实测填充。
  */
 export interface ProceduralLevelDescriptor {
-  /** 档位 id：'high' = 细模；'medium' / 'low' 由各资产 LOD 任务提供内容 */
-  id: 'high' | 'medium' | 'low';
+  /** 档位 id：'high' = 细模；'mid' / 'low' 由各资产 LOD 任务提供内容 */
+  id: ProceduralLevel;
 }
 
 /**

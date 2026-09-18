@@ -11,12 +11,16 @@
  * - 槽路由与契约第一锁（T008.1，D19）：未声明 shapeFamily 回退 assetId 键 + 无参 build；
  *   声明资产按 shapeSlotOf 路由 sourceKey、build 收 morphSeedOf；S1 ≠ S2 同槽 →
  *   同条目、build 一次、Geometry/Material 同引用（硬测试）；seed 缺省按 0 路由。
+ * - LOD 档位维度（T009.6 Step 1，D23/D27.7）：同槽三档独立条目/独立引用；同档二次
+ *   load 命中不重建；缺省 level 与显式 'high' 同键同条目；level 透传 build；evict
+ *   单档精确释放（另一档不受影响、未命中 false、幂等）；未声明 shapeFamily 带 level
+ *   仍无参 build 单条目（现状逐位一致）；sourceKeyOf 输出形态原样（level 不掺形态身份）。
  * 边界：绝无模块级单例——每测试 new 独立实例（D17 StrictMode 双挂载裁定）。
  */
 import { afterEach, describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import type { ProceduralAssetMeta } from '../../../src/domain/assets';
-import { morphSeedOf, shapeSlotOf } from '../../../src/domain/assets';
+import { morphSeedOf, shapeSlotOf, sourceKeyOf } from '../../../src/domain/assets';
 import { ProceduralSourceCache } from '../../../src/runtime/procedural/ProceduralSourceCache';
 import type { InstanceSource } from '../../../src/runtime/instancing/InstancedAssetPool';
 import {
@@ -276,5 +280,143 @@ describe('槽路由（声明 shapeFamily 的资产按 sourceKey 缓存）', () =
     expect(b).toBe(a);
     expect(log.calls).toBe(1);
     expect(log.params[0]?.seed).toBe(morphSeedOf(id, shapeSlotOf(0, size)));
+  });
+});
+
+// ── LOD 档位维度（T009.6 Step 1，D23/D27.7）──────────────────
+
+describe('LOD 档位维度（档位几何独立缓存、独立释放）', () => {
+  it('同 assetId 同 seed 不同 level（high/mid/low）→ 3 个独立缓存条目、geometry/material 引用互不相同', async () => {
+    const id = 'test.lod_three_levels';
+    tempIds.push(id);
+    const log = { calls: 0, params: [] as (ProceduralBuildParams | undefined)[] };
+    registerProceduralRoute(id, recordingBuild(log), familyMeta(id, 4));
+    const cache = newCache();
+    const seed = 7;
+    const high = await cache.load(id, { seed, level: 'high' });
+    const mid = await cache.load(id, { seed, level: 'mid' });
+    const low = await cache.load(id, { seed, level: 'low' });
+    expect(cache.size).toBe(3); // 同槽三档 = 三条目（档位独立缓存）
+    expect(log.calls).toBe(3);
+    expect(mid.geometry).not.toBe(high.geometry);
+    expect(low.geometry).not.toBe(high.geometry);
+    expect(low.geometry).not.toBe(mid.geometry);
+    expect(mid.material).not.toBe(high.material); // 档间不共享（evict 独立释放的前提）
+  });
+
+  it('同 level 二次 load → 同引用命中、build 只调一次（档位内不重复构建）', async () => {
+    const id = 'test.lod_same_level_hit';
+    tempIds.push(id);
+    const calls = { count: 0 };
+    registerProceduralRoute(id, countingBuild(calls), familyMeta(id, 2));
+    const cache = newCache();
+    const a = await cache.load(id, { seed: 5, level: 'mid' });
+    const b = await cache.load(id, { seed: 5, level: 'mid' });
+    expect(b).toBe(a);
+    expect(calls.count).toBe(1);
+    expect(cache.size).toBe(1);
+  });
+
+  it('level 缺省与显式 high 同键同条目（缺省 = high）', async () => {
+    const id = 'test.lod_default_high';
+    tempIds.push(id);
+    const calls = { count: 0 };
+    registerProceduralRoute(id, countingBuild(calls), familyMeta(id, 2));
+    const cache = newCache();
+    const a = await cache.load(id, { seed: 5 });
+    const b = await cache.load(id, { seed: 5, level: 'high' });
+    expect(b).toBe(a);
+    expect(calls.count).toBe(1);
+    expect(cache.size).toBe(1);
+  });
+
+  it('level 透传：mid 请求 build params.level === mid；缺省请求 params.level === high', async () => {
+    const id = 'test.lod_passthrough';
+    tempIds.push(id);
+    const size = 2;
+    const log = { calls: 0, params: [] as (ProceduralBuildParams | undefined)[] };
+    registerProceduralRoute(id, recordingBuild(log), familyMeta(id, size));
+    const s1 = 1;
+    let s2 = s1 + 1;
+    while (shapeSlotOf(s2, size) === shapeSlotOf(s1, size)) s2++; // 异槽避免缓存命中
+    const cache = newCache();
+    await cache.load(id, { seed: s1, level: 'mid' });
+    await cache.load(id, { seed: s2 });
+    expect(log.calls).toBe(2);
+    expect(log.params[0]?.level).toBe('mid');
+    expect(log.params[1]?.level).toBe('high');
+  });
+
+  it('evict 精确释放单档单槽：该档 geometry/material 释放、另一档仍命中不重建；未命中 false；幂等', async () => {
+    const id = 'test.lod_evict';
+    tempIds.push(id);
+    const byLevel = new Map<string, InstanceSource>();
+    const calls = { count: 0 };
+    registerProceduralRoute(
+      id,
+      (params?: ProceduralBuildParams): InstanceSource => {
+        calls.count++;
+        const source: InstanceSource = {
+          geometry: new THREE.BoxGeometry(),
+          material: new THREE.MeshStandardMaterial(),
+        };
+        byLevel.set(params?.level ?? 'high', source);
+        return source;
+      },
+      familyMeta(id, 2),
+    );
+    const cache = newCache();
+    const seed = 3;
+    const high = await cache.load(id, { seed }); // 缺省 high
+    await cache.load(id, { seed, level: 'mid' });
+    expect(cache.size).toBe(2);
+    const midSource = byLevel.get('mid')!;
+    let midGeoDisposed = 0;
+    let midMatDisposed = 0;
+    midSource.geometry.addEventListener('dispose', () => midGeoDisposed++);
+    (midSource.material as THREE.Material).addEventListener('dispose', () => midMatDisposed++);
+    // 未命中（该档不在缓存）：false、不动缓存
+    expect(cache.evict(id, { seed, level: 'low' })).toBe(false);
+    expect(cache.size).toBe(2);
+    // 精确释放 mid：条目消失、资源释放、另一档不受影响
+    expect(cache.evict(id, { seed, level: 'mid' })).toBe(true);
+    expect(midGeoDisposed).toBe(1);
+    expect(midMatDisposed).toBe(1);
+    expect(cache.size).toBe(1);
+    // 幂等：同档再 evict 已未命中
+    expect(cache.evict(id, { seed, level: 'mid' })).toBe(false);
+    // 另一档仍在且可用：命中同引用、不重建
+    const highAgain = await cache.load(id, { seed });
+    expect(highAgain).toBe(high);
+    expect(calls.count).toBe(2);
+    // mid 档再 load 视为未命中重新构建（释放后可重建）
+    await cache.load(id, { seed, level: 'mid' });
+    expect(calls.count).toBe(3);
+    expect(cache.size).toBe(2);
+  });
+
+  it('未声明 shapeFamily：带 level 请求 → build 仍无参调用（params === undefined）、缓存单条目（现状逐位一致）', async () => {
+    const id = 'test.lod_no_family';
+    tempIds.push(id);
+    const log = { calls: 0, params: [] as (ProceduralBuildParams | undefined)[] };
+    const bareMeta = familyMeta(id, 0);
+    delete bareMeta.shapeFamily;
+    registerProceduralRoute(id, recordingBuild(log), bareMeta);
+    const cache = newCache();
+    const a = await cache.load(id, { level: 'mid' });
+    const b = await cache.load(id, { level: 'low' });
+    expect(b).toBe(a); // level 不参与无声明资产的键
+    expect(cache.size).toBe(1);
+    expect(log.calls).toBe(1);
+    expect(log.params).toEqual([undefined]); // 无参调用：level 一并忽略（恒单档资产）
+    // evict 同口径：无声明键不含 level，单条目整体释放
+    expect(cache.evict(id, { level: 'low' })).toBe(true);
+    expect(cache.size).toBe(0);
+  });
+
+  it('sourceKeyOf 输出形态原样（level 不掺形态身份——D23.2）', () => {
+    expect(sourceKeyOf('test.tree', 2)).toBe('test.tree:slot-2');
+    expect(sourceKeyOf('test.tree', 2, 'p')).toBe('test.tree:p:slot-2');
+    expect(sourceKeyOf('test.tree')).toBe('test.tree');
   });
 });

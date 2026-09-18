@@ -2,7 +2,8 @@
  * tests/runtime/procedural/assets/asset_tree_3a.test.ts —— 3A 阔叶树资产契约测试（T008.2）。
  *
  * 覆盖（零 mock——真实 THREE 对象；本文件锁定 008.2 冻结的几何数据契约，008.3 违约应被打回）：
- * - meta 契约：id / plant 分类 / shapeFamily size 8 / variants / levels 单档 / triangleCount 声明；
+ * - meta 契约：id / plant 分类 / shapeFamily size 8 / variants / levels 三档（T009.6）/
+ *   triangleCount 声明；
  * - 可复现基准（本任务核心交付语义）：同 morphSeed 两次 build 全属性（position/normal/uv/
  *   aLeafRand/aBend）逐位相等；异 seed 异形态（position 与 aLeafRand 均不同）；
  *   无参 build = slot-0 锚点（morphSeedOf('asset_tree_3a', 0) 逐位一致——008.3 定调基准树）；
@@ -16,12 +17,16 @@
  *   一致（T009.1 起叶卡数随冠内通透规则确定、T009.2 起叠加簇级距离抑制：slot-0 声明
  *   实数、同槽恒等、跨槽差异为 8 槽形态向量设计预期）；两次 build 资源新实例（缓存契约）；
  * - 契约第一锁（D19，缓存路径）：同槽两对象 seed → 同 Source 同引用；异槽异 Source；
- *   8 槽健康横扫（法线/minY/带内——008.5 扩槽的前置保障）。
+ *   8 槽健康横扫（法线/minY/带内——008.5 扩槽的前置保障）；
+ * - LOD 档位路由（T009.6）：build 透传 params.level——三档 position 数量逐档递减
+ *   （几何分档生效）、组序 [皮, 叶] 契约三档不变、材质 customProgramCacheKey 按档
+ *   唯一（high 无后缀 / mid / low）、缺省 = 显式 'high' 逐位一致（High 不回归）。
  * 边界：测试内 build/load 产物 afterEach 统一 dispose 兜底，不跨测试泄漏 GPU 资源。
  */
 import { afterEach, describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { morphSeedOf, shapeSlotOf } from '../../../../src/domain/assets';
+import type { ProceduralLevel } from '../../../../src/domain/assets';
 import type { InstanceSource } from '../../../../src/runtime/instancing/InstancedAssetPool';
 import { ProceduralSourceCache } from '../../../../src/runtime/procedural/ProceduralSourceCache';
 import { build, meta } from '../../../../src/runtime/procedural/assets/asset_tree_3a.asset';
@@ -32,6 +37,13 @@ const built: InstanceSource[] = [];
 
 function buildTracked(seed?: number): InstanceSource {
   const source = seed === undefined ? build() : build({ seed });
+  built.push(source);
+  return source;
+}
+
+/** 档位路由构建（slot-0 锚点 seed + level——T009.6 路由测试专用） */
+function buildLevelTracked(level: ProceduralLevel): InstanceSource {
+  const source = build({ seed: morphSeedOf('asset_tree_3a', 0), level });
   built.push(source);
   return source;
 }
@@ -56,10 +68,10 @@ describe('meta 契约', () => {
     expect(meta.tags.length).toBeGreaterThan(0);
   });
 
-  it('variants 参照 asset_oak 量级 / levels 接口位单档 high / triangleCount 实数声明', () => {
+  it('variants 参照 asset_oak 量级 / levels 三档 high|mid|low（D27 最小化声明）/ triangleCount 实数声明', () => {
     expect(meta.variants).toEqual({ scaleJitter: 0.16, rotationJitter: 180, hueJitter: 9 });
-    expect(meta.levels).toEqual([{ id: 'high' }]);
-    expect(meta.triangleCount).toBe(35058); // T009.2：皮 20724 恒定 + slot-0 叶簇卡 7167×2（簇级剔除 + 通透规则确定值）
+    expect(meta.levels).toEqual([{ id: 'high' }, { id: 'mid' }, { id: 'low' }]); // T009.6：首版最小化 [{id}]——阈值归 Runtime 常量不进 Profile
+    expect(meta.triangleCount).toBe(35058); // T009.2：皮 20724 恒定 + slot-0 叶簇卡 7167×2（簇级剔除 + 通透规则确定值；多档起声明面取 High 细模档）
   });
 });
 
@@ -241,6 +253,45 @@ describe('预算与声明（T009.2 叶簇带：皮 1.5–3 万面 / 叶簇卡 65
     expect(leafCards).toBeLessThanOrEqual(9500);
     const total = barkTris + leafTris;
     expect(Math.abs(total - meta.triangleCount!)).toBeLessThanOrEqual(meta.triangleCount! * 0.05);
+  }, 30000);
+});
+
+describe('LOD 档位路由（T009.6：build 透传 params.level——几何/材质分档，缺省 = High 逐位不变）', () => {
+  it('三档几何分档生效：position 数量 high > mid > low；组序 [皮, 叶] 契约三档不变', () => {
+    const counts = {} as Record<ProceduralLevel, number>;
+    for (const level of ['high', 'mid', 'low'] as ProceduralLevel[]) {
+      const { geometry } = buildLevelTracked(level);
+      counts[level] = geometry.getAttribute('position').count;
+      const groups = geometry.groups;
+      expect(groups, `${level} 应恰 2 材质组`).toHaveLength(2);
+      expect(groups[0]!.materialIndex).toBe(0); // 皮（mergeGeometries 层序契约）
+      expect(groups[1]!.materialIndex).toBe(1); // 叶
+      expect(groups[1]!.count % 6, `${level} 叶组应为 6 顶点/卡整除`).toBe(0);
+    }
+    expect(counts.high!, 'Mid 应比 High 精简').toBeGreaterThan(counts.mid!);
+    expect(counts.mid!, 'Low 应比 Mid 精简').toBeGreaterThan(counts.low!);
+  }, 30000);
+
+  it('材质档位分档：customProgramCacheKey 皮/叶按档唯一（high 无后缀 / :mid / :low）', () => {
+    const cases: [ProceduralLevel, string, string][] = [
+      ['high', 'tree3a:bark', 'tree3a:leaf'],
+      ['mid', 'tree3a:bark:mid', 'tree3a:leaf:mid'],
+      ['low', 'tree3a:bark:low', 'tree3a:leaf:low'],
+    ];
+    for (const [level, barkKey, leafKey] of cases) {
+      const mats = materialsOf(buildLevelTracked(level));
+      expect(mats[0]!.customProgramCacheKey(), `${level} 皮 program 键应分档`).toBe(barkKey);
+      expect(mats[1]!.customProgramCacheKey(), `${level} 叶 program 键应分档`).toBe(leafKey);
+    }
+  }, 30000);
+
+  it('缺省 = 显式 high 逐位一致（asset 路径 High 不回归）', () => {
+    const a = buildTracked(undefined); // build() 无参
+    const b = buildLevelTracked('high'); // build({ seed: slot-0, level: 'high' })
+    for (const attr of ATTRS) {
+      expect(a.geometry.getAttribute(attr).array).toEqual(b.geometry.getAttribute(attr).array);
+    }
+    expect(materialsOf(a)[0]!.customProgramCacheKey()).toBe(materialsOf(b)[0]!.customProgramCacheKey());
   }, 30000);
 });
 

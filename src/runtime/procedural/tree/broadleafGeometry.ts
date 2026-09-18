@@ -41,10 +41,32 @@
  *      计数类（rng 消费次数恒定），保留簇数与实际叶卡数随 seed 由簇级距离抑制 + 通透
  *      规则确定（同槽同 seed 恒等——确定性不破；跨槽面数差异为 009.3 八槽形态向量的
  *      设计预期）。
+ * LOD 三档（T009.6，同流派生）：level 为 Runtime 可选参数（D23/D27.7——不参与
+ *      shapeSlot/morphSeed/sourceKey 形态身份计算；档位缓存维度 = sourceKey + level，
+ *      归 ProceduralSourceCache）。三档共用**同一条 rng 消费流**与同一套骨架/簇位决策
+ *      路径，Mid/Low 只在「发射」阶段降密度/降段数——被省略发射的站点/叶候选照常足额
+ *      消费 rng（无条件消费纪律的档间延伸：发射与否不改变消费序列，三档 rng 消费总数
+ *      恒等），枝路径/簇位/冠形包络/通透过滤决策逐位同源——档间轮廓/体量一致不靠调参：
+ *      - High：全发射（缺省档；009.1–009.4 路径逐位不动，皮面数 20724 / rng 177234
+ *        快照延续）；树皮微起伏保留；
+ *      - Mid：径向段数降（主干/五级 12/8/7/6/5/4 → 6/5/4/3/3/3——粗枝保圆度、细枝
+ *        三边管）+ 轴向站点隔 1 抽 1 发射（站点全算·游走 rng 全消费，发射管沿同一
+ *        曲线的弦近似）+ L5 末梢管不发射（末梢径 4–8mm，Mid 观距亚像素；簇位照常
+ *        派生）+ 簇内叶卡 22 选 7（j % 3 === 1——31.8%，被弃候选足额消费 rng 后不进
+ *        烘焙；通透过滤对全候选照常执行 → Mid 存活卡 ⊂ High 存活卡逐位同位）；树皮
+ *        微起伏保留（纯确定性函数零 rng——档间脊沟语言连续）；
+ *      - Low：不保持内部枝条——主干 + L1 骨架极简管（径向 6/4、隔 1 抽 1；递归照常
+ *        走完消费 rng）+ 冠 = High 簇位表驱动的壳层卡（每保留簇 2 张交叉竖卡，半幅 =
+ *        簇半径 + 0.12m 叶卡伸出余量——吞并簇半径且不涨出 High 冠包络；簇位/簇半径
+ *        与 High 同源；壳卡逐卡身份 = 簇心确定性散列，零 rng）。
+ *      叶卡属性契约（aLeafRand/aBend 六顶点卡）三档延续（Low 壳卡同样携带，材质侧
+ *      消费）；树皮层恒 0 与恰 2 组（皮 0 / 叶 1，D15）三档一致；原点语义（minY 精确
+ *      0）与总高/冠幅档间一致（同 profile 同 rng 派生）。三档预算锁定账目见
+ *      assets/asset_tree_3a.asset 模块头（预算制 D19.8）。
  * 确定性纪律：簇生成与叶片候选的 rng 消费均为无条件固定次数（每簇 2 次：t 抖动 + 半径；
  *      每叶 9 次：偏移向 2 + r̂ 1 + az 1 + el 1 + roll 1 + 宽 1 + 长宽比 1 + rand 1），
  *      被簇级距离抑制丢弃的簇位同样足额消费后丢弃；通透 roll 每卡无条件 1 次（009.1
- *      纪律延续）——任何条件跳过都禁止。
+ *      纪律延续）——任何条件跳过都禁止（档间同理：Mid/Low 的发射省略不省略消费）。
  * 叶卡属性契约（008.3 起冻结，本任务只消费不修改）：
  *      - aLeafRand：Float32 itemSize 1，逐叶 ∈ [0,1)，同一叶卡 6 顶点同值——色相/透光/
  *        大小变奏源；
@@ -61,6 +83,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { TREE3A_SLOT0_PROFILE } from './tree3aShapeProfile';
 import type { Tree3aBarkRelief, Tree3aShapeProfile } from './tree3aShapeProfile';
+import type { ProceduralLevel } from '../../../domain/assets';
 
 /** 叶卡描述子：烘焙前先收集（候选 → 通透过滤 → 两段式烘焙，冠内高度权重需存活卡 Y 域） */
 interface LeafCard {
@@ -72,6 +95,9 @@ interface LeafCard {
   rand: number; // aLeafRand
   rhat: number; // 簇内归一化半径（shellBias 结构证据账目）
   clusterIndex: number; // 所属簇（存活后归账 clusterLeaves）
+  /** 簇内候选序（T009.6）：Mid 发射掩码 j % 3 === 1 的选择位——候选生成/通透过滤/rng
+   *  消费对全候选照常，掩码只在烘焙阶段生效（Mid 存活卡 ⊂ High 存活卡逐位同位） */
+  emitOrdinal: number;
 }
 
 /** 叶簇记录：挂点 + 簇中心 + 簇方向（= 挂点枝切向）+ 半径（T009.2 枝梢驱动叶簇） */
@@ -212,6 +238,140 @@ function distToSegmentSq(
   const dy = apy - aby * t;
   const dz = apz - abz * t;
   return dx * dx + dy * dy + dz * dz;
+}
+
+// ── LOD 三档发射计划（T009.6 同流派生——档位只改「发射」，不改骨架决策/rng 消费序）──
+
+/** LOD 发射档：三档共用同一条 rng 流与同一套骨架/簇位决策，差异全在发射密度 */
+interface LodEmissionPlan {
+  /** 逐管径向段 [主干, L1..L5]（High = profile 原值；Mid/Low 为降段阶梯——粗枝保圆度、
+   *  细枝三边管：中景圆度可辨层级以下径向 3 已足，再降破管面下限 3） */
+  radial: number[];
+  /** 逐管轴向发射站点抽取步长（1 = 全发射；>1 = 每隔 step 站发射一站 + 恒保末站——
+   *  站点全算·游走 rng 全消费，路径逐位同 High，发射管为同一曲线的弦近似） */
+  stationStep: number[];
+  /** L1..L5 逐级是否发射管（false = 只递归不发射——子枝/簇位/rng 照常派生；主干恒发射） */
+  emitTube: boolean[];
+  /** 簇内叶卡发射掩码（每簇 leavesPerCluster 候选中，仅 j % leafEmitEvery === leafEmitPhase
+   *  者进烘焙；候选生成/通透过滤/rng 消费对全候选照常——Mid 存活卡 ⊂ High 存活卡） */
+  leafEmitEvery: number;
+  leafEmitPhase: number;
+  /** Low 壳卡模式：不烘焙簇内叶卡（候选/过滤/rng 照常），逐保留簇发射交叉壳卡 */
+  shellCards: boolean;
+}
+
+/**
+ * 档位 → 发射计划（结构依据见模块头 T009.6 段；预算记账 = 8 槽实测口径，正式预算带
+ * 锁定见 assets/asset_tree_3a.asset 模块头）：
+ * - High 皮 20724（拓扑恒等不动）；Mid 皮 3882 = 主干 90（7 段 ×6 + 底盖 6）+ L1 300
+ *   （6 枝 ×5 段 ×5）+ L2 576（18 ×4 段 ×4）+ L3 972（54 ×3 段 ×3）+ L4 1944
+ *   （162 ×2 段 ×3），L5 不发射；Low 皮 330 = 主干 90 + L1 240（6 枝 ×5 段 ×4）。
+ * - Mid 叶 ≈ High 存活卡 × 7/22（22 候选掩码 7 张）× 2 三角；8 槽实测落 6.4–9.7K。
+ * - Low 叶 = 保留簇数 × 2 壳卡 × 2 三角；8 槽簇数 333–455 → 1662–2150。
+ */
+function lodPlanFor(profile: Tree3aShapeProfile, level: ProceduralLevel): LodEmissionPlan {
+  if (level === 'high') {
+    // 缺省档全发射：profile 原值直读 + 步长 1（thinStations 原数组透传）——009.1–009.4
+    // 路径逐位不动（皮面数 20724 / rng 177234 快照延续）
+    return {
+      radial: [profile.trunk.radial, ...profile.levels.map((l) => l.radial)],
+      stationStep: [1, 1, 1, 1, 1, 1],
+      emitTube: [true, true, true, true, true],
+      leafEmitEvery: 1,
+      leafEmitPhase: 0,
+      shellCards: false,
+    };
+  }
+  if (level === 'mid') {
+    // 径向 12/8/7/6/5/4 → 6/5/4/3/3/3（骨架枝 5 边保中景圆度）+ 隔 1 抽 1 + L5 末梢
+    // 不发射（4–8mm 亚像素）+ 叶卡 22 选 7（j%3===1——22 = 3×7+1，余 1 类恰 7 张，
+    // 31.8%：8 槽实测 High 卡 4015–9028 → Mid 总面 6.4–9.7K ⊂ 6–10K 预算带的取中档率）
+    return {
+      radial: [6, 5, 4, 3, 3, 3],
+      stationStep: [2, 2, 2, 2, 2, 2],
+      emitTube: [true, true, true, true, false],
+      leafEmitEvery: 3,
+      leafEmitPhase: 1,
+      shellCards: false,
+    };
+  }
+  // Low：主干 + L1 骨架极简管（径向 6/4——干身剪影保圆度、骨架枝 4 边够远距读向）；
+  // L2–L5 不发射（递归照常走完消费 rng/派生簇位）；冠层转壳卡模式
+  return {
+    radial: [6, 4, 3, 3, 3, 3],
+    stationStep: [2, 2, 2, 2, 2, 2],
+    emitTube: [true, false, false, false, false],
+    leafEmitEvery: 1,
+    leafEmitPhase: 0,
+    shellCards: true,
+  };
+}
+
+/** 轴向站点抽取（step ≤ 1 原数组透传——High 逐位不变；step > 1 每 step 站取一 + 恒保末站） */
+function thinStations<T>(list: T[], step: number): T[] {
+  if (step <= 1) return list;
+  const out: T[] = [];
+  for (let i = 0; i < list.length; i += step) out.push(list[i]!);
+  const last = list[list.length - 1]!;
+  if (out[out.length - 1] !== last) out.push(last);
+  return out;
+}
+
+/** Low 壳卡半幅余量（米）：High 簇内叶卡自簇心的最大伸出 ≈ 簇半径 + 卡长（≤0.35m 斜向），
+ *  典型伸出（r̂≤1 壳位 + 近水平摊开卡）中位 ≈ 半卡长 0.1–0.15m——取 0.12 使壳卡吞并簇
+ *  半径的常态视觉域，且极值叶尖仍由 High 决定冠包络（Low 不涨出，档间 bbox 一致性
+ *  测试容差依据：实测跨档 XZ 跨度/总高差 ≤ 0.4m） */
+const LOW_SHELL_MARGIN = 0.12;
+/** Low 每保留簇壳卡数（交叉双竖卡：任意水平方位至少一卡正面可读——确定性几何，非 billboard） */
+const LOW_SHELL_CARDS_PER_CLUSTER = 2;
+
+/** Low 壳卡逐卡身份（aLeafRand 契约值 ∈ [0,1)）：簇心 sin 散列 + 第二卡派生错相（零 rng
+ *  ——簇位表跨档同源，壳卡身份随簇确定；同簇双卡色相微错开避免同色块读向） */
+function shellCardRandOf(cx: number, cy: number, cz: number, derive: number): number {
+  const base = fract01(Math.sin(cx * 12.9898 + cy * 78.233 + cz * 37.719) * 43758.5453);
+  return derive === 0 ? base : fract01(base * 7.31 + 0.37);
+}
+
+/**
+ * Low 壳卡发射（T009.6）：簇心交叉竖卡——宽轴 w（水平单位向量）、高轴 UP、半幅 half；
+ * 六顶点卡 / uv 0–1 四边形域 / aLeafRand / aBend 契约与 High 叶卡同构（根边 v=0、尖边
+ * v=1；aBend 根 0.12·hw / 尖 0.52+0.44·hw 与 High 同公式同常数——档间风相位/摆幅语义
+ * 一致，D19.7）；卡面法线 = w × UP（水平——竖卡双面读向）。
+ */
+function emitShellCard(
+  pos: number[],
+  nrm: number[],
+  uv: number[],
+  rand: number[],
+  bend: number[],
+  center: THREE.Vector3,
+  w: THREE.Vector3,
+  half: number,
+  cardRand: number,
+  hw: number,
+): void {
+  const bendRoot = 0.12 * hw; // 根边（簇挂枝端语义）≈ 0
+  const bendTip = 0.52 + 0.44 * hw; // 尖边大；树顶簇 > 树底簇（同 High 公式）
+  const r0 = center.clone().addScaledVector(w, -half);
+  const r1 = center.clone().addScaledVector(w, half);
+  const t0 = r0.clone().addScaledVector(UP, half);
+  const t1 = r1.clone().addScaledVector(UP, half);
+  const n = w.clone().cross(UP).normalize();
+  const verts: [THREE.Vector3, number, number, number][] = [
+    [r0, 0, 0, bendRoot],
+    [r1, 1, 0, bendRoot],
+    [t1, 1, 1, bendTip],
+    [r0, 0, 0, bendRoot],
+    [t1, 1, 1, bendTip],
+    [t0, 0, 1, bendTip],
+  ];
+  for (const [v, u, vv, b] of verts) {
+    pos.push(v.x, v.y, v.z);
+    nrm.push(n.x, n.y, n.z);
+    uv.push(u, vv);
+    rand.push(cardRand);
+    bend.push(b);
+  }
 }
 
 // ── 树皮近景微起伏（T009.4）：固定形态常数——非槽差异维度，可调面全在
@@ -504,12 +664,15 @@ function emitBaseCapTri(sink: BarkSink, center: THREE.Vector3, radius: number, r
  * 拓扑：主干（含根部 flare）→ 5 骨架枝 + 1 领导枝（L1）→ 逐级递归（L2×3 / L3×3 / L4×2 /
  * L5×2 末梢）；枝角/长度/粗度/曲率 rng 驱动（骨架枝横展上扬——夏栎冠形语言；领导枝
  * 直立续顶）。主次分级与冠内通透规则见模块头。profile 缺省 = slot-0 标准组合
- * （锚点回落——单测直调便捷路径，资产路径显式传槽 profile）。
+ * （锚点回落——单测直调便捷路径，资产路径显式传槽 profile）。level 缺省 = 'high'
+ * （T009.6 三档同流派生——档位只改发射密度，不改骨架决策/rng 消费序，见 lodPlanFor）。
  */
 export function buildBroadleafGeometry(
   rng: () => number,
   profile: Tree3aShapeProfile = TREE3A_SLOT0_PROFILE,
+  level: ProceduralLevel = 'high',
 ): BroadleafTreeResult {
+  const lod = lodPlanFor(profile, level);
   const ctx: BuildCtx = {
     bark: { pos: [], nrm: [], uv: [] },
     clusters: [],
@@ -546,12 +709,19 @@ export function buildBroadleafGeometry(
       p = p.clone().addScaledVector(dir, trunkH / profile.trunk.segs);
     }
   }
-  emitTube(bark, trunkPts, trunkRadii, profile.trunk.radial, 0.5, profile.barkRelief);
+  emitTube(
+    bark,
+    thinStations(trunkPts, lod.stationStep[0]!),
+    thinStations(trunkRadii, lod.stationStep[0]!),
+    lod.radial[0]!,
+    0.5,
+    profile.barkRelief,
+  );
   // 底盖独立性说明（T009.4）：emitBaseCapTri 保持无起伏（近地视角不可见——树基 minY=0
   // 贴地，盖沿与管壁首环的 ≤ amplitudeRatio×r0（≈1.3cm）环形错位由地面遮挡；自上方斜看
   // 空心干身的封洞功能不受影响）。盖自带 +Y 切向标架，与管首站标架不同源，若强行对齐
   // 需共享管帧——收益不可见，不做。
-  emitBaseCapTri(bark, trunkPts[0]!, trunkRadii[0]!, profile.trunk.radial);
+  emitBaseCapTri(bark, trunkPts[0]!, trunkRadii[0]!, lod.radial[0]!);
   ctx.maxY = Math.max(ctx.maxY, trunkPts[trunkPts.length - 1]!.y);
 
   /** 主干半径插值（挂点处子枝起径连续源） */
@@ -583,7 +753,7 @@ export function buildBroadleafGeometry(
     const dirH = new THREE.Vector3(Math.cos(az), 0, Math.sin(az));
     const bDir = dirH.clone().multiplyScalar(Math.sin(tilt)).add(UP.clone().multiplyScalar(Math.cos(tilt))).normalize();
     const startR = trunkRadiusAt(attachT) * profile.scaffoldThickness * profile.scaffoldRankRadius[rank]!;
-    growBranch(ctx, rng, profile, 0, attach, bDir, length, startR, az);
+    growBranch(ctx, rng, profile, lod, 0, attach, bDir, length, startR, az);
     // 枝干通道②：骨架枝基段保护带（初方向直线近似——主干大枝进冠不被封死）
     ctx.channels.push(
       segOf(attach, attach.clone().addScaledVector(bDir, length * profile.channelLengthRatio), profile.channelRadius * profile.channelBranchScale),
@@ -599,6 +769,7 @@ export function buildBroadleafGeometry(
     ctx,
     rng,
     profile,
+    lod,
     0,
     leaderAttach,
     leaderDir,
@@ -692,51 +863,105 @@ export function buildBroadleafGeometry(
     }
   }
 
-  // ── 簇账目（T009.2）：逐簇存活叶量 + 逐存活卡簇内归一化半径（存活卡烘焙序对齐）──
+  // ── 烘焙名单（T009.6）：High = 全存活卡；Mid = 簇内候选序掩码子集（j % every ===
+  //    phase——通透过滤对全候选照常执行 → Mid 存活卡 ⊂ High 存活卡逐位同位）；Low 壳卡
+  //    模式不烘焙簇内叶卡（候选生成/通透过滤/rng 消费已照常走完——消费序列档间恒等）──
+  const bakedCards: LeafCard[] = lod.shellCards
+    ? []
+    : leafCards.filter((c) => c.emitOrdinal % lod.leafEmitEvery === lod.leafEmitPhase);
+  /** 烘焙叶卡数（Low = 保留簇 × 每簇壳卡数——叶组三角 = 该数 × 2） */
+  const bakedLeafCount = lod.shellCards
+    ? ctx.clusters.length * LOW_SHELL_CARDS_PER_CLUSTER
+    : bakedCards.length;
+
+  // ── 簇账目（T009.2）：逐簇烘焙叶量 + 逐烘焙卡簇内归一化半径（烘焙序对齐；Low 壳卡
+  //    无簇内径向分布语义——r̂ 记壳面恒 1.0，账目长度与烘焙卡数的既有不变量延续）──
   const clusterLeaves: number[] = new Array(ctx.clusters.length).fill(0);
   const leafRhat: number[] = [];
-  for (const card of leafCards) {
-    clusterLeaves[card.clusterIndex]!++;
-    leafRhat.push(card.rhat);
+  if (lod.shellCards) {
+    clusterLeaves.fill(LOW_SHELL_CARDS_PER_CLUSTER);
+  } else {
+    for (const card of bakedCards) {
+      clusterLeaves[card.clusterIndex]!++;
+      leafRhat.push(card.rhat);
+    }
   }
 
-  // ── 叶卡烘焙（两段式：存活卡 Y 域 → 冠内高度权重 aBend）──
+  // ── 叶卡烘焙（两段式：Y 域 → 冠内高度权重 aBend；Mid 的 Y 域取全存活集——与 High
+  //    逐位同源，两档公共卡 aBend 恒等；Low 的 Y 域取簇心域）──
   let crownMinY = Infinity;
   let crownMaxY = -Infinity;
-  for (const card of leafCards) {
-    crownMinY = Math.min(crownMinY, card.center.y);
-    crownMaxY = Math.max(crownMaxY, card.center.y);
+  if (lod.shellCards) {
+    for (const cluster of ctx.clusters) {
+      crownMinY = Math.min(crownMinY, cluster.center.y);
+      crownMaxY = Math.max(crownMaxY, cluster.center.y);
+    }
+  } else {
+    for (const card of leafCards) {
+      crownMinY = Math.min(crownMinY, card.center.y);
+      crownMaxY = Math.max(crownMaxY, card.center.y);
+    }
   }
   const leafPos: number[] = [];
   const leafNrm: number[] = [];
   const leafUv: number[] = [];
   const leafRand: number[] = [];
   const leafBend: number[] = [];
-  for (const card of leafCards) {
-    const hw = THREE.MathUtils.clamp((card.center.y - crownMinY) / Math.max(0.01, crownMaxY - crownMinY), 0, 1);
-    const bendRoot = 0.12 * hw; // 钉枝顶点 ≈ 0
-    const bendTip = 0.52 + 0.44 * hw; // 叶尖大；树顶叶 > 树底叶
-    const half = card.width / 2;
-    const r0 = card.center.clone().addScaledVector(card.side, -half);
-    const r1 = card.center.clone().addScaledVector(card.side, half);
-    const t0 = r0.clone().addScaledVector(card.dir, card.height);
-    const t1 = r1.clone().addScaledVector(card.dir, card.height);
-    const n = card.side.clone().cross(card.dir).normalize();
-    // 顶点序（非索引 6 顶点/卡）：r0 r1 t1 | r0 t1 t0；根 = 0,1,3 尖 = 2,4,5（aBend 契约序）
-    const verts: [THREE.Vector3, number, number, number][] = [
-      [r0, 0, 0, bendRoot],
-      [r1, 1, 0, bendRoot],
-      [t1, 1, 1, bendTip],
-      [r0, 0, 0, bendRoot],
-      [t1, 1, 1, bendTip],
-      [t0, 0, 1, bendTip],
-    ];
-    for (const [v, u, vv, bend] of verts) {
-      leafPos.push(v.x, v.y, v.z);
-      leafNrm.push(n.x, n.y, n.z);
-      leafUv.push(u, vv);
-      leafRand.push(card.rand);
-      leafBend.push(bend);
+  if (lod.shellCards) {
+    // ── Low 壳卡烘焙（T009.6）：逐保留簇交叉双竖卡——宽轴 = 簇切向水平投影 / 其水平
+    //    垂直（任意水平方位至少一卡正面可读——确定性几何非 billboard）；簇位/簇半径与
+    //    High 同源，半幅吞并簇半径（LOW_SHELL_MARGIN 校准依据见常量注释）──
+    for (const cluster of ctx.clusters) {
+      const half = cluster.radius + LOW_SHELL_MARGIN;
+      let h = cluster.dir.clone();
+      h.y = 0; // 簇切向（挂点枝切向）水平投影
+      if (h.lengthSq() < 1e-6) h.set(1, 0, 0); // 近铅垂切向的确定性回退（L5 上扬末梢）
+      h.normalize();
+      const perp = new THREE.Vector3(-h.z, 0, h.x); // h × UP（水平垂直）
+      const hw = THREE.MathUtils.clamp(
+        (cluster.center.y - crownMinY) / Math.max(0.01, crownMaxY - crownMinY),
+        0,
+        1,
+      );
+      emitShellCard(
+        leafPos, leafNrm, leafUv, leafRand, leafBend,
+        cluster.center, h, half,
+        shellCardRandOf(cluster.center.x, cluster.center.y, cluster.center.z, 0), hw,
+      );
+      emitShellCard(
+        leafPos, leafNrm, leafUv, leafRand, leafBend,
+        cluster.center, perp, half,
+        shellCardRandOf(cluster.center.x, cluster.center.y, cluster.center.z, 1), hw,
+      );
+      leafRhat.push(1, 1); // 壳面 r̂ 恒 1.0（壳即簇外壳）
+    }
+  } else {
+    for (const card of bakedCards) {
+      const hw = THREE.MathUtils.clamp((card.center.y - crownMinY) / Math.max(0.01, crownMaxY - crownMinY), 0, 1);
+      const bendRoot = 0.12 * hw; // 钉枝顶点 ≈ 0
+      const bendTip = 0.52 + 0.44 * hw; // 叶尖大；树顶叶 > 树底叶
+      const half = card.width / 2;
+      const r0 = card.center.clone().addScaledVector(card.side, -half);
+      const r1 = card.center.clone().addScaledVector(card.side, half);
+      const t0 = r0.clone().addScaledVector(card.dir, card.height);
+      const t1 = r1.clone().addScaledVector(card.dir, card.height);
+      const n = card.side.clone().cross(card.dir).normalize();
+      // 顶点序（非索引 6 顶点/卡）：r0 r1 t1 | r0 t1 t0；根 = 0,1,3 尖 = 2,4,5（aBend 契约序）
+      const verts: [THREE.Vector3, number, number, number][] = [
+        [r0, 0, 0, bendRoot],
+        [r1, 1, 0, bendRoot],
+        [t1, 1, 1, bendTip],
+        [r0, 0, 0, bendRoot],
+        [t1, 1, 1, bendTip],
+        [t0, 0, 1, bendTip],
+      ];
+      for (const [v, u, vv, bend] of verts) {
+        leafPos.push(v.x, v.y, v.z);
+        leafNrm.push(n.x, n.y, n.z);
+        leafUv.push(u, vv);
+        leafRand.push(card.rand);
+        leafBend.push(bend);
+      }
     }
   }
 
@@ -776,7 +1001,7 @@ export function buildBroadleafGeometry(
     stats: {
       barkTriangles: (groups[0]?.count ?? 0) / 3,
       leafTriangles: (groups[1]?.count ?? 0) / 3,
-      leafCards: leafCards.length,
+      leafCards: bakedLeafCount,
       leafCandidates: ctx.leafCandidates.length,
       channelRejects,
       voidRejects,
@@ -833,11 +1058,15 @@ function segOf(a: THREE.Vector3, b: THREE.Vector3, radius: number): ChannelSeg {
  * 2.5×子径，杜绝接缝黑洞——树皮微起伏幅度 ≈ 3.3% 局部半径，≪ 内埋余量，接缝安全
  * 不变）；末两级挂枝梢驱动叶簇（T009.2：簇挂点外段/枝端、簇方向 =
  * 局部切向、簇内壳偏置发叶片候选；通透过滤在收冠后统一执行，内层稀疏由密度场接管）。
+ * LOD（T009.6）：站点序列全分辨率计算（游走 rng 全消费——档间逐位同源），管发射按
+ * lod 计划抽稀（径向降段 + 站点隔 1 抽 1 + 未发射级跳过 emitTube）；簇决策/簇内候选生成
+ * 与档位无关（发射省略不省略消费）。
  */
 function growBranch(
   ctx: BuildCtx,
   rng: () => number,
   profile: Tree3aShapeProfile,
+  lod: LodEmissionPlan,
   level: number,
   start: THREE.Vector3,
   dirIn: THREE.Vector3,
@@ -864,7 +1093,17 @@ function growBranch(
       p = p.clone().addScaledVector(d, length / spec.segs);
     }
   }
-  emitTube(ctx.bark, pts, radii, spec.radial, 0.5, profile.barkRelief);
+  // 管发射按档位计划：未发射级（Mid L5 / Low L2–L5）只递归不发射——站点/簇位/rng 照常
+  if (lod.emitTube[level]) {
+    emitTube(
+      ctx.bark,
+      thinStations(pts, lod.stationStep[1 + level]!),
+      thinStations(radii, lod.stationStep[1 + level]!),
+      lod.radial[1 + level]!,
+      0.5,
+      profile.barkRelief,
+    );
+  }
   ctx.levelBranches[level]!++;
   ctx.levelRadiusSum[level]! += startR;
   ctx.maxY = Math.max(ctx.maxY, pts[pts.length - 1]!.y);
@@ -957,6 +1196,7 @@ function growBranch(
             rand,
             rhat,
             clusterIndex,
+            emitOrdinal: j, // 簇内候选序（Mid 掩码位——见 LeafCard.emitOrdinal 注释）
           });
         }
       }
@@ -993,6 +1233,7 @@ function growBranch(
         ctx,
         rng,
         profile,
+        lod,
         level + 1,
         attach,
         childDir,
