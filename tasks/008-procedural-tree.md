@@ -41,7 +41,7 @@
 
 - three 只允许 `src/runtime` / `src/app`；seed 派生与 sourceKey 组装为纯函数落 domain（零 THREE）
 - D13：零外部模型；叶形走 shader 内 SDF 程序化 alpha；参考图纯沟通不进库
-- 派发路由：基建/几何 → threejs-expert；叶/树皮材质与风动 shader → park-shader-agent；主 agent 审查 + 锚点门取证
+- 派发按 AGENTS.md「多 Agent 按 Step 派遣」执行；主 agent 审查 + 锚点门取证
 - **008.3 尾锚点门未过，008.4 / 008.5 不得启动**（唯一人工阻断门）
 - 面数/叶卡数量为初始目标预算非验收门槛（枝干约 1.5–3 万面、叶卡数千级；以锚点观感 + 性能实测共同裁定）
 

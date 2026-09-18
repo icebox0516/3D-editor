@@ -52,7 +52,7 @@ env: HTTP_PORT=<如 9300> BRIDGE_PORT=<如 9299>  threejs-devtools-mcp-http
 
 ## 2. 子代理派发纪律
 
-凡 three.js / WebGL 渲染相关的实现、诊断、优化任务，派发专用子代理执行（环境内置，经工作区技能获取领域知识），按任务核心路由：材质表现/着色器实现/材质资产（真实感材质、GLSL、GPU 程序化纹理）派 `park-shader-agent`（技能 `.zcode/skills/park-shader`）；通用渲染架构、相机、后期、实例化管线等派 `threejs-expert`（技能 `.zcode/skills/threejs-*`）。主代理负责需求收敛、任务简报、代码审查与最终验收，不亲自写渲染层代码。
+凡 three.js / WebGL 渲染相关的实现、诊断、优化任务，按 AGENTS.md「多 Agent 按 Step 派遣」执行（子代理定义于 `.zcode/agents/`，领域知识按各 Agent 内 Skill Routing 从 `.zcode/skills/` 按需加载）：主代理拆分 Step，生产渲染代码按职责派 `threejs-runtime-agent` / `procedural-asset-agent` / `park-shader-agent`，研究、通用实现、独立验证用通用子代理自定。主代理负责拆分、派遣、审查与最终验收，不亲自写渲染层代码。
 
 - 子代理简报必须自包含：症状与根因证据（文件:行）、明确的任务清单、「明确不做」清单、验证标准（三重门槛全绿）。
 - 子代理交付后，主代理必须亲自 diff review + 按上文 MCP/截图规则做视觉验收，再向用户汇报。

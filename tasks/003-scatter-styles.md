@@ -34,7 +34,7 @@
 - three 只允许出现在 `src/runtime` / `src/app`；撒点算法零 THREE 依赖（domain 纯函数）
 - 散布实例不进场景对象表 / 不进撤销栈 / 不进大纲（D5）
 - WebGPU / compute 不涉及（D8）；LOD 分档留给 T006
-- 渲染任务按 AGENTS.md 路由派发子代理（分块实例化管线派 `threejs-expert`；003.5 表面型 shader 程序化纹理派 `park-shader-agent`）；主代理审查 + 截图视觉验收
+- 渲染任务按 AGENTS.md「多 Agent 按 Step 派遣」执行；主代理审查 + 截图视觉验收
 
 ## 子任务（2026-09-16 会话粒度拆分，D16）
 

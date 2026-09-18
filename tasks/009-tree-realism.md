@@ -33,7 +33,7 @@
 - D19 契约第一锁不破：对象 seed 永不直接进 Source Geometry；sourceKey 形态身份语义不变（LOD 走独立 level 维度）
 - 面数/叶卡数为预算非验收门槛（D19.8）；正式 High/Mid/Low 预算由 009.6 实测锁定
 - T003 冻结口径 = 仅 009.5 契约级小触碰，不恢复散布功能开发；散布侧 aSeed 同相位修复留给 T003 解冻后独立任务
-- 派发路由（AGENTS.md）：几何/契约/管线 → threejs-expert；材质/着色器细节 → park-shader-agent；主代理简报 + diff 审查 + 视觉验收
+- 派发按 AGENTS.md「多 Agent 按 Step 派遣」执行；主代理简报 + diff 审查 + 视觉验收
 - 性能验收走产品放置路径（池）而非仅 DEV 舞台
 
 ## 子任务（2026-09-18 立项拆分，D16 会话粒度）

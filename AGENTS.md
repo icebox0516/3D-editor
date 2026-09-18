@@ -21,8 +21,8 @@
 
 ## three.js 任务与调试
 
-- 渲染层任务一律派子代理，按任务核心路由：**材质表现/着色器实现/材质资产**（水面/草地/柏油/玻璃等真实感材质、ShaderMaterial/onBeforeCompile 的 GLSL、GPU 程序化纹理与法线、Shader 资产化、大规模材质性能）派 `park-shader-agent`；其余渲染实现/诊断/优化（架构、相机、后期、实例化管线）仍派 `threejs-expert`；同一任务横跨两者时按子系统拆分各自派发
-- 主代理只做简报、diff 审查、视觉验收
+- **多 Agent 按 Step 派遣**：主代理启动 Task 后先按实际工作拆分为独立 Step，每个独立 Step 默认启动全新的子代理实例，避免跨 Step 上下文污染；生产渲染代码按 Step 实际职责固定路由：Three.js Runtime / Cache / Pool / Renderer / LOD Runtime / Shadow Runtime → `threejs-runtime-agent`；Procedural Geometry / 结构 / Shape / Morph / Asset LOD 内容 → `procedural-asset-agent`；Shader / Material / SDF / Wind / Depth Material → `park-shader-agent`；研究、通用实现、独立验证及不属于上述三类的工作 → 通用子代理自定
+- 渲染实现的实质修改（`src/runtime`、Renderer、InstancedMesh、Source/Cache/Pool、LOD Runtime、Shadow Pipeline、程序化 Geometry、Shader/Material）主代理不得直接编写，必须由具备对应专业能力的子代理交付（上述三个，必要时可新增或临时使用具备相应 Skill 的专业 Agent）；纯机械性修改（格式修正、注释、日志、测试记录、任务文档）不受此限；主代理负责任务拆分、派遣、协调、审查、合并和最终验收
 - 调试取证：先 MCP 结构化数据定位（按需拉起，先过金丝雀——canvas 尺寸 ≈ 主视口才可信，错绑小地图即弃用）→ 收尾浏览器截图验收；结论冲突以像素为准；MCP 拉不起/金丝雀失败直接回退截图。完整细则：`docs/threejs-debugging.md`
 
 ## 二期内容体系（设计共识摘要，全文见 DECISIONS.md）

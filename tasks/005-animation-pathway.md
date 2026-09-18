@@ -28,7 +28,7 @@
 
 - 不做 JS 逐实例每帧回调（D12 明确排除）
 - 渲染循环保持每帧连续渲染（勿改按需渲染）；`Renderer.dispose` 禁 `forceContextLoss`
-- 渲染任务按 AGENTS.md 路由派发子代理：uTime 广播服务/渲染循环集成派 `threejs-expert`，水面流动与植被风摆的 shader 实现派 `park-shader-agent`；动画观感必须浏览器截图验收（像素证据不可替代）
+- 渲染任务按 AGENTS.md「多 Agent 按 Step 派遣」执行；动画观感必须浏览器截图验收（像素证据不可替代）
 
 ## 子任务（2026-09-16 会话粒度拆分，D16）
 
