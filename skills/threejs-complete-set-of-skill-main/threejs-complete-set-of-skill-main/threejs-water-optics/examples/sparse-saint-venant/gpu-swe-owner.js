@@ -1,0 +1,1026 @@
+import { StorageBufferAttribute } from 'three/webgpu';
+import {
+	Fn,
+	If,
+	abs,
+	atomicAdd,
+	atomicLoad,
+	atomicSub,
+	cos,
+	exp,
+	float,
+	globalId,
+	int,
+	max,
+	min,
+	select,
+	sqrt,
+	storage,
+	uniform,
+	uint,
+	vec2,
+	vec3,
+	vec4
+} from 'three/tsl';
+import { deriveSweGpuContract, validateSweGpuContract } from './gpu-swe-contract.js';
+import { applyPointImpulseBatchToSwe } from './interaction-source-core.js';
+import { prepareInundationExchange } from './inundation-exchange-core.js';
+import { assessCharacteristicCompatibility } from './offshore-boundary.js';
+
+const MASS_QUANTA_PER_METER = 100000;
+const DRY_TOLERANCE_METERS = 1e-5;
+const NEGATIVE_DEPTH_GATE_METERS = -1e-6;
+const FINITE_MAGNITUDE_GATE = 1e4;
+const IMPULSE_QUANTA_PER_NEWTON_SECOND = 1000;
+const RECEIVER_QUANTA_PER_KG_M2 = 100000;
+const OBSTACLE_IMPULSE_QUANTA_PER_NEWTON_SECOND = 1000000;
+const OBSTACLE_ENERGY_QUANTA_PER_JOULE = 1000000;
+
+function paddedStateIndexNumber( contract, slot, localX, localZ ) {
+
+	return slot * contract.paddedSize * contract.paddedSize + localZ * contract.paddedSize + localX;
+
+}
+
+function impulseQuanta( value ) {
+
+	const quanta = Math.round( Math.abs( value ) * IMPULSE_QUANTA_PER_NEWTON_SECOND );
+	if ( ! Number.isSafeInteger( quanta ) || quanta > 0xffffffff ) throw new Error( 'GPU SWE interaction impulse exceeds the uint32 diagnostic envelope' );
+	return quanta;
+
+}
+
+export function buildGpuSweInitialData( preparedCommit, contract, initialCondition ) {
+
+	validateSweGpuContract( contract );
+	if ( ! preparedCommit || ! Array.isArray( preparedCommit.descriptors ) ) throw new Error( 'GPU SWE initialization requires a prepared sparse tile commit' );
+	if ( preparedCommit.descriptors.length > contract.tier.capacityTiles ) throw new Error( 'GPU SWE sparse descriptors exceed tier capacity' );
+	if ( typeof initialCondition !== 'function' ) throw new Error( 'GPU SWE initialization requires an explicit initial-condition function' );
+	const descriptorArray = new Int32Array( contract.tier.capacityTiles * 4 );
+	for ( let slot = 0; slot < contract.tier.capacityTiles; slot += 1 ) descriptorArray[ slot * 4 + 3 ] = -1;
+	const lookupArray = new Int32Array( contract.tier.logicalTilesX * contract.tier.logicalTilesZ ).fill( -1 );
+	const stateArray = new Float32Array( contract.stateRecords * 4 );
+	const displayIndexArray = new Uint32Array( contract.tier.capacityTiles * contract.tier.tileSize * contract.tier.tileSize );
+	const displayCells = [];
+	let maximumDepthMeters = 0;
+	let maximumVelocityMps = 0;
+	for ( const descriptor of preparedCommit.descriptors ) {
+
+		const slot = descriptor.atlasSlot;
+		if ( ! Number.isInteger( slot ) || slot < 0 || slot >= contract.tier.capacityTiles ) throw new Error( 'GPU SWE descriptor has an invalid atlas slot' );
+		if ( descriptor.tileX < 0 || descriptor.tileX >= contract.tier.logicalTilesX || descriptor.tileZ < 0 || descriptor.tileZ >= contract.tier.logicalTilesZ ) throw new Error( 'GPU SWE descriptor lies outside the logical lookup domain' );
+		descriptorArray.set( [ descriptor.tileX, descriptor.tileZ, descriptor.role === 'core' ? 1 : 0, 1 ], slot * 4 );
+		lookupArray[ descriptor.tileZ * contract.tier.logicalTilesX + descriptor.tileX ] = slot;
+		for ( let localZ = 1; localZ <= contract.tier.tileSize; localZ += 1 ) for ( let localX = 1; localX <= contract.tier.tileSize; localX += 1 ) {
+
+			const globalCellX = descriptor.tileX * contract.tier.tileSize + localX - 1;
+			const globalCellZ = descriptor.tileZ * contract.tier.tileSize + localZ - 1;
+			const sample = initialCondition( { descriptor, slot, localX, localZ, globalCellX, globalCellZ, contract } );
+			const values = [ sample?.depthMeters, sample?.xDischargeM2ps ?? 0, sample?.zDischargeM2ps ?? 0, sample?.bedElevationMeters ];
+			if ( ! values.every( Number.isFinite ) || values[ 0 ] < 0 ) throw new Error( 'GPU SWE initial condition returned invalid conservative state' );
+			const velocity = values[ 0 ] > DRY_TOLERANCE_METERS ? Math.hypot( values[ 1 ], values[ 2 ] ) / values[ 0 ] : 0;
+			maximumDepthMeters = Math.max( maximumDepthMeters, values[ 0 ] );
+			maximumVelocityMps = Math.max( maximumVelocityMps, velocity );
+			const stateIndex = paddedStateIndexNumber( contract, slot, localX, localZ );
+			stateArray.set( values, stateIndex * 4 );
+			displayIndexArray[ displayCells.length ] = stateIndex;
+			displayCells.push( Object.freeze( { stateIndex, slot, globalCellX, globalCellZ, tileX: descriptor.tileX, tileZ: descriptor.tileZ, role: descriptor.role } ) );
+
+		}
+
+	}
+	if ( maximumDepthMeters > contract.tier.maximumDepthMeters ) throw new Error( `GPU SWE initial depth ${ maximumDepthMeters } m exceeds tier envelope ${ contract.tier.maximumDepthMeters } m` );
+	if ( maximumVelocityMps > contract.tier.maximumVelocityMps ) throw new Error( `GPU SWE initial velocity ${ maximumVelocityMps } m/s exceeds tier envelope ${ contract.tier.maximumVelocityMps } m/s` );
+	return Object.freeze( {
+		descriptorArray,
+		lookupArray,
+		stateArray,
+		displayIndexArray,
+		displayCells: Object.freeze( displayCells ),
+		residentTileCount: preparedCommit.descriptors.length,
+		residentCellCount: displayCells.length,
+		maximumDepthMeters,
+		maximumVelocityMps
+	} );
+
+}
+
+export function buildGpuInteractionSourceData( initial, contract, interactionBatch = null ) {
+
+	const sourceArray = new Float32Array( contract.stateRecords * 2 );
+	if ( interactionBatch === null || interactionBatch === undefined ) return Object.freeze( {
+		sourceArray,
+		sequence: 0,
+		applicationLedgerKeys: Object.freeze( [] ),
+		diagnostics: Object.freeze( { interactionCount: 0, nonzeroScatterWrites: 0, appliedLinearImpulseNs: Object.freeze( [ 0, 0, 0 ] ), appliedAngularImpulseNms: Object.freeze( [ 0, 0, 0 ] ), linearResidualNs: 0, angularResidualNms: 0 } )
+	} );
+	if ( ! Number.isInteger( interactionBatch.sequence ) || interactionBatch.sequence <= 0 ) throw new Error( 'GPU SWE interaction batch sequence must be a positive integer' );
+	const width = contract.tier.logicalTilesX * contract.tier.tileSize;
+	const height = contract.tier.logicalTilesZ * contract.tier.tileSize;
+	const receiverMask = new Uint8Array( width * height );
+	for ( const cell of initial.displayCells ) receiverMask[ cell.globalCellZ * width + cell.globalCellX ] = 1;
+	const applied = applyPointImpulseBatchToSwe( {
+		xDischargeM2ps: new Float64Array( width * height ),
+		zDischargeM2ps: new Float64Array( width * height ),
+		interactions: interactionBatch.interactions,
+		priorApplicationLedgerKeys: interactionBatch.priorApplicationLedgerKeys ?? [],
+		width,
+		height,
+		cellSizeMeters: contract.tier.cellSizeMeters,
+		originXMeters: interactionBatch.originXMeters,
+		originZMeters: interactionBatch.originZMeters,
+		waterDensityKgPerM3: interactionBatch.waterDensityKgPerM3,
+		receiverMask,
+		balanceReferencePointMeters: interactionBatch.balanceReferencePointMeters ?? [ 0, 0, 0 ]
+	} );
+	for ( const cell of initial.displayCells ) {
+
+		const denseIndex = cell.globalCellZ * width + cell.globalCellX;
+		sourceArray[ cell.stateIndex * 2 ] = applied.xDischargeM2ps[ denseIndex ];
+		sourceArray[ cell.stateIndex * 2 + 1 ] = applied.zDischargeM2ps[ denseIndex ];
+
+	}
+	return Object.freeze( {
+		sourceArray,
+		sequence: interactionBatch.sequence,
+		applicationLedgerKeys: applied.applicationLedgerKeys,
+		diagnostics: applied.diagnostics
+	} );
+
+}
+
+export function buildGpuReceiverExchangeData( initial, contract, receiverExchange = null ) {
+
+	const transferArray = new Float32Array( contract.stateRecords );
+	if ( receiverExchange === null || receiverExchange === undefined ) return Object.freeze( {
+		transferArray,
+		sequence: 0,
+		capacityKgPerM2: 1,
+		waterDensityKgPerM3: 1025,
+		lossRatePerSecond: 0,
+		minimumRetainedDepthMeters: 0,
+		diagnostics: Object.freeze( { interactionCount: 0, transferredMassKg: 0, massResidualKg: 0 } ),
+		interactions: Object.freeze( [] )
+	} );
+	if ( ! Number.isInteger( receiverExchange.sequence ) || receiverExchange.sequence <= 0 ) throw new Error( 'GPU receiver exchange sequence must be a positive integer' );
+	const width = contract.tier.logicalTilesX * contract.tier.tileSize;
+	const height = contract.tier.logicalTilesZ * contract.tier.tileSize;
+	const count = width * height;
+	if ( ! ( receiverExchange.receiverMask instanceof Uint8Array ) || receiverExchange.receiverMask.length !== count ) throw new Error( `GPU receiver exchange mask must be a Uint8Array(${ count })` );
+	if ( ! ( receiverExchange.receiverAvailableCapacityKgPerM2 instanceof Float64Array ) || receiverExchange.receiverAvailableCapacityKgPerM2.length !== count ) throw new Error( `GPU receiver available capacity must be a Float64Array(${ count })` );
+	const waterDepthMeters = new Float64Array( count );
+	const xDischargeM2ps = new Float64Array( count );
+	const zDischargeM2ps = new Float64Array( count );
+	for ( const cell of initial.displayCells ) {
+
+		const denseIndex = cell.globalCellZ * width + cell.globalCellX;
+		waterDepthMeters[ denseIndex ] = initial.stateArray[ cell.stateIndex * 4 ];
+		xDischargeM2ps[ denseIndex ] = initial.stateArray[ cell.stateIndex * 4 + 1 ];
+		zDischargeM2ps[ denseIndex ] = initial.stateArray[ cell.stateIndex * 4 + 2 ];
+
+	}
+	const prepared = prepareInundationExchange( {
+		waterDepthMeters,
+		xDischargeM2ps,
+		zDischargeM2ps,
+		receiverAvailableCapacityKgPerM2: receiverExchange.receiverAvailableCapacityKgPerM2,
+		receiverMask: receiverExchange.receiverMask,
+		width,
+		height,
+		cellAreaM2: contract.tier.cellSizeMeters ** 2,
+		waterDensityKgPerM3: receiverExchange.waterDensityKgPerM3,
+		uptakeRateKgPerM2S: receiverExchange.uptakeRateKgPerM2S,
+		dtSeconds: contract.tier.fixedTimeStepSeconds,
+		wetDepthThresholdMeters: receiverExchange.wetDepthThresholdMeters,
+		minimumRetainedDepthMeters: receiverExchange.minimumRetainedDepthMeters,
+		waterOwnerId: receiverExchange.waterOwnerId,
+		waterStateVersion: receiverExchange.waterStateVersion,
+		receiverOwnerId: receiverExchange.receiverOwnerId,
+		receiverMomentumOwnerId: receiverExchange.receiverMomentumOwnerId,
+		receiverStateVersion: receiverExchange.receiverStateVersion,
+		applicationIntervalKey: receiverExchange.applicationIntervalKey,
+		interactionSequenceStart: receiverExchange.interactionSequenceStart ?? 0,
+		commitGroupId: receiverExchange.commitGroupId
+	} );
+	for ( const cell of initial.displayCells ) transferArray[ cell.stateIndex ] = prepared.transferredKgPerM2[ cell.globalCellZ * width + cell.globalCellX ];
+	const capacityKgPerM2 = receiverExchange.capacityKgPerM2;
+	const lossRatePerSecond = receiverExchange.lossRatePerSecond;
+	const minimumRetainedDepthMeters = receiverExchange.minimumRetainedDepthMeters;
+	for ( const [ label, value ] of Object.entries( { capacityKgPerM2, lossRatePerSecond, minimumRetainedDepthMeters } ) ) if ( ! Number.isFinite( value ) || value < 0 ) throw new Error( `GPU receiver ${ label } must be finite and nonnegative` );
+	if ( capacityKgPerM2 <= 0 ) throw new Error( 'GPU receiver capacity must be positive' );
+	return Object.freeze( {
+		transferArray,
+		sequence: receiverExchange.sequence,
+		capacityKgPerM2,
+		waterDensityKgPerM3: receiverExchange.waterDensityKgPerM3,
+		lossRatePerSecond,
+		minimumRetainedDepthMeters,
+		diagnostics: prepared.diagnostics,
+		interactions: prepared.surfaceExchange.interactions
+	} );
+
+}
+
+export function buildGpuObstacleData( initial, contract, obstacleField = null ) {
+
+	const obstacleArray = new Float32Array( contract.stateRecords * 4 );
+	if ( obstacleField === null || obstacleField === undefined ) return Object.freeze( {
+		obstacleArray, activeObstacleCells: 0, normalDragRatePerSecond: 0, tangentDragRatePerSecond: 0, waterDensityKgPerM3: 1025
+	} );
+	if ( typeof obstacleField.sample !== 'function' ) throw new Error( 'GPU obstacle field requires a sample function' );
+	const normalDragRatePerSecond = obstacleField.normalDragRatePerSecond;
+	const tangentDragRatePerSecond = obstacleField.tangentDragRatePerSecond;
+	const waterDensityKgPerM3 = obstacleField.waterDensityKgPerM3;
+	for ( const [ label, value ] of Object.entries( { normalDragRatePerSecond, tangentDragRatePerSecond, waterDensityKgPerM3 } ) ) if ( ! Number.isFinite( value ) || value < 0 ) throw new Error( `GPU obstacle ${ label } must be finite and nonnegative` );
+	if ( waterDensityKgPerM3 <= 0 ) throw new Error( 'GPU obstacle water density must be positive' );
+	let activeObstacleCells = 0;
+	for ( const cell of initial.displayCells ) {
+
+		const sample = obstacleField.sample( cell ) ?? {};
+		const fraction = sample.fraction ?? 0;
+		const normalX = sample.normalX ?? 0;
+		const normalZ = sample.normalZ ?? 0;
+		if ( ! Number.isFinite( fraction ) || fraction < 0 || fraction >= 1 ) throw new Error( 'GPU obstacle fraction must lie in [0, 1); fully solid cells use the wall-flux route' );
+		if ( ! Number.isFinite( normalX ) || ! Number.isFinite( normalZ ) ) throw new Error( 'GPU obstacle normal must be finite' );
+		if ( fraction > 0 && Math.abs( Math.hypot( normalX, normalZ ) - 1 ) > 1e-6 ) throw new Error( 'GPU active obstacle normal must be unit length in the physics XZ frame' );
+		const offset = cell.stateIndex * 4;
+		obstacleArray[ offset ] = fraction;
+		obstacleArray[ offset + 1 ] = normalX;
+		obstacleArray[ offset + 2 ] = normalZ;
+		if ( fraction > 0 ) activeObstacleCells += 1;
+
+	}
+	return Object.freeze( { obstacleArray, activeObstacleCells, normalDragRatePerSecond, tangentDragRatePerSecond, waterDensityKgPerM3 } );
+
+}
+
+function createStorageBuffer( array, itemSize, name ) {
+
+	const buffer = new StorageBufferAttribute( array, itemSize );
+	buffer.name = name;
+	return buffer;
+
+}
+
+function validateOpenBoundary( openBoundary, contract, gravityMps2 ) {
+
+	if ( openBoundary === null || openBoundary === undefined ) return null;
+	if ( openBoundary.side !== 'west' ) throw new Error( 'GPU SWE currently supports only a west open boundary' );
+	const mode = openBoundary.mode;
+	const values = [
+		mode?.waveVectorRadPerMeter?.[ 0 ], mode?.waveVectorRadPerMeter?.[ 1 ], mode?.wavenumberRadPerMeter,
+		mode?.amplitudeMeters, mode?.phaseAtReferenceRadians, mode?.intrinsicAngularFrequencyRadPerSecond,
+		openBoundary.meanCurrentMps?.[ 0 ], openBoundary.meanCurrentMps?.[ 1 ], openBoundary.characteristicDepthMeters,
+		openBoundary.surfaceDatumMeters, openBoundary.phaseReferenceSeconds,
+		openBoundary.gridOriginMeters?.[ 0 ], openBoundary.gridOriginMeters?.[ 1 ], openBoundary.reflectionAmplitudeGate
+	];
+	if ( values.some( ( value ) => ! Number.isFinite( value ) ) ) throw new Error( 'GPU SWE open-boundary configuration must contain finite dimensioned values' );
+	if ( mode.wavenumberRadPerMeter <= 0 || mode.amplitudeMeters < 0 || mode.intrinsicAngularFrequencyRadPerSecond <= 0 || openBoundary.characteristicDepthMeters <= 0 ) throw new Error( 'GPU SWE open-boundary configuration lies outside its physical domain' );
+	if ( Math.abs( Math.hypot( ...mode.waveVectorRadPerMeter ) - mode.wavenumberRadPerMeter ) > 1e-9 ) throw new Error( 'GPU SWE open-boundary mode wavenumber does not match its vector' );
+	const compatibility = assessCharacteristicCompatibility( mode, [ -1, 0 ], openBoundary.characteristicDepthMeters, gravityMps2 );
+	if ( compatibility.reflectionAmplitudeEstimate > openBoundary.reflectionAmplitudeGate ) throw new Error( `GPU SWE open-boundary reflection estimate ${ compatibility.reflectionAmplitudeEstimate } exceeds gate ${ openBoundary.reflectionAmplitudeGate }` );
+	if ( compatibility.outwardDirectionCosine >= 0 ) throw new Error( 'GPU SWE west-boundary mode is not incoming' );
+	return Object.freeze( {
+		...openBoundary,
+		mode: Object.freeze( { ...mode, waveVectorRadPerMeter: Object.freeze( [ ...mode.waveVectorRadPerMeter ] ) } ),
+		meanCurrentMps: Object.freeze( [ ...openBoundary.meanCurrentMps ] ),
+		gridOriginMeters: Object.freeze( [ ...openBoundary.gridOriginMeters ] ),
+		compatibility
+	} );
+
+}
+
+export function createGpuSparseSweOwner( renderer, {
+	tierId = 'budgeted',
+	preparedCommit,
+	initialCondition,
+	gravityMps2 = 9.80665,
+	openBoundary = null,
+	interactionBatch = null,
+	receiverExchange = null,
+	obstacleField = null
+} ) {
+
+	if ( renderer?.backend?.isWebGPUBackend !== true ) throw new Error( 'GPU sparse SWE requires an initialized native WebGPU renderer' );
+	const contract = deriveSweGpuContract( tierId, gravityMps2 );
+	validateSweGpuContract( contract );
+	const boundary = validateOpenBoundary( openBoundary, contract, gravityMps2 );
+	const initial = buildGpuSweInitialData( preparedCommit, contract, initialCondition );
+	const initialInteractionSource = buildGpuInteractionSourceData( initial, contract, interactionBatch );
+	const initialReceiverExchange = buildGpuReceiverExchangeData( initial, contract, receiverExchange );
+	const initialObstacle = buildGpuObstacleData( initial, contract, obstacleField );
+	const stateCommittedBuffer = createStorageBuffer( initial.stateArray.slice(), 4, 'sparse-swe:committed-state' );
+	const stateCandidateBuffer = createStorageBuffer( initial.stateArray.slice(), 4, 'sparse-swe:candidate-state' );
+	const foamCommittedBuffer = createStorageBuffer( new Float32Array( contract.stateRecords ), 1, 'sparse-swe:committed-foam-coverage' );
+	const foamCandidateBuffer = createStorageBuffer( new Float32Array( contract.stateRecords ), 1, 'sparse-swe:candidate-foam-coverage' );
+	const interactionSourceBuffer = createStorageBuffer( initialInteractionSource.sourceArray, 2, 'sparse-swe:prepared-interaction-source' );
+	const receiverCommittedBuffer = createStorageBuffer( new Float32Array( contract.stateRecords ), 1, 'coastal-receiver:committed-liquid-kg-per-m2' );
+	const receiverCandidateBuffer = createStorageBuffer( new Float32Array( contract.stateRecords ), 1, 'coastal-receiver:candidate-liquid-kg-per-m2' );
+	const inundationTransferBuffer = createStorageBuffer( initialReceiverExchange.transferArray, 1, 'coastal-receiver:prepared-inundation-transfer-kg-per-m2' );
+	const obstacleBuffer = createStorageBuffer( initialObstacle.obstacleArray, 4, 'sparse-swe:subcell-obstacle-fraction-normal' );
+	const descriptorBuffer = createStorageBuffer( initial.descriptorArray, 4, 'sparse-swe:tile-descriptors' );
+	const lookupBuffer = createStorageBuffer( initial.lookupArray, 1, 'sparse-swe:logical-tile-lookup' );
+	const displayIndexBuffer = createStorageBuffer( initial.displayIndexArray, 1, 'sparse-swe:display-state-indices' );
+	const xFluxBuffer = createStorageBuffer( new Float32Array( contract.xFaceRecords * 4 ), 4, 'sparse-swe:x-face-flux' );
+	const zFluxBuffer = createStorageBuffer( new Float32Array( contract.zFaceRecords * 4 ), 4, 'sparse-swe:z-face-flux' );
+	const xCorrectionBuffer = createStorageBuffer( new Float32Array( contract.xFaceRecords * 2 ), 2, 'sparse-swe:x-hydrostatic-correction' );
+	const zCorrectionBuffer = createStorageBuffer( new Float32Array( contract.zFaceRecords * 2 ), 2, 'sparse-swe:z-hydrostatic-correction' );
+	const diagnosticBuffer = new StorageBufferAttribute( 42, 1, Uint32Array );
+	diagnosticBuffer.name = 'sparse-swe:transaction-diagnostics';
+	const resourceInventory = Object.freeze( {
+		statePingPong: stateCommittedBuffer.array.byteLength + stateCandidateBuffer.array.byteLength,
+		foamPingPong: foamCommittedBuffer.array.byteLength + foamCandidateBuffer.array.byteLength,
+		interactionSource: interactionSourceBuffer.array.byteLength,
+		receiverLiquidPingPong: receiverCommittedBuffer.array.byteLength + receiverCandidateBuffer.array.byteLength,
+		inundationTransfer: inundationTransferBuffer.array.byteLength,
+		obstacle: obstacleBuffer.array.byteLength,
+		xFaceFlux: xFluxBuffer.array.byteLength,
+		zFaceFlux: zFluxBuffer.array.byteLength,
+		xHydrostaticCorrection: xCorrectionBuffer.array.byteLength,
+		zHydrostaticCorrection: zCorrectionBuffer.array.byteLength,
+		descriptors: descriptorBuffer.array.byteLength,
+		logicalLookup: lookupBuffer.array.byteLength,
+		displayIndices: displayIndexBuffer.array.byteLength,
+		diagnostics: diagnosticBuffer.array.byteLength
+	} );
+	for ( const [ resourceId, logicalBytes ] of Object.entries( contract.resourceBytes ) ) {
+
+		if ( resourceInventory[ resourceId ] !== logicalBytes ) throw new Error( `GPU SWE resource '${ resourceId }' allocated ${ resourceInventory[ resourceId ] } logical bytes; contract requires ${ logicalBytes }` );
+
+	}
+	const inventoriedLogicalBytes = Object.values( resourceInventory ).reduce( ( total, bytes ) => total + bytes, 0 );
+	if ( inventoriedLogicalBytes !== contract.totalLogicalBytes ) throw new Error( 'GPU SWE runtime resource inventory does not match contract total' );
+
+	const committed = storage( stateCommittedBuffer, 'vec4', contract.stateRecords );
+	const candidate = storage( stateCandidateBuffer, 'vec4', contract.stateRecords );
+	const foamCommitted = storage( foamCommittedBuffer, 'float', contract.stateRecords );
+	const foamCandidate = storage( foamCandidateBuffer, 'float', contract.stateRecords );
+	const interactionSource = storage( interactionSourceBuffer, 'vec2', contract.stateRecords ).toReadOnly();
+	const receiverCommitted = storage( receiverCommittedBuffer, 'float', contract.stateRecords );
+	const receiverCandidate = storage( receiverCandidateBuffer, 'float', contract.stateRecords );
+	const inundationTransfer = storage( inundationTransferBuffer, 'float', contract.stateRecords ).toReadOnly();
+	const obstacles = storage( obstacleBuffer, 'vec4', contract.stateRecords ).toReadOnly();
+	const descriptors = storage( descriptorBuffer, 'ivec4', contract.tier.capacityTiles ).toReadOnly();
+	const lookup = storage( lookupBuffer, 'int', contract.tier.logicalTilesX * contract.tier.logicalTilesZ ).toReadOnly();
+	const displayIndices = storage( displayIndexBuffer, 'uint', initial.displayIndexArray.length ).toReadOnly();
+	const xFlux = storage( xFluxBuffer, 'vec4', contract.xFaceRecords );
+	const zFlux = storage( zFluxBuffer, 'vec4', contract.zFaceRecords );
+	const xCorrection = storage( xCorrectionBuffer, 'vec2', contract.xFaceRecords );
+	const zCorrection = storage( zCorrectionBuffer, 'vec2', contract.zFaceRecords );
+	const diagnostics = storage( diagnosticBuffer, 'uint', 42 ).toAtomic();
+
+	const tileSize = contract.tier.tileSize;
+	const paddedSize = contract.paddedSize;
+	const paddedCells = paddedSize * paddedSize;
+	const interiorCells = tileSize * tileSize;
+	const xFacesPerTile = ( tileSize + 1 ) * tileSize;
+	const zFacesPerTile = tileSize * ( tileSize + 1 );
+	const dt = float( contract.tier.fixedTimeStepSeconds );
+	const inverseDx = float( 1 / contract.tier.cellSizeMeters );
+	const gravity = float( gravityMps2 );
+	const dryTolerance = float( DRY_TOLERANCE_METERS );
+	const boundaryTimeSeconds = uniform( boundary?.phaseReferenceSeconds ?? 0 );
+	const interactionSequence = uint( initialInteractionSource.sequence );
+	const receiverExchangeSequence = uint( initialReceiverExchange.sequence );
+	const receiverCapacity = float( initialReceiverExchange.capacityKgPerM2 );
+	const receiverDensity = float( initialReceiverExchange.waterDensityKgPerM3 );
+	const receiverDecay = float( Math.exp( -initialReceiverExchange.lossRatePerSecond * contract.tier.fixedTimeStepSeconds ) );
+	const receiverRetainedDepth = float( initialReceiverExchange.minimumRetainedDepthMeters );
+	const obstacleNormalRateDt = float( initialObstacle.normalDragRatePerSecond * contract.tier.fixedTimeStepSeconds );
+	const obstacleTangentRateDt = float( initialObstacle.tangentDragRatePerSecond * contract.tier.fixedTimeStepSeconds );
+	const obstacleImpulseScale = float( initialObstacle.waterDensityKgPerM3 * contract.tier.cellSizeMeters ** 2 );
+	const preparedImpulse = initialInteractionSource.diagnostics.appliedLinearImpulseNs;
+	const preparedImpulseQuanta = Object.freeze( {
+		xPositive: preparedImpulse[ 0 ] >= 0 ? impulseQuanta( preparedImpulse[ 0 ] ) : 0,
+		xNegative: preparedImpulse[ 0 ] < 0 ? impulseQuanta( preparedImpulse[ 0 ] ) : 0,
+		zPositive: preparedImpulse[ 2 ] >= 0 ? impulseQuanta( preparedImpulse[ 2 ] ) : 0,
+		zNegative: preparedImpulse[ 2 ] < 0 ? impulseQuanta( preparedImpulse[ 2 ] ) : 0
+	} );
+
+	const paddedIndex = ( slot, localX, localZ ) => slot.mul( uint( paddedCells ) ).add( localZ.mul( uint( paddedSize ) ) ).add( localX );
+	const localCoordinates = ( linear, width ) => {
+
+		const row = linear.div( uint( width ) );
+		return { x: linear.sub( row.mul( uint( width ) ) ), z: row };
+
+	};
+
+	const resetValidation = Fn( () => {
+
+		// Three r185 types atomicStore as uint although WGSL defines it as void.
+		// One deterministic invocation clears each transient word explicitly;
+		// cumulative generation/accept/reject words 5..7 remain untouched.
+		for ( const index of [ 0, 1, 2, 3, 4, 8, 9, 10, 11, 12, 13, 14, 15, 22, 23, 24, 27, 28, 30, 31, 32, 33, 34, 35 ] ) {
+
+			const receipt = uint( 0 ).toVar();
+			receipt.assign( atomicSub( diagnostics.element( uint( index ) ), atomicLoad( diagnostics.element( uint( index ) ) ) ) );
+
+		}
+
+	} )().compute( 1, [ 1 ] ).setName( 'sparse-swe:reset-validation' );
+
+	const haloAndBoundary = Fn( () => {
+
+		const linear = globalId.x;
+		const slot = linear.div( uint( paddedCells ) );
+		const local = linear.sub( slot.mul( uint( paddedCells ) ) );
+		const coordinate = localCoordinates( local, paddedSize );
+		const descriptor = descriptors.element( slot );
+		const resident = descriptor.w.greaterThan( int( 0 ) );
+		const xBoundary = coordinate.x.equal( uint( 0 ) ).or( coordinate.x.equal( uint( paddedSize - 1 ) ) );
+		const zBoundary = coordinate.z.equal( uint( 0 ) ).or( coordinate.z.equal( uint( paddedSize - 1 ) ) );
+		const corner = xBoundary.and( zBoundary );
+		If( resident.and( xBoundary.or( zBoundary ) ).and( corner.not() ), () => {
+
+			const applyNeighborOrWall = () => {
+
+				const sourceSlot = slot.toVar();
+				const sourceX = coordinate.x.toVar();
+				const sourceZ = coordinate.z.toVar();
+				const reflectX = float( 1 ).toVar();
+				const reflectZ = float( 1 ).toVar();
+				const neighborTileX = descriptor.x.toVar();
+				const neighborTileZ = descriptor.y.toVar();
+				If( coordinate.x.equal( uint( 0 ) ), () => { sourceX.assign( uint( tileSize ) ); neighborTileX.subAssign( int( 1 ) ); reflectX.assign( -1 ); } );
+				If( coordinate.x.equal( uint( paddedSize - 1 ) ), () => { sourceX.assign( uint( 1 ) ); neighborTileX.addAssign( int( 1 ) ); reflectX.assign( -1 ); } );
+				If( coordinate.z.equal( uint( 0 ) ), () => { sourceZ.assign( uint( tileSize ) ); neighborTileZ.subAssign( int( 1 ) ); reflectZ.assign( -1 ); } );
+				If( coordinate.z.equal( uint( paddedSize - 1 ) ), () => { sourceZ.assign( uint( 1 ) ); neighborTileZ.addAssign( int( 1 ) ); reflectZ.assign( -1 ); } );
+				const neighborInDomain = neighborTileX.greaterThanEqual( int( 0 ) ).and( neighborTileX.lessThan( int( contract.tier.logicalTilesX ) ) )
+					.and( neighborTileZ.greaterThanEqual( int( 0 ) ) ).and( neighborTileZ.lessThan( int( contract.tier.logicalTilesZ ) ) );
+				If( neighborInDomain, () => {
+
+					const lookupIndex = neighborTileZ.mul( int( contract.tier.logicalTilesX ) ).add( neighborTileX ).toUint();
+					const neighborSlot = lookup.element( lookupIndex );
+					If( neighborSlot.greaterThanEqual( int( 0 ) ), () => { sourceSlot.assign( neighborSlot.toUint() ); reflectX.assign( 1 ); reflectZ.assign( 1 ); } );
+
+				} );
+				const source = committed.element( paddedIndex( sourceSlot, sourceX, sourceZ ) );
+				committed.element( linear ).assign( vec4( source.x, source.y.mul( reflectX ), source.z.mul( reflectZ ), source.w ) );
+				foamCommitted.element( linear ).assign( foamCommitted.element( paddedIndex( sourceSlot, sourceX, sourceZ ) ) );
+
+			};
+			if ( boundary !== null ) {
+
+				const openWest = coordinate.x.equal( uint( 0 ) ).and( descriptor.x.equal( int( 0 ) ) );
+				If( openWest, () => {
+
+					const interior = committed.element( paddedIndex( slot, uint( 1 ), coordinate.z ) );
+					const globalZ = descriptor.y.toFloat().mul( tileSize ).add( coordinate.z.toFloat().sub( 0.5 ) );
+					const worldZ = float( boundary.gridOriginMeters[ 1 ] ).add( globalZ.mul( contract.tier.cellSizeMeters ) );
+					const [ kx, kz ] = boundary.mode.waveVectorRadPerMeter;
+					const absoluteOmega = boundary.mode.intrinsicAngularFrequencyRadPerSecond + kx * boundary.meanCurrentMps[ 0 ] + kz * boundary.meanCurrentMps[ 1 ];
+					const phase = float( kx * boundary.gridOriginMeters[ 0 ] ).add( worldZ.mul( kz ) ).add( boundary.mode.phaseAtReferenceRadians )
+						.sub( boundaryTimeSeconds.sub( boundary.phaseReferenceSeconds ).mul( absoluteOmega ) );
+					const elevation = cos( phase ).mul( boundary.mode.amplitudeMeters );
+					const donorQx = elevation.mul( boundary.mode.intrinsicAngularFrequencyRadPerSecond / boundary.mode.wavenumberRadPerMeter ** 2 * kx );
+					const donorNormalDischarge = donorQx.negate();
+					const waveSpeed = float( Math.sqrt( gravityMps2 * boundary.characteristicDepthMeters ) );
+					const interiorElevation = interior.x.add( interior.w ).sub( boundary.surfaceDatumMeters );
+					const interiorNormalDischarge = interior.y.negate();
+					const incoming = donorNormalDischarge.sub( waveSpeed.mul( elevation ) );
+					const outgoing = interiorNormalDischarge.add( waveSpeed.mul( interiorElevation ) );
+					const boundaryElevation = outgoing.sub( incoming ).div( waveSpeed.mul( 2 ) );
+					const boundaryNormalDischarge = outgoing.add( incoming ).mul( 0.5 );
+					const boundaryDepth = max( float( 0 ), float( boundary.surfaceDatumMeters ).add( boundaryElevation ).sub( interior.w ) );
+					const boundaryWet = boundaryDepth.greaterThan( dryTolerance );
+					committed.element( linear ).assign( vec4( boundaryDepth, select( boundaryWet, boundaryNormalDischarge.negate(), float( 0 ) ), select( boundaryWet, interior.z, float( 0 ) ), interior.w ) );
+					foamCommitted.element( linear ).assign( float( 0 ) );
+
+				} ).Else( applyNeighborOrWall );
+
+			} else applyNeighborOrWall();
+
+		} );
+
+	} )().compute( contract.stateRecords, [ 64 ] ).setName( 'sparse-swe:halo-and-boundary' );
+
+	function hydrostaticFace( left, right, axis ) {
+
+		const hL = left.x;
+		const hR = right.x;
+		const bedFace = max( left.w, right.w );
+		const reconstructedHL = max( float( 0 ), hL.add( left.w ).sub( bedFace ) );
+		const reconstructedHR = max( float( 0 ), hR.add( right.w ).sub( bedFace ) );
+		const scaleL = select( hL.greaterThan( dryTolerance ), reconstructedHL.div( max( hL, dryTolerance ) ), float( 0 ) );
+		const scaleR = select( hR.greaterThan( dryTolerance ), reconstructedHR.div( max( hR, dryTolerance ) ), float( 0 ) );
+		const normalL = ( axis === 'x' ? left.y : left.z ).mul( scaleL );
+		const normalR = ( axis === 'x' ? right.y : right.z ).mul( scaleR );
+		const tangentL = ( axis === 'x' ? left.z : left.y ).mul( scaleL );
+		const tangentR = ( axis === 'x' ? right.z : right.y ).mul( scaleR );
+		const velocityL = select( reconstructedHL.greaterThan( dryTolerance ), normalL.div( max( reconstructedHL, dryTolerance ) ), float( 0 ) );
+		const velocityR = select( reconstructedHR.greaterThan( dryTolerance ), normalR.div( max( reconstructedHR, dryTolerance ) ), float( 0 ) );
+		const waveL = sqrt( gravity.mul( reconstructedHL ) );
+		const waveR = sqrt( gravity.mul( reconstructedHR ) );
+		const sL = min( velocityL.sub( waveL ), velocityR.sub( waveR ) );
+		const sR = max( velocityL.add( waveL ), velocityR.add( waveR ) );
+		const fluxL = vec3( normalL, normalL.mul( velocityL ).add( gravity.mul( reconstructedHL.mul( reconstructedHL ) ).mul( 0.5 ) ), tangentL.mul( velocityL ) );
+		const fluxR = vec3( normalR, normalR.mul( velocityR ).add( gravity.mul( reconstructedHR.mul( reconstructedHR ) ).mul( 0.5 ) ), tangentR.mul( velocityR ) );
+		const stateL = vec3( reconstructedHL, normalL, tangentL );
+		const stateR = vec3( reconstructedHR, normalR, tangentR );
+		const hll = fluxL.mul( sR ).sub( fluxR.mul( sL ) ).add( stateR.sub( stateL ).mul( sL.mul( sR ) ) ).div( max( sR.sub( sL ), float( 1e-6 ) ) );
+		const bothDry = reconstructedHL.lessThanEqual( dryTolerance ).and( reconstructedHR.lessThanEqual( dryTolerance ) );
+		const selectedFlux = select( bothDry, vec3( 0 ), select( sL.greaterThanEqual( float( 0 ) ), fluxL, select( sR.lessThanEqual( float( 0 ) ), fluxR, hll ) ) );
+		const correctionL = gravity.mul( hL.mul( hL ).sub( reconstructedHL.mul( reconstructedHL ) ) ).mul( 0.5 );
+		const correctionR = gravity.mul( hR.mul( hR ).sub( reconstructedHR.mul( reconstructedHR ) ) ).mul( 0.5 );
+		return { flux: selectedFlux, correction: vec2( correctionL, correctionR ) };
+
+	}
+
+	const xFaceFlux = Fn( () => {
+
+		const linear = globalId.x;
+		const slot = linear.div( uint( xFacesPerTile ) );
+		const local = linear.sub( slot.mul( uint( xFacesPerTile ) ) );
+		const coordinate = localCoordinates( local, tileSize + 1 );
+		const resident = descriptors.element( slot ).w.greaterThan( int( 0 ) );
+		If( resident, () => {
+
+			const localZ = coordinate.z.add( uint( 1 ) );
+			const face = hydrostaticFace( committed.element( paddedIndex( slot, coordinate.x, localZ ) ), committed.element( paddedIndex( slot, coordinate.x.add( uint( 1 ) ), localZ ) ), 'x' );
+			const sourceIndex = paddedIndex( slot, min( coordinate.x.add( uint( 1 ) ), uint( tileSize ) ), localZ );
+			const sourceX = select( coordinate.x.lessThan( uint( tileSize ) ), interactionSource.element( sourceIndex ).x, float( 0 ) );
+			xFlux.element( linear ).assign( vec4( face.flux, sourceX ) );
+			xCorrection.element( linear ).assign( face.correction );
+
+		} ).Else( () => { xFlux.element( linear ).assign( vec4( 0 ) ); xCorrection.element( linear ).assign( vec2( 0 ) ); } );
+
+	} )().compute( contract.xFaceRecords, [ 64 ] ).setName( 'sparse-swe:x-face-flux' );
+
+	const zFaceFlux = Fn( () => {
+
+		const linear = globalId.x;
+		const slot = linear.div( uint( zFacesPerTile ) );
+		const local = linear.sub( slot.mul( uint( zFacesPerTile ) ) );
+		const coordinate = localCoordinates( local, tileSize );
+		const resident = descriptors.element( slot ).w.greaterThan( int( 0 ) );
+		If( resident, () => {
+
+			const localX = coordinate.x.add( uint( 1 ) );
+			const face = hydrostaticFace( committed.element( paddedIndex( slot, localX, coordinate.z ) ), committed.element( paddedIndex( slot, localX, coordinate.z.add( uint( 1 ) ) ) ), 'z' );
+			const sourceIndex = paddedIndex( slot, localX, min( coordinate.z.add( uint( 1 ) ), uint( tileSize ) ) );
+			const sourceZ = select( coordinate.z.lessThan( uint( tileSize ) ), interactionSource.element( sourceIndex ).y, float( 0 ) );
+			zFlux.element( linear ).assign( vec4( face.flux, sourceZ ) );
+			zCorrection.element( linear ).assign( face.correction );
+
+		} ).Else( () => { zFlux.element( linear ).assign( vec4( 0 ) ); zCorrection.element( linear ).assign( vec2( 0 ) ); } );
+
+	} )().compute( contract.zFaceRecords, [ 64 ] ).setName( 'sparse-swe:z-face-flux' );
+
+	const cellUpdate = Fn( () => {
+
+		const linear = globalId.x;
+		const slot = linear.div( uint( interiorCells ) );
+		const local = linear.sub( slot.mul( uint( interiorCells ) ) );
+		const coordinate = localCoordinates( local, tileSize );
+		const resident = descriptors.element( slot ).w.greaterThan( int( 0 ) );
+		If( resident, () => {
+
+			const stateIndex = paddedIndex( slot, coordinate.x.add( uint( 1 ) ), coordinate.z.add( uint( 1 ) ) );
+			const prior = committed.element( stateIndex );
+			const westIndex = slot.mul( uint( xFacesPerTile ) ).add( coordinate.z.mul( uint( tileSize + 1 ) ) ).add( coordinate.x );
+			const eastIndex = westIndex.add( uint( 1 ) );
+			const southIndex = slot.mul( uint( zFacesPerTile ) ).add( coordinate.z.mul( uint( tileSize ) ) ).add( coordinate.x );
+			const northIndex = southIndex.add( uint( tileSize ) );
+			const west = xFlux.element( westIndex );
+			const east = xFlux.element( eastIndex );
+			const south = zFlux.element( southIndex );
+			const north = zFlux.element( northIndex );
+			const westCorrection = xCorrection.element( westIndex );
+			const eastCorrection = xCorrection.element( eastIndex );
+			const southCorrection = zCorrection.element( southIndex );
+			const northCorrection = zCorrection.element( northIndex );
+			const nextDepth = prior.x.sub( east.x.sub( west.x ).mul( dt.mul( inverseDx ) ) ).sub( north.x.sub( south.x ).mul( dt.mul( inverseDx ) ) );
+			const applyPreparedSource = interactionSequence.greaterThan( atomicLoad( diagnostics.element( uint( 21 ) ) ) );
+			const nextMx = prior.y.sub( east.y.add( eastCorrection.x ).sub( west.y.add( westCorrection.y ) ).mul( dt.mul( inverseDx ) ) ).sub( north.z.sub( south.z ).mul( dt.mul( inverseDx ) ) )
+				.add( select( applyPreparedSource, west.w, float( 0 ) ) );
+			const nextMz = prior.z.sub( east.z.sub( west.z ).mul( dt.mul( inverseDx ) ) ).sub( north.y.add( northCorrection.x ).sub( south.y.add( southCorrection.y ) ).mul( dt.mul( inverseDx ) ) )
+				.add( select( applyPreparedSource, south.w, float( 0 ) ) );
+			const newlyDry = nextDepth.greaterThanEqual( float( 0 ) ).and( nextDepth.lessThanEqual( dryTolerance ) );
+			candidate.element( stateIndex ).assign( vec4( select( newlyDry, max( nextDepth, float( 0 ) ), nextDepth ), select( newlyDry, float( 0 ), nextMx ), select( newlyDry, float( 0 ), nextMz ), prior.w ) );
+
+		} );
+
+	} )().compute( contract.tier.capacityTiles * interiorCells, [ 64 ] ).setName( 'sparse-swe:cell-update' );
+
+	const receiverAndObstacleExchange = Fn( () => {
+
+		const linear = globalId.x;
+		const slot = linear.div( uint( interiorCells ) );
+		const local = linear.sub( slot.mul( uint( interiorCells ) ) );
+		const coordinate = localCoordinates( local, tileSize );
+		If( descriptors.element( slot ).w.greaterThan( int( 0 ) ), () => {
+
+			const stateIndex = paddedIndex( slot, coordinate.x.add( uint( 1 ) ), coordinate.z.add( uint( 1 ) ) );
+			const water = candidate.element( stateIndex );
+			const priorReceiver = receiverCommitted.element( stateIndex );
+			const decayedReceiver = priorReceiver.mul( receiverDecay );
+			const applyPreparedTransfer = receiverExchangeSequence.greaterThan( atomicLoad( diagnostics.element( uint( 26 ) ) ) );
+			const requestedTransfer = select( applyPreparedTransfer, inundationTransfer.element( stateIndex ), float( 0 ) );
+			const availableCapacity = max( float( 0 ), receiverCapacity.sub( decayedReceiver ) );
+			const availableWater = max( float( 0 ), water.x.sub( receiverRetainedDepth ) ).mul( receiverDensity );
+			const acceptedTransfer = min( max( requestedTransfer, float( 0 ) ), min( availableCapacity, availableWater ) );
+			const removedDepth = acceptedTransfer.div( receiverDensity );
+			// Capture the pre-write exchange state as function-local variables. These
+			// values must not remain lazy expressions over `candidate`: the obstacle
+			// write below mutates that storage record, and a later diagnostic read of
+			// the same expression would otherwise observe the post-drag momentum and
+			// falsely report zero reaction and zero dissipated energy.
+			const nextDepth = max( float( 0 ), water.x.sub( removedDepth ) ).toVar();
+			const retainedFraction = select( water.x.greaterThan( dryTolerance ), nextDepth.div( max( water.x, dryTolerance ) ), float( 0 ) );
+			const nextReceiver = decayedReceiver.add( acceptedTransfer );
+			const receiverMx = water.y.mul( retainedFraction ).toVar();
+			const receiverMz = water.z.mul( retainedFraction ).toVar();
+			const obstacle = obstacles.element( stateIndex );
+			const activeObstacle = obstacle.x.greaterThan( float( 0 ) ).and( nextDepth.greaterThan( dryTolerance ) );
+			const tangentX = obstacle.z.negate();
+			const tangentZ = obstacle.y;
+			const normalMomentum = receiverMx.mul( obstacle.y ).add( receiverMz.mul( obstacle.z ) );
+			const tangentMomentum = receiverMx.mul( tangentX ).add( receiverMz.mul( tangentZ ) );
+			const nextNormalMomentum = normalMomentum.mul( exp( obstacleNormalRateDt.mul( obstacle.x ).negate() ) );
+			const nextTangentMomentum = tangentMomentum.mul( exp( obstacleTangentRateDt.mul( obstacle.x ).negate() ) );
+			const obstacleMx = select( activeObstacle, nextNormalMomentum.mul( obstacle.y ).add( nextTangentMomentum.mul( tangentX ) ), receiverMx ).toVar();
+			const obstacleMz = select( activeObstacle, nextNormalMomentum.mul( obstacle.z ).add( nextTangentMomentum.mul( tangentZ ) ), receiverMz ).toVar();
+			candidate.element( stateIndex ).assign( vec4( nextDepth, obstacleMx, obstacleMz, water.w ) );
+			receiverCandidate.element( stateIndex ).assign( nextReceiver );
+			const receipt = uint( 0 ).toVar();
+			const receiverFinite = nextReceiver.equal( nextReceiver ).and( nextReceiver.greaterThanEqual( float( 0 ) ) ).and( nextReceiver.lessThanEqual( receiverCapacity.add( 1e-5 ) ) );
+			If( receiverFinite.not(), () => { receipt.assign( atomicAdd( diagnostics.element( uint( 23 ) ), uint( 1 ) ) ); } );
+			receipt.assign( atomicAdd( diagnostics.element( uint( 22 ) ), removedDepth.mul( MASS_QUANTA_PER_METER ).add( 0.5 ).toUint() ) );
+			receipt.assign( atomicAdd( diagnostics.element( uint( 24 ) ), max( nextReceiver, float( 0 ) ).mul( RECEIVER_QUANTA_PER_KG_M2 ).add( 0.5 ).toUint() ) );
+			If( nextReceiver.greaterThan( float( 1e-5 ) ), () => { receipt.assign( atomicAdd( diagnostics.element( uint( 27 ) ), uint( 1 ) ) ); } );
+			receipt.assign( atomicAdd( diagnostics.element( uint( 28 ) ), min( float( 1 ), nextReceiver.div( receiverCapacity ) ).mul( 100000 ).add( 0.5 ).toUint() ) );
+			If( activeObstacle, () => {
+
+				const reactionX = receiverMx.sub( obstacleMx ).mul( obstacleImpulseScale );
+				const reactionZ = receiverMz.sub( obstacleMz ).mul( obstacleImpulseScale );
+				If( reactionX.greaterThanEqual( float( 0 ) ), () => {
+
+					receipt.assign( atomicAdd( diagnostics.element( uint( 30 ) ), reactionX.mul( OBSTACLE_IMPULSE_QUANTA_PER_NEWTON_SECOND ).add( 0.5 ).toUint() ) );
+
+				} ).Else( () => { receipt.assign( atomicAdd( diagnostics.element( uint( 31 ) ), reactionX.negate().mul( OBSTACLE_IMPULSE_QUANTA_PER_NEWTON_SECOND ).add( 0.5 ).toUint() ) ); } );
+				If( reactionZ.greaterThanEqual( float( 0 ) ), () => {
+
+					receipt.assign( atomicAdd( diagnostics.element( uint( 32 ) ), reactionZ.mul( OBSTACLE_IMPULSE_QUANTA_PER_NEWTON_SECOND ).add( 0.5 ).toUint() ) );
+
+				} ).Else( () => { receipt.assign( atomicAdd( diagnostics.element( uint( 33 ) ), reactionZ.negate().mul( OBSTACLE_IMPULSE_QUANTA_PER_NEWTON_SECOND ).add( 0.5 ).toUint() ) ); } );
+				const priorMomentumSquared = receiverMx.mul( receiverMx ).add( receiverMz.mul( receiverMz ) );
+				const nextMomentumSquared = obstacleMx.mul( obstacleMx ).add( obstacleMz.mul( obstacleMz ) );
+				const dissipatedEnergy = obstacleImpulseScale.mul( 0.5 ).mul( max( float( 0 ), priorMomentumSquared.sub( nextMomentumSquared ) ) ).div( max( nextDepth, dryTolerance ) );
+				receipt.assign( atomicAdd( diagnostics.element( uint( 34 ) ), uint( 1 ) ) );
+				receipt.assign( atomicAdd( diagnostics.element( uint( 35 ) ), dissipatedEnergy.mul( OBSTACLE_ENERGY_QUANTA_PER_JOULE ).add( 0.5 ).toUint() ) );
+
+			} );
+
+		} );
+
+	} )().compute( contract.tier.capacityTiles * interiorCells, [ 64 ] ).setName( 'sparse-swe:receiver-and-obstacle-exchange' );
+
+	const foamTransportReaction = Fn( () => {
+
+		const linear = globalId.x;
+		const slot = linear.div( uint( interiorCells ) );
+		const local = linear.sub( slot.mul( uint( interiorCells ) ) );
+		const coordinate = localCoordinates( local, tileSize );
+		If( descriptors.element( slot ).w.greaterThan( int( 0 ) ), () => {
+
+			const x = coordinate.x.add( uint( 1 ) );
+			const z = coordinate.z.add( uint( 1 ) );
+			const centerIndex = paddedIndex( slot, x, z );
+			const westIndex = paddedIndex( slot, x.sub( uint( 1 ) ), z );
+			const eastIndex = paddedIndex( slot, x.add( uint( 1 ) ), z );
+			const southIndex = paddedIndex( slot, x, z.sub( uint( 1 ) ) );
+			const northIndex = paddedIndex( slot, x, z.add( uint( 1 ) ) );
+			const velocityX = ( index ) => {
+
+				const state = committed.element( index );
+				return select( state.x.greaterThan( dryTolerance ), state.y.div( max( state.x, dryTolerance ) ), float( 0 ) );
+
+			};
+			const velocityZ = ( index ) => {
+
+				const state = committed.element( index );
+				return select( state.x.greaterThan( dryTolerance ), state.z.div( max( state.x, dryTolerance ) ), float( 0 ) );
+
+			};
+			const uCenter = velocityX( centerIndex );
+			const wCenter = velocityZ( centerIndex );
+			const uWest = velocityX( westIndex ).add( uCenter ).mul( 0.5 );
+			const uEast = uCenter.add( velocityX( eastIndex ) ).mul( 0.5 );
+			const wSouth = velocityZ( southIndex ).add( wCenter ).mul( 0.5 );
+			const wNorth = wCenter.add( velocityZ( northIndex ) ).mul( 0.5 );
+			const upwind = ( velocity, lower, upper ) => max( velocity, float( 0 ) ).mul( lower ).add( min( velocity, float( 0 ) ).mul( upper ) );
+			const westFlux = upwind( uWest, foamCommitted.element( westIndex ), foamCommitted.element( centerIndex ) );
+			const eastFlux = upwind( uEast, foamCommitted.element( centerIndex ), foamCommitted.element( eastIndex ) );
+			const southFlux = upwind( wSouth, foamCommitted.element( southIndex ), foamCommitted.element( centerIndex ) );
+			const northFlux = upwind( wNorth, foamCommitted.element( centerIndex ), foamCommitted.element( northIndex ) );
+			const transported = foamCommitted.element( centerIndex ).sub( eastFlux.sub( westFlux ).add( northFlux.sub( southFlux ) ).mul( dt.mul( inverseDx ) ) );
+			const nextWater = candidate.element( centerIndex );
+			const speed = sqrt( nextWater.y.mul( nextWater.y ).add( nextWater.z.mul( nextWater.z ) ) ).div( max( nextWater.x, dryTolerance ) );
+			const froude = speed.div( sqrt( gravity.mul( max( nextWater.x, dryTolerance ) ) ) );
+			const compression = max( float( 0 ), uEast.sub( uWest ).add( wNorth.sub( wSouth ) ).mul( inverseDx ).negate() );
+			const sourceRate = compression.mul( max( float( 0 ), min( float( 1 ), froude.sub( 0.35 ).mul( 3 ) ) ) ).mul( 2 );
+			const sourceReceipt = uint( 0 ).toVar();
+			sourceReceipt.assign( atomicAdd( diagnostics.element( uint( 13 ) ), sourceRate.mul( 10000 ).add( 0.5 ).toUint() ) );
+			const reactionRate = sourceRate.add( 0.8 );
+			const equilibrium = sourceRate.div( reactionRate );
+			const reacted = equilibrium.add( transported.sub( equilibrium ).mul( exp( reactionRate.mul( dt ).negate() ) ) );
+			foamCandidate.element( centerIndex ).assign( select( nextWater.x.greaterThan( dryTolerance ), reacted, float( 0 ) ) );
+
+		} );
+
+	} )().compute( contract.tier.capacityTiles * interiorCells, [ 64 ] ).setName( 'sparse-swe:foam-transport-reaction' );
+
+	const candidateValidation = Fn( () => {
+
+		const linear = globalId.x;
+		const slot = linear.div( uint( interiorCells ) );
+		const local = linear.sub( slot.mul( uint( interiorCells ) ) );
+		const coordinate = localCoordinates( local, tileSize );
+		const resident = descriptors.element( slot ).w.greaterThan( int( 0 ) );
+		If( resident, () => {
+
+			const stateIndex = paddedIndex( slot, coordinate.x.add( uint( 1 ) ), coordinate.z.add( uint( 1 ) ) );
+			const prior = committed.element( stateIndex );
+			const next = candidate.element( stateIndex );
+			const finite = next.x.equal( next.x ).and( next.y.equal( next.y ) ).and( next.z.equal( next.z ) )
+				.and( abs( next.x ).lessThan( FINITE_MAGNITUDE_GATE ) ).and( abs( next.y ).lessThan( FINITE_MAGNITUDE_GATE ) ).and( abs( next.z ).lessThan( FINITE_MAGNITUDE_GATE ) );
+			// Consume return-valued atomic results so TSL does not lower them as
+			// void stack statements and emit a false "expected uint" diagnostic.
+			const receipt = uint( 0 ).toVar();
+			If( finite.not(), () => { receipt.assign( atomicAdd( diagnostics.element( uint( 0 ) ), uint( 1 ) ) ); } );
+			const nextSpeed = sqrt( next.y.mul( next.y ).add( next.z.mul( next.z ) ) ).div( max( next.x, dryTolerance ) );
+			If( next.x.greaterThan( dryTolerance ).and( nextSpeed.greaterThan( contract.tier.maximumVelocityMps ) ), () => { receipt.assign( atomicAdd( diagnostics.element( uint( 0 ) ), uint( 1 ) ) ); } );
+			If( next.x.lessThan( NEGATIVE_DEPTH_GATE_METERS ), () => { receipt.assign( atomicAdd( diagnostics.element( uint( 1 ) ), uint( 1 ) ) ); } );
+			If( next.x.greaterThan( dryTolerance ), () => { receipt.assign( atomicAdd( diagnostics.element( uint( 2 ) ), uint( 1 ) ) ); } );
+			receipt.assign( atomicAdd( diagnostics.element( uint( 3 ) ), max( prior.x, float( 0 ) ).mul( MASS_QUANTA_PER_METER ).add( 0.5 ).toUint() ) );
+			receipt.assign( atomicAdd( diagnostics.element( uint( 4 ) ), max( next.x, float( 0 ) ).mul( MASS_QUANTA_PER_METER ).add( 0.5 ).toUint() ) );
+			const foam = foamCandidate.element( stateIndex );
+			const foamValid = foam.equal( foam ).and( foam.greaterThanEqual( float( 0 ) ) ).and( foam.lessThanEqual( float( 1 ) ) );
+			const foamInvalidReceipt = uint( 0 ).toVar();
+			const foamCountReceipt = uint( 0 ).toVar();
+			const foamCoverageReceipt = uint( 0 ).toVar();
+			If( foamValid.not(), () => {
+
+				foamInvalidReceipt.assign( atomicAdd( diagnostics.element( uint( 0 ) ), uint( 1 ) ) );
+				foamInvalidReceipt.assign( atomicAdd( diagnostics.element( uint( 14 ) ), uint( 1 ) ) );
+
+			} );
+			If( foam.greaterThan( float( 1e-4 ) ), () => { foamCountReceipt.assign( atomicAdd( diagnostics.element( uint( 12 ) ), uint( 1 ) ) ); } );
+			foamCoverageReceipt.assign( atomicAdd( diagnostics.element( uint( 15 ) ), max( foam, float( 0 ) ).mul( 100000 ).add( 0.5 ).toUint() ) );
+			const westIndex = slot.mul( uint( xFacesPerTile ) ).add( coordinate.z.mul( uint( tileSize + 1 ) ) ).add( coordinate.x );
+			const eastIndex = westIndex.add( uint( 1 ) );
+			const southIndex = slot.mul( uint( zFacesPerTile ) ).add( coordinate.z.mul( uint( tileSize ) ) ).add( coordinate.x );
+			const northIndex = southIndex.add( uint( tileSize ) );
+			const netFluxDepthExchange = xFlux.element( westIndex ).x.sub( xFlux.element( eastIndex ).x )
+				.add( zFlux.element( southIndex ).x.sub( zFlux.element( northIndex ).x ) ).mul( dt.mul( inverseDx ) );
+			If( netFluxDepthExchange.greaterThanEqual( float( 0 ) ), () => {
+
+				receipt.assign( atomicAdd( diagnostics.element( uint( 8 ) ), netFluxDepthExchange.mul( MASS_QUANTA_PER_METER ).add( 0.5 ).toUint() ) );
+
+			} ).Else( () => {
+
+				receipt.assign( atomicAdd( diagnostics.element( uint( 9 ) ), netFluxDepthExchange.negate().mul( MASS_QUANTA_PER_METER ).add( 0.5 ).toUint() ) );
+
+			} );
+			if ( boundary !== null ) {
+
+				const onOpenWestCell = descriptors.element( slot ).x.equal( int( 0 ) ).and( coordinate.x.equal( uint( 0 ) ) );
+				If( onOpenWestCell, () => {
+
+					const boundaryDepthExchange = xFlux.element( westIndex ).x.mul( dt.mul( inverseDx ) );
+					If( boundaryDepthExchange.greaterThanEqual( float( 0 ) ), () => {
+
+						receipt.assign( atomicAdd( diagnostics.element( uint( 10 ) ), boundaryDepthExchange.mul( MASS_QUANTA_PER_METER ).add( 0.5 ).toUint() ) );
+
+					} ).Else( () => {
+
+						receipt.assign( atomicAdd( diagnostics.element( uint( 11 ) ), boundaryDepthExchange.negate().mul( MASS_QUANTA_PER_METER ).add( 0.5 ).toUint() ) );
+
+					} );
+
+				} );
+
+			}
+
+		} );
+
+	} )().compute( contract.tier.capacityTiles * interiorCells, [ 64 ] ).setName( 'sparse-swe:candidate-validation' );
+
+	const injectRollbackMutation = Fn( () => {
+
+		const stateIndex = displayIndices.element( uint( 0 ) );
+		const prior = candidate.element( stateIndex );
+		candidate.element( stateIndex ).assign( vec4( float( -0.25 ), prior.y, prior.z, prior.w ) );
+
+	} )().compute( 1, [ 1 ] ).setName( 'sparse-swe:inject-rollback-mutation' );
+
+	const atomicCommit = Fn( () => {
+
+		const linear = globalId.x;
+		const slot = linear.div( uint( interiorCells ) );
+		const local = linear.sub( slot.mul( uint( interiorCells ) ) );
+		const coordinate = localCoordinates( local, tileSize );
+		const resident = descriptors.element( slot ).w.greaterThan( int( 0 ) );
+		const priorMass = atomicLoad( diagnostics.element( uint( 3 ) ) );
+		const candidateMass = atomicLoad( diagnostics.element( uint( 4 ) ) );
+		const expectedPlusInflux = priorMass.add( atomicLoad( diagnostics.element( uint( 8 ) ) ) );
+		const candidatePlusOutflux = candidateMass.add( atomicLoad( diagnostics.element( uint( 9 ) ) ).add( atomicLoad( diagnostics.element( uint( 22 ) ) ) ) );
+		const massDifference = max( expectedPlusInflux, candidatePlusOutflux ).sub( min( expectedPlusInflux, candidatePlusOutflux ) );
+		const valid = atomicLoad( diagnostics.element( uint( 0 ) ) ).equal( uint( 0 ) )
+			.and( atomicLoad( diagnostics.element( uint( 1 ) ) ).equal( uint( 0 ) ) )
+			.and( atomicLoad( diagnostics.element( uint( 23 ) ) ).equal( uint( 0 ) ) )
+			.and( massDifference.lessThanEqual( uint( initial.residentCellCount * 3 ) ) );
+		If( resident.and( valid ), () => {
+
+			const stateIndex = paddedIndex( slot, coordinate.x.add( uint( 1 ) ), coordinate.z.add( uint( 1 ) ) );
+			committed.element( stateIndex ).assign( candidate.element( stateIndex ) );
+			foamCommitted.element( stateIndex ).assign( foamCandidate.element( stateIndex ) );
+			receiverCommitted.element( stateIndex ).assign( receiverCandidate.element( stateIndex ) );
+
+		} );
+		If( linear.equal( uint( 0 ) ), () => {
+
+			const receipt = uint( 0 ).toVar();
+			If( valid, () => {
+
+				const committedInteractionSequence = atomicLoad( diagnostics.element( uint( 21 ) ) );
+				const newInteractionBatch = interactionSequence.greaterThan( committedInteractionSequence );
+				If( newInteractionBatch, () => {
+
+					receipt.assign( atomicAdd( diagnostics.element( uint( 16 ) ), uint( preparedImpulseQuanta.xPositive ) ) );
+					receipt.assign( atomicAdd( diagnostics.element( uint( 17 ) ), uint( preparedImpulseQuanta.xNegative ) ) );
+					receipt.assign( atomicAdd( diagnostics.element( uint( 18 ) ), uint( preparedImpulseQuanta.zPositive ) ) );
+					receipt.assign( atomicAdd( diagnostics.element( uint( 19 ) ), uint( preparedImpulseQuanta.zNegative ) ) );
+					receipt.assign( atomicAdd( diagnostics.element( uint( 20 ) ), uint( 1 ) ) );
+					receipt.assign( atomicAdd( diagnostics.element( uint( 21 ) ), interactionSequence.sub( committedInteractionSequence ) ) );
+
+				} );
+				const committedReceiverSequence = atomicLoad( diagnostics.element( uint( 26 ) ) );
+				const newReceiverBatch = receiverExchangeSequence.greaterThan( committedReceiverSequence );
+				If( newReceiverBatch, () => {
+
+					receipt.assign( atomicAdd( diagnostics.element( uint( 25 ) ), uint( 1 ) ) );
+					receipt.assign( atomicAdd( diagnostics.element( uint( 26 ) ), receiverExchangeSequence.sub( committedReceiverSequence ) ) );
+
+				} );
+				receipt.assign( atomicAdd( diagnostics.element( uint( 36 ) ), atomicLoad( diagnostics.element( uint( 30 ) ) ) ) );
+				receipt.assign( atomicAdd( diagnostics.element( uint( 37 ) ), atomicLoad( diagnostics.element( uint( 31 ) ) ) ) );
+				receipt.assign( atomicAdd( diagnostics.element( uint( 38 ) ), atomicLoad( diagnostics.element( uint( 32 ) ) ) ) );
+				receipt.assign( atomicAdd( diagnostics.element( uint( 39 ) ), atomicLoad( diagnostics.element( uint( 33 ) ) ) ) );
+				receipt.assign( atomicAdd( diagnostics.element( uint( 40 ) ), atomicLoad( diagnostics.element( uint( 35 ) ) ) ) );
+				receipt.assign( atomicAdd( diagnostics.element( uint( 41 ) ), uint( 1 ) ) );
+
+				receipt.assign( atomicAdd( diagnostics.element( uint( 5 ) ), uint( 1 ) ) );
+				receipt.assign( atomicAdd( diagnostics.element( uint( 6 ) ), uint( 1 ) ) );
+
+			} ).Else( () => {
+
+				receipt.assign( atomicAdd( diagnostics.element( uint( 7 ) ), uint( 1 ) ) );
+
+			} );
+
+		} );
+
+	} )().compute( contract.tier.capacityTiles * interiorCells, [ 64 ] ).setName( 'sparse-swe:atomic-commit' );
+
+	const stepGraph = Object.freeze( [ resetValidation, haloAndBoundary, xFaceFlux, zFaceFlux, cellUpdate, receiverAndObstacleExchange, foamTransportReaction, candidateValidation, atomicCommit ] );
+	const rollbackMutationGraph = Object.freeze( [ resetValidation, haloAndBoundary, xFaceFlux, zFaceFlux, cellUpdate, receiverAndObstacleExchange, foamTransportReaction, injectRollbackMutation, candidateValidation, atomicCommit ] );
+	let accumulatorSeconds = 0;
+	let submittedTicks = 0;
+	let dispatchCount = 0;
+	let droppedTimeSeconds = 0;
+	let diagnosticReadbackCount = 0;
+	let rollbackMutationProbeCount = 0;
+	let simulationTimeSeconds = boundary?.phaseReferenceSeconds ?? 0;
+	let disposed = false;
+
+	function requireLive() { if ( disposed ) throw new Error( 'GPU sparse SWE owner is disposed' ); }
+	function dispatchFixedStep() {
+
+		requireLive();
+		boundaryTimeSeconds.value = simulationTimeSeconds;
+		// Separate submissions are deliberate: every whole-grid pass must complete
+		// before a dependent pass reads its storage, and a validation failure must
+		// name the exact pipeline instead of poisoning an opaque grouped dispatch.
+		for ( const dispatch of stepGraph ) renderer.compute( dispatch );
+		submittedTicks += 1;
+		dispatchCount += stepGraph.length;
+		simulationTimeSeconds += contract.tier.fixedTimeStepSeconds;
+
+	}
+	function dispatchRollbackMutationProbe() {
+
+		requireLive();
+		for ( const dispatch of rollbackMutationGraph ) renderer.compute( dispatch );
+		submittedTicks += 1;
+		dispatchCount += rollbackMutationGraph.length;
+		rollbackMutationProbeCount += 1;
+
+	}
+
+	async function captureDiagnostics() {
+
+		requireLive();
+		if ( typeof renderer.getArrayBufferAsync !== 'function' ) throw new Error( 'Renderer storage readback is unavailable' );
+		const bytes = await renderer.getArrayBufferAsync( diagnosticBuffer, null, 0, diagnosticBuffer.array.byteLength );
+		diagnosticReadbackCount += 1;
+		const values = Array.from( new Uint32Array( bytes ) );
+		return Object.freeze( {
+			invalidCells: values[ 0 ], negativeDepthCells: values[ 1 ], wetCells: values[ 2 ],
+			priorDepthQuanta: values[ 3 ], candidateDepthQuanta: values[ 4 ], committedGeneration: values[ 5 ],
+			acceptedCommits: values[ 6 ], rejectedCommits: values[ 7 ],
+			netFluxInfluxDepthQuanta: values[ 8 ], netFluxOutfluxDepthQuanta: values[ 9 ],
+			boundaryInfluxDepthQuanta: values[ 10 ], boundaryOutfluxDepthQuanta: values[ 11 ],
+			internalFluxCancellationDepthQuanta: ( values[ 8 ] - values[ 9 ] ) - ( values[ 10 ] - values[ 11 ] ),
+			foamCoveredCells: values[ 12 ], foamSourceRateQuanta: values[ 13 ], foamClampCells: values[ 14 ], foamCoverageQuanta: values[ 15 ],
+			interactionImpulseXPositiveQuanta: values[ 16 ], interactionImpulseXNegativeQuanta: values[ 17 ],
+			interactionImpulseZPositiveQuanta: values[ 18 ], interactionImpulseZNegativeQuanta: values[ 19 ],
+			committedInteractionBatches: values[ 20 ], committedInteractionSequence: values[ 21 ],
+			receiverTransferDepthQuanta: values[ 22 ], receiverInvalidCells: values[ 23 ], receiverCandidateMassQuanta: values[ 24 ],
+			committedReceiverExchangeBatches: values[ 25 ], committedReceiverExchangeSequence: values[ 26 ], receiverWetCells: values[ 27 ],
+			receiverCoverageQuanta: values[ 28 ], receiverRunoffQuanta: values[ 29 ],
+			obstacleReactionXPositiveQuanta: values[ 30 ], obstacleReactionXNegativeQuanta: values[ 31 ],
+			obstacleReactionZPositiveQuanta: values[ 32 ], obstacleReactionZNegativeQuanta: values[ 33 ],
+			activeObstacleCells: values[ 34 ], obstacleDissipatedEnergyQuanta: values[ 35 ],
+			committedObstacleReactionXPositiveQuanta: values[ 36 ], committedObstacleReactionXNegativeQuanta: values[ 37 ],
+			committedObstacleReactionZPositiveQuanta: values[ 38 ], committedObstacleReactionZNegativeQuanta: values[ 39 ],
+			committedObstacleDissipatedEnergyQuanta: values[ 40 ], committedObstacleSteps: values[ 41 ],
+			impulseQuantumNewtonSeconds: 1 / IMPULSE_QUANTA_PER_NEWTON_SECOND,
+			massQuantumMeters: 1 / MASS_QUANTA_PER_METER,
+			receiverQuantumKgPerM2: 1 / RECEIVER_QUANTA_PER_KG_M2,
+			obstacleImpulseQuantumNewtonSeconds: 1 / OBSTACLE_IMPULSE_QUANTA_PER_NEWTON_SECOND,
+			obstacleEnergyQuantumJoules: 1 / OBSTACLE_ENERGY_QUANTA_PER_JOULE,
+			diagnosticReadbackOnly: true,
+			frameCriticalReadbackCount: 0
+		} );
+
+	}
+
+	return Object.freeze( {
+		contract,
+		initial,
+		resourceInventory,
+		stateCommittedBuffer,
+		stateCandidateBuffer,
+		foamCommittedBuffer,
+		foamCandidateBuffer,
+		interactionSourceBuffer,
+		receiverCommittedBuffer,
+		receiverCandidateBuffer,
+		inundationTransferBuffer,
+		obstacleBuffer,
+		descriptorBuffer,
+		lookupBuffer,
+		displayIndexBuffer,
+		diagnosticBuffer,
+		committedStateNode: committed,
+		foamCommittedNode: foamCommitted,
+		receiverCommittedNode: receiverCommitted,
+		obstacleNode: obstacles,
+		initialInteractionSource,
+		initialReceiverExchange,
+		initialObstacle,
+		displayIndexNode: displayIndices,
+		dispatchFixedStep,
+		dispatchRollbackMutationProbe,
+		advancePresentationDelta( deltaSeconds ) {
+
+			requireLive();
+			if ( ! Number.isFinite( deltaSeconds ) || deltaSeconds < 0 ) throw new Error( 'GPU sparse SWE presentation delta must be finite and non-negative' );
+			const maximumAdmitted = contract.tier.fixedTimeStepSeconds * contract.tier.maximumCatchUpSteps;
+			const admitted = Math.min( deltaSeconds, maximumAdmitted );
+			droppedTimeSeconds += deltaSeconds - admitted;
+			accumulatorSeconds += admitted;
+			const steps = Math.min( contract.tier.maximumCatchUpSteps, Math.floor( ( accumulatorSeconds + 1e-12 ) / contract.tier.fixedTimeStepSeconds ) );
+			for ( let step = 0; step < steps; step += 1 ) dispatchFixedStep();
+			accumulatorSeconds = Math.max( 0, accumulatorSeconds - steps * contract.tier.fixedTimeStepSeconds );
+			return steps;
+
+		},
+		captureDiagnostics,
+		describe() {
+
+			return Object.freeze( {
+				backend: 'native-webgpu', model: 'nonlinear-Saint-Venant-HLL-hydrostatic', authority: 'gpu-float32',
+				tierId, submittedTicks, dispatchCount, droppedTimeSeconds, diagnosticReadbackCount, rollbackMutationProbeCount, frameCriticalReadbackCount: 0,
+				disposed,
+				simulationTimeSeconds, openBoundary: boundary === null ? null : Object.freeze( { side: boundary.side, modeId: boundary.mode.modeId, compatibility: boundary.compatibility } ),
+				interactionSource: Object.freeze( { sequence: initialInteractionSource.sequence, interactionCount: initialInteractionSource.diagnostics.interactionCount, applicationLedgerKeys: initialInteractionSource.applicationLedgerKeys } ),
+				receiverExchange: Object.freeze( { sequence: initialReceiverExchange.sequence, interactionCount: initialReceiverExchange.diagnostics.interactionCount, receiverId: receiverExchange?.receiverOwnerId ?? null, applicationIntervalKey: receiverExchange?.applicationIntervalKey ?? null } ),
+				obstacle: Object.freeze( { activeCellCount: initialObstacle.activeObstacleCells, model: 'exact-anisotropic-porosity-drag', reactionOwner: obstacleField?.reactionOwnerId ?? null } ),
+				residentTileCount: initial.residentTileCount, residentCellCount: initial.residentCellCount,
+				logicalResourceBytes: contract.totalLogicalBytes, resourceInventory,
+				backendAllocatedBytes: null, backendAllocationClaim: 'unmeasured-backend-alignment-and-residency', dispatchOrder: contract.dispatchOrder
+			} );
+
+		},
+		dispose() {
+
+			if ( disposed ) return;
+			disposed = true;
+			for ( const buffer of [ stateCommittedBuffer, stateCandidateBuffer, foamCommittedBuffer, foamCandidateBuffer, interactionSourceBuffer, receiverCommittedBuffer, receiverCandidateBuffer, inundationTransferBuffer, obstacleBuffer, descriptorBuffer, lookupBuffer, displayIndexBuffer, xFluxBuffer, zFluxBuffer, xCorrectionBuffer, zCorrectionBuffer, diagnosticBuffer ] ) buffer.dispose?.();
+
+		}
+	} );
+
+}

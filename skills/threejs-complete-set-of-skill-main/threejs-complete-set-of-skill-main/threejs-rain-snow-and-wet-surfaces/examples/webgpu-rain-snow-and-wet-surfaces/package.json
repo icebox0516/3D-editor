@@ -1,0 +1,18 @@
+{
+  "type": "module",
+  "scripts": {
+    "check": "node --check precipitation-system.js && node --check receiver-liquid-inventory.js && node --check weather-webgpu-lab.js && node --check route-wrapper.js && node --check main.js && node --check test-runtime-contracts.mjs && node --check test-receiver-liquid-inventory.mjs",
+    "validate": "npm run validate:quick",
+    "validate:unit": "node validate.js && node test-runtime-contracts.mjs && node test-receiver-liquid-inventory.mjs",
+    "test:mutations": "node test-mutations.mjs",
+    "capture": "node ../../../scripts/capture-lab-browser.mjs --lab webgpu-rain-snow-and-wet-surfaces --target final",
+    "validate:artifacts": "node capture-status.mjs",
+    "validate:quick": "npm run check && npm run validate:unit && npm run test:mutations",
+    "validate:full": "npm run validate:quick && npm run validate:artifacts",
+    "validate:generated-assets": "node validate-generated-ripples.mjs"
+  },
+  "dependencies": {
+    "playwright": "1.61.1",
+    "three": "0.185.1"
+  }
+}

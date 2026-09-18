@@ -1,0 +1,1821 @@
+{
+  "schemaVersion": 1,
+  "previews": [
+    {
+      "labId": "integration-temporal-surface",
+      "expectedAcceptanceStatus": "incomplete",
+      "artifactDirectory": "artifacts/visual-validation/integration-temporal-surface/correctness",
+      "backendProof": "capture-session.json",
+      "claimVerdicts": "claim-verdicts.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "Temporal-surface integration presentation",
+      "limitations": [
+        "Host temporal integration native WebGPU capture proves backend identity and warmed surface-history temporal readbacks on the current source hash.",
+        "Primary dependencies (frost, image-pipeline, temporal-history) block formal integration acceptance.",
+        "Named-adapter GPU timestamps remain incomplete."
+      ],
+      "images": [
+        {
+          "source": "final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy",
+          "meaning": "Final color-managed presentation readback."
+        },
+        {
+          "source": "no-post.design.png",
+          "output": "no-post.design.png",
+          "encoding": "png-copy",
+          "meaning": "Wetness / no-post diagnostic presentation (multi-color scene)."
+        },
+        {
+          "source": "diagnostics.mosaic.png",
+          "output": "diagnostics.mosaic.png",
+          "encoding": "png-copy",
+          "meaning": "Particles / diagnostic presentation (multi-color scene)."
+        },
+        {
+          "source": "camera.near.png",
+          "output": "camera.near.png",
+          "encoding": "png-copy",
+          "meaning": "Near camera presentation."
+        },
+        {
+          "source": "camera.design.png",
+          "output": "camera.design.png",
+          "encoding": "png-copy",
+          "meaning": "Design camera presentation."
+        },
+        {
+          "source": "camera.far.png",
+          "output": "camera.far.png",
+          "encoding": "png-copy",
+          "meaning": "Far camera presentation."
+        },
+        {
+          "source": "seed-0001.final.png",
+          "output": "seed-0001.final.png",
+          "encoding": "png-copy",
+          "meaning": "Baseline seed presentation."
+        },
+        {
+          "source": "seed-9e3779b9.final.png",
+          "output": "seed-9e3779b9.final.png",
+          "encoding": "png-copy",
+          "meaning": "Stress seed presentation."
+        },
+        {
+          "source": "temporal.t000.png",
+          "output": "temporal.t000.png",
+          "encoding": "png-copy",
+          "meaning": "Temporal t0 presentation."
+        },
+        {
+          "source": "temporal.t001.png",
+          "output": "temporal.t001.png",
+          "encoding": "png-copy",
+          "meaning": "Temporal t1 presentation."
+        }
+      ]
+    },
+    {
+      "labId": "procedural-district",
+      "expectedAcceptanceStatus": "incomplete",
+      "artifactDirectory": "artifacts/visual-validation/procedural-district/correctness",
+      "backendProof": "capture-session.json",
+      "claimVerdicts": "claim-verdicts.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "Procedural district integration presentation",
+      "limitations": [
+        "Native WebGPU correctness capture includes standard presentation and tier presentation readbacks for the current source hash.",
+        "Nine primary dependency labs remain incomplete, so formal integration acceptance is blocked.",
+        "Field storage readback, lifecycle loop, and GPU timestamps remain INSUFFICIENT_EVIDENCE."
+      ],
+      "images": [
+        {
+          "source": "final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy",
+          "meaning": "Final color-managed presentation readback."
+        },
+        {
+          "source": "no-post.design.png",
+          "output": "no-post.design.png",
+          "encoding": "png-copy",
+          "meaning": "No-post / diagnostic baseline presentation."
+        },
+        {
+          "source": "diagnostics.mosaic.png",
+          "output": "diagnostics.mosaic.png",
+          "encoding": "png-copy",
+          "meaning": "Mechanism/owner diagnostic presentation."
+        },
+        {
+          "source": "camera.near.png",
+          "output": "camera.near.png",
+          "encoding": "png-copy",
+          "meaning": "Near camera presentation."
+        },
+        {
+          "source": "camera.design.png",
+          "output": "camera.design.png",
+          "encoding": "png-copy",
+          "meaning": "Design camera presentation."
+        },
+        {
+          "source": "camera.far.png",
+          "output": "camera.far.png",
+          "encoding": "png-copy",
+          "meaning": "Far camera presentation."
+        },
+        {
+          "source": "seed-0001.final.png",
+          "output": "seed-0001.final.png",
+          "encoding": "png-copy",
+          "meaning": "Baseline seed presentation."
+        },
+        {
+          "source": "seed-9e3779b9.final.png",
+          "output": "seed-9e3779b9.final.png",
+          "encoding": "png-copy",
+          "meaning": "Stress seed presentation."
+        },
+        {
+          "source": "temporal.t000.png",
+          "output": "temporal.t000.png",
+          "encoding": "png-copy",
+          "meaning": "Temporal t=0 presentation."
+        },
+        {
+          "source": "temporal.t001.png",
+          "output": "temporal.t001.png",
+          "encoding": "png-copy",
+          "meaning": "Temporal t=1/60 presentation."
+        }
+      ]
+    },
+    {
+      "labId": "structured-ash-growth",
+      "expectedAcceptanceStatus": "accepted",
+      "artifactDirectory": "artifacts/visual-validation/structured-ash-growth/correctness",
+      "backendProof": "capture-session.json",
+      "claimVerdicts": "claim-verdicts.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "Structured ash growth native WebGPU readback",
+      "limitations": [
+        "Performance and GPU attribution remain NOT_CLAIMED unless a hardware performance lane is present.",
+        "Promoted media are native-WebGPU correctness readbacks bound by the accepted release-bundle ledger."
+      ],
+      "images": [
+        {
+          "file": "final.design.png",
+          "meaning": "Final design presentation",
+          "source": "final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "no-post.design.png",
+          "meaning": "No-post / baseline presentation",
+          "source": "no-post.design.png",
+          "output": "no-post.design.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "diagnostics.mosaic.png",
+          "meaning": "Diagnostics mosaic",
+          "source": "diagnostics.mosaic.png",
+          "output": "diagnostics.mosaic.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "camera.near.png",
+          "meaning": "Near camera",
+          "source": "camera.near.png",
+          "output": "camera.near.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "camera.design.png",
+          "meaning": "Design camera",
+          "source": "camera.design.png",
+          "output": "camera.design.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "camera.far.png",
+          "meaning": "Far camera",
+          "source": "camera.far.png",
+          "output": "camera.far.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "seed-0001.final.png",
+          "meaning": "Representative seed final",
+          "source": "seed-0001.final.png",
+          "output": "seed-0001.final.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "seed-9e3779b9.final.png",
+          "meaning": "Stress seed final",
+          "source": "seed-9e3779b9.final.png",
+          "output": "seed-9e3779b9.final.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "temporal.t000.png",
+          "meaning": "Temporal t0",
+          "source": "temporal.t000.png",
+          "output": "temporal.t000.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "temporal.t001.png",
+          "meaning": "Temporal t1",
+          "source": "temporal.t001.png",
+          "output": "temporal.t001.png",
+          "encoding": "png-copy"
+        }
+      ]
+    },
+    {
+      "labId": "weathered-world",
+      "expectedAcceptanceStatus": "incomplete",
+      "artifactDirectory": "artifacts/visual-validation/weathered-world/correctness",
+      "backendProof": "capture-session.json",
+      "claimVerdicts": "evidence-manifest.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "Weathered World multi-skill composition readback",
+      "limitations": [
+        "Correctness capture records native r185 WebGPUBackend with device identity proof.",
+        "GPU timestamps, 50-cycle lifecycle, and full mechanism/tier matrix remain incomplete.",
+        "Named-adapter 60 Hz performance compliance is NOT_CLAIMED."
+      ],
+      "images": [
+        {
+          "source": "final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy",
+          "meaning": "Primary final composition readback."
+        },
+        {
+          "source": "no-post.design.png",
+          "output": "no-post.design.png",
+          "encoding": "png-copy",
+          "meaning": "No-post / scene-HDR baseline readback."
+        },
+        {
+          "source": "diagnostics.mosaic.png",
+          "output": "diagnostics.mosaic.png",
+          "encoding": "png-copy",
+          "meaning": "Owner-graph diagnostics display readback."
+        }
+      ]
+    },
+    {
+      "labId": "webgpu-cached-clipmap-shadow",
+      "expectedAcceptanceStatus": "accepted",
+      "artifactDirectory": "artifacts/visual-validation/webgpu-cached-clipmap-shadow/correctness",
+      "backendProof": "capture-session.json",
+      "claimVerdicts": "evidence-manifest.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "Cached clipmap shadow final readback",
+      "limitations": [
+        "Correctness capture records native r185 WebGPUBackend with device identity proof.",
+        "Physical multi-scenario shadow matrix and GPU timestamps remain incomplete.",
+        "Named-adapter 60 Hz performance is NOT_CLAIMED."
+      ],
+      "images": [
+        {
+          "source": "final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy",
+          "meaning": "Primary final readback."
+        },
+        {
+          "source": "no-post.design.png",
+          "output": "no-post.design.png",
+          "encoding": "png-copy",
+          "meaning": "No-post / alternate display path readback."
+        },
+        {
+          "source": "diagnostics.mosaic.png",
+          "output": "diagnostics.mosaic.png",
+          "encoding": "png-copy",
+          "meaning": "Diagnostics / mechanism display readback."
+        }
+      ]
+    },
+    {
+      "labId": "webgpu-camera-rig",
+      "expectedAcceptanceStatus": "accepted",
+      "artifactDirectory": "artifacts/visual-validation/webgpu-camera-rig/correctness",
+      "backendProof": "capture-session.json",
+      "claimVerdicts": "evidence-manifest.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "Camera-rig presentation readback",
+      "limitations": [
+        "Correctness capture records native r185 WebGPUBackend with device identity proof.",
+        "Named-adapter GPU timestamps and 60 Hz hardwarePerformance remain NOT_CLAIMED.",
+        "Primary evidence is the correctness raw-capture-session package; full mechanism/tier matrix residual."
+      ],
+      "images": [
+        {
+          "source": "final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy",
+          "meaning": "Primary final readback."
+        },
+        {
+          "source": "no-post.design.png",
+          "output": "no-post.design.png",
+          "encoding": "png-copy",
+          "meaning": "No-post / alternate display path readback."
+        },
+        {
+          "source": "diagnostics.mosaic.png",
+          "output": "diagnostics.mosaic.png",
+          "encoding": "png-copy",
+          "meaning": "Diagnostics / mechanism display readback."
+        }
+      ]
+    },
+    {
+      "labId": "webgpu-dense-grass",
+      "expectedAcceptanceStatus": "accepted",
+      "artifactDirectory": "artifacts/visual-validation/webgpu-dense-grass/correctness",
+      "backendProof": "capture-session.json",
+      "claimVerdicts": "evidence-manifest.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "Dense grass native WebGPU readback",
+      "limitations": [
+        "Performance and GPU attribution remain NOT_CLAIMED unless a hardware performance lane is present.",
+        "Promoted media are native-WebGPU correctness readbacks bound by the accepted release-bundle ledger."
+      ],
+      "images": [
+        {
+          "file": "final.design.png",
+          "meaning": "Final design presentation",
+          "source": "final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "no-post.design.png",
+          "meaning": "No-post / baseline presentation",
+          "source": "no-post.design.png",
+          "output": "no-post.design.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "diagnostics.mosaic.png",
+          "meaning": "Diagnostics mosaic",
+          "source": "diagnostics.mosaic.png",
+          "output": "diagnostics.mosaic.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "camera.near.png",
+          "meaning": "Near camera",
+          "source": "camera.near.png",
+          "output": "camera.near.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "camera.design.png",
+          "meaning": "Design camera",
+          "source": "camera.design.png",
+          "output": "camera.design.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "camera.far.png",
+          "meaning": "Far camera",
+          "source": "camera.far.png",
+          "output": "camera.far.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "seed-0001.final.png",
+          "meaning": "Representative seed final",
+          "source": "seed-0001.final.png",
+          "output": "seed-0001.final.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "seed-9e3779b9.final.png",
+          "meaning": "Stress seed final",
+          "source": "seed-9e3779b9.final.png",
+          "output": "seed-9e3779b9.final.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "temporal.t000.png",
+          "meaning": "Temporal t0",
+          "source": "temporal.t000.png",
+          "output": "temporal.t000.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "temporal.t001.png",
+          "meaning": "Temporal t1",
+          "source": "temporal.t001.png",
+          "output": "temporal.t001.png",
+          "encoding": "png-copy"
+        }
+      ]
+    },
+    {
+      "labId": "webgpu-exposure-color-pipeline",
+      "expectedAcceptanceStatus": "incomplete",
+      "artifactDirectory": "artifacts/visual-validation/webgpu-exposure-color-pipeline-v2",
+      "backendProof": "mechanism-metrics.json",
+      "claimVerdicts": "mechanism-metrics.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "Exposure and grading render-target readback",
+      "limitations": [
+        "The correctness bundle records a native r185 WebGPU backend, but named-adapter timestamp evidence is absent.",
+        "The promoted percentile frame is a selection mask, not proof that histogram bin totals, prefix scan, or f64 oracle parity pass.",
+        "Lifecycle stability remains unaccepted."
+      ],
+      "images": [
+        {
+          "source": "images/final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy",
+          "meaning": "Final exposure, tone-map, LUT, and output-transform readback."
+        },
+        {
+          "source": "images/meter-source.png",
+          "output": "meter-source.png",
+          "encoding": "png-copy",
+          "meaning": "Weighted log-luminance meter source diagnostic."
+        },
+        {
+          "source": "images/histogram-percentiles.png",
+          "output": "histogram-percentiles.png",
+          "encoding": "png-copy",
+          "meaning": "Percentile-selection mask emitted by the histogram path; not a plotted histogram."
+        },
+        {
+          "source": "images/meter-mask.png",
+          "output": "meter-mask.png",
+          "encoding": "png-copy",
+          "meaning": "Metering-mask diagnostic."
+        },
+        {
+          "source": "images/tone-map.png",
+          "output": "tone-map.png",
+          "encoding": "png-copy",
+          "meaning": "Tone-map stage diagnostic before the creative LUT."
+        },
+        {
+          "source": "images/lut.png",
+          "output": "lut.png",
+          "encoding": "png-copy",
+          "meaning": "Creative LUT stage diagnostic."
+        }
+      ]
+    },
+    {
+      "labId": "webgpu-image-pipeline",
+      "expectedAcceptanceStatus": "incomplete",
+      "artifactDirectory": "artifacts/visual-validation/webgpu-image-pipeline-v2",
+      "backendProof": "renderer-info.json",
+      "claimVerdicts": "mechanism-metrics.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "Final composed output after the single tone map and output transform.",
+      "limitations": [
+        "Native WebGPU correctness capture with MRT and presentation readbacks.",
+        "Current-adapter GPU timestamps remain unaccepted."
+      ],
+      "images": [
+        {
+          "source": "images/final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy",
+          "meaning": "Final composed output after the single tone map and output transform."
+        },
+        {
+          "source": "images/no-post.design.png",
+          "output": "no-post.design.png",
+          "encoding": "png-copy",
+          "meaning": "Readable scene baseline without the post stack."
+        },
+        {
+          "source": "images/diagnostics.mosaic.png",
+          "output": "diagnostics.mosaic.png",
+          "encoding": "png-copy",
+          "meaning": "Mosaic assembled from live diagnostic graph outputs."
+        },
+        {
+          "source": "images/normal.png",
+          "output": "normal.png",
+          "encoding": "png-copy",
+          "meaning": "Normal diagnostic readback."
+        },
+        {
+          "source": "images/emissive.png",
+          "output": "emissive.png",
+          "encoding": "png-copy",
+          "meaning": "Emissive diagnostic readback."
+        },
+        {
+          "source": "images/bloom.png",
+          "output": "bloom.png",
+          "encoding": "png-copy",
+          "meaning": "Bloom isolation diagnostic."
+        },
+        {
+          "source": "images/velocity.moving-positive-x.png",
+          "output": "velocity.moving-positive-x.png",
+          "encoding": "png-copy",
+          "meaning": "Velocity diagnostic for moving subject."
+        },
+        {
+          "source": "images/temporal.history.png",
+          "output": "temporal.history.png",
+          "encoding": "png-copy",
+          "meaning": "Temporal history diagnostic."
+        }
+      ]
+    },
+    {
+      "labId": "webgpu-fft-ocean",
+      "expectedAcceptanceStatus": "incomplete",
+      "artifactDirectory": "artifacts/visual-validation/webgpu-fft-ocean/correctness",
+      "backendProof": "renderer-info.json",
+      "claimVerdicts": "evidence-manifest.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "FFT ocean final presentation readback",
+      "limitations": [
+        "Native WebGPU capture proves complete 2D FFT fixture readbacks, cascade surface modes, and foam temporal frames.",
+        "Named-adapter GPU timestamps, lifecycle soak, and release-bundle acceptance remain residual."
+      ],
+      "images": [
+        {
+          "source": "final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy",
+          "meaning": "Final ocean presentation after spectral FFT path."
+        },
+        {
+          "source": "no-post.design.png",
+          "output": "no-post.design.png",
+          "encoding": "png-copy",
+          "meaning": "No-post ocean presentation baseline."
+        },
+        {
+          "source": "diagnostics.mosaic.png",
+          "output": "diagnostics.mosaic.png",
+          "encoding": "png-copy",
+          "meaning": "Diagnostics mosaic mode readback."
+        },
+        {
+          "source": "spectrum-and-fft.png",
+          "output": "spectrum-and-fft.png",
+          "encoding": "png-copy",
+          "meaning": "Spectrum/FFT mechanism diagnostic."
+        },
+        {
+          "source": "whitecaps-and-foam.png",
+          "output": "whitecaps-and-foam.png",
+          "encoding": "png-copy",
+          "meaning": "Whitecaps and foam mechanism diagnostic."
+        },
+        {
+          "source": "above-and-below-surface.png",
+          "output": "above-and-below-surface.png",
+          "encoding": "png-copy",
+          "meaning": "Underwater optics camera diagnostic."
+        },
+        {
+          "source": "camera.near.png",
+          "output": "camera.near.png",
+          "encoding": "png-copy",
+          "meaning": "Near camera ocean frame."
+        },
+        {
+          "source": "seed-9e3779b9.final.png",
+          "output": "seed-9e3779b9.final.png",
+          "encoding": "png-copy",
+          "meaning": "Stress seed final ocean frame."
+        }
+      ]
+    },
+    {
+      "labId": "webgpu-field-bake",
+      "expectedAcceptanceStatus": "incomplete",
+      "artifactDirectory": "artifacts/visual-validation/webgpu-field-bake/correctness",
+      "backendProof": "capture-session.json",
+      "claimVerdicts": "capture-session.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "final.design.png",
+      "limitations": [
+        "Native WebGPU correctness bundle with field/storage/placement/probe readbacks and mechanism diagnostics.",
+        "Current-adapter GPU timestamps remain unaccepted in the correctness profile."
+      ],
+      "images": [
+        {
+          "source": "final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy",
+          "meaning": "Field gallery final presentation readback."
+        },
+        {
+          "source": "diagnostics.mosaic.png",
+          "output": "diagnostics.mosaic.png",
+          "encoding": "png-copy",
+          "meaning": "Gradient diagnostic mosaic readback."
+        },
+        {
+          "source": "camera.near.png",
+          "output": "camera.near.png",
+          "encoding": "png-copy",
+          "meaning": "Near camera field presentation."
+        },
+        {
+          "source": "camera.design.png",
+          "output": "camera.design.png",
+          "encoding": "png-copy",
+          "meaning": "Design camera field presentation."
+        },
+        {
+          "source": "camera.far.png",
+          "output": "camera.far.png",
+          "encoding": "png-copy",
+          "meaning": "Far camera field presentation."
+        },
+        {
+          "source": "seed-0001.final.png",
+          "output": "seed-0001.final.png",
+          "encoding": "png-copy",
+          "meaning": "Structured-placement seed 1 final."
+        },
+        {
+          "source": "seed-9e3779b9.final.png",
+          "output": "seed-9e3779b9.final.png",
+          "encoding": "png-copy",
+          "meaning": "Structured-placement stress seed final."
+        },
+        {
+          "source": "temporal.t000.png",
+          "output": "temporal.t000.png",
+          "encoding": "png-copy",
+          "meaning": "Shared-cause composition at t=0."
+        },
+        {
+          "source": "temporal.t001.png",
+          "output": "temporal.t001.png",
+          "encoding": "png-copy",
+          "meaning": "Shared-cause composition at t=25s step."
+        }
+      ]
+    },
+    {
+      "labId": "webgpu-lut-atmosphere",
+      "expectedAcceptanceStatus": "incomplete",
+      "artifactDirectory": "artifacts/visual-validation/webgpu-lut-atmosphere/correctness",
+      "backendProof": "renderer-info.json",
+      "claimVerdicts": "evidence-manifest.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "Atmosphere final composite readback",
+      "limitations": [
+        "Five-stage LUT chain, live depth/body composition, and cumulative aerial XY topology proved from the correctness bundle.",
+        "Named-adapter GPU timestamps, reference radiance/energy, and lifecycle stability remain residual."
+      ],
+      "images": [
+        {
+          "source": "final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy",
+          "meaning": "Atmosphere final composite with aerial composition."
+        },
+        {
+          "source": "no-post.design.png",
+          "output": "no-post.design.png",
+          "encoding": "png-copy",
+          "meaning": "Scene color without atmosphere composite."
+        },
+        {
+          "source": "diagnostics.mosaic.png",
+          "output": "diagnostics.mosaic.png",
+          "encoding": "png-copy",
+          "meaning": "Transmittance diagnostic frame used as mosaic proxy."
+        },
+        {
+          "source": "camera.near.png",
+          "output": "camera.near.png",
+          "encoding": "png-copy",
+          "meaning": "Sea-level camera composite."
+        },
+        {
+          "source": "camera.design.png",
+          "output": "camera.design.png",
+          "encoding": "png-copy",
+          "meaning": "Mountain camera composite."
+        },
+        {
+          "source": "camera.far.png",
+          "output": "camera.far.png",
+          "encoding": "png-copy",
+          "meaning": "High-orbit camera composite."
+        }
+      ]
+    },
+    {
+      "labId": "webgpu-material-slot-compiler",
+      "expectedAcceptanceStatus": "incomplete",
+      "artifactDirectory": "artifacts/visual-validation/webgpu-material-slot-compiler/correctness",
+      "backendProof": "capture-session.json",
+      "claimVerdicts": "capture-session.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "Material-slot presentation readback",
+      "limitations": [
+        "Native WebGPU MRT/presentation readbacks and seed/camera variants captured.",
+        "Lab remains incomplete until every mechanism/tier route is release-accepted; no GPU timing claim."
+      ],
+      "images": [
+        {
+          "source": "final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy",
+          "meaning": "Material-slot presentation readback."
+        },
+        {
+          "source": "diagnostics.mosaic.png",
+          "output": "diagnostics.mosaic.png",
+          "encoding": "png-copy",
+          "meaning": "Module-geometry diagnostic presentation."
+        },
+        {
+          "source": "camera.near.png",
+          "output": "camera.near.png",
+          "encoding": "png-copy",
+          "meaning": "Near camera building presentation."
+        },
+        {
+          "source": "camera.design.png",
+          "output": "camera.design.png",
+          "encoding": "png-copy",
+          "meaning": "Design camera building presentation."
+        },
+        {
+          "source": "camera.far.png",
+          "output": "camera.far.png",
+          "encoding": "png-copy",
+          "meaning": "Far camera building presentation."
+        },
+        {
+          "source": "seed-0001.final.png",
+          "output": "seed-0001.final.png",
+          "encoding": "png-copy",
+          "meaning": "Seed 1 building variant."
+        },
+        {
+          "source": "seed-9e3779b9.final.png",
+          "output": "seed-9e3779b9.final.png",
+          "encoding": "png-copy",
+          "meaning": "Stress seed building variant."
+        }
+      ]
+    },
+    {
+      "labId": "webgpu-pooled-effects",
+      "expectedAcceptanceStatus": "incomplete",
+      "artifactDirectory": "artifacts/visual-validation/webgpu-pooled-effects/correctness",
+      "backendProof": "renderer-info.json",
+      "claimVerdicts": "evidence-manifest.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "Pooled effects correctness presentation",
+      "limitations": [
+        "Current-source correctness capture validates under lab validate:artifacts with legacy-v2 evidence-manifest bound to canonical sourceHash.",
+        "Mechanism/visual claims remain INSUFFICIENT_EVIDENCE; GPU timestamps NOT_CLAIMED.",
+        "Not a publishable release-bundle."
+      ],
+      "images": [
+        {
+          "source": "final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy",
+          "meaning": "Final pooled-effects presentation."
+        },
+        {
+          "source": "no-post.design.png",
+          "output": "no-post.design.png",
+          "encoding": "png-copy",
+          "meaning": "No-post baseline."
+        },
+        {
+          "source": "diagnostics.mosaic.png",
+          "output": "diagnostics.mosaic.png",
+          "encoding": "png-copy",
+          "meaning": "Diagnostic mosaic."
+        },
+        {
+          "source": "mechanism.impact-sparks.png",
+          "output": "mechanism.impact-sparks.png",
+          "encoding": "png-copy",
+          "meaning": "Impact-sparks mechanism."
+        },
+        {
+          "source": "mechanism.debris-dissolve.png",
+          "output": "mechanism.debris-dissolve.png",
+          "encoding": "png-copy",
+          "meaning": "Debris-dissolve mechanism."
+        },
+        {
+          "source": "mechanism.gpu-pool-and-compaction.png",
+          "output": "mechanism.gpu-pool-and-compaction.png",
+          "encoding": "png-copy",
+          "meaning": "GPU pool compaction mechanism."
+        },
+        {
+          "source": "tier.ultra.png",
+          "output": "tier.ultra.png",
+          "encoding": "png-copy",
+          "meaning": "Ultra tier frame."
+        },
+        {
+          "source": "tier.medium.png",
+          "output": "tier.medium.png",
+          "encoding": "png-copy",
+          "meaning": "Medium tier frame."
+        }
+      ]
+    },
+    {
+      "labId": "webgpu-quadtree-planet",
+      "expectedAcceptanceStatus": "incomplete",
+      "artifactDirectory": "artifacts/visual-validation/webgpu-quadtree-planet/correctness",
+      "backendProof": "capture-session.json",
+      "claimVerdicts": "evidence-manifest.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "Quadtree planet correctness presentation",
+      "limitations": [
+        "Current-source correctness capture after interleaved vertex packing + adapter maxBufferSize request; validate:artifacts structuralVerdict PASS.",
+        "GPU timestamps NOT_CLAIMED; visualCorrectness and lifecycle remain INSUFFICIENT_EVIDENCE; not a publishable release-bundle.",
+        "Root cause fixed: separate BufferAttributes exceeded WebGPU max vertex buffers (16>8); geometry is now one InterleavedBuffer."
+      ],
+      "images": [
+        {
+          "source": "final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy",
+          "meaning": "Final solid-body presentation."
+        },
+        {
+          "source": "no-post.design.png",
+          "output": "no-post.design.png",
+          "encoding": "png-copy",
+          "meaning": "Ambient-only lighting control (no post stack; sun stripped)."
+        },
+        {
+          "source": "diagnostics.mosaic.png",
+          "output": "diagnostics.mosaic.png",
+          "encoding": "png-copy",
+          "meaning": "Diagnostics mosaic (height alias path)."
+        },
+        {
+          "source": "camera.design.png",
+          "output": "camera.design.png",
+          "encoding": "png-copy",
+          "meaning": "Design camera."
+        },
+        {
+          "source": "camera.near.png",
+          "output": "camera.near.png",
+          "encoding": "png-copy",
+          "meaning": "Near camera."
+        },
+        {
+          "source": "camera.far.png",
+          "output": "camera.far.png",
+          "encoding": "png-copy",
+          "meaning": "Far camera."
+        },
+        {
+          "source": "seed-0001.final.png",
+          "output": "seed-0001.final.png",
+          "encoding": "png-copy",
+          "meaning": "Seed 0x1 final."
+        },
+        {
+          "source": "seed-9e3779b9.final.png",
+          "output": "seed-9e3779b9.final.png",
+          "encoding": "png-copy",
+          "meaning": "Seed 0x9e3779b9 final."
+        },
+        {
+          "source": "temporal.t000.png",
+          "output": "temporal.t000.png",
+          "encoding": "png-copy",
+          "meaning": "Temporal t=0 (sun azimuth baseline)."
+        },
+        {
+          "source": "temporal.t001.png",
+          "output": "temporal.t001.png",
+          "encoding": "png-copy",
+          "meaning": "Temporal t=1/60 (sun azimuth advanced)."
+        }
+      ]
+    },
+    {
+      "labId": "webgpu-rain-snow-and-wet-surfaces",
+      "expectedAcceptanceStatus": "accepted",
+      "artifactDirectory": "artifacts/visual-validation/webgpu-rain-snow-and-wet-surfaces/release-approved-current",
+      "backendProof": "capture-session.json",
+      "claimVerdicts": "evidence-manifest.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "Rain/snow/wet surfaces hardware WebGPU readback",
+      "limitations": [
+        "Correctness and CDP Chrome hardware physical-route visual review pass on the current source closure.",
+        "Named-adapter GPU timestamp timing remains NOT_CLAIMED."
+      ],
+      "images": [
+        {
+          "source": "final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy",
+          "meaning": "Final weather composite"
+        },
+        {
+          "source": "no-post.design.png",
+          "output": "no-post.design.png",
+          "encoding": "png-copy",
+          "meaning": "No-post / raw precipitation path"
+        },
+        {
+          "source": "diagnostics.mosaic.png",
+          "output": "diagnostics.mosaic.png",
+          "encoding": "png-copy",
+          "meaning": "Diagnostics mosaic"
+        },
+        {
+          "source": "camera.near.png",
+          "output": "camera.near.png",
+          "encoding": "png-copy",
+          "meaning": "Near camera"
+        },
+        {
+          "source": "camera.design.png",
+          "output": "camera.design.png",
+          "encoding": "png-copy",
+          "meaning": "Design camera"
+        },
+        {
+          "source": "camera.far.png",
+          "output": "camera.far.png",
+          "encoding": "png-copy",
+          "meaning": "Far camera"
+        },
+        {
+          "source": "seed-0001.final.png",
+          "output": "seed-0001.final.png",
+          "encoding": "png-copy",
+          "meaning": "Seed 0x1 final"
+        },
+        {
+          "source": "seed-9e3779b9.final.png",
+          "output": "seed-9e3779b9.final.png",
+          "encoding": "png-copy",
+          "meaning": "Seed 0x9e3779b9 final"
+        },
+        {
+          "source": "temporal.t000.png",
+          "output": "temporal.t000.png",
+          "encoding": "png-copy",
+          "meaning": "Temporal t0"
+        },
+        {
+          "source": "temporal.t001.png",
+          "output": "temporal.t001.png",
+          "encoding": "png-copy",
+          "meaning": "Temporal t1"
+        }
+      ]
+    },
+    {
+      "labId": "webgpu-shadow-architecture-bench",
+      "expectedAcceptanceStatus": "accepted",
+      "artifactDirectory": "artifacts/visual-validation/webgpu-shadow-architecture-bench/release-approved-current",
+      "backendProof": "capture-session.json",
+      "claimVerdicts": "evidence-manifest.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "Shadow architecture bench hardware WebGPU readback",
+      "limitations": [
+        "Correctness and CDP Chrome hardware physical-route visual review pass on the current source closure.",
+        "Named-adapter GPU timestamp timing remains NOT_CLAIMED."
+      ],
+      "images": [
+        {
+          "source": "final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy",
+          "meaning": "Final shadow composite"
+        },
+        {
+          "source": "no-post.design.png",
+          "output": "no-post.design.png",
+          "encoding": "png-copy",
+          "meaning": "Shadow contribution / no-post path"
+        },
+        {
+          "source": "diagnostics.mosaic.png",
+          "output": "diagnostics.mosaic.png",
+          "encoding": "png-copy",
+          "meaning": "Owner-graph diagnostics"
+        },
+        {
+          "source": "camera.near.png",
+          "output": "camera.near.png",
+          "encoding": "png-copy",
+          "meaning": "Near camera"
+        },
+        {
+          "source": "camera.design.png",
+          "output": "camera.design.png",
+          "encoding": "png-copy",
+          "meaning": "Design camera"
+        },
+        {
+          "source": "camera.far.png",
+          "output": "camera.far.png",
+          "encoding": "png-copy",
+          "meaning": "Far camera"
+        },
+        {
+          "source": "seed-0001.final.png",
+          "output": "seed-0001.final.png",
+          "encoding": "png-copy",
+          "meaning": "Seed 0x1 final"
+        },
+        {
+          "source": "seed-9e3779b9.final.png",
+          "output": "seed-9e3779b9.final.png",
+          "encoding": "png-copy",
+          "meaning": "Seed 0x9e3779b9 final"
+        },
+        {
+          "source": "temporal.t000.png",
+          "output": "temporal.t000.png",
+          "encoding": "png-copy",
+          "meaning": "Temporal t0"
+        },
+        {
+          "source": "temporal.t001.png",
+          "output": "temporal.t001.png",
+          "encoding": "png-copy",
+          "meaning": "Temporal t1"
+        }
+      ]
+    },
+    {
+      "labId": "webgpu-shadow-pipeline-integration",
+      "expectedAcceptanceStatus": "accepted",
+      "artifactDirectory": "artifacts/visual-validation/webgpu-shadow-pipeline-integration/release-approved-current",
+      "backendProof": "capture-session.json",
+      "claimVerdicts": "evidence-manifest.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "Shadow pipeline integration hardware WebGPU readback",
+      "limitations": [
+        "Correctness and CDP Chrome hardware physical-route visual review pass on the current source closure.",
+        "Named-adapter GPU timestamp timing remains NOT_CLAIMED."
+      ],
+      "images": [
+        {
+          "source": "final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy",
+          "meaning": "Final shadow-pipeline composite"
+        },
+        {
+          "source": "no-post.design.png",
+          "output": "no-post.design.png",
+          "encoding": "png-copy",
+          "meaning": "Shadow contribution / no-post path"
+        },
+        {
+          "source": "diagnostics.mosaic.png",
+          "output": "diagnostics.mosaic.png",
+          "encoding": "png-copy",
+          "meaning": "Owner-graph diagnostics"
+        },
+        {
+          "source": "camera.near.png",
+          "output": "camera.near.png",
+          "encoding": "png-copy",
+          "meaning": "Near camera"
+        },
+        {
+          "source": "camera.design.png",
+          "output": "camera.design.png",
+          "encoding": "png-copy",
+          "meaning": "Design camera"
+        },
+        {
+          "source": "camera.far.png",
+          "output": "camera.far.png",
+          "encoding": "png-copy",
+          "meaning": "Far camera"
+        },
+        {
+          "source": "seed-0001.final.png",
+          "output": "seed-0001.final.png",
+          "encoding": "png-copy",
+          "meaning": "Seed 0x1 final"
+        },
+        {
+          "source": "seed-9e3779b9.final.png",
+          "output": "seed-9e3779b9.final.png",
+          "encoding": "png-copy",
+          "meaning": "Seed 0x9e3779b9 final"
+        },
+        {
+          "source": "temporal.t000.png",
+          "output": "temporal.t000.png",
+          "encoding": "png-copy",
+          "meaning": "Temporal t0"
+        },
+        {
+          "source": "temporal.t001.png",
+          "output": "temporal.t001.png",
+          "encoding": "png-copy",
+          "meaning": "Temporal t1"
+        }
+      ]
+    },
+    {
+      "labId": "webgpu-touch-history-frost",
+      "expectedAcceptanceStatus": "accepted",
+      "artifactDirectory": "artifacts/visual-validation/webgpu-touch-history-frost/release-approved-current",
+      "backendProof": "capture-session.json",
+      "claimVerdicts": "evidence-manifest.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "Touch-history Frost hardware WebGPU readback",
+      "limitations": [
+        "Correctness and hardware physical-route visual review pass on the current source closure.",
+        "Named-adapter GPU timestamp timing remains NOT_CLAIMED."
+      ],
+      "images": [
+        {
+          "source": "final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy",
+          "meaning": "Final Frost composite"
+        },
+        {
+          "source": "no-post.design.png",
+          "output": "no-post.design.png",
+          "encoding": "png-copy",
+          "meaning": "No-frost baseline"
+        },
+        {
+          "source": "diagnostics.mosaic.png",
+          "output": "diagnostics.mosaic.png",
+          "encoding": "png-copy",
+          "meaning": "History/deposit/mask mosaic"
+        },
+        {
+          "source": "camera.near.png",
+          "output": "camera.near.png",
+          "encoding": "png-copy",
+          "meaning": "Near camera"
+        },
+        {
+          "source": "camera.design.png",
+          "output": "camera.design.png",
+          "encoding": "png-copy",
+          "meaning": "Design camera"
+        },
+        {
+          "source": "camera.far.png",
+          "output": "camera.far.png",
+          "encoding": "png-copy",
+          "meaning": "Far camera"
+        },
+        {
+          "source": "seed-0001.final.png",
+          "output": "seed-0001.final.png",
+          "encoding": "png-copy",
+          "meaning": "Seed 1"
+        },
+        {
+          "source": "seed-9e3779b9.final.png",
+          "output": "seed-9e3779b9.final.png",
+          "encoding": "png-copy",
+          "meaning": "Seed stress"
+        },
+        {
+          "source": "temporal.t000.png",
+          "output": "temporal.t000.png",
+          "encoding": "png-copy",
+          "meaning": "Temporal t0"
+        },
+        {
+          "source": "temporal.t001.png",
+          "output": "temporal.t001.png",
+          "encoding": "png-copy",
+          "meaning": "Temporal t1"
+        }
+      ]
+    },
+    {
+      "labId": "webgpu-tower-ship-sculptor",
+      "expectedAcceptanceStatus": "accepted",
+      "artifactDirectory": "artifacts/visual-validation/webgpu-tower-ship-sculptor/correctness",
+      "backendProof": "capture-session.json",
+      "claimVerdicts": "claim-verdicts.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "Tower ship sculptor native WebGPU readback",
+      "limitations": [
+        "Performance and GPU attribution remain NOT_CLAIMED unless a hardware performance lane is present.",
+        "Promoted media are native-WebGPU correctness readbacks bound by the accepted release-bundle ledger."
+      ],
+      "images": [
+        {
+          "file": "final.design.png",
+          "meaning": "Final design presentation",
+          "source": "final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "no-post.design.png",
+          "meaning": "No-post / baseline presentation",
+          "source": "no-post.design.png",
+          "output": "no-post.design.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "diagnostics.mosaic.png",
+          "meaning": "Diagnostics mosaic",
+          "source": "diagnostics.mosaic.png",
+          "output": "diagnostics.mosaic.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "camera.near.png",
+          "meaning": "Near camera",
+          "source": "camera.near.png",
+          "output": "camera.near.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "camera.design.png",
+          "meaning": "Design camera",
+          "source": "camera.design.png",
+          "output": "camera.design.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "camera.far.png",
+          "meaning": "Far camera",
+          "source": "camera.far.png",
+          "output": "camera.far.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "seed-0001.final.png",
+          "meaning": "Representative seed final",
+          "source": "seed-0001.final.png",
+          "output": "seed-0001.final.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "seed-9e3779b9.final.png",
+          "meaning": "Stress seed final",
+          "source": "seed-9e3779b9.final.png",
+          "output": "seed-9e3779b9.final.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "temporal.t000.png",
+          "meaning": "Temporal t0",
+          "source": "temporal.t000.png",
+          "output": "temporal.t000.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "temporal.t001.png",
+          "meaning": "Temporal t1",
+          "source": "temporal.t001.png",
+          "output": "temporal.t001.png",
+          "encoding": "png-copy"
+        }
+      ]
+    },
+    {
+      "labId": "webgpu-validation-harness",
+      "expectedAcceptanceStatus": "accepted",
+      "artifactDirectory": "docs/visual-validation/webgpu-validation-harness/bundle",
+      "backendProof": "renderer-info.json",
+      "claimVerdicts": "evidence-manifest.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "Native WebGPU validation harness final readback",
+      "limitations": [
+        "Tracked release projection binds the approved correctness, physical-route, and performance lanes to the current source closure.",
+        "Promoted gallery images are the retained standard correctness readbacks from the accepted release bundle.",
+        "Opaque renderer-internal residency remains unclaimed beyond lab-owned resource ledgers."
+      ],
+      "images": [
+        {
+          "source": "final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy",
+          "meaning": "Final presentation readback from the correctness lane."
+        },
+        {
+          "source": "no-post.design.png",
+          "output": "no-post.design.png",
+          "encoding": "png-copy",
+          "meaning": "No-post baseline from the same locked route."
+        },
+        {
+          "source": "diagnostics.mosaic.png",
+          "output": "diagnostics.mosaic.png",
+          "encoding": "png-copy",
+          "meaning": "Diagnostic mosaic proving distinct mechanism outputs."
+        },
+        {
+          "source": "camera.near.png",
+          "output": "camera.near.png",
+          "encoding": "png-copy",
+          "meaning": "Near camera fixed-view readback."
+        },
+        {
+          "source": "camera.design.png",
+          "output": "camera.design.png",
+          "encoding": "png-copy",
+          "meaning": "Design camera fixed-view readback."
+        },
+        {
+          "source": "camera.far.png",
+          "output": "camera.far.png",
+          "encoding": "png-copy",
+          "meaning": "Far camera fixed-view readback."
+        },
+        {
+          "source": "seed-0001.final.png",
+          "output": "seed-0001.final.png",
+          "encoding": "png-copy",
+          "meaning": "Representative seed final frame."
+        },
+        {
+          "source": "seed-9e3779b9.final.png",
+          "output": "seed-9e3779b9.final.png",
+          "encoding": "png-copy",
+          "meaning": "Stress seed final frame."
+        },
+        {
+          "source": "temporal.t000.png",
+          "output": "temporal.t000.png",
+          "encoding": "png-copy",
+          "meaning": "Temporal sample t0."
+        },
+        {
+          "source": "temporal.t001.png",
+          "output": "temporal.t001.png",
+          "encoding": "png-copy",
+          "meaning": "Temporal sample t1."
+        }
+      ]
+    },
+    {
+      "labId": "webgpu-vegetation-integration",
+      "expectedAcceptanceStatus": "accepted",
+      "artifactDirectory": "artifacts/visual-validation/webgpu-vegetation-integration/correctness",
+      "backendProof": "capture-session.json",
+      "claimVerdicts": "claim-verdicts.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "Vegetation host integration native WebGPU readback",
+      "limitations": [
+        "Performance and GPU attribution remain NOT_CLAIMED unless a hardware performance lane is present.",
+        "Promoted media are native-WebGPU correctness readbacks bound by the accepted release-bundle ledger."
+      ],
+      "images": [
+        {
+          "file": "final.design.png",
+          "meaning": "Final design presentation",
+          "source": "final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "no-post.design.png",
+          "meaning": "No-post / baseline presentation",
+          "source": "no-post.design.png",
+          "output": "no-post.design.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "diagnostics.mosaic.png",
+          "meaning": "Diagnostics mosaic",
+          "source": "diagnostics.mosaic.png",
+          "output": "diagnostics.mosaic.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "camera.near.png",
+          "meaning": "Near camera",
+          "source": "camera.near.png",
+          "output": "camera.near.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "camera.design.png",
+          "meaning": "Design camera",
+          "source": "camera.design.png",
+          "output": "camera.design.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "camera.far.png",
+          "meaning": "Far camera",
+          "source": "camera.far.png",
+          "output": "camera.far.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "seed-0001.final.png",
+          "meaning": "Representative seed final",
+          "source": "seed-0001.final.png",
+          "output": "seed-0001.final.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "seed-9e3779b9.final.png",
+          "meaning": "Stress seed final",
+          "source": "seed-9e3779b9.final.png",
+          "output": "seed-9e3779b9.final.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "temporal.t000.png",
+          "meaning": "Temporal t0",
+          "source": "temporal.t000.png",
+          "output": "temporal.t000.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "temporal.t001.png",
+          "meaning": "Temporal t1",
+          "source": "temporal.t001.png",
+          "output": "temporal.t001.png",
+          "encoding": "png-copy"
+        }
+      ]
+    },
+    {
+      "labId": "webgpu-weather-volume-clouds",
+      "expectedAcceptanceStatus": "accepted",
+      "artifactDirectory": "artifacts/visual-validation/webgpu-weather-volume-clouds/correctness",
+      "backendProof": "capture-session.json",
+      "claimVerdicts": "claim-verdicts.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "Weather volume clouds native WebGPU readback",
+      "limitations": [
+        "Performance and GPU attribution remain NOT_CLAIMED unless a hardware performance lane is present.",
+        "Promoted media are native-WebGPU correctness readbacks bound by the accepted release-bundle ledger."
+      ],
+      "images": [
+        {
+          "file": "final.design.png",
+          "meaning": "Final design presentation",
+          "source": "final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "no-post.design.png",
+          "meaning": "No-post / baseline presentation",
+          "source": "no-post.design.png",
+          "output": "no-post.design.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "diagnostics.mosaic.png",
+          "meaning": "Diagnostics mosaic",
+          "source": "diagnostics.mosaic.png",
+          "output": "diagnostics.mosaic.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "camera.near.png",
+          "meaning": "Near camera",
+          "source": "camera.near.png",
+          "output": "camera.near.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "camera.design.png",
+          "meaning": "Design camera",
+          "source": "camera.design.png",
+          "output": "camera.design.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "camera.far.png",
+          "meaning": "Far camera",
+          "source": "camera.far.png",
+          "output": "camera.far.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "seed-0001.final.png",
+          "meaning": "Representative seed final",
+          "source": "seed-0001.final.png",
+          "output": "seed-0001.final.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "seed-9e3779b9.final.png",
+          "meaning": "Stress seed final",
+          "source": "seed-9e3779b9.final.png",
+          "output": "seed-9e3779b9.final.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "temporal.t000.png",
+          "meaning": "Temporal t0",
+          "source": "temporal.t000.png",
+          "output": "temporal.t000.png",
+          "encoding": "png-copy"
+        },
+        {
+          "file": "temporal.t001.png",
+          "meaning": "Temporal t1",
+          "source": "temporal.t001.png",
+          "output": "temporal.t001.png",
+          "encoding": "png-copy"
+        }
+      ]
+    },
+    {
+      "labId": "webgpu-procedural-creature-lab",
+      "expectedAcceptanceStatus": "incomplete",
+      "artifactDirectory": "artifacts/visual-validation/webgpu-procedural-creature-lab/correctness",
+      "backendProof": "capture-session.json",
+      "claimVerdicts": "evidence-manifest.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "Procedural creature lab correctness presentation",
+      "limitations": [
+        "Captured via CAPTURE_CDP_ENDPOINT on existing Google Chrome (Apple Metal WebGPU).",
+        "GPU performance timestamps NOT_CLAIMED; lab remains incomplete for full acceptance."
+      ],
+      "images": [
+        {
+          "source": "final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy",
+          "meaning": "Final presentation."
+        },
+        {
+          "source": "no-post.design.png",
+          "output": "no-post.design.png",
+          "encoding": "png-copy",
+          "meaning": "No-post alias (off diagnostic)."
+        },
+        {
+          "source": "diagnostics.mosaic.png",
+          "output": "diagnostics.mosaic.png",
+          "encoding": "png-copy",
+          "meaning": "Diagnostics mosaic."
+        },
+        {
+          "source": "camera.design.png",
+          "output": "camera.design.png",
+          "encoding": "png-copy",
+          "meaning": "Design camera."
+        },
+        {
+          "source": "camera.near.png",
+          "output": "camera.near.png",
+          "encoding": "png-copy",
+          "meaning": "Near camera."
+        },
+        {
+          "source": "camera.far.png",
+          "output": "camera.far.png",
+          "encoding": "png-copy",
+          "meaning": "Far camera."
+        },
+        {
+          "source": "seed-0001.final.png",
+          "output": "seed-0001.final.png",
+          "encoding": "png-copy",
+          "meaning": "Seed 0x1."
+        },
+        {
+          "source": "seed-9e3779b9.final.png",
+          "output": "seed-9e3779b9.final.png",
+          "encoding": "png-copy",
+          "meaning": "Seed 0x9e3779b9."
+        },
+        {
+          "source": "temporal.t000.png",
+          "output": "temporal.t000.png",
+          "encoding": "png-copy",
+          "meaning": "Temporal t0."
+        },
+        {
+          "source": "temporal.t001.png",
+          "output": "temporal.t001.png",
+          "encoding": "png-copy",
+          "meaning": "Temporal t1/60."
+        }
+      ]
+    },
+    {
+      "labId": "webgpu-temporal-history",
+      "expectedAcceptanceStatus": "accepted",
+      "artifactDirectory": "artifacts/visual-validation/webgpu-temporal-history/release-approved-current",
+      "backendProof": "capture-session.json",
+      "claimVerdicts": "evidence-manifest.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "Temporal history hardware WebGPU readback",
+      "limitations": [
+        "Correctness and CDP Chrome hardware physical-route visual review pass on the current source closure.",
+        "Named-adapter GPU timestamp timing remains NOT_CLAIMED."
+      ],
+      "images": [
+        {
+          "source": "final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy",
+          "meaning": "Final temporal composite"
+        },
+        {
+          "source": "no-post.design.png",
+          "output": "no-post.design.png",
+          "encoding": "png-copy",
+          "meaning": "No-post / HDR path"
+        },
+        {
+          "source": "diagnostics.mosaic.png",
+          "output": "diagnostics.mosaic.png",
+          "encoding": "png-copy",
+          "meaning": "Temporal-history diagnostic"
+        },
+        {
+          "source": "camera.near.png",
+          "output": "camera.near.png",
+          "encoding": "png-copy",
+          "meaning": "Near camera"
+        },
+        {
+          "source": "camera.design.png",
+          "output": "camera.design.png",
+          "encoding": "png-copy",
+          "meaning": "Design camera"
+        },
+        {
+          "source": "camera.far.png",
+          "output": "camera.far.png",
+          "encoding": "png-copy",
+          "meaning": "Far camera"
+        },
+        {
+          "source": "seed-0001.final.png",
+          "output": "seed-0001.final.png",
+          "encoding": "png-copy",
+          "meaning": "Seed 0x1 final"
+        },
+        {
+          "source": "seed-9e3779b9.final.png",
+          "output": "seed-9e3779b9.final.png",
+          "encoding": "png-copy",
+          "meaning": "Seed 0x9e3779b9 final"
+        },
+        {
+          "source": "temporal.t000.png",
+          "output": "temporal.t000.png",
+          "encoding": "png-copy",
+          "meaning": "Temporal t0"
+        },
+        {
+          "source": "temporal.t001.png",
+          "output": "temporal.t001.png",
+          "encoding": "png-copy",
+          "meaning": "Temporal t1"
+        }
+      ]
+    },
+    {
+      "labId": "integration-image-pipeline-ao",
+      "expectedAcceptanceStatus": "accepted",
+      "artifactDirectory": "artifacts/visual-validation/integration-image-pipeline-ao/correctness",
+      "backendProof": "capture-session.json",
+      "claimVerdicts": "claim-verdicts.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "Image-pipeline AO integration final presentation (from demo browserEntry)",
+      "limitations": [
+        "Evidence pixels are native-WebGPU readbacks from threejs-ambient-contact-shading/examples/integration-image-pipeline-ao/index.html (the live demo), not substitute gallery art.",
+        "Tracked v2 release bundle: docs/visual-validation/integration-image-pipeline-ao/bundle.",
+        "hardwarePerformance remains NOT_CLAIMED without named-adapter GPU timestamps."
+      ],
+      "images": [
+        {
+          "source": "final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy",
+          "meaning": "final.design.png from demo capture"
+        },
+        {
+          "source": "diagnostics.mosaic.png",
+          "output": "diagnostics.mosaic.png",
+          "encoding": "png-copy",
+          "meaning": "diagnostics.mosaic.png from demo capture"
+        },
+        {
+          "source": "camera.near.png",
+          "output": "camera.near.png",
+          "encoding": "png-copy",
+          "meaning": "camera.near.png from demo capture"
+        },
+        {
+          "source": "camera.design.png",
+          "output": "camera.design.png",
+          "encoding": "png-copy",
+          "meaning": "camera.design.png from demo capture"
+        },
+        {
+          "source": "camera.far.png",
+          "output": "camera.far.png",
+          "encoding": "png-copy",
+          "meaning": "camera.far.png from demo capture"
+        },
+        {
+          "source": "seed-0001.final.png",
+          "output": "seed-0001.final.png",
+          "encoding": "png-copy",
+          "meaning": "seed-0001.final.png from demo capture"
+        },
+        {
+          "source": "seed-9e3779b9.final.png",
+          "output": "seed-9e3779b9.final.png",
+          "encoding": "png-copy",
+          "meaning": "seed-9e3779b9.final.png from demo capture"
+        },
+        {
+          "source": "temporal.t000.png",
+          "output": "temporal.t000.png",
+          "encoding": "png-copy",
+          "meaning": "temporal.t000.png from demo capture"
+        },
+        {
+          "source": "temporal.t001.png",
+          "output": "temporal.t001.png",
+          "encoding": "png-copy",
+          "meaning": "temporal.t001.png from demo capture"
+        }
+      ]
+    },
+    {
+      "labId": "webgpu-bounded-water",
+      "expectedAcceptanceStatus": "accepted",
+      "artifactDirectory": "artifacts/visual-validation/webgpu-bounded-water/correctness",
+      "backendProof": "capture-session.json",
+      "claimVerdicts": "evidence-manifest.json",
+      "primaryImage": "final.design.png",
+      "primaryImageLabel": "webgpu-bounded-water final readback",
+      "limitations": [
+        "Correctness capture records native r185 WebGPUBackend with device identity proof via existing Google Chrome CDP.",
+        "GPU timestamps / 60 Hz hardwarePerformance remain NOT_CLAIMED.",
+        "Lab acceptance remains incomplete where not already accepted."
+      ],
+      "images": [
+        {
+          "source": "final.design.png",
+          "output": "final.design.png",
+          "encoding": "png-copy",
+          "meaning": "Primary final readback."
+        },
+        {
+          "source": "no-post.design.png",
+          "output": "no-post.design.png",
+          "encoding": "png-copy",
+          "meaning": "No-post / alternate display path readback."
+        },
+        {
+          "source": "diagnostics.mosaic.png",
+          "output": "diagnostics.mosaic.png",
+          "encoding": "png-copy",
+          "meaning": "Diagnostics display readback."
+        }
+      ]
+    },
+    {
+      "labId": "creature-habitat",
+      "classification": "inspected-runtime-evidence-preview"
+    },
+    {
+      "labId": "final-image-flight",
+      "classification": "inspected-runtime-evidence-preview"
+    },
+    {
+      "labId": "node-selective-bloom",
+      "classification": "inspected-runtime-evidence-preview"
+    }
+  ]
+}

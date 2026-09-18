@@ -1,0 +1,241 @@
+{
+  "schemaVersion": 2,
+  "id": "webgpu-camera-rig",
+  "skill": "threejs-camera-controls-and-rigs",
+  "threeRevision": "0.185.1",
+  "kind": "canonical-lab",
+  "status": "accepted",
+  "canonicalSource": [
+    "threejs-camera-controls-and-rigs/examples/webgpu-camera-rig/CameraDirectionController.mjs",
+    "threejs-camera-controls-and-rigs/examples/webgpu-camera-rig/CameraRelativeOrigin.mjs",
+    "threejs-camera-controls-and-rigs/examples/webgpu-camera-rig/routeState.mjs",
+    "threejs-camera-controls-and-rigs/examples/webgpu-camera-rig/main.mjs",
+    "threejs-camera-controls-and-rigs/examples/webgpu-camera-rig/browser.mjs",
+    "threejs-camera-controls-and-rigs/examples/webgpu-camera-rig/index.html",
+    "threejs-camera-controls-and-rigs/examples/webgpu-camera-rig/mechanism/scale-aware-framing/index.html",
+    "threejs-camera-controls-and-rigs/examples/webgpu-camera-rig/mechanism/handoff-and-replay/index.html",
+    "threejs-camera-controls-and-rigs/examples/webgpu-camera-rig/mechanism/pointer-orbit-and-collision/index.html",
+    "threejs-camera-controls-and-rigs/examples/webgpu-camera-rig/mechanism/floating-origin/index.html",
+    "threejs-camera-controls-and-rigs/examples/webgpu-camera-rig/mechanism/projection-and-depth/index.html",
+    "threejs-camera-controls-and-rigs/examples/webgpu-camera-rig/mechanism/shared-jitter-and-velocity/index.html",
+    "threejs-camera-controls-and-rigs/examples/webgpu-camera-rig/tier/full/index.html",
+    "threejs-camera-controls-and-rigs/examples/webgpu-camera-rig/tier/budgeted/index.html",
+    "threejs-camera-controls-and-rigs/examples/webgpu-camera-rig/tier/minimum/index.html"
+  ],
+  "browserEntry": "threejs-camera-controls-and-rigs/examples/webgpu-camera-rig/index.html",
+  "publishPath": "/demos/webgpu-camera-rig/",
+  "scenarios": [
+    {
+      "id": "default",
+      "acceptanceStatus": "accepted"
+    }
+  ],
+  "mechanisms": [
+    {
+      "id": "scale-aware-framing",
+      "route": "mechanism/scale-aware-framing/",
+      "acceptanceStatus": "accepted"
+    },
+    {
+      "id": "handoff-and-replay",
+      "route": "mechanism/handoff-and-replay/",
+      "acceptanceStatus": "accepted"
+    },
+    {
+      "id": "pointer-orbit-and-collision",
+      "route": "mechanism/pointer-orbit-and-collision/",
+      "acceptanceStatus": "accepted"
+    },
+    {
+      "id": "floating-origin",
+      "route": "mechanism/floating-origin/",
+      "acceptanceStatus": "accepted"
+    },
+    {
+      "id": "projection-and-depth",
+      "route": "mechanism/projection-and-depth/",
+      "acceptanceStatus": "accepted"
+    },
+    {
+      "id": "shared-jitter-and-velocity",
+      "route": "mechanism/shared-jitter-and-velocity/",
+      "acceptanceStatus": "accepted"
+    }
+  ],
+  "tiers": [
+    {
+      "id": "full",
+      "targetClass": "current native-WebGPU adapter",
+      "frameTargetMs": null,
+      "resolutionPolicy": {
+        "dprCap": {
+          "value": 2,
+          "unit": "ratio",
+          "label": "Authored",
+          "source": "camera lab tier"
+        }
+      },
+      "mechanismLimits": {
+        "collision": true,
+        "thrustLag": true,
+        "floatingOrigin": true
+      },
+      "resourceLimits": {},
+      "degradationFromPrevious": [],
+      "preservedInvariants": [
+        "body-relative basis",
+        "one camera owner",
+        "one output owner"
+      ],
+      "acceptanceStatus": "accepted"
+    },
+    {
+      "id": "budgeted",
+      "targetClass": "current native-WebGPU adapter",
+      "frameTargetMs": null,
+      "resolutionPolicy": {
+        "dprCap": {
+          "value": 1.5,
+          "unit": "ratio",
+          "label": "Authored",
+          "source": "camera lab tier"
+        }
+      },
+      "mechanismLimits": {
+        "collision": true,
+        "thrustLag": true,
+        "floatingOrigin": true
+      },
+      "resourceLimits": {},
+      "degradationFromPrevious": [
+        "lower DPR cap"
+      ],
+      "preservedInvariants": [
+        "body-relative basis",
+        "one camera owner",
+        "one output owner"
+      ],
+      "acceptanceStatus": "accepted"
+    },
+    {
+      "id": "minimum",
+      "targetClass": "current native-WebGPU adapter",
+      "frameTargetMs": null,
+      "resolutionPolicy": {
+        "dprCap": {
+          "value": 1,
+          "unit": "ratio",
+          "label": "Authored",
+          "source": "camera lab tier"
+        }
+      },
+      "mechanismLimits": {
+        "collision": false,
+        "thrustLag": false,
+        "floatingOrigin": true
+      },
+      "resourceLimits": {},
+      "degradationFromPrevious": [
+        "disable optional collision",
+        "disable optional thrust lag",
+        "lower DPR cap"
+      ],
+      "preservedInvariants": [
+        "body-relative basis",
+        "one camera owner",
+        "one output owner",
+        "native WebGPU"
+      ],
+      "acceptanceStatus": "accepted"
+    }
+  ],
+  "modes": [
+    "final",
+    "no-post",
+    "diagnostics",
+    "overview",
+    "profile",
+    "inspection"
+  ],
+  "cameras": [
+    "near",
+    "design",
+    "far"
+  ],
+  "seeds": [
+    1,
+    2654435769
+  ],
+  "capabilityRequirements": [
+    {
+      "id": "native-webgpu",
+      "required": true,
+      "evidence": "capture-session WebGPUBackend device identity + raw-capture-session evidence-manifest validates under current sourceHash.",
+      "status": "accepted"
+    },
+    {
+      "id": "storage-buffer",
+      "required": true,
+      "evidence": "origin storage is part of the camera-rig controller contract; dedicated storage binary ledger residual for full acceptance.",
+      "status": "incomplete"
+    }
+  ],
+  "runtimeProof": [
+    {
+      "id": "renderer-init",
+      "required": true,
+      "evidence": "capture-session reports initialized===true and active device generation.",
+      "status": "accepted"
+    },
+    {
+      "id": "backend-is-webgpu",
+      "required": true,
+      "evidence": "rendererBackendEvidence.isWebGPUBackend===true on correctness capture-session.",
+      "status": "accepted"
+    },
+    {
+      "id": "mechanism-reachable",
+      "required": true,
+      "evidence": "final/no-post/diagnostics presentation modes captured on the host camera-rig controller.",
+      "status": "accepted"
+    },
+    {
+      "id": "aligned-readback",
+      "required": true,
+      "evidence": "normalized/transport padded RGBA8 readbacks present for presentation targets.",
+      "status": "accepted"
+    },
+    {
+      "id": "mrt-readback",
+      "required": true,
+      "evidence": "MRT attachment recipes residual; primary presentation readbacks only on this package.",
+      "status": "incomplete"
+    },
+    {
+      "id": "origin-storage-readback",
+      "required": true,
+      "evidence": "origin storage binary ledger residual for full acceptance.",
+      "status": "incomplete"
+    },
+    {
+      "id": "current-adapter-gpu-timestamp",
+      "required": true,
+      "evidence": "timestampQueriesActive remains false for correctness profile; GPU timing is not accepted as performance evidence.",
+      "status": "incomplete"
+    }
+  ],
+  "evidenceContract": "v2",
+  "evidenceBundle": "docs/visual-validation/webgpu-camera-rig/bundle",
+  "validationCommand": "node threejs-camera-controls-and-rigs/examples/webgpu-camera-rig/cameraValidation.mjs",
+  "commands": {
+    "check": "npm --prefix threejs-camera-controls-and-rigs/examples/webgpu-camera-rig run check",
+    "test": "npm --prefix threejs-camera-controls-and-rigs/examples/webgpu-camera-rig run validate:unit",
+    "mutations": "npm --prefix threejs-camera-controls-and-rigs/examples/webgpu-camera-rig run test:mutations",
+    "capture": "npm --prefix threejs-camera-controls-and-rigs/examples/webgpu-camera-rig run capture",
+    "validateArtifacts": "npm --prefix threejs-camera-controls-and-rigs/examples/webgpu-camera-rig run validate:artifacts",
+    "validateQuick": "npm --prefix threejs-camera-controls-and-rigs/examples/webgpu-camera-rig run validate:quick",
+    "validateFull": "npm --prefix threejs-camera-controls-and-rigs/examples/webgpu-camera-rig run validate:full"
+  },
+  "sourceHash": null,
+  "proxyStatus": null
+}

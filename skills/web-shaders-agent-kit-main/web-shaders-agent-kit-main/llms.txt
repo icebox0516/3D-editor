@@ -1,0 +1,33 @@
+# Web Shaders — Agent Documentation Manifest
+
+> A curated set of authoritative, LLM-friendly documentation sources for web shaders (GLSL, WGSL, WebGL, WebGPU, Three.js, React Three Fiber). Point an agent at these to ground its shader work in real APIs instead of guesses. Sources marked `llms.txt` are already formatted for LLM ingestion.
+
+## Engines & Frameworks
+
+- [Three.js llms.txt](https://threejs.org/docs/llms.txt): Official LLM-guidance doc — WebGLRenderer, WebGPURenderer, and TSL.
+- [Three.js llms-full.txt](https://threejs.org/docs/llms-full.txt): Full Three.js API bundle for deep context.
+- [React Three Fiber llms.txt](https://r3f.docs.pmnd.rs/llms.txt): R3F API index (Canvas, hooks, events).
+- [drei llms.txt](https://drei.docs.pmnd.rs/llms.txt): drei helpers, including shaderMaterial and effects.
+- [Babylon.js llms.txt](https://doc.babylonjs.com/llms.txt): Babylon engine docs, including WebGPU and WGSL.
+
+## Shading Languages
+
+- [WGSL Specification](https://www.w3.org/TR/WGSL/): The official WebGPU Shading Language spec.
+- [WebGPU Specification](https://www.w3.org/TR/webgpu/): The official WebGPU API spec.
+- [WESL llms.txt](https://wesl-lang.dev/llms.txt): A modular superset of WGSL with imports.
+- [Shaderific GLSL Reference](https://shaderific.com/glsl.html): GLSL built-in functions and types.
+
+## Learning & Technique
+
+- [WebGL2 Fundamentals](https://webgl2fundamentals.org): WebGL 2 and GLSL ES 3.00 from scratch.
+- [WebGPU Fundamentals](https://webgpufundamentals.org): WebGPU and WGSL from first principles.
+- [The Book of Shaders](https://thebookofshaders.com): Fragment shaders, shaping functions, and noise.
+- [Inigo Quilez — Articles](https://iquilezles.org/articles/): Raymarching, SDFs, and procedural techniques.
+
+## Reusable Code
+
+- [Lygia](https://lygia.xyz): Cross-language (GLSL/WGSL) library of noise, SDF, easing, and color functions.
+
+## Retrieval
+
+- [Context7 — Three.js](https://context7.com/websites/threejs): Continuously indexed Three.js docs, retrievable via the Context7 MCP server.

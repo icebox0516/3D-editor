@@ -1,0 +1,20 @@
+{
+  "//": "Recommended MCP servers for web-shader work. Merge the entries you want into your client's MCP config (e.g. Claude Code: `claude mcp add`, or a project .mcp.json; Cursor: .cursor/mcp.json). Verify each server's own README for the latest command and required env/keys.",
+
+  "mcpServers": {
+    "context7": {
+      "//": "Live, version-accurate docs for Three.js, R3F, and many libraries. Ask the agent to 'use context7' when it needs an API. See https://github.com/upstash/context7",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    },
+
+    "shadertoy": {
+      "//": "Lets the agent search and read Shadertoy to learn from and generate GLSL. See https://github.com/wilsonchenghy/ShaderToy-MCP (requires a Shadertoy API key; follow its README).",
+      "command": "python",
+      "args": ["-m", "shadertoy_mcp"],
+      "env": {
+        "SHADERTOY_API_KEY": "<your-shadertoy-app-key>"
+      }
+    }
+  }
+}

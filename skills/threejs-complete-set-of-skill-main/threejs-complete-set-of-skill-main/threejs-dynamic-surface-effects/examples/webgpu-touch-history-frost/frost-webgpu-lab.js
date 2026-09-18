@@ -1,0 +1,945 @@
+import {
+  AmbientLight,
+  BoxGeometry,
+  Color,
+  DirectionalLight,
+  Mesh,
+  MeshStandardNodeMaterial,
+  PerspectiveCamera,
+  REVISION,
+  RendererUtils,
+  RenderTarget,
+  Scene,
+  SphereGeometry,
+  UnsignedByteType,
+  Vector2,
+  WebGPURenderer,
+} from "three/webgpu";
+import { color } from "three/tsl";
+
+import { runLifecycleProfile as runSharedLifecycleProfile } from "../../../labs/runtime/lifecycle-profile.mjs";
+import {
+  FROST_MECHANISMS,
+  FROST_QUALITY_TIERS,
+  createWebGPUTouchHistoryFrostEffect,
+} from "./frost-surface-effect.js";
+import {
+  FROST_ALL_CAPTURE_RECIPES,
+  FROST_CAPTURE_RECIPES,
+  FROST_COVERAGE_PROBE_RECIPES,
+  FROST_ROUTE_PROBE_RECIPES,
+  resolveFrostCaptureRecipe,
+} from "./capture-recipes.js";
+import {
+  canonicalFrostEvidenceJson,
+  runFrostCaptureTransaction,
+  sha256FrostEvidence,
+} from "./capture-transaction.js";
+
+export const FROST_MODE_TO_DEBUG_VIEW = Object.freeze({
+  final: "final",
+  "no-post": "scene color",
+  diagnostics: "next history R/A",
+  "scene-color": "scene color",
+  "vertical-blur": "vertical blur",
+  "horizontal-blur": "horizontal blur",
+  "frost-noise": "frost noise",
+  "frozen-structure": "frozen structure",
+  "highlight-structure": "highlight structure",
+  "previous-history-ra": "previous history R/A",
+  "deposit-ra": "deposit R/A",
+  "next-history-ra": "next history R/A",
+  "frost-mask-before-pointer": "frost mask before pointer",
+  "frost-mask-after-pointer": "frost mask after pointer",
+  "sharp-blur-mix": "sharp/blur mix",
+  "main-refraction-offset": "main refraction offset",
+  "detail-refraction-offset": "detail refraction offset",
+  "final-without-refraction": "final without refraction",
+});
+
+export const FROST_LAB_MODES = Object.freeze(Object.keys(FROST_MODE_TO_DEBUG_VIEW));
+export const FROST_LAB_ID = "webgpu-touch-history-frost";
+export const FROST_SCENARIO_ID = "touch-history-frost";
+const FROST_RUNTIME_PROFILES = Object.freeze(["correctness", "performance"]);
+const FROST_DEFAULT_ROUTE_STATE = Object.freeze({
+  scenario: FROST_SCENARIO_ID,
+  mechanism: "refraction-and-fresnel",
+  tier: "balanced",
+  mode: "final",
+});
+
+export function describeRendererAdapter(backend, device) {
+  const adapter = backend?.adapter ?? null;
+  const sourceInfo = device?.adapterInfo ?? adapter?.info ?? null;
+  const info = {};
+  for (const key of ["vendor", "architecture", "device", "description"]) {
+    if (typeof sourceInfo?.[key] === "string" && sourceInfo[key].length > 0) info[key] = sourceInfo[key];
+  }
+  const isFallbackAdapter = adapter?.isFallbackAdapter === true;
+  const description = Object.values(info).join(" ").toLowerCase();
+  const software = isFallbackAdapter || /swiftshader|software|llvmpipe|lavapipe/.test(description);
+  const adapterClass = software ? "software" : (Object.keys(info).length > 0 ? "hardware" : "unknown");
+  return Object.freeze({
+    adapterClass,
+    identity: Object.freeze({
+      source: device?.adapterInfo ? "renderer.backend.device.adapterInfo" : (adapter?.info ? "renderer.backend.adapter.info" : "unavailable"),
+      isFallbackAdapter,
+      info: Object.freeze(info),
+    }),
+  });
+}
+const FROST_CAMERA_POSES = Object.freeze({
+  near: Object.freeze({ position: Object.freeze([0, 0.6, 6.1]), target: Object.freeze([0, 0, 0]) }),
+  design: Object.freeze({ position: Object.freeze([0, 1.2, 10.2]), target: Object.freeze([0, 0, 0]) }),
+  far: Object.freeze({ position: Object.freeze([0, 3.8, 17]), target: Object.freeze([0, 0, 0]) }),
+});
+const FROST_LIFECYCLE_EXTENTS = Object.freeze([
+  Object.freeze({ width: 641, height: 359, dpr: 1 }),
+  Object.freeze({ width: 320, height: 180, dpr: 1.5 }),
+  Object.freeze({ width: 400, height: 300, dpr: 2 }),
+]);
+const FROST_LIFECYCLE_TIERS = Object.freeze(["full", "balanced", "budgeted"]);
+const FROST_LIFECYCLE_MODES = Object.freeze(["final", "next-history-ra", "frost-mask-after-pointer"]);
+
+const FROST_DEBUG_VIEW_TO_MODE = Object.freeze(Object.fromEntries(
+  Object.entries(FROST_MODE_TO_DEBUG_VIEW).map(([mode, debugView]) => [debugView, mode]),
+));
+
+function applyFrostCameraPose(camera, id) {
+  const pose = FROST_CAMERA_POSES[id];
+  if (!pose) throw new RangeError(`unknown frost camera "${id}"`);
+  camera.position.fromArray(pose.position);
+  camera.lookAt(...pose.target);
+}
+
+export function frostLifecycleCyclePlan(cycle) {
+  if (!Number.isInteger(cycle) || cycle < 0) throw new RangeError("frost lifecycle cycle must be a nonnegative integer");
+  const extent = FROST_LIFECYCLE_EXTENTS[cycle % FROST_LIFECYCLE_EXTENTS.length];
+  return Object.freeze({
+    ...extent,
+    tier: FROST_LIFECYCLE_TIERS[cycle % FROST_LIFECYCLE_TIERS.length],
+    mode: FROST_LIFECYCLE_MODES[cycle % FROST_LIFECYCLE_MODES.length],
+    resetCause: `frost-lifecycle-cycle-${cycle}`,
+  });
+}
+
+export function parseFrostLabRoute(pathname = "/", search = "") {
+  const params = new URLSearchParams(search);
+  const segments = pathname.split("/").filter(Boolean);
+  const mechanismIndex = segments.lastIndexOf("mechanism");
+  const tierIndex = segments.lastIndexOf("tier");
+  if (mechanismIndex >= 0 && tierIndex >= 0) {
+    throw new RangeError("frost routes cannot lock mechanism and tier simultaneously");
+  }
+  if (params.has("mechanism") || params.has("tier")) {
+    throw new RangeError("frost fixed startup state must be selected by the route path, not query parameters");
+  }
+  const routeKind = mechanismIndex >= 0 ? "mechanism" : (tierIndex >= 0 ? "tier" : "canonical");
+  const routeIndex = routeKind === "mechanism" ? mechanismIndex : tierIndex;
+  const routeTail = routeIndex >= 0 ? segments.slice(routeIndex + 1) : [];
+  const validRouteTail = routeTail.length === 1
+    || (routeTail.length === 2 && routeTail[1] === "index.html");
+  if (routeIndex >= 0 && !validRouteTail) {
+    throw new RangeError(`frost ${routeKind} route contains unexpected path segments`);
+  }
+  const mechanism = routeKind === "mechanism"
+    ? segments[mechanismIndex + 1]
+    : FROST_DEFAULT_ROUTE_STATE.mechanism;
+  const tier = routeKind === "tier"
+    ? segments[tierIndex + 1]
+    : FROST_DEFAULT_ROUTE_STATE.tier;
+  if (!FROST_MECHANISMS.includes(mechanism)) {
+    throw new RangeError(`unknown frost mechanism "${mechanism}"`);
+  }
+  if (!FROST_QUALITY_TIERS[tier]) throw new RangeError(`unknown frost tier "${tier}"`);
+  return Object.freeze({
+    ...FROST_DEFAULT_ROUTE_STATE,
+    mechanism,
+    tier,
+    routeKind,
+    locks: Object.freeze({
+      scenario: true,
+      mechanism: routeKind === "mechanism",
+      tier: routeKind === "tier",
+    }),
+  });
+}
+
+function createBackdropScene() {
+  const scene = new Scene();
+  scene.background = new Color(0x294a63);
+  scene.add(new AmbientLight(0xa8c8ed, 1.35));
+  const sun = new DirectionalLight(0xffe2bd, 3.8);
+  sun.position.set(4, 8, 5);
+  scene.add(sun);
+
+  const objects = [];
+  const addObject = (mesh, geometry, material) => {
+    scene.add(mesh);
+    objects.push({ mesh, geometry, material });
+    return mesh;
+  };
+
+  for (let index = 0; index < 9; index += 1) {
+    const railGeometry = new BoxGeometry(0.1, 4.8, 0.12);
+    const railMaterial = new MeshStandardNodeMaterial({ roughness: 0.42, metalness: 0 });
+    const railColor = index % 2 === 0 ? 0x8bdcf4 : 0xf7b267;
+    railMaterial.colorNode = color(railColor);
+    railMaterial.emissiveNode = color(railColor).mul(0.38);
+    const rail = new Mesh(railGeometry, railMaterial);
+    rail.position.set(-4 + index, 0.35, -2.2);
+    addObject(rail, railGeometry, railMaterial);
+  }
+
+  for (const y of [-1.25, 1.95]) {
+    const railGeometry = new BoxGeometry(8.2, 0.1, 0.12);
+    const railMaterial = new MeshStandardNodeMaterial({ roughness: 0.42, metalness: 0 });
+    railMaterial.colorNode = color(0xb9e6ff);
+    railMaterial.emissiveNode = color(0xb9e6ff).mul(0.3);
+    const rail = new Mesh(railGeometry, railMaterial);
+    rail.position.set(0, y, -2.2);
+    addObject(rail, railGeometry, railMaterial);
+  }
+
+  const boxGeometry = new BoxGeometry(2.4, 2.4, 2.4, 4, 4, 4);
+  const boxMaterial = new MeshStandardNodeMaterial({ roughness: 0.32, metalness: 0.12 });
+  boxMaterial.colorNode = color(0xe46f56);
+  const box = new Mesh(boxGeometry, boxMaterial);
+  box.position.set(-2.3, 0.1, 0);
+  box.rotation.set(0.5, 0.7, 0.1);
+  addObject(box, boxGeometry, boxMaterial);
+
+  const sphereGeometry = new SphereGeometry(1.45, 48, 28);
+  const sphereMaterial = new MeshStandardNodeMaterial({ roughness: 0.2, metalness: 0.58 });
+  sphereMaterial.colorNode = color(0x56aee4);
+  const sphere = new Mesh(sphereGeometry, sphereMaterial);
+  sphere.position.set(2.1, 0.35, -0.3);
+  addObject(sphere, sphereGeometry, sphereMaterial);
+
+  const floorGeometry = new BoxGeometry(10, 0.3, 7);
+  const floorMaterial = new MeshStandardNodeMaterial({ roughness: 0.78, metalness: 0 });
+  floorMaterial.colorNode = color(0x31404f);
+  const floor = new Mesh(floorGeometry, floorMaterial);
+  floor.position.y = -1.55;
+  addObject(floor, floorGeometry, floorMaterial);
+
+  return {
+    scene,
+    objects,
+    dispose() {
+      for (const object of objects) {
+        object.geometry.dispose();
+        object.material.dispose();
+      }
+    },
+  };
+}
+
+export class WebGPUFrostLab {
+  constructor({
+    canvas,
+    tier = "balanced",
+    mechanism = "history-and-deposit",
+    seed = 1,
+    runtimeProfile = "correctness",
+    routeLocks = {},
+  } = {}) {
+    this.canvas = canvas;
+    if (!FROST_RUNTIME_PROFILES.includes(runtimeProfile)) {
+      throw new RangeError(`unknown frost runtime profile "${runtimeProfile}"`);
+    }
+    this.runtimeProfile = runtimeProfile;
+    this.scenario = FROST_SCENARIO_ID;
+    this.tier = FROST_QUALITY_TIERS[tier];
+    if (!this.tier) throw new RangeError(`unknown frost tier "${tier}"`);
+    if (!FROST_MECHANISMS.includes(mechanism)) throw new RangeError(`unknown frost mechanism "${mechanism}"`);
+    this.mechanism = mechanism;
+    this.routeLocks = Object.freeze({
+      scenario: routeLocks.scenario === true,
+      mechanism: routeLocks.mechanism === true,
+      tier: routeLocks.tier === true,
+    });
+    this.seed = seed >>> 0;
+    this.mode = "final";
+    this.cameraId = "design";
+    this.pointer = {
+      start: { x: 0.5, y: 0.5 },
+      end: { x: 0.5, y: 0.5 },
+      pressure: 0,
+      active: false,
+    };
+    this.time = 0;
+    this.captureTransactionActive = null;
+    this.captureTransactionPoison = null;
+    this.captureTransactionSequence = 0;
+    this.captureRecipeSetDigest = null;
+    this.captureTargetSequence = 0;
+    this.deviceErrors = [];
+    this.labOwnedListenerCount = 0;
+    this.rendererStateBeforeDigest = null;
+    this.rendererStateAfterDigest = null;
+    this.disposeEvidence = null;
+    this.disposed = false;
+  }
+
+  async initialize() {
+    const timestampQueriesRequested = this.runtimeProfile === "performance";
+    this.renderer = new WebGPURenderer({
+      canvas: this.canvas,
+      antialias: false,
+      trackTimestamp: timestampQueriesRequested,
+    });
+    await this.renderer.init();
+    if (this.renderer.backend?.isWebGPUBackend !== true) {
+      throw new Error("WebGPU is required for the canonical dynamic-surface path");
+    }
+    this.rendererDevice = this.renderer.backend.device ?? null;
+    if (!this.rendererDevice) throw new Error("Native WebGPU backend did not expose its initialized GPUDevice");
+    this.rendererAdapterEvidence = describeRendererAdapter(this.renderer.backend, this.rendererDevice);
+    this.rendererDeviceGeneration = 1;
+    this.deviceLossGeneration = 0;
+    this.rendererDeviceStatus = "active";
+    this.deviceLostObserved = false;
+    this.lossPromiseObservedOnActualDevice = Boolean(this.rendererDevice.lost?.then);
+    this.uncapturedErrorHandler = (event) => {
+      this.deviceErrors.push(String(event?.error?.message ?? event?.error ?? "unknown WebGPU uncaptured error"));
+    };
+    this.rendererDevice.addEventListener?.("uncapturederror", this.uncapturedErrorHandler);
+    this.labOwnedListenerCount = typeof this.rendererDevice.addEventListener === "function" ? 1 : 0;
+    if (this.lossPromiseObservedOnActualDevice) {
+      this.rendererDevice.lost.then(() => {
+        if (this.rendererDeviceStatus === "disposing" || this.rendererDeviceStatus === "disposed") return;
+        this.deviceLostObserved = true;
+        this.deviceLossGeneration += 1;
+        this.rendererDeviceStatus = "lost";
+      });
+    }
+    const width = Math.max(1, this.canvas?.clientWidth || this.canvas?.width || 1200);
+    const height = Math.max(1, this.canvas?.clientHeight || this.canvas?.height || 800);
+    this.renderer.setSize(width, height, false);
+    this.backdrop = createBackdropScene();
+    this.scene = this.backdrop.scene;
+    this.camera = new PerspectiveCamera(48, width / height, 0.1, 100);
+    applyFrostCameraPose(this.camera, "design");
+    this.effect = createWebGPUTouchHistoryFrostEffect({
+      renderer: this.renderer,
+      scene: this.scene,
+      camera: this.camera,
+      width,
+      height,
+      tier: this.tier.id,
+      mechanism: this.mechanism,
+      seed: this.seed,
+    });
+    await this.effect.initialize();
+    this.effect.setDebugView(FROST_MODE_TO_DEBUG_VIEW.final);
+    this.renderPipeline = this.effect.renderPipeline;
+    this.captureRecipeSetDigest = await sha256FrostEvidence(FROST_ALL_CAPTURE_RECIPES);
+    this.mode = FROST_DEBUG_VIEW_TO_MODE[this.effect.debugView] ?? "final";
+    this.initialized = true;
+    this.rendererStateBeforeDigest = await sha256FrostEvidence(this.#rendererStateEvidence("active"));
+    return this;
+  }
+
+  #rendererStateEvidence(disposition) {
+    return Object.freeze({
+      labId: FROST_LAB_ID,
+      disposition,
+      outputColorSpace: this.renderer?.outputColorSpace ?? null,
+      toneMapping: this.renderer?.toneMapping ?? null,
+      pixelRatio: this.renderer?.getPixelRatio?.() ?? null,
+      deviceGeneration: this.rendererDeviceGeneration ?? 0,
+      deviceLossGeneration: this.deviceLossGeneration ?? 0,
+    });
+  }
+
+  async ready() {
+    if (!this.initialized) await this.initialize();
+  }
+
+  async setScenario(id) {
+    if (id !== FROST_SCENARIO_ID) throw new RangeError(`unknown frost scenario "${id}"`);
+    if (this.routeLocks.scenario && id !== this.scenario) {
+      throw new RangeError(`frost scenario route is locked to "${this.scenario}"`);
+    }
+    this.scenario = id;
+  }
+
+  async setMechanism(id) {
+    if (!FROST_MECHANISMS.includes(id)) throw new RangeError(`unknown frost mechanism "${id}"`);
+    if (this.routeLocks.mechanism && id !== this.mechanism) {
+      throw new RangeError(`frost mechanism route is locked to "${this.mechanism}"`);
+    }
+    this.mechanism = id;
+    const profile = this.effect.setMechanism(id);
+    this.mode = FROST_DEBUG_VIEW_TO_MODE[profile.startupDebugView] ?? "final";
+  }
+
+  async setMode(id) {
+    if (!FROST_LAB_MODES.includes(id)) throw new RangeError(`unknown frost mode "${id}"`);
+    this.effect.setDebugView(FROST_MODE_TO_DEBUG_VIEW[id]);
+    this.mode = id;
+  }
+
+  async setTier(id) {
+    const tier = FROST_QUALITY_TIERS[id];
+    if (!tier) throw new RangeError(`unknown frost tier "${id}"`);
+    if (this.routeLocks.tier && id !== this.tier.id) {
+      throw new RangeError(`frost tier route is locked to "${this.tier.id}"`);
+    }
+    this.tier = tier;
+    this.effect.setTier(id);
+    this.mode = FROST_DEBUG_VIEW_TO_MODE[this.effect.debugView] ?? "final";
+  }
+
+  async setSeed(seed) {
+    if (!Number.isInteger(seed) || seed < 0 || seed > 0xffffffff) {
+      throw new RangeError("frost seed must be a uint32 integer");
+    }
+    this.seed = this.effect.setSeed(seed);
+  }
+
+  async setCamera(id) {
+    applyFrostCameraPose(this.camera, id);
+    this.cameraId = id;
+  }
+
+  async setTime(seconds) {
+    if (!Number.isFinite(seconds) || seconds < 0) throw new RangeError("frost time must be nonnegative");
+    this.time = seconds;
+  }
+
+  queuePointerSegment(start, end, pressure, active = true) {
+    this.pointer.start = { x: start.x, y: start.y };
+    this.pointer.end = { x: end.x, y: end.y };
+    this.pointer.pressure = Math.min(1, Math.max(0, pressure));
+    this.pointer.active = active;
+  }
+
+  async step(deltaSeconds) {
+    this.time += deltaSeconds;
+    const metrics = this.effect.advanceFrame({
+      deltaSeconds,
+      segmentStart: this.pointer.start,
+      segmentEnd: this.pointer.end,
+      pressure: this.pointer.pressure,
+      active: this.pointer.active,
+      render: false,
+    });
+    this.pointer.start = { ...this.pointer.end };
+    this.pointer.active = false;
+    this.pointer.pressure = 0;
+    return metrics;
+  }
+
+  async resetHistory() {
+    this.effect.setSize(this.effect.displayWidth, this.effect.displayHeight, { clearHistory: true });
+  }
+
+  async resize(width, height, dpr = 1) {
+    if (![width, height, dpr].every(Number.isFinite) || width <= 0 || height <= 0 || dpr <= 0) {
+      throw new RangeError("frost resize dimensions and DPR must be positive");
+    }
+    this.renderer.setPixelRatio(dpr);
+    this.renderer.setSize(width, height, false);
+    const drawingSize = this.renderer.getDrawingBufferSize(new Vector2());
+    const drawingWidth = Math.max(1, Math.trunc(drawingSize.x));
+    const drawingHeight = Math.max(1, Math.trunc(drawingSize.y));
+    this.effect.setSize(drawingWidth, drawingHeight, { clearHistory: true });
+    this.camera.aspect = width / height;
+    this.camera.updateProjectionMatrix();
+  }
+
+  async renderOnce() {
+    this.renderPipeline.render();
+  }
+
+  async #capturePipelinePixels(pipeline, { target, captureMode = null, width = null, height = null } = {}) {
+    const size = this.renderer.getDrawingBufferSize(new Vector2());
+    const captureWidth = width ?? Math.trunc(size.x);
+    const captureHeight = height ?? Math.trunc(size.y);
+    if (!Number.isInteger(captureWidth) || !Number.isInteger(captureHeight) || captureWidth <= 0 || captureHeight <= 0) {
+      throw new RangeError("Frost capture target dimensions must be positive integers");
+    }
+    const renderTarget = new RenderTarget(captureWidth, captureHeight, {
+      type: UnsignedByteType,
+      samples: 1,
+      depthBuffer: false,
+      stencilBuffer: false,
+    });
+    const captureTargetId = `frost-capture-target-${++this.captureTargetSequence}`;
+    const artifactTarget = Object.freeze({
+      kind: "render-target",
+      rendererDeviceGeneration: this.rendererDeviceGeneration,
+      captureTargetId,
+      colorTextureUuid: renderTarget.texture.uuid,
+      width: captureWidth,
+      height: captureHeight,
+      format: "rgba8unorm",
+      sampleCount: 1,
+      depthBuffer: false,
+      stencilBuffer: false,
+    });
+    const state = RendererUtils.saveRendererState(this.renderer);
+    let pixels;
+    try {
+      this.renderer.setRenderTarget(renderTarget);
+      this.renderer.setViewport(0, 0, captureWidth, captureHeight);
+      this.renderer.setScissor(0, 0, captureWidth, captureHeight);
+      this.renderer.setScissorTest(false);
+      pipeline.render();
+      pixels = await this.renderer.readRenderTargetPixelsAsync(renderTarget, 0, 0, captureWidth, captureHeight);
+    } finally {
+      RendererUtils.restoreRendererState(this.renderer, state);
+      renderTarget.dispose();
+    }
+    const rowBytes = captureWidth * 4;
+    const alignedBytesPerRow = Math.ceil(rowBytes / 256) * 256;
+    const paddedLength = alignedBytesPerRow * (captureHeight - 1) + rowBytes;
+    const bytesPerRow = pixels.length >= paddedLength ? alignedBytesPerRow : rowBytes;
+    if (!Number.isInteger(bytesPerRow) || bytesPerRow < rowBytes) {
+      throw new Error(`invalid WebGPU readback stride ${bytesPerRow} for row ${rowBytes}`);
+    }
+    return Object.freeze({
+      artifactTarget,
+      capture: Object.freeze({
+        target,
+        ...(captureMode === null ? {} : { captureMode }),
+        width: captureWidth,
+        height: captureHeight,
+        format: "rgba8unorm",
+        outputColorSpace: this.renderer.outputColorSpace,
+        bytesPerPixel: 4,
+        bytesPerRow,
+        pixels,
+      }),
+    });
+  }
+
+  async capturePixels(target = "final") {
+    if (target !== "final" && target !== "presentation") {
+      throw new RangeError(`unknown frost capture target "${target}"`);
+    }
+    const { capture } = await this.#capturePipelinePixels(this.renderPipeline, { target });
+    return capture;
+  }
+
+  #captureParentSnapshot() {
+    const viewport = this.renderer.getSize(new Vector2());
+    const evidence = Object.freeze({
+      route: Object.freeze({
+        scenario: this.scenario,
+        mechanism: this.mechanism,
+        tier: this.tier.id,
+        mode: this.mode,
+        camera: this.cameraId,
+        seed: this.seed,
+        timeSeconds: this.time,
+      }),
+      viewport: Object.freeze({ width: viewport.x, height: viewport.y, dpr: this.renderer.getPixelRatio() }),
+      camera: Object.freeze({
+        position: Object.freeze(this.camera.position.toArray()),
+        quaternion: Object.freeze(this.camera.quaternion.toArray()),
+        projectionMatrix: Object.freeze(this.camera.projectionMatrix.toArray()),
+      }),
+      history: Object.freeze({
+        historyA: this.effect.historyA.uuid,
+        historyB: this.effect.historyB.uuid,
+        readTexture: this.effect.historyRead.uuid,
+        writeTexture: this.effect.historyWrite.uuid,
+        readNode: this.effect.historyReadTextureNode.uuid,
+        writeNode: this.effect.historyWriteTextureNode.uuid,
+        readSlot: this.effect.readSlot,
+        frame: this.effect.frame,
+      }),
+      pipeline: Object.freeze({
+        renderPipeline: this.renderPipeline.uuid ?? this.renderPipeline.constructor.name,
+        outputNode: this.renderPipeline.outputNode?.uuid ?? this.renderPipeline.outputNode?.constructor?.name ?? null,
+        outputColorTransform: this.renderPipeline.outputColorTransform,
+      }),
+      device: Object.freeze({
+        generation: this.rendererDeviceGeneration,
+        status: this.rendererDeviceStatus,
+        lossGeneration: this.deviceLossGeneration,
+      }),
+    });
+    return Object.freeze({
+      evidence,
+      refs: Object.freeze({
+        rendererDevice: this.rendererDevice,
+        renderPipeline: this.renderPipeline,
+        outputNode: this.renderPipeline.outputNode,
+        historyA: this.effect.historyA,
+        historyB: this.effect.historyB,
+        historyRead: this.effect.historyRead,
+        historyWrite: this.effect.historyWrite,
+        historyReadNode: this.effect.historyReadTextureNode,
+        historyWriteNode: this.effect.historyWriteTextureNode,
+      }),
+    });
+  }
+
+  #verifyCaptureParent(entry) {
+    const restored = this.#captureParentSnapshot();
+    if (canonicalFrostEvidenceJson(restored.evidence) !== canonicalFrostEvidenceJson(entry.evidence)) {
+      throw new Error("Frost capture transaction changed parent state or resource evidence");
+    }
+    for (const key of Object.keys(entry.refs)) {
+      if (restored.refs[key] !== entry.refs[key]) {
+        throw new Error(`Frost capture transaction changed parent ${key} identity`);
+      }
+    }
+    return restored.evidence;
+  }
+
+  describeCaptureRecipes() {
+    if (!this.captureRecipeSetDigest) throw new Error("Frost capture recipes are unavailable before ready()");
+    return Object.freeze({
+      schemaVersion: 1,
+      recipeSetDigest: this.captureRecipeSetDigest,
+      recipes: FROST_CAPTURE_RECIPES,
+      coverageProbes: FROST_COVERAGE_PROBE_RECIPES,
+      routeProbes: FROST_ROUTE_PROBE_RECIPES,
+    });
+  }
+
+  async captureRecipe(id) {
+    const recipe = resolveFrostCaptureRecipe(id);
+    if (this.captureTransactionPoison !== null) {
+      throw new Error(`Frost capture controller is poisoned: ${this.captureTransactionPoison.message}`);
+    }
+    if (this.captureTransactionActive !== null) {
+      throw new Error(`Frost capture transaction ${this.captureTransactionActive} is already active`);
+    }
+    const sequence = ++this.captureTransactionSequence;
+    this.captureTransactionActive = recipe.id;
+    let scratch = null;
+    try {
+      const transaction = await runFrostCaptureTransaction({
+        recipeId: recipe.id,
+        snapshot: async () => this.#captureParentSnapshot(),
+        execute: async () => {
+          const camera = this.camera.clone();
+          applyFrostCameraPose(camera, recipe.camera);
+          camera.aspect = recipe.viewport.width / recipe.viewport.height;
+          camera.updateProjectionMatrix();
+          scratch = createWebGPUTouchHistoryFrostEffect({
+            renderer: this.renderer,
+            scene: this.scene,
+            camera,
+            width: recipe.viewport.physicalWidth,
+            height: recipe.viewport.physicalHeight,
+            tier: recipe.tier,
+            mechanism: recipe.mechanism,
+            seed: recipe.seed,
+          });
+          await scratch.initialize();
+          scratch.setDebugView(FROST_MODE_TO_DEBUG_VIEW[recipe.target]);
+          for (const step of recipe.trace) {
+            scratch.advanceFrame({
+              deltaSeconds: step.deltaSeconds,
+              segmentStart: step.start,
+              segmentEnd: step.end,
+              pressure: step.pressure,
+              active: true,
+              render: false,
+            });
+          }
+          const readback = await this.#capturePipelinePixels(scratch.renderPipeline, {
+            target: recipe.id,
+            captureMode: recipe.target,
+            width: recipe.viewport.physicalWidth,
+            height: recipe.viewport.physicalHeight,
+          });
+          await this.rendererDevice.queue.onSubmittedWorkDone();
+          const timeSeconds = recipe.expectedTimeSeconds;
+          const scratchMetrics = scratch.getMetrics();
+          const historyWidth = scratchMetrics.historySize[0];
+          const historyHeight = scratchMetrics.historySize[1];
+          return Object.freeze({
+            readback,
+            effectiveState: Object.freeze({
+              scenario: recipe.scenario,
+              mechanism: recipe.mechanism,
+              tier: recipe.tier,
+              mode: recipe.target,
+              camera: recipe.camera,
+              seed: recipe.seed,
+              timeSeconds,
+              viewport: Object.freeze({
+                width: recipe.viewport.width,
+                height: recipe.viewport.height,
+                dpr: recipe.viewport.dpr,
+                physicalWidth: readback.capture.width,
+                physicalHeight: readback.capture.height,
+              }),
+            }),
+            execution: Object.freeze({
+              pointerSegmentCount: recipe.trace.length,
+              computeDispatchDelta: recipe.trace.length,
+              renderSubmissionDelta: 1,
+              sameFrameComposite: true,
+              historyExtent: Object.freeze({ width: historyWidth, height: historyHeight }),
+              workgroupSize: Object.freeze([8, 8, 1]),
+              workgroupCount: Object.freeze([scratchMetrics.dispatch.x, scratchMetrics.dispatch.y, 1]),
+              coveredExtent: Object.freeze({
+                width: scratchMetrics.dispatch.x * 8,
+                height: scratchMetrics.dispatch.y * 8,
+              }),
+              boundsChecked: true,
+            }),
+          });
+        },
+        cleanup: async () => {
+          scratch?.dispose();
+          scratch = null;
+        },
+        verify: async (entry) => this.#verifyCaptureParent(entry),
+        poison: async (error) => {
+          this.captureTransactionPoison = Object.freeze({ recipeId: recipe.id, message: String(error.message ?? error) });
+        },
+      });
+      const recipeDigest = await sha256FrostEvidence(recipe);
+      const entryStateDigest = await sha256FrostEvidence(transaction.entry.evidence);
+      const effectiveStateDigest = await sha256FrostEvidence(transaction.result.effectiveState);
+      const restoredStateDigest = await sha256FrostEvidence(transaction.restored);
+      return Object.freeze({
+        ...transaction.result.readback.capture,
+        evidence: Object.freeze({
+          recipe: Object.freeze({
+            id: recipe.id,
+            schemaVersion: recipe.schemaVersion,
+            digest: recipeDigest,
+            setDigest: this.captureRecipeSetDigest,
+            target: recipe.target,
+          }),
+          effectiveState: transaction.result.effectiveState,
+          execution: transaction.result.execution,
+          artifactTarget: transaction.result.readback.artifactTarget,
+          transaction: Object.freeze({
+            schemaVersion: 1,
+            transactionId: `frost-capture-${sequence}`,
+            sequence,
+            recipeId: recipe.id,
+            status: "COMMITTED",
+            restorationVerdict: "PASS",
+            entryStateDigest,
+            effectiveStateDigest,
+            restoredStateDigest,
+            phaseVerdicts: Object.freeze({ capture: "PASS", restore: "PASS", settle: "PASS", verify: "PASS" }),
+          }),
+        }),
+      });
+    } finally {
+      this.captureTransactionActive = null;
+    }
+  }
+
+  describePipeline() {
+    const resources = this.effect.createResourcePlan();
+    const computeDispatches = [{
+      id: "history-update",
+      workgroupSize: [8, 8, 1],
+      updatePolicy: resources.graph.updatePolicy,
+      diffusion: resources.graph.diffusion,
+    }];
+    if (resources.benchmarkLedger) {
+      computeDispatches.push({
+        id: "benchmark-ledger",
+        workgroupSize: [1, 1, 1],
+        updatePolicy: resources.graph.updatePolicy,
+        diffusion: false,
+      });
+    }
+    return {
+      runtimeProfile: this.runtimeProfile,
+      performanceTimestampMode: this.runtimeProfile === "performance" ? "auto" : "disabled",
+      timestampQueriesRequired: this.runtimeProfile === "performance",
+      timestampQueriesRequested: this.runtimeProfile === "performance",
+      timestampQueriesActive: this.runtimeProfile === "performance" &&
+        this.renderer.backend?.trackTimestamp === true &&
+        this.renderer.hasFeature?.("timestamp-query") === true,
+      owners: {
+        renderer: "threejs-dynamic-surface-effects",
+        scenePass: "host-scene",
+        history: "threejs-dynamic-surface-effects",
+        finalPipeline: "threejs-dynamic-surface-effects",
+        toneMap: "RenderOutputNode",
+        outputTransform: "RenderOutputNode",
+      },
+      signals: resources.graph.reachableNodes,
+      sceneSubmissions: [{ id: "shared-scene-pass", count: 1 }],
+      computeDispatches,
+      finalToneMapOwner: "RenderOutputNode",
+      finalOutputTransformOwner: "RenderOutputNode",
+    };
+  }
+
+  describeResources() {
+    if (this.disposed) {
+      return {
+        resourceState: "disposed",
+        residentStorageBytes: 0,
+        retainedTargetBytes: 0,
+        retainedStorageBytes: 0,
+        retainedMaterialCount: 0,
+        retainedControlCount: 0,
+        retainedListenerCount: this.labOwnedListenerCount,
+        opaqueRendererInternalResidency: "NOT_CLAIMED",
+      };
+    }
+    return {
+      ...this.effect.createResourcePlan(),
+      resourceState: "resident",
+      retainedTargetBytes: null,
+      retainedStorageBytes: null,
+      retainedMaterialCount: null,
+      retainedControlCount: 0,
+      retainedListenerCount: this.labOwnedListenerCount,
+      opaqueRendererInternalResidency: "NOT_CLAIMED",
+    };
+  }
+
+  getAvailableModes() {
+    return [...this.effect.availableDebugViews]
+      .map((view) => FROST_DEBUG_VIEW_TO_MODE[view])
+      .filter(Boolean);
+  }
+
+  getMetrics() {
+    const timestampQueriesRequested = this.runtimeProfile === "performance";
+    const timestampQueriesActive = timestampQueriesRequested &&
+      this.renderer.backend?.trackTimestamp === true &&
+      this.renderer.hasFeature?.("timestamp-query") === true;
+    const deviceIdentityVerified = this.rendererDevice !== null &&
+      this.rendererDevice === this.renderer.backend?.device;
+    const viewportSize = this.renderer.getSize(new Vector2());
+    const effectMetrics = this.effect.getMetrics();
+    return {
+      ...effectMetrics,
+      ...(this.disposed ? { storageBytes: 0 } : {}),
+      labId: FROST_LAB_ID,
+      threeRevision: REVISION,
+      runtimeProfile: this.runtimeProfile,
+      performanceTimestampMode: timestampQueriesRequested ? "auto" : "disabled",
+      timestampQueriesRequired: timestampQueriesRequested,
+      timestampQueriesRequested,
+      timestampQueriesActive,
+      nativeWebGPU: this.renderer.backend?.isWebGPUBackend === true,
+      initialized: this.initialized === true,
+      backend: "WebGPU",
+      backendKind: "WebGPU",
+      rendererBackend: "WebGPUBackend",
+      adapterClass: this.rendererAdapterEvidence.adapterClass,
+      adapterIdentity: this.rendererAdapterEvidence.identity,
+      rendererDeviceStatus: this.rendererDeviceStatus,
+      rendererDeviceGeneration: this.rendererDeviceGeneration,
+      deviceLossGeneration: this.deviceLossGeneration,
+      deviceLostObserved: this.deviceLostObserved,
+      deviceErrors: [...this.deviceErrors],
+      uncapturedErrors: [...this.deviceErrors],
+      disposed: this.disposed,
+      labOwnedListenerCount: this.labOwnedListenerCount,
+      rendererStateBeforeDigest: this.rendererStateBeforeDigest,
+      rendererStateAfterDigest: this.rendererStateAfterDigest,
+      rendererBackendEvidence: {
+        backendKind: "WebGPU",
+        backendType: "WebGPUBackend",
+        isWebGPUBackend: this.renderer.backend?.isWebGPUBackend === true,
+        deviceIdentityVerified,
+        deviceIdentitySource: "exact retained renderer.backend.device reference after renderer.init()",
+        deviceType: this.rendererDevice?.constructor?.name || "GPUDevice",
+        lossPromiseObservedOnActualDevice: this.lossPromiseObservedOnActualDevice,
+        rendererDeviceGeneration: this.rendererDeviceGeneration,
+      },
+      rendererInfo: {
+        rendererType: "WebGPURenderer",
+        backendType: "WebGPUBackend",
+        threeRevision: REVISION,
+      },
+      backendIsWebGPU: this.renderer.backend?.isWebGPUBackend === true,
+      scenario: this.scenario,
+      mechanism: this.mechanism,
+      mode: this.mode,
+      camera: this.cameraId,
+      seed: this.seed,
+      timeSeconds: this.time,
+      captureTransaction: {
+        active: this.captureTransactionActive,
+        poisoned: this.captureTransactionPoison,
+        nextSequence: this.captureTransactionSequence + 1,
+      },
+      viewport: {
+        width: viewportSize.x,
+        height: viewportSize.y,
+        dpr: this.renderer.getPixelRatio(),
+      },
+    };
+  }
+
+  async runLifecycleProfile(cycles = 50) {
+    const canvasFactory = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 320;
+      canvas.height = 180;
+      return canvas;
+    };
+    return runSharedLifecycleProfile(async () => createFrostLab({
+      canvas: canvasFactory(),
+      tier: "balanced",
+      mechanism: this.mechanism,
+      seed: 0x00000001,
+      runtimeProfile: "correctness",
+    }), {
+      cycles,
+      planCycle: frostLifecycleCyclePlan,
+    });
+  }
+
+  async dispose() {
+    if (this.disposeEvidence) return this.disposeEvidence;
+    this.renderer?.setAnimationLoop(null);
+    this.rendererDeviceStatus = "disposing";
+    const queueSettlement = { status: "FAIL", deviceGeneration: this.rendererDeviceGeneration, error: null };
+    try {
+      await this.rendererDevice?.queue?.onSubmittedWorkDone?.();
+      queueSettlement.status = "PASS";
+    } catch (error) {
+      queueSettlement.error = String(error?.message ?? error);
+    }
+    this.effect?.dispose();
+    this.backdrop?.dispose();
+    this.rendererDevice?.removeEventListener?.("uncapturederror", this.uncapturedErrorHandler);
+    this.labOwnedListenerCount = 0;
+    await this.renderer?.dispose();
+    this.rendererDeviceStatus = "disposed";
+    this.disposed = true;
+    this.rendererStateAfterDigest = await sha256FrostEvidence(this.#rendererStateEvidence("OWNED_RENDERER_DISPOSED"));
+    this.disposeEvidence = Object.freeze({
+      status: queueSettlement.status,
+      queueSettlement: Object.freeze(queueSettlement),
+      rendererStateDisposition: "OWNED_RENDERER_DISPOSED",
+      rendererStateBeforeDigest: this.rendererStateBeforeDigest,
+      rendererStateAfterDigest: this.rendererStateAfterDigest,
+      retainedTargetBytes: 0,
+      retainedStorageBytes: 0,
+      retainedMaterialCount: 0,
+      retainedControlCount: 0,
+      retainedListenerCount: this.labOwnedListenerCount,
+      deviceLossObserved: this.deviceLostObserved,
+      deviceErrors: Object.freeze([...this.deviceErrors]),
+    });
+    if (queueSettlement.status !== "PASS") throw new Error(`Frost queue settlement failed: ${queueSettlement.error}`);
+    return this.disposeEvidence;
+  }
+
+  get labId() {
+    return FROST_LAB_ID;
+  }
+}
+
+export async function createFrostLab(options) {
+  const lab = new WebGPUFrostLab(options);
+  await lab.initialize();
+  return lab;
+}

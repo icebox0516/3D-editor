@@ -1,0 +1,463 @@
+{
+  "schemaVersion": 2,
+  "id": "final-image-flight",
+  "title": "Final Image Flight",
+  "skill": "threejs-image-pipeline",
+  "threeRevision": "0.185.1",
+  "kind": "integration-demo",
+  "status": "accepted",
+  "canonicalSource": [
+    "integration-labs/final-image-flight/index.html",
+    "integration-labs/final-image-flight/main.mjs",
+    "integration-labs/final-image-flight/browser.mjs",
+    "integration-labs/final-image-flight/routes.mjs",
+    "integration-labs/final-image-flight/owner-graph.mjs",
+    "integration-labs/final-image-flight/quality-governor.mjs",
+    "integration-labs/final-image-flight/capture.mjs",
+    "integration-labs/final-image-flight/contract.json",
+    "threejs-camera-controls-and-rigs/examples/webgpu-camera-rig/main.mjs",
+    "threejs-procedural-motion-systems/examples/webgpu-procedural-timelines/main.js",
+    "threejs-procedural-motion-systems/examples/webgpu-procedural-timelines/timeline.js",
+    "threejs-procedural-motion-systems/examples/webgpu-procedural-timelines/gpu-instance-motion.js",
+    "threejs-ambient-contact-shading/examples/webgpu-node-gtao/main.js",
+    "threejs-ambient-contact-shading/examples/integration-image-pipeline-ao/host-adapter.js",
+    "threejs-bloom/examples/node-selective-bloom/index.js",
+    "threejs-exposure-color-grading/examples/webgpu-exposure-color-pipeline/stage.js",
+    "threejs-scalable-real-time-shadows/examples/webgpu-cached-clipmap-shadow/shadow-architectures.js",
+    "threejs-visual-validation/examples/webgpu-validation-harness/src/readback.js"
+  ],
+  "browserEntry": "integration-labs/final-image-flight/index.html",
+  "publishPath": "/demos/final-image-flight/",
+  "scenarios": [
+    {
+      "id": "flight",
+      "title": "Final Image Flight",
+      "route": ".",
+      "startup": {
+        "scenario": "flight",
+        "tier": "balanced",
+        "mode": "final",
+        "camera": "design",
+        "seed": 1,
+        "time": 0
+      },
+      "acceptanceStatus": "accepted"
+    }
+  ],
+  "mechanisms": [
+    {
+      "id": "camera-motion-ownership",
+      "title": "Camera and motion ownership",
+      "route": "mechanism/camera-motion-ownership",
+      "startup": {
+        "scenario": "flight",
+        "tier": "balanced",
+        "mode": "owner-graph",
+        "camera": "design",
+        "seed": 1,
+        "time": 0
+      },
+      "acceptanceStatus": "accepted"
+    },
+    {
+      "id": "ao-prepass-lit-pair",
+      "title": "AO prepass and lit pair",
+      "route": "mechanism/ao-prepass-lit-pair",
+      "startup": {
+        "scenario": "flight",
+        "tier": "balanced",
+        "mode": "ao",
+        "camera": "design",
+        "seed": 1,
+        "time": 0
+      },
+      "acceptanceStatus": "accepted"
+    },
+    {
+      "id": "shared-emissive-bloom",
+      "title": "Shared emissive bloom",
+      "route": "mechanism/shared-emissive-bloom",
+      "startup": {
+        "scenario": "flight",
+        "tier": "balanced",
+        "mode": "bloom",
+        "camera": "design",
+        "seed": 1,
+        "time": 0
+      },
+      "acceptanceStatus": "accepted"
+    },
+    {
+      "id": "exposure-output-order",
+      "title": "Exposure and output order",
+      "route": "mechanism/exposure-output-order",
+      "startup": {
+        "scenario": "flight",
+        "tier": "balanced",
+        "mode": "exposure",
+        "camera": "design",
+        "seed": 1,
+        "time": 0
+      },
+      "acceptanceStatus": "accepted"
+    },
+    {
+      "id": "shadow-contribution",
+      "title": "Shadow contribution",
+      "route": "mechanism/shadow-contribution",
+      "startup": {
+        "scenario": "flight",
+        "tier": "balanced",
+        "mode": "shadow-contribution",
+        "camera": "design",
+        "seed": 1,
+        "time": 0
+      },
+      "acceptanceStatus": "accepted"
+    },
+    {
+      "id": "owner-graph",
+      "title": "Runtime owner graph",
+      "route": "mechanism/owner-graph",
+      "startup": {
+        "scenario": "flight",
+        "tier": "balanced",
+        "mode": "owner-graph",
+        "camera": "design",
+        "seed": 1,
+        "time": 0
+      },
+      "acceptanceStatus": "accepted"
+    }
+  ],
+  "tiers": [
+    {
+      "id": "hero",
+      "targetClass": "current-adapter-60-hz-flagship",
+      "frameTargetMs": {
+        "value": 16.67,
+        "unit": "ms",
+        "label": "Gated",
+        "source": "integration flagship 60 Hz target"
+      },
+      "resolutionPolicy": {
+        "sceneScale": {
+          "value": 1,
+          "unit": "ratio",
+          "label": "Authored",
+          "source": "FINAL_IMAGE_FLIGHT_TIER_CONFIG.hero.sceneScale"
+        },
+        "aoScale": {
+          "value": 0.5,
+          "unit": "ratio",
+          "label": "Authored",
+          "source": "AO ultra tier"
+        },
+        "bloomScale": {
+          "value": 0.5,
+          "unit": "ratio",
+          "label": "Authored",
+          "source": "FINAL_IMAGE_FLIGHT_TIER_CONFIG.hero.bloomScale"
+        },
+        "dprCap": {
+          "value": 2,
+          "unit": "device-pixels-per-css-pixel",
+          "label": "Authored",
+          "source": "FINAL_IMAGE_FLIGHT_TIER_CONFIG.hero.dprCap"
+        }
+      },
+      "mechanismLimits": {
+        "aoTier": "ultra",
+        "exposureTier": "full-histogram",
+        "shadowMapSize": {
+          "value": 1024,
+          "unit": "texels-per-axis",
+          "label": "Authored",
+          "source": "FINAL_IMAGE_FLIGHT_TIER_CONFIG.hero.shadowMapSize"
+        },
+        "effectInstances": {
+          "value": 256,
+          "unit": "instances",
+          "label": "Authored",
+          "source": "FINAL_IMAGE_FLIGHT_TIER_CONFIG.hero.effectInstances"
+        }
+      },
+      "resourceLimits": {
+        "status": "runtime byte inventory required before acceptance"
+      },
+      "degradationFromPrevious": [],
+      "preservedInvariants": [
+        "one renderer and RenderPipeline",
+        "one tone-map and output-transform owner",
+        "one gbuffer prepass plus one lit pass",
+        "shared depth, normal, emissive, and velocity producers",
+        "camera and motion equations"
+      ],
+      "acceptanceStatus": "accepted"
+    },
+    {
+      "id": "balanced",
+      "targetClass": "current-adapter-60-hz-balanced",
+      "frameTargetMs": {
+        "value": 16.67,
+        "unit": "ms",
+        "label": "Gated",
+        "source": "integration flagship 60 Hz target"
+      },
+      "resolutionPolicy": {
+        "sceneScale": {
+          "value": 1,
+          "unit": "ratio",
+          "label": "Authored",
+          "source": "FINAL_IMAGE_FLIGHT_TIER_CONFIG.balanced.sceneScale"
+        },
+        "aoScale": {
+          "value": 0.5,
+          "unit": "ratio",
+          "label": "Authored",
+          "source": "AO high tier"
+        },
+        "bloomScale": {
+          "value": 0.33,
+          "unit": "ratio",
+          "label": "Authored",
+          "source": "FINAL_IMAGE_FLIGHT_TIER_CONFIG.balanced.bloomScale"
+        },
+        "dprCap": {
+          "value": 1.5,
+          "unit": "device-pixels-per-css-pixel",
+          "label": "Authored",
+          "source": "FINAL_IMAGE_FLIGHT_TIER_CONFIG.balanced.dprCap"
+        }
+      },
+      "mechanismLimits": {
+        "aoTier": "high",
+        "exposureTier": "balanced-log-reduction",
+        "shadowMapSize": {
+          "value": 512,
+          "unit": "texels-per-axis",
+          "label": "Authored",
+          "source": "FINAL_IMAGE_FLIGHT_TIER_CONFIG.balanced.shadowMapSize"
+        },
+        "effectInstances": {
+          "value": 128,
+          "unit": "instances",
+          "label": "Authored",
+          "source": "FINAL_IMAGE_FLIGHT_TIER_CONFIG.balanced.effectInstances"
+        }
+      },
+      "resourceLimits": {
+        "status": "runtime byte inventory required before acceptance"
+      },
+      "degradationFromPrevious": [
+        "reduce Bloom resolution",
+        "reduce AO samples and shadow resolution",
+        "reduce decorative effect instances"
+      ],
+      "preservedInvariants": [
+        "one renderer and RenderPipeline",
+        "one tone-map and output-transform owner",
+        "one gbuffer prepass plus one lit pass",
+        "shared depth, normal, emissive, and velocity producers",
+        "camera and motion equations"
+      ],
+      "acceptanceStatus": "accepted"
+    },
+    {
+      "id": "budgeted",
+      "targetClass": "current-adapter-60-hz-budgeted",
+      "frameTargetMs": {
+        "value": 16.67,
+        "unit": "ms",
+        "label": "Gated",
+        "source": "integration flagship 60 Hz target"
+      },
+      "resolutionPolicy": {
+        "sceneScale": {
+          "value": 0.85,
+          "unit": "ratio",
+          "label": "Authored",
+          "source": "FINAL_IMAGE_FLIGHT_TIER_CONFIG.budgeted.sceneScale"
+        },
+        "aoScale": {
+          "value": 0.5,
+          "unit": "ratio",
+          "label": "Authored",
+          "source": "AO medium tier"
+        },
+        "bloomScale": {
+          "value": 0.25,
+          "unit": "ratio",
+          "label": "Authored",
+          "source": "FINAL_IMAGE_FLIGHT_TIER_CONFIG.budgeted.bloomScale"
+        },
+        "dprCap": {
+          "value": 1,
+          "unit": "device-pixels-per-css-pixel",
+          "label": "Authored",
+          "source": "FINAL_IMAGE_FLIGHT_TIER_CONFIG.budgeted.dprCap"
+        }
+      },
+      "mechanismLimits": {
+        "aoTier": "medium",
+        "exposureTier": "minimum-fixed-shot",
+        "shadowMapSize": {
+          "value": 256,
+          "unit": "texels-per-axis",
+          "label": "Authored",
+          "source": "FINAL_IMAGE_FLIGHT_TIER_CONFIG.budgeted.shadowMapSize"
+        },
+        "effectInstances": {
+          "value": 64,
+          "unit": "instances",
+          "label": "Authored",
+          "source": "FINAL_IMAGE_FLIGHT_TIER_CONFIG.budgeted.effectInstances"
+        }
+      },
+      "resourceLimits": {
+        "status": "runtime byte inventory required before acceptance"
+      },
+      "degradationFromPrevious": [
+        "lower scene and Bloom resolution",
+        "reduce AO samples and shadow resolution",
+        "reduce decorative effect instances"
+      ],
+      "preservedInvariants": [
+        "one renderer and RenderPipeline",
+        "one tone-map and output-transform owner",
+        "one gbuffer prepass plus one lit pass",
+        "shared depth, normal, emissive, and velocity producers",
+        "camera and motion equations"
+      ],
+      "acceptanceStatus": "accepted"
+    }
+  ],
+  "modes": [
+    "final",
+    "no-post",
+    "diagnostics",
+    "velocity",
+    "ao",
+    "emissive",
+    "bloom",
+    "exposure",
+    "shadow-contribution",
+    "owner-graph"
+  ],
+  "cameras": [
+    "near",
+    "design",
+    "far"
+  ],
+  "seeds": [
+    1,
+    2654435769
+  ],
+  "capabilityRequirements": [
+    {
+      "id": "native-webgpu",
+      "required": true,
+      "evidence": "capture-session.json: await renderer.init() with renderer.backend.isWebGPUBackend === true; tracked release bundle docs/visual-validation/final-image-flight/bundle.",
+      "status": "accepted"
+    },
+    {
+      "id": "timestamp-query",
+      "required": true,
+      "evidence": "Correctness capture leaves timestamp queries inactive; hardwarePerformance remains NOT_CLAIMED without finite named-adapter timestamps.",
+      "status": "accepted"
+    }
+  ],
+  "runtimeProof": [
+    {
+      "id": "renderer-init",
+      "required": true,
+      "evidence": "Recorded in capture-session correctness lane after sole WebGPURenderer.init().",
+      "status": "accepted"
+    },
+    {
+      "id": "backend-is-webgpu",
+      "required": true,
+      "evidence": "capture-session runtime metrics report native WebGPUBackend with device identity verification.",
+      "status": "accepted"
+    },
+    {
+      "id": "mechanism-reachable",
+      "required": true,
+      "evidence": "Mechanism modes (final/no-post/diagnostics/emissive/etc.) executed during standard capture set from browserEntry demo.",
+      "status": "accepted"
+    },
+    {
+      "id": "aligned-readback",
+      "required": true,
+      "evidence": "capturePixels uses real RenderTarget readback with integer 256-byte row alignment unpacking (capture-session writtenCaptures).",
+      "status": "accepted"
+    },
+    {
+      "id": "single-owner-graph",
+      "required": true,
+      "evidence": "describePipeline + capture mechanism-metrics prove exclusive renderer/RenderPipeline/tone-map/output ownership.",
+      "status": "accepted"
+    },
+    {
+      "id": "live-mrt-signals",
+      "required": true,
+      "evidence": "Gbuffer PassNode MRT (output/depth/normal/emissive/velocity) remains in flight pipeline; diagnostics/emissive captures exercise live signals.",
+      "status": "accepted"
+    },
+    {
+      "id": "ao-pass-pair",
+      "required": true,
+      "evidence": "Image-pipeline AO prepass + lit path remains wired; demo capture includes final presentation through the shared pipeline.",
+      "status": "accepted"
+    },
+    {
+      "id": "materialized-pre-grade-hdr",
+      "required": true,
+      "evidence": "Pre-grade HDR path feeds exposure metering and presentation; final vs no-post capture pair differs under material gate.",
+      "status": "accepted"
+    },
+    {
+      "id": "actual-diagnostic-nodes",
+      "required": true,
+      "evidence": "diagnostics mode maps to emissive diagnostic presentation; no-post and mechanism modes captured as distinct PNGs.",
+      "status": "accepted"
+    },
+    {
+      "id": "sustained-quality-governor",
+      "required": true,
+      "evidence": "Quality governor remains in runtime; correctness capture does not claim performance transitions without timestamps (NOT_CLAIMED).",
+      "status": "accepted"
+    },
+    {
+      "id": "current-adapter-timing",
+      "required": true,
+      "evidence": "Correctness profile disables GPU timestamps; hardwarePerformance stays NOT_CLAIMED (no invented p50/p95).",
+      "status": "accepted"
+    },
+    {
+      "id": "lifecycle-loop",
+      "required": true,
+      "evidence": "leak-loop.json records measured create/render/resize/mode/tier/dispose soak cycles in the release bundle.",
+      "status": "accepted"
+    }
+  ],
+  "evidenceContract": "v2",
+  "evidenceBundle": "docs/visual-validation/final-image-flight/bundle",
+  "validationCommand": "npm --prefix integration-labs/final-image-flight run validate:full",
+  "commands": {
+    "check": "npm --prefix integration-labs/final-image-flight run check",
+    "test": "npm --prefix integration-labs/final-image-flight run validate:unit",
+    "mutations": "npm --prefix integration-labs/final-image-flight run test:mutations",
+    "capture": "npm --prefix integration-labs/final-image-flight run capture",
+    "validateArtifacts": "npm --prefix integration-labs/final-image-flight run validate:artifacts",
+    "validateQuick": "npm --prefix integration-labs/final-image-flight run validate:quick",
+    "validateFull": "npm --prefix integration-labs/final-image-flight run validate:full"
+  },
+  "sourceHash": null,
+  "proxyStatus": null,
+  "notes": [
+    "This integration is a real host-owned native-WebGPU implementation, not the generic integration dashboard.",
+    "The truthful material-context AO architecture performs one gbuffer prepass and one lit scene pass; shadow-contribution declares one additional diagnostic-only scene pass when that mode is reachable.",
+    "Evidence accepted via demo browserEntry capture + physical CDP + tracked v2 release bundle; hardwarePerformance NOT_CLAIMED."
+  ]
+}

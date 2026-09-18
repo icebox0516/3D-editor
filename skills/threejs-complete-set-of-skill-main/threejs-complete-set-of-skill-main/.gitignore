@@ -1,0 +1,31 @@
+node_modules/
+.DS_Store
+artifacts/
+docs/demos/.test-fixtures/
+!threejs-procedural-creatures/examples/webgpu-procedural-creature-lab/artifacts/
+threejs-procedural-creatures/examples/webgpu-procedural-creature-lab/artifacts/*
+!threejs-procedural-creatures/examples/webgpu-procedural-creature-lab/artifacts/.gitignore
+!threejs-procedural-creatures/examples/webgpu-procedural-creature-lab/artifacts/manifest.schema.json
+.claude/settings.local.json
+.agent/
+__pycache__/
+*.log
+AGENTS.md
+
+# Development scaffolding kept local-only, not part of the published skill set
+plan.md
+review.md
+agents/
+!skills/*/agents/
+!skills/*/agents/openai.yaml
+!site-content/agents/
+!site-content/agents/*.md
+!docs/agents/
+!docs/agents/**
+ASSET_VARIANT_REVIEW.md
+FINAL_REPORT.md
+IMPROVEMENT_PLAN.md
+SKILL_QUALITY_BAR.md
+# symlinked playwright installs in example dirs (gitignore dir pattern misses symlinks)
+threejs-*/examples/*/node_modules
+hey.md

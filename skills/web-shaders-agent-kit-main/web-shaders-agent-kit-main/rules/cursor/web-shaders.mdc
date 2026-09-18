@@ -1,0 +1,31 @@
+---
+description: Expertise for writing and debugging web shaders (GLSL/WGSL, WebGL2/WebGPU, Three.js, R3F).
+globs: *.glsl,*.frag,*.vert,*.wgsl,*.vs,*.fs,*.js,*.ts,*.jsx,*.tsx
+alwaysApply: false
+---
+
+# Web shader rules
+
+Before writing a shader, establish the target — the boilerplate and language differ:
+
+- **Raw WebGL 2** → GLSL ES 3.00 (`#version 300 es`, `in/out`, `texture()`, custom `out vec4`).
+- **Three.js `ShaderMaterial`** → GLSL ES 1.00 by default; `position`, `normal`, `uv`, `modelViewMatrix`, `projectionMatrix`, `normalMatrix`, `cameraPosition`, and `precision` are **already injected** — don't redeclare them. Use `glslVersion: THREE.GLSL3` for GLSL 3.
+- **Three.js `RawShaderMaterial`** → you write the full header, including `precision highp float;`.
+- **Three.js WebGPURenderer** → prefer **TSL** (JS nodes) over raw WGSL; it cross-compiles to WGSL and GLSL.
+- **React Three Fiber** → use drei `shaderMaterial` + `extend`; drive uniforms from a `useFrame` ref, not React state.
+
+Correctness checklist:
+
+- Aspect-correct UVs (`uv.x *= resolution.x / resolution.y`) or circles become ellipses.
+- Do color math in **linear** space; sample color textures as sRGB, data textures (normal/roughness) as linear. Mind `renderer.toneMapping`.
+- Flip `vUv.y` when a texture is upside down (GL origin is bottom-left; render targets have `flipY = false`).
+- No dynamic array indexing / non-constant loops in WebGL 1 GLSL. Integer division truncates — write `1.0/3.0`.
+- `pow(negative, y)` and `mod` of negatives are footguns; guard `normalize()` against zero vectors.
+- Prefer `mix`/`step`/`smoothstep` over branching; both branches of a divergent `if` may run.
+- WGSL has no implicit numeric conversions (`1` is i32, `1.0` is f32); pad `vec3` to 16 bytes in uniform structs.
+
+Pull ready functions (noise, SDF, easing, color) from **Lygia** (https://lygia.xyz) instead of reimplementing.
+
+Debug by outputting intermediates to color (`gl_FragColor = vec4(vec3(d), 1.0)`), reading the console for compile errors, and confirming uniform names match exactly between JS and the shader (mismatches fail silently). Inspect with Spector.js (WebGL) or the WebGPU Inspector.
+
+When unsure of an API, consult https://threejs.org/docs/llms.txt, https://webgl2fundamentals.org, https://webgpufundamentals.org, https://www.w3.org/TR/WGSL/, and https://iquilezles.org/articles/ rather than guessing.

@@ -1,0 +1,871 @@
+{
+  "version": 1,
+  "algorithmVersion": 5,
+  "channels": [
+    "height",
+    "macroHeight",
+    "ridge",
+    "oceanDepth",
+    "humidity",
+    "temperature",
+    "ruggednessProxy",
+    "roughnessCause"
+  ],
+  "probes": [
+    {
+      "preset": "pelagia",
+      "seed": 31.731,
+      "direction": [
+        1,
+        0,
+        0
+      ],
+      "values": {
+        "height": 0.352717126827121,
+        "macroHeight": 0.352717126827121,
+        "ridge": 0.9872337188315412,
+        "oceanDepth": 0,
+        "humidity": 0.7571256483715584,
+        "temperature": 0.8871305194153213,
+        "ruggednessProxy": 0.4442551734741936,
+        "roughnessCause": 0.39770206938967745
+      }
+    },
+    {
+      "preset": "pelagia",
+      "seed": 31.731,
+      "direction": [
+        0,
+        1,
+        0
+      ],
+      "values": {
+        "height": 0.24494795870414343,
+        "macroHeight": 0.24494795870414343,
+        "ridge": 0.9549103233438643,
+        "oceanDepth": 0,
+        "humidity": 0.3342177958693873,
+        "temperature": 0.0716166532146741,
+        "ruggednessProxy": 0.42970964550473895,
+        "roughnessCause": 0.3918838582018956
+      }
+    },
+    {
+      "preset": "pelagia",
+      "seed": 31.731,
+      "direction": [
+        0,
+        0,
+        1
+      ],
+      "values": {
+        "height": 0.33221409427947335,
+        "macroHeight": 0.33221409427947335,
+        "ridge": 0.5549767781648111,
+        "oceanDepth": 0,
+        "humidity": 0.5761734817821326,
+        "temperature": 0.8936914898305686,
+        "ruggednessProxy": 0.249739550174165,
+        "roughnessCause": 0.319895820069666
+      }
+    },
+    {
+      "preset": "pelagia",
+      "seed": 31.731,
+      "direction": [
+        0.577,
+        0.577,
+        0.577
+      ],
+      "values": {
+        "height": 0.5099720253128994,
+        "macroHeight": 0.5099720253128994,
+        "ridge": 0.9463854262364313,
+        "oceanDepth": 0,
+        "humidity": 0.5046048588858509,
+        "temperature": 0.4318956176773888,
+        "ruggednessProxy": 0.4258734418063941,
+        "roughnessCause": 0.39034937672255765
+      }
+    },
+    {
+      "preset": "pelagia",
+      "seed": 31.731,
+      "direction": [
+        -0.42,
+        0.71,
+        0.56
+      ],
+      "values": {
+        "height": 0.14828826192576125,
+        "macroHeight": 0.1833882330296066,
+        "ridge": 0.6669113594098136,
+        "oceanDepth": 0,
+        "humidity": 0.5398742791050637,
+        "temperature": 0.4150800228478394,
+        "ruggednessProxy": 0.3071301059551852,
+        "roughnessCause": 0.3428520423820741
+      }
+    },
+    {
+      "preset": "pelagia",
+      "seed": 41.125,
+      "direction": [
+        1,
+        0,
+        0
+      ],
+      "values": {
+        "height": 0.27242267693978484,
+        "macroHeight": 0.27242267693978484,
+        "ridge": 0.6545388623480036,
+        "oceanDepth": 0,
+        "humidity": 0.7076173951381559,
+        "temperature": 0.9128247433792689,
+        "ruggednessProxy": 0.29454248805660166,
+        "roughnessCause": 0.33781699522264064
+      }
+    },
+    {
+      "preset": "pelagia",
+      "seed": 41.125,
+      "direction": [
+        0,
+        1,
+        0
+      ],
+      "values": {
+        "height": 0.010318093220485158,
+        "macroHeight": 0.010318093220485158,
+        "ridge": 0.45598406483483633,
+        "oceanDepth": 0.029681906779514843,
+        "humidity": 0.6404806263440763,
+        "temperature": 0.14669821016944473,
+        "ruggednessProxy": 0.20519282917567636,
+        "roughnessCause": 0.21895567851498093
+      }
+    },
+    {
+      "preset": "pelagia",
+      "seed": 41.125,
+      "direction": [
+        0,
+        0,
+        1
+      ],
+      "values": {
+        "height": 0.16472952672651342,
+        "macroHeight": 0.16472952672651342,
+        "ridge": 0.7314734036502545,
+        "oceanDepth": 0,
+        "humidity": 0.45563331497132925,
+        "temperature": 0.9472865514475157,
+        "ruggednessProxy": 0.3291630316426145,
+        "roughnessCause": 0.3516652126570458
+      }
+    },
+    {
+      "preset": "pelagia",
+      "seed": 41.125,
+      "direction": [
+        0.577,
+        0.577,
+        0.577
+      ],
+      "values": {
+        "height": 0.49080108176397874,
+        "macroHeight": 0.49080108176397874,
+        "ridge": 0.8927659604287095,
+        "oceanDepth": 0,
+        "humidity": 0.6209957315066271,
+        "temperature": 0.4380303196130435,
+        "ruggednessProxy": 0.40174468219291926,
+        "roughnessCause": 0.3806978728771677
+      }
+    },
+    {
+      "preset": "pelagia",
+      "seed": 41.125,
+      "direction": [
+        -0.42,
+        0.71,
+        0.56
+      ],
+      "values": {
+        "height": 0.35708533876244236,
+        "macroHeight": 0.39218530986628775,
+        "ridge": 0.950506440254238,
+        "oceanDepth": 0,
+        "humidity": 0.8034178071590871,
+        "temperature": 0.3482649582601014,
+        "ruggednessProxy": 0.43474789233517624,
+        "roughnessCause": 0.3938991569340705
+      }
+    },
+    {
+      "preset": "pelagia",
+      "seed": 59.75,
+      "direction": [
+        1,
+        0,
+        0
+      ],
+      "values": {
+        "height": 0.5238168444271558,
+        "macroHeight": 0.5238168444271558,
+        "ridge": 0.9749098575436704,
+        "oceanDepth": 0,
+        "humidity": 0.6240374699292138,
+        "temperature": 0.8323786097833101,
+        "ruggednessProxy": 0.4387094358946517,
+        "roughnessCause": 0.3954837743578607
+      }
+    },
+    {
+      "preset": "pelagia",
+      "seed": 59.75,
+      "direction": [
+        0,
+        1,
+        0
+      ],
+      "values": {
+        "height": 0.24219506682604464,
+        "macroHeight": 0.24219506682604464,
+        "ridge": 0.9148560169161206,
+        "oceanDepth": 0,
+        "humidity": 0.5050817767242517,
+        "temperature": 0.0724975786156657,
+        "ruggednessProxy": 0.4116852076122543,
+        "roughnessCause": 0.3846740830449017
+      }
+    },
+    {
+      "preset": "pelagia",
+      "seed": 59.75,
+      "direction": [
+        0,
+        0,
+        1
+      ],
+      "values": {
+        "height": 0.2634465648379365,
+        "macroHeight": 0.2634465648379365,
+        "ridge": 0.7076726507109325,
+        "oceanDepth": 0,
+        "humidity": 0.651078723007652,
+        "temperature": 0.9156970992518603,
+        "ruggednessProxy": 0.31845269281991967,
+        "roughnessCause": 0.34738107712796784
+      }
+    },
+    {
+      "preset": "pelagia",
+      "seed": 59.75,
+      "direction": [
+        0.577,
+        0.577,
+        0.577
+      ],
+      "values": {
+        "height": 0.4359390509808476,
+        "macroHeight": 0.4359390509808476,
+        "ridge": 0.98952100512373,
+        "oceanDepth": 0,
+        "humidity": 0.6131138404262172,
+        "temperature": 0.45558616946364544,
+        "ruggednessProxy": 0.4452844523056785,
+        "roughnessCause": 0.3981137809222714
+      }
+    },
+    {
+      "preset": "pelagia",
+      "seed": 59.75,
+      "direction": [
+        -0.42,
+        0.71,
+        0.56
+      ],
+      "values": {
+        "height": 0.20071182128146756,
+        "macroHeight": 0.2358117923853129,
+        "ridge": 0.9380374720325697,
+        "oceanDepth": 0,
+        "humidity": 0.3218766984571664,
+        "temperature": 0.39830448385401335,
+        "ruggednessProxy": 0.42913685663542545,
+        "roughnessCause": 0.3916547426541702
+      }
+    },
+    {
+      "preset": "astra",
+      "seed": 31.731,
+      "direction": [
+        1,
+        0,
+        0
+      ],
+      "values": {
+        "height": 0.6312365425069992,
+        "macroHeight": 0.6312365425069992,
+        "ridge": 0.8946864991487944,
+        "oceanDepth": 0,
+        "humidity": 0.09438502289343992,
+        "temperature": 0.7480043063977602,
+        "ruggednessProxy": 0.40260892461695746,
+        "roughnessCause": 0.381043569846783
+      }
+    },
+    {
+      "preset": "astra",
+      "seed": 31.731,
+      "direction": [
+        0,
+        1,
+        0
+      ],
+      "values": {
+        "height": 0.16186857978598823,
+        "macroHeight": 0.16186857978598823,
+        "ridge": 0.8134575110109048,
+        "oceanDepth": 0,
+        "humidity": 0,
+        "temperature": 0.04820205446848376,
+        "ruggednessProxy": 0.3660558799549072,
+        "roughnessCause": 0.3664223519819629
+      }
+    },
+    {
+      "preset": "astra",
+      "seed": 31.731,
+      "direction": [
+        0,
+        0,
+        1
+      ],
+      "values": {
+        "height": 0.4577025197978273,
+        "macroHeight": 0.4577025197978273,
+        "ridge": 0.699905718307049,
+        "oceanDepth": 0,
+        "humidity": 0.022100936851561725,
+        "temperature": 0.8035351936646953,
+        "ruggednessProxy": 0.31495757323817203,
+        "roughnessCause": 0.3459830292952688
+      }
+    },
+    {
+      "preset": "astra",
+      "seed": 31.731,
+      "direction": [
+        0.577,
+        0.577,
+        0.577
+      ],
+      "values": {
+        "height": 0.6314740111420571,
+        "macroHeight": 0.6314740111420571,
+        "ridge": 0.9749881620831744,
+        "oceanDepth": 0,
+        "humidity": 0.04874711807195231,
+        "temperature": 0.3430149822120584,
+        "ruggednessProxy": 0.43874467293742847,
+        "roughnessCause": 0.39549786917497143
+      }
+    },
+    {
+      "preset": "astra",
+      "seed": 31.731,
+      "direction": [
+        -0.42,
+        0.71,
+        0.56
+      ],
+      "values": {
+        "height": 0.2611908255328907,
+        "macroHeight": 0.2962907966367361,
+        "ridge": 0.8687560807128596,
+        "oceanDepth": 0,
+        "humidity": 0,
+        "temperature": 0.32895120249355797,
+        "ruggednessProxy": 0.39796023054155594,
+        "roughnessCause": 0.3791840922166224
+      }
+    },
+    {
+      "preset": "astra",
+      "seed": 41.125,
+      "direction": [
+        1,
+        0,
+        0
+      ],
+      "values": {
+        "height": 0.320545190922952,
+        "macroHeight": 0.320545190922952,
+        "ridge": 0.8067340429265065,
+        "oceanDepth": 0,
+        "humidity": 0.2106433118870586,
+        "temperature": 0.8474255389046553,
+        "ruggednessProxy": 0.3630303193169279,
+        "roughnessCause": 0.36521212772677114
+      }
+    },
+    {
+      "preset": "astra",
+      "seed": 41.125,
+      "direction": [
+        0,
+        1,
+        0
+      ],
+      "values": {
+        "height": 0.1418260631584478,
+        "macroHeight": 0.1418260631584478,
+        "ridge": 0.8525234887405142,
+        "oceanDepth": 0,
+        "humidity": 0.19841315463833814,
+        "temperature": 0.05461565978929668,
+        "ruggednessProxy": 0.3836355699332314,
+        "roughnessCause": 0.37345422797329253
+      }
+    },
+    {
+      "preset": "astra",
+      "seed": 41.125,
+      "direction": [
+        0,
+        0,
+        1
+      ],
+      "values": {
+        "height": 0.5341401691835013,
+        "macroHeight": 0.5341401691835013,
+        "ridge": 0.9306436638902451,
+        "oceanDepth": 0,
+        "humidity": 0,
+        "temperature": 0.7790751458612796,
+        "ruggednessProxy": 0.4187896487506103,
+        "roughnessCause": 0.38751585950024414
+      }
+    },
+    {
+      "preset": "astra",
+      "seed": 41.125,
+      "direction": [
+        0.577,
+        0.577,
+        0.577
+      ],
+      "values": {
+        "height": 0.33995860197582806,
+        "macroHeight": 0.33995860197582806,
+        "ridge": 0.8703496597781025,
+        "oceanDepth": 0,
+        "humidity": 0.0710915330415724,
+        "temperature": 0.4362999131452517,
+        "ruggednessProxy": 0.39165734690014614,
+        "roughnessCause": 0.37666293876005846
+      }
+    },
+    {
+      "preset": "astra",
+      "seed": 41.125,
+      "direction": [
+        -0.42,
+        0.71,
+        0.56
+      ],
+      "values": {
+        "height": 0.5781105332333049,
+        "macroHeight": 0.6132105043371503,
+        "ridge": 0.9123310999508588,
+        "oceanDepth": 0,
+        "humidity": 0.13070900065894003,
+        "temperature": 0.22753689602942545,
+        "ruggednessProxy": 0.4175689891986556,
+        "roughnessCause": 0.3870275956794622
+      }
+    },
+    {
+      "preset": "astra",
+      "seed": 59.75,
+      "direction": [
+        1,
+        0,
+        0
+      ],
+      "values": {
+        "height": 0.3489163573978904,
+        "macroHeight": 0.3489163573978904,
+        "ridge": 0.8149364614345465,
+        "oceanDepth": 0,
+        "humidity": 0.13651112919781533,
+        "temperature": 0.8383467656326751,
+        "ruggednessProxy": 0.3667214076455459,
+        "roughnessCause": 0.3666885630582184
+      }
+    },
+    {
+      "preset": "astra",
+      "seed": 59.75,
+      "direction": [
+        0,
+        1,
+        0
+      ],
+      "values": {
+        "height": 0.3323259041748694,
+        "macroHeight": 0.3323259041748694,
+        "ridge": 0.988765233481787,
+        "oceanDepth": 0,
+        "humidity": 0,
+        "temperature": 0,
+        "ruggednessProxy": 0.4449443550668042,
+        "roughnessCause": 0.39797774202672165
+      }
+    },
+    {
+      "preset": "astra",
+      "seed": 59.75,
+      "direction": [
+        0,
+        0,
+        1
+      ],
+      "values": {
+        "height": 0.35062491292079145,
+        "macroHeight": 0.35062491292079145,
+        "ridge": 0.9043136478776225,
+        "oceanDepth": 0,
+        "humidity": 0.12508248209881973,
+        "temperature": 0.8378000278653467,
+        "ruggednessProxy": 0.4069411415449301,
+        "roughnessCause": 0.38277645661797205
+      }
+    },
+    {
+      "preset": "astra",
+      "seed": 59.75,
+      "direction": [
+        0.577,
+        0.577,
+        0.577
+      ],
+      "values": {
+        "height": 0.5999395307822208,
+        "macroHeight": 0.5999395307822208,
+        "ridge": 0.9333542205857686,
+        "oceanDepth": 0,
+        "humidity": 0.013177949790940058,
+        "temperature": 0.353106015927206,
+        "ruggednessProxy": 0.4200093992635959,
+        "roughnessCause": 0.3880037597054383
+      }
+    },
+    {
+      "preset": "astra",
+      "seed": 59.75,
+      "direction": [
+        -0.42,
+        0.71,
+        0.56
+      ],
+      "values": {
+        "height": 0.5307127896414047,
+        "macroHeight": 0.5658127607452501,
+        "ridge": 0.8888312943592046,
+        "oceanDepth": 0,
+        "humidity": 0,
+        "temperature": 0.24270417397883348,
+        "ruggednessProxy": 0.40699407668241117,
+        "roughnessCause": 0.38279763067296446
+      }
+    },
+    {
+      "preset": "verdance",
+      "seed": 31.731,
+      "direction": [
+        1,
+        0,
+        0
+      ],
+      "values": {
+        "height": 0.352717126827121,
+        "macroHeight": 0.352717126827121,
+        "ridge": 0.9872337188315412,
+        "oceanDepth": 0,
+        "humidity": 0.45712564837155834,
+        "temperature": 0.9671305194153212,
+        "ruggednessProxy": 0.4442551734741936,
+        "roughnessCause": 0.39770206938967745
+      }
+    },
+    {
+      "preset": "verdance",
+      "seed": 31.731,
+      "direction": [
+        0,
+        1,
+        0
+      ],
+      "values": {
+        "height": 0.24494795870414343,
+        "macroHeight": 0.24494795870414343,
+        "ridge": 0.9549103233438643,
+        "oceanDepth": 0,
+        "humidity": 0.034217795869387335,
+        "temperature": 0.1516166532146741,
+        "ruggednessProxy": 0.42970964550473895,
+        "roughnessCause": 0.3918838582018956
+      }
+    },
+    {
+      "preset": "verdance",
+      "seed": 31.731,
+      "direction": [
+        0,
+        0,
+        1
+      ],
+      "values": {
+        "height": 0.33221409427947335,
+        "macroHeight": 0.33221409427947335,
+        "ridge": 0.5549767781648111,
+        "oceanDepth": 0,
+        "humidity": 0.2761734817821325,
+        "temperature": 0.9736914898305685,
+        "ruggednessProxy": 0.249739550174165,
+        "roughnessCause": 0.319895820069666
+      }
+    },
+    {
+      "preset": "verdance",
+      "seed": 31.731,
+      "direction": [
+        0.577,
+        0.577,
+        0.577
+      ],
+      "values": {
+        "height": 0.5099720253128994,
+        "macroHeight": 0.5099720253128994,
+        "ridge": 0.9463854262364313,
+        "oceanDepth": 0,
+        "humidity": 0.20460485888585095,
+        "temperature": 0.5118956176773888,
+        "ruggednessProxy": 0.4258734418063941,
+        "roughnessCause": 0.39034937672255765
+      }
+    },
+    {
+      "preset": "verdance",
+      "seed": 31.731,
+      "direction": [
+        -0.42,
+        0.71,
+        0.56
+      ],
+      "values": {
+        "height": 0.14828826192576125,
+        "macroHeight": 0.1833882330296066,
+        "ridge": 0.6669113594098136,
+        "oceanDepth": 0,
+        "humidity": 0.23987427910506365,
+        "temperature": 0.4950800228478394,
+        "ruggednessProxy": 0.3071301059551852,
+        "roughnessCause": 0.3428520423820741
+      }
+    },
+    {
+      "preset": "verdance",
+      "seed": 41.125,
+      "direction": [
+        1,
+        0,
+        0
+      ],
+      "values": {
+        "height": 0.27242267693978484,
+        "macroHeight": 0.27242267693978484,
+        "ridge": 0.6545388623480036,
+        "oceanDepth": 0,
+        "humidity": 0.40761739513815587,
+        "temperature": 0.9928247433792688,
+        "ruggednessProxy": 0.29454248805660166,
+        "roughnessCause": 0.33781699522264064
+      }
+    },
+    {
+      "preset": "verdance",
+      "seed": 41.125,
+      "direction": [
+        0,
+        1,
+        0
+      ],
+      "values": {
+        "height": 0.010318093220485158,
+        "macroHeight": 0.010318093220485158,
+        "ridge": 0.45598406483483633,
+        "oceanDepth": 0,
+        "humidity": 0.3404806263440763,
+        "temperature": 0.22669821016944475,
+        "ruggednessProxy": 0.20519282917567636,
+        "roughnessCause": 0.21895567851498093
+      }
+    },
+    {
+      "preset": "verdance",
+      "seed": 41.125,
+      "direction": [
+        0,
+        0,
+        1
+      ],
+      "values": {
+        "height": 0.16472952672651342,
+        "macroHeight": 0.16472952672651342,
+        "ridge": 0.7314734036502545,
+        "oceanDepth": 0,
+        "humidity": 0.15563331497132926,
+        "temperature": 1,
+        "ruggednessProxy": 0.3291630316426145,
+        "roughnessCause": 0.3516652126570458
+      }
+    },
+    {
+      "preset": "verdance",
+      "seed": 41.125,
+      "direction": [
+        0.577,
+        0.577,
+        0.577
+      ],
+      "values": {
+        "height": 0.49080108176397874,
+        "macroHeight": 0.49080108176397874,
+        "ridge": 0.8927659604287095,
+        "oceanDepth": 0,
+        "humidity": 0.3209957315066271,
+        "temperature": 0.5180303196130435,
+        "ruggednessProxy": 0.40174468219291926,
+        "roughnessCause": 0.3806978728771677
+      }
+    },
+    {
+      "preset": "verdance",
+      "seed": 41.125,
+      "direction": [
+        -0.42,
+        0.71,
+        0.56
+      ],
+      "values": {
+        "height": 0.35708533876244236,
+        "macroHeight": 0.39218530986628775,
+        "ridge": 0.950506440254238,
+        "oceanDepth": 0,
+        "humidity": 0.503417807159087,
+        "temperature": 0.4282649582601014,
+        "ruggednessProxy": 0.43474789233517624,
+        "roughnessCause": 0.3938991569340705
+      }
+    },
+    {
+      "preset": "verdance",
+      "seed": 59.75,
+      "direction": [
+        1,
+        0,
+        0
+      ],
+      "values": {
+        "height": 0.5238168444271558,
+        "macroHeight": 0.5238168444271558,
+        "ridge": 0.9749098575436704,
+        "oceanDepth": 0,
+        "humidity": 0.3240374699292138,
+        "temperature": 0.9123786097833101,
+        "ruggednessProxy": 0.4387094358946517,
+        "roughnessCause": 0.3954837743578607
+      }
+    },
+    {
+      "preset": "verdance",
+      "seed": 59.75,
+      "direction": [
+        0,
+        1,
+        0
+      ],
+      "values": {
+        "height": 0.24219506682604464,
+        "macroHeight": 0.24219506682604464,
+        "ridge": 0.9148560169161206,
+        "oceanDepth": 0,
+        "humidity": 0.20508177672425165,
+        "temperature": 0.1524975786156657,
+        "ruggednessProxy": 0.4116852076122543,
+        "roughnessCause": 0.3846740830449017
+      }
+    },
+    {
+      "preset": "verdance",
+      "seed": 59.75,
+      "direction": [
+        0,
+        0,
+        1
+      ],
+      "values": {
+        "height": 0.2634465648379365,
+        "macroHeight": 0.2634465648379365,
+        "ridge": 0.7076726507109325,
+        "oceanDepth": 0,
+        "humidity": 0.35107872300765197,
+        "temperature": 0.9956970992518602,
+        "ruggednessProxy": 0.31845269281991967,
+        "roughnessCause": 0.34738107712796784
+      }
+    },
+    {
+      "preset": "verdance",
+      "seed": 59.75,
+      "direction": [
+        0.577,
+        0.577,
+        0.577
+      ],
+      "values": {
+        "height": 0.4359390509808476,
+        "macroHeight": 0.4359390509808476,
+        "ridge": 0.98952100512373,
+        "oceanDepth": 0,
+        "humidity": 0.31311384042621715,
+        "temperature": 0.5355861694636455,
+        "ruggednessProxy": 0.4452844523056785,
+        "roughnessCause": 0.3981137809222714
+      }
+    },
+    {
+      "preset": "verdance",
+      "seed": 59.75,
+      "direction": [
+        -0.42,
+        0.71,
+        0.56
+      ],
+      "values": {
+        "height": 0.20071182128146756,
+        "macroHeight": 0.2358117923853129,
+        "ridge": 0.9380374720325697,
+        "oceanDepth": 0,
+        "humidity": 0.021876698457166388,
+        "temperature": 0.47830448385401336,
+        "ruggednessProxy": 0.42913685663542545,
+        "roughnessCause": 0.3916547426541702
+      }
+    }
+  ]
+}
