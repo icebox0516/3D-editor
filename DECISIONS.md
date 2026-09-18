@@ -134,3 +134,41 @@
 10. **任务结构**：008.1 纯基建（不生任何树几何）→ 008.2 slot-0 锚点几何（可复现基准，aLeafRand/aBend 几何数据契约在此冻结）→ 008.3 材质/风动 →【视觉锚点定稿·人工门】→ 008.4 放置全链路集成 → 008.5 扩 8 槽 + 验收门（含**同 sourceKey 多实例一致性验证**：≥6 棵同槽树共享 Geometry/Material、仅实例参数不同、单桶 1 InstancedMesh × 2 draw calls；「零错误」拆为 运行时无异常 / 资源无重复 build / Ghost 不触发 dispose / 放置删除 Undo Redo 无泄漏 / 同 sourceKey 不重复创建资源）。
 
 **锁定规则链**：一个 seed → shapeSlot 只选形态 → morphRng 只管该槽几何 → instanceRng 只管对象表现 → sourceKey = assetId + preset + shapeSlot → 一个 sourceKey = 一份合并 Geometry Source → 一个桶 = 一个整树 InstancedMesh × 2 groups。此链支撑后续 树 → 灌木 → 草地 扩展，无需重设资产基础协议。
+
+---
+
+## 2026-09-18 · D20 植物资产路线立项（T008 增补 + T009/T010 立项 grill，三轮拷问 + 两轮修正）
+
+**背景**：用户提出《植物资产延伸》总需求（夏栎优化 → 植物资产库 → 植物资产平台），经 grill 三轮（含资产管理器构想重构一轮）+ 两轮修正落定任务树：**008.4 → 008.6 → T009 → 008.5**（008.5 修订为收官验证门、后置于 T009，形态设计职责移 009.3——避免 8 槽质量对齐做两遍）→ T010 → T011+ 族建设。
+
+1. **8 Slot = 8 组完整形态向量**（shapeProfile 预设组合，crownCenter/crownHeight/crownWidth/mainBranchSpread/asymmetry/canopyDensity/crownTopBias 等多维度整体取值），方向名（标准/挺拔/展开/偏冠/低冠/高冠/疏松/丰满）仅为标签；禁止仅缩放/旋转/轻微随机的伪差异。
+2. **夏栎结构参数面为资产私有**，不扩展 ProceduralBuild 公共参数；build 仅做 slot → 结构配置路由。
+3. **公共能力从真实第二消费者提炼、不预抽象**：叶簇生成保持夏栎私有命名与实现（家族契约提炼归 T010.1）；四文件（asset/geometry/materials/config）为推荐结构非契约（最小 = asset.ts 单文件）；不建完整 BroadleafTreeGenerator 框架，只提炼 Family Contract。
+4. **Shadow = 程序化资产公共契约能力**：核心链 ProceduralSourceCache → InstanceSource → InstancedAssetPool → 正式场景；正式放置对象必须支持 Shadow，Ghost 不要求投影仅要求不破坏契约（两者分开验收），ScatterChunkManager 仅契约兼容验证（T003 冻结口径 = 契约级小触碰）；散布侧 aSeed 同相位修复留 T003 解冻后独立任务。
+5. **LOD = 统一 Asset Runtime 能力**（非「植物 LOD」），家族预算制；LOD Source 在 Runtime 增独立 level 维度，**不得改变 D19 sourceKey 形态身份语义**；夏栎预算候选 High 30–40K / Mid 6–10K / Low 1.5–3K 三角形，结合最终结构/性能/观感实测锁定（预算非验收门槛，延续 D19.8）。
+6. **植物语义不进公共 AssetDescriptor**：分类（大类 enum + 可选 family）进公共层；heightRange/crownWidthRange 等放 proceduralProfile / family 层（见 D22）。
+7. **性能验收 = RTX 2080 Ti 开发档**（1920×1080 / DPR=1 / Chromium / WebGL2 / 固定场景相机灯光 / Shadow 开启）：1/20/100 棵 ≥60 FPS、500 ≥45 FPS、1000 ≥30 FPS；资源契约五条（同 sourceKey 不重复创建、保持 InstancedMesh 路径、不退化逐对象 Mesh、删除无残留、连续 10 次放置删除无持续增长）；本机基准不作全平台承诺。
+8. **夏栎视觉参考基准回溯补建**（T008.6）；所有未来植物 Reference Research 前置（每树种独立参考，不沿用他树，「像一棵树」不作真实性验收标准）。
+
+本条兼作 T009 / T010 立项拷问门记录（T010 启动时若 T009 实际形态与预期偏差大可补轻量门）。
+
+---
+
+## 2026-09-18 · D21 双通路原则：固定资产放置 vs 边界驱动生成
+
+**背景**：用户明确终局构想——资产管理器是整个编辑器的通用资产入口（大类 → 小类/族 → 具体资产，GLB 本地模型与程序化资产只是两种资产来源，点击放置固定形态）；「按用户绘制边界生成对象」是另一套独立的 Feature Generator 体系（绘制闭合区域 + 样式预设 → 按边界生成）。裁定：
+
+- **样式 / Shader / Material 等底层表现能力可以共享**（同一湖水配方可用于固定资产与边界生成）；
+- **固定资产放置与 Boundary 驱动生成属于两条独立业务通路**，不合并、不互相替代；
+- 自然分类下的固定资产（如固定尺寸湖泊）与未来多边形湖面生成均不进植物任务树；后续 T016（资产管理器重构，前置 T010）与 T017（多边形区域生成重构 · Feature Generator，前置 T016）分别立项、分别过各自需求拷问门。
+
+---
+
+## 2026-09-18 · D22 资产分类契约方向：大类 + family + asset 三级可寻址
+
+程序化资产元数据按「大类 enum + 可选 family + 具体 asset」三级可寻址结构扩展（T010.2 落地）：
+
+- **大类** = 浏览语义枚举（植物 / 建筑 / 车辆 / 自然 / 人 / 公共设施 / 设备 …），不承载渲染/放置行为分支；
+- **family** = 族层级（broadleaf / conifer / shrub …），支撑植物库三级树（Trees → Broadleaf → 夏栎）与非植物族扩展；
+- 支撑 T016 资产管理器「大类 → 小类/族 → 具体资产」浏览直接消费，一次定契约避免资产二次迁移；
+- 尺寸类植物语义（heightRange / crownWidthRange）放 proceduralProfile / family 层，禁止植物术语进公共协议（D20.6）。
