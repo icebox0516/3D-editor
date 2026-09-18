@@ -33,9 +33,9 @@
 - [ ] T003 收官路径（冻结 2026-09-17；剩余 003.3 验收续走 / 003.5 / 003.6 / 设施返工）→ [tasks/003-scatter-styles.md](tasks/003-scatter-styles.md)
 - [ ] T004 Style Gallery（0/3）→ [tasks/004-style-gallery.md](tasks/004-style-gallery.md)
 - [ ] T005 Animation Pathway（0/3）→ [tasks/005-animation-pathway.md](tasks/005-animation-pathway.md)
-- [ ] T006 LOD Chunking（0/4）→ [tasks/006-lod-chunking.md](tasks/006-lod-chunking.md)
 - [ ] T007 Bake Scatter（可选；启动前 grill 拷问门见任务书）→ [tasks/007-bake-scatter.md](tasks/007-bake-scatter.md)
 - [ ] T010 程序化资产公共能力与规范（0/5；2026-09-18 立项 → D20）→ [tasks/010-asset-capability.md](tasks/010-asset-capability.md)
+- [ ] T006 Asset Runtime LOD（0/5；2026-09-19 D27 修订重构，排期 T010 后、T011 前）→ [tasks/006-lod-chunking.md](tasks/006-lod-chunking.md)
 - [ ] T011 第一批阔叶乔木：朴树 / 香樟 / 榉树 / 银杏【占位】
 - [ ] T012 针叶族【占位】
 - [ ] T013 花木族【占位】

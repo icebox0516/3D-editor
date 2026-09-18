@@ -223,3 +223,28 @@ D15「渲染实现派发 threejs-expert」默认假设 4 失效。后续由主�
 ### D26 修订 · Unknown Gate 收窄与执行细则精修（2026-09-18 同日，用户复核裁定）
 
 D26.2 六情形末条「spec 关键事实含 Unknown」收窄为：**关键事实存在 Unknown，且该未知影响当前生产目标的结构、形态、材质或变体实现决策时，不得豁免；边缘性 Unknown 在 Spec 中记录但不阻塞**。同日配套精修（生效文件为准）：Gate 前置于依赖现实对象定义的开发 Step、开发 Agent 开工前校验任务书引用的 Spec Version 与当前 Spec 一致（AGENTS.md）；来源按事实类型选择——结构/尺度/专业事实→论文/官方/技术文献，型号/规格→官方产品资料，形态/材质/变体→真实照片（直接视觉证据）/现场资料/专业数据库，3D/CG 案例仅作实现参考不作现实事实依据（T008 的 TurboSquid 渲染图据此降级，008.6 首跑换真实照片）；Evidence Status 正面定义 + 事实表达形式枚举 Value/Range/Relative/Qualitative、spec 模板增「用户提供」来源类型与关键事实统一块状写法（asset-research 技能）；008.6 明示「不作为后续资产任务的标准子任务结构」。
+
+---
+
+## 2026-09-19 · D27 通用 Asset Runtime LOD 架构（grilling 两轮 + 对抗审核，Q1–Q10 逐题裁定）
+
+**背景**：用户提供《LOD方案参考.md》主张建「通用 Asset Runtime Representation System」（LOD 非植物专属、屏幕空间选档、RenderBucket、Proxy/Impostor、Shader LOD、Shadow LOD、拾取跨档一致）。经 grilling 两轮 + 独立审核子代理对抗审查逐题裁定，修正 T006/D11 旧口径（植物专属 ≤300/800/2000 tri + 统一距离阈值），与 D20.5/D23 连续。参考文档归档 `docs/lod-reference.md`（输入材料，不再更新；LOD 规范真相源 = T010.3 产出）。已裁定与候选待实测分栏，防候选值被误读为锁定值。
+
+**已裁定**：
+
+1. **职责切分（延续 D23.1）**：资产声明 Representation（档位内容），Runtime 调度（选档/切换/分桶/裁剪/批量）。夏栎三档 = T009.6；Runtime 调度 = T006；规范固化 = T010.3。禁止 TreeLOD / VegetationLOD 类资产域专属 LOD 系统。
+2. **选档度量 = 归一化视距 d/资产包围球半径**（等价资产对相机张角/屏幕占比，与分辨率、DPR、视口尺寸解耦）；像素口径仅用于验收报表与调试显示；禁止全资产统一距离阈值。阈值数值候选待 T006 实测锁定。
+3. **Representation 语义集六档**（High/Mid/Low/Proxy/Impostor/Culled）规范面全集收录、支持不完整 LOD 链；本期实装只到 High/Mid/Low + Culled，Proxy/Impostor 接口预留不实装。**范围门**：十万实例压力下 triangles / draw calls / frame time p95 任一超预算 → Impostor 升级必做（判定绑定观测指标）。GLB Proxy 语义收录但显式标注「未经验证」。
+4. **桶键一律含 level**：散布 = chunk × source × level，放置 = source × level；换档复用既有机制——散布 = 确定性重撒重建、放置 = 实例跨桶迁移（池已有跨池迁移）；不引入「桶键不含 level、桶内换 Source」新机制。geometry + material 随 sourceKey + level 的 InstanceSource 整体成套（Shader LOD 天然成立）。
+5. **选档评估器 = 公共纯函数**：纯数据输入（相机位姿 / fovY / 正交标志 + 包围球与代表距离），落 `src/domain` 零 THREE（与 shapeSlotOf 纯函数先例同构，node 可测）；正交退化口径（正交时按几何尺寸/正交视高判）；两链共享同一选档语义不复制逻辑。
+6. **档位为每帧派生态**：相机状态的纯函数，不进 Scene、不进 Command、不缓存进持久状态；帧内时序 = 块剔除之后、render 之前。
+7. **level 枚举本期定死三值 `'high' | 'mid' | 'low'`**：009.6 将代码占位 `'medium'` 改为 `'mid'`（含 types.ts 注释同步；当前零消费者，改名零成本）；proxy/impostor 只留规范语义位不进类型（防幽灵字段），实装时再扩；culled 是调度结果非资产声明档位，不进枚举。
+8. **两链验证分工**：散布链验证 chunk×level 桶机制（当前散布不带 seed 全路由 slot-0，单 source 限制接受——多 source × level 交叉桶验证归放置链）；散布 seed 路由修复维持 D20.4 留 T003 解冻后独立任务。
+9. **性能验收观测七项**：FPS / frame time（p95/p99 长尾口径——均值会平均掉换档尖刺）/ draw calls / triangles / visible instances / LOD 分布双口径（各档实例数 + 各档桶数）/ 各 Representation 桶数；GPU 耗时可选不承诺（Chromium 默认禁用 disjoint timer query）；renderLoopStats 保持零 THREE 零 DOM 边界。
+10. **换档跳变验收口径**：机器 diff（连续相机移动截图序列，帧间无闪烁/无整屏突变）+ 换档点前后帧人工复核（D23.7 例外）；判「无 pop/无闪烁」，不判「两档图像一致」（轮廓差客观存在）。
+11. **T006 排期 = T010 之后、T011 族建设之前**（族建设放量前 Runtime 必须就绪）；006.1 前置 T003.4（冻结、已被 D19/D20 路线取代）废止，新前置 = T009.6 + T010.3；验收场景走独立压力测试资产（epic 原有口径），不依赖 T003 解冻。原 006.1（植物三档实装，职责已被 T009.6 承担）重构拆分为「006.1 公共语义层」+「006.2 非植物第二资产验证」，后续子任务顺延重编号（006.3 分桶换档 / 006.4 批次控制 / 006.5 验收门）。
+12. **Profile 首版最小化**：沿用 `levels: [{id}]` 声明形态，不引入 screenSize / maxDistance / triangleBudget / castShadow / pickable 等无实际消费者的字段；调度阈值归 Runtime 全局策略常量，不进资产 Profile。
+13. **009.7 基线不回溯**（其在 T009 语境有效）；T006 验收加同场景 LOD 开/关对照组留档。
+14. **默认（可否决）**：缩略图 / Ghost / Preview 固定取 High 档；T007 烘焙「取当前档几何」语义保留原句、细化留 T007 立项拷问门；LOD 分布 DEV 可视化并入 006.5 取证。
+
+**候选待实测（不作锁定值）**：张角/归一化视距分档阈值数值；chunk 代表距离取块最近点、代表 scale 取块内 max 的保守策略实际效果；各家族各档面数预算（010.3 家族预算表规范给出区间与锁定流程）。
