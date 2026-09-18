@@ -19,7 +19,9 @@
  *      AssetSourceRouter——GLB 与程序化同通道，T002.3；测试接 fake 工厂），池只
  *      挂载/移除、不 dispose 共享模板资源（源端统一释放）；选中高亮与 Ghost 预览
  *      不走本池（PreviewManager 独立路径）；userData 不写业务数据（锚点 id 映射
- *      由 RuntimeObjectMap.set 负责）。
+ *      由 RuntimeObjectMap.set 负责）；池创建的渲染网格统一投影/接收阴影
+ *      （castShadow/receiveShadow = true——singleMesh / instancedMesh / 诊断亮网格
+ *      三个创建点；锚点补挂 Mesh 不设：不进场景仅包围盒）。
  * 实例颜色（T002.3 烘焙式变体色相微差）：源无关颜色槽——setColor(id, color) /
  *      clearColor(id) 只登记「id + 颜色」，池不读 meta/seed（变体采样在调用方）。
  *      InstancedMesh 路径任意实例有色时建 instanceColor 逐槽写（未设色实例白 1,1,1
@@ -399,6 +401,8 @@ export class InstancedAssetPool {
         brightSlotOf: new Map(),
       };
       split.highlightMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      split.highlightMesh.castShadow = true;
+      split.highlightMesh.receiveShadow = true;
       split.highlightMesh.layers.set(diag.highlightLayer);
       pool.split = split;
       this.root.add(split.highlightMesh);
@@ -537,6 +541,8 @@ export class InstancedAssetPool {
     }
     if (!pool.singleMesh) {
       pool.singleMesh = new THREE.Mesh(source.geometry, source.material);
+      pool.singleMesh.castShadow = true;
+      pool.singleMesh.receiveShadow = true;
     }
     if (pool.singleMesh.userData.objectId !== pool.entries[0].id) {
       pool.singleMesh.userData.objectId = pool.entries[0].id;
@@ -557,6 +563,8 @@ export class InstancedAssetPool {
       pool.capacity = capacityFor(count);
       mesh = new THREE.InstancedMesh(source.geometry, source.material, pool.capacity);
       mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
       pool.instancedMesh = mesh;
       this.root.add(mesh);
     } else if (pool.capacity < count) {

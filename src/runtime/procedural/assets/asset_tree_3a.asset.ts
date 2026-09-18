@@ -20,7 +20,8 @@
  *        TimeUniformService（D19.7：uTime 全局风帧 / aSeed 个体相位）
  *      注：层间 mergeGeometries useGroups=true → 恰 2 组（皮 0 / 叶 1，D15 免组膨胀）；
  *      叶影裁切深度材质（createTree3aLeafDepthMaterial）无 InstanceSource 契约通道——
- *      产品路径降级为影无裁切，DEV 舞台自持 Mesh 挂（取舍记档见 tree3aMaterials 头）。
+ *      产品路径降级为影无裁切（2026-09-18 起池路径桶网格已投影，叶影 = 整卡剪影），
+ *      DEV 舞台自持 Mesh 挂（取舍记档见 tree3aMaterials 头）。
  * 叶卡顶点属性（几何固有，冻结契约）：aLeafRand（逐叶随机 ∈ [0,1)，同卡 6 顶点同值）、
  *      aBend（风动摆幅权重 = 离枝距离 + 冠内高度权重，卡内根→尖非降；树皮组恒 0）。
  * 边界：每次调用 new 全部 geometry/material（所有权随调用移交调用方，缓存会 dispose，

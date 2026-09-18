@@ -28,10 +28,12 @@
  *   alpha 函数（单一来源字符串，表面/深度不复制粘贴）+ 树皮组守卫（aLeafRand=0 → 实心，
  *   否则多材质网格的皮组会被叶形 SDF 在圆柱 uv 域上误裁出洞）。**取舍记档**：
  *   InstanceSource 契约 {geometry, material} 无 mesh 层 customDepthMaterial 通道
- *   （InstancedAssetPool/ScatterChunkManager 建桶不设深度材质；且池路径桶网格 castShadow
- *   缺省 false 尚不投影）——产品路径为「alphaTest 主材质 + 影无裁切」降级，DEV 舞台
- *   （tree3aStage 自持 Mesh）挂 customDepthMaterial 出裁切影；未来契约升级点。风动位移
- *   不进 depth pass（静态影，摆幅 cm 级 + 影贴图 ~16cm/_texel 下不可辨，已知取舍）。
+ *   （InstancedAssetPool/ScatterChunkManager 建桶不设深度材质；池路径桶网格自
+ *   2026-09-18 起统一 castShadow/receiveShadow=true——叶影发生但为整卡剪影，SDF
+ *   裁切仍仅 DEV 舞台可得）——产品路径为「alphaTest 主材质 + 影无裁切」降级，
+ *   DEV 舞台（tree3aStage 自持 Mesh）挂 customDepthMaterial 出裁切影；未来契约
+ *   升级点。风动位移不进 depth pass（静态影，摆幅 cm 级 + 影贴图 ~16cm/_texel
+ *   下不可辨，已知取舍）。
  * 成本记账（10 万实例每像素纪律，hash21=1× / vnoise=3× 口径；模块头记账）：
  *   - 叶片元 = 6× 噪声（叶缘锯齿 1× vnoise + 叶团斑块 1× vnoise）+ SDF/叶脉/透光纯 ALU
  *     （sin/cos/smoothstep 折算 ≈ 4×——R1 加齿载波与脉侧翼）≈ 10× 压线预算（再增先降载）；
