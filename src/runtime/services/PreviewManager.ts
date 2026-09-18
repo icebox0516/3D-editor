@@ -8,7 +8,9 @@
  *      同一通道：有填充面、无测度文字（文字标注仅活跃绘制（游标存在）时显示）。
  *      T002.3 起 Ghost 源经注入的 GhostObjectProvider（组合根接 AssetSourceRouter，
  *      GLB 克隆与程序化 Mesh 同通道分派——此前直连 AssetLoader，程序化 Ghost
- *      永远停留占位盒）。
+ *      永远停留占位盒）。T008.4 起 showGhost 增可选 seed 并透传 provideGhostObject
+ *      （shapeFamily 槽路由：Ghost 与落地实例同 seed 同槽，「Ghost 预览即最终形态」；
+ *      同 (assetId, seed) 重复调用仅同步变换不重建，防 pointermove 重复取源）。
  * 边界：临时对象全部归本类独立管理（需求 §分层边界规则 5）：不进正式 Scene、
  *      不进 RuntimeObjectMap（不可被拾取）、不产生历史；userData 不写业务映射；
  *      异步加载用令牌防竞态（hideGhost 后迟到的对象不再挂载）；Ghost 展示对象
@@ -29,9 +31,11 @@ import { AUX_LAYER } from '../RenderModeState';
  * Ghost 展示对象提供者（结构化最小面；AssetSourceRouter 实现端）：
  * file → 模板深克隆；procedural → 共享缓存源的 Mesh。产物资源归提供方/源端所有，
  * Ghost 方（本类）只挂载/移除、永不 dispose。未注入（null）时 Ghost 恒为占位盒。
+ * seed 为可选对象 seed（T008.4）：程序化端按 shapeSlotOf(seed) 槽路由（缺省按 0
+ * 路由，由缓存端兜底）；GLB 端忽略该参，行为零变化。
  */
 export interface GhostObjectProvider {
-  provideGhostObject(assetId: ID): Promise<THREE.Object3D>;
+  provideGhostObject(assetId: ID, seed?: number): Promise<THREE.Object3D>;
 }
 
 /** 绘制预览线的离地高度（高于全部贴地表层 water 0.18 且留 0.03 层距，避免被遮挡） */
@@ -68,6 +72,8 @@ export class PreviewManager {
 
   private ghostRoot: THREE.Group | null = null;
   private ghostAssetId: ID | null = null;
+  /** 当前 Ghost 的对象 seed（T008.4；含 undefined 态——与 0 严格区分，去重逐值比较） */
+  private ghostSeed: number | undefined;
   /** 异步竞态令牌：每次 hide/show 递增，迟到回调按令牌丢弃 */
   private ghostToken = 0;
 
@@ -119,19 +125,28 @@ export class PreviewManager {
     this.group.add(node);
   }
 
-  showGhost(assetId: ID, t: Transform): void {
+  showGhost(assetId: ID, t: Transform, seed?: number): void {
+    // 去重（T008.4）：目标未变——当前 Ghost 存在且 (assetId, seed) 与既有值逐值相等
+    // （seed 严格 ===，undefined ≠ 0）→ 仅同步变换，不重建；pointermove 逐帧重复调用
+    // 不再触发占位盒闪烁与重复异步取源。异步取源进行中（占位盒期）同参调用同样命中，
+    // 在途回调按原令牌挂载，无竞态。
+    if (this.ghostRoot && this.ghostAssetId === assetId && this.ghostSeed === seed) {
+      this.applyTransform(this.ghostRoot, t);
+      return;
+    }
     this.hideGhost();
     const token = ++this.ghostToken;
     const root = new THREE.Group();
     root.add(new THREE.Mesh(this.ghostPlaceholderGeometry, this.ghostPlaceholderMaterial));
     this.ghostRoot = root;
     this.ghostAssetId = assetId;
+    this.ghostSeed = seed;
     this.applyTransform(root, t);
     this.addToGroup(root);
 
     if (!this.ghosts) return;
     this.ghosts
-      .provideGhostObject(assetId)
+      .provideGhostObject(assetId, seed)
       .then((instance) => {
         // 竞态防护：令牌过期（已隐藏/已换目标）则丢弃迟到结果
         if (token !== this.ghostToken || this.ghostRoot !== root) return;
@@ -158,11 +173,17 @@ export class PreviewManager {
       this.ghostRoot = null;
     }
     this.ghostAssetId = null;
+    this.ghostSeed = undefined;
   }
 
   /** 当前 Ghost 指向的资产 id（无 Ghost 为 null；诊断用途） */
   getGhostAssetId(): ID | null {
     return this.ghostAssetId;
+  }
+
+  /** 当前 Ghost 携带的对象 seed（无 Ghost 为 undefined；诊断用途，T008.4） */
+  getGhostSeed(): number | undefined {
+    return this.ghostSeed;
   }
 
   updateDrawPreview(state: DrawPreviewState): void {

@@ -14,6 +14,7 @@ import { describe, expect, it } from 'vitest';
 import {
   applyAssetVariants,
   hasVariantJitter,
+  resampleVariantTransform,
   rollVariantSeed,
 } from '../../../src/domain/assets';
 import type { ProceduralVariants } from '../../../src/domain/assets';
@@ -134,5 +135,62 @@ describe('hasVariantJitter：掷骰启用判定', () => {
     expect(hasVariantJitter({})).toBe(false);
     expect(hasVariantJitter({ scaleJitter: 0, rotationJitter: 0, hueJitter: 0 })).toBe(false);
     expect(hasVariantJitter({ scaleJitter: -1, hueJitter: Number.NaN })).toBe(false);
+  });
+});
+
+describe('resampleVariantTransform：重掷重采样（T008.4）', () => {
+  const VARIANTS: ProceduralVariants = { scaleJitter: 0.16, rotationJitter: 180, hueJitter: 9 };
+  const CURRENT = {
+    position: { x: 3, y: 0.03, z: -2 },
+    rotation: { x: 0.1, y: 0.5, z: -0.2 },
+    scale: { x: 2.2, y: 2.31, z: 2.2 }, // 用户 gizmo 后的非均匀缩放（含手调痕迹）
+  };
+
+  it('确定性：同入参逐位一致；返回新对象（不与 current 引用共享）', () => {
+    const a = resampleVariantTransform(VARIANTS, 41, 87, CURRENT);
+    const b = resampleVariantTransform(VARIANTS, 41, 87, CURRENT);
+    expect(a).toEqual(b);
+    expect(a.position).not.toBe(CURRENT.position);
+    expect(a.rotation).not.toBe(CURRENT.rotation);
+    expect(a.scale).not.toBe(CURRENT.scale);
+    expect(CURRENT.rotation.y).toBe(0.5); // 原值未被改动
+  });
+
+  it('采样差换算精确：scale ×(new/old)、rotY +(new−old)、位置与 X/Z 旋转不动', () => {
+    const oldSeed = 41;
+    const newSeed = 87;
+    const oldSample = applyAssetVariants(VARIANTS, oldSeed);
+    const newSample = applyAssetVariants(VARIANTS, newSeed);
+    const next = resampleVariantTransform(VARIANTS, oldSeed, newSeed, CURRENT);
+    const ratio = newSample.scaleFactor / oldSample.scaleFactor;
+    expect(next.scale.x).toBeCloseTo(CURRENT.scale.x * ratio, 12);
+    expect(next.scale.y).toBeCloseTo(CURRENT.scale.y * ratio, 12);
+    expect(next.scale.z).toBeCloseTo(CURRENT.scale.z * ratio, 12);
+    expect(next.rotation.y).toBeCloseTo(
+      CURRENT.rotation.y + (newSample.rotationYOffset - oldSample.rotationYOffset),
+      12,
+    );
+    expect(next.rotation.x).toBe(CURRENT.rotation.x);
+    expect(next.rotation.z).toBe(CURRENT.rotation.z);
+    expect(next.position).toEqual(CURRENT.position);
+  });
+
+  it('同 seed 重掷 → 恒等（值等；重掷落回同 seed 时 transform 不变）', () => {
+    const next = resampleVariantTransform(VARIANTS, 42, 42, CURRENT);
+    expect(next).toEqual(CURRENT);
+  });
+
+  it('variants 缺省 / 全 0 → 两采样恒等 → 原值拷贝（新 seed 只改 hue/slot 侧）', () => {
+    expect(resampleVariantTransform(undefined, 1, 2, CURRENT)).toEqual(CURRENT);
+    expect(
+      resampleVariantTransform({ scaleJitter: 0, rotationJitter: 0, hueJitter: 0 }, 1, 2, CURRENT),
+    ).toEqual(CURRENT);
+  });
+
+  it('往返对合：old→new 再 new→old 回到原值（撤销语义的数学根基）', () => {
+    const next = resampleVariantTransform(VARIANTS, 41, 87, CURRENT);
+    const back = resampleVariantTransform(VARIANTS, 87, 41, next);
+    expect(back.scale.x).toBeCloseTo(CURRENT.scale.x, 12);
+    expect(back.rotation.y).toBeCloseTo(CURRENT.rotation.y, 12);
   });
 });

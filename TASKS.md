@@ -4,10 +4,10 @@
 
 ## Current
 
-- [ ] T008 程序化树木（3/6）→ [tasks/008-procedural-tree.md](tasks/008-procedural-tree.md)
-  - [ ] T008.4 放置全链路集成（锚点门已过，可启动；可与 008.6 并行）→ [tasks/008.4-placement-integration.md](tasks/008.4-placement-integration.md)
+- [ ] T008 程序化树木（4/6）→ [tasks/008-procedural-tree.md](tasks/008-procedural-tree.md)
   - [ ] T008.6 夏栎视觉参考研究（锚点门已过，可启动；T009 前置）→ [tasks/008.6-plant-reference.md](tasks/008.6-plant-reference.md)
   - [ ] T008.5 T008 收官验收门（修订版 → D20，后置于 T009 全部完成）→ [tasks/008.5-acceptance.md](tasks/008.5-acceptance.md)
+  - [x] T008.4 放置全链路集成（done 2026-09-18；+22 测试 → 2443 全绿；Ghost 携 seed / 重掷命令 / 孪生 / 存档 e2e + 冒烟零错误）→ [tasks/008.4-placement-integration.md](tasks/008.4-placement-integration.md)
   - [x] T008.3 叶/树皮材质+风动（done 2026-09-18；锚点门过：近观 R1 四项微调一轮终裁定稿，+24 测试 → 2421 全绿）→ [tasks/008.3-leaf-shader-wind.md](tasks/008.3-leaf-shader-wind.md)
   - [x] T008.2 树几何生成器·slot-0 锚点形态（done 2026-09-17）→ [tasks/008.2-tree-geometry.md](tasks/008.2-tree-geometry.md)
   - [x] T008.1 契约增量+uTime 基建（done 2026-09-17）→ [tasks/008.1-contract-infra.md](tasks/008.1-contract-infra.md)

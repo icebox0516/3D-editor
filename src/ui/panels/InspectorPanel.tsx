@@ -40,6 +40,7 @@ import type { SceneGrid } from '../../scene/SceneData';
 import type { SceneObject } from '../../scene/SceneObject';
 import { isGroupObject } from '../../scene/GroupObject';
 import { BatchCommand } from '../../editor/commands/BatchCommand';
+import { ChangeAssetSeedCommand } from '../../editor/commands/ChangeAssetSeedCommand';
 import { ChangeLayerCommand } from '../../editor/commands/ChangeLayerCommand';
 import { ChangePresetCommand } from '../../editor/commands/ChangePresetCommand';
 import { ChangeSemanticCommand } from '../../editor/commands/ChangeSemanticCommand';
@@ -64,10 +65,12 @@ import { StyleParametersForm } from './StyleParametersForm';
 import type { StyleApplyScope } from './StyleParametersForm';
 import {
   INSPECTOR_EMPTY,
+  assetIdOf,
   describeSelection,
   inspectorMode,
   inspectorSectionKey,
   sectionsFor,
+  variantSeedOf,
 } from './inspectorModel';
 import type { InspectorParamField } from './inspectorModel';
 import { DEFAULT_TYPE_LABELS, buildGroupToggleCommand } from './outlinerModel';
@@ -100,7 +103,8 @@ import {
 } from './regionInspectorModel';
 import { ScatterParamsForm } from './ScatterParamsForm';
 import { resolveScatterSeed } from '../../domain/scatter';
-import { rollVariantSeed } from '../../domain/assets';
+import { resampleVariantTransform, rollVariantSeed } from '../../domain/assets';
+import { Dices } from 'lucide-react';
 
 const RAD_TO_DEG = 180 / Math.PI;
 
@@ -659,15 +663,48 @@ function MetadataBody({
           );
         }
         if (field.kind === 'variant-seed') {
+          // T008.4 重掷：新 seed → ChangeAssetSeedCommand（可撤销）；transform 经
+          // resampleVariantTransform 按新旧采样差换算（用户 gizmo 编辑保留），
+          // 槽路由/色相/风相位由渲染侧按新 seed 自动复算
+          const rerollVariantSeed = (): void => {
+            const oldSeed = variantSeedOf(obj);
+            if (oldSeed === undefined) return;
+            const id = assetIdOf(obj);
+            const descriptor = id !== null ? facade.registries.assets.get(id) : undefined;
+            const variants = descriptor?.kind === 'procedural' ? descriptor.asset.variants : undefined;
+            const nextSeed = rollVariantSeed();
+            facade.history.execute(
+              new ChangeAssetSeedCommand(obj.id, {
+                seed: nextSeed,
+                transform: resampleVariantTransform(variants, oldSeed, nextSeed, obj.transform),
+              }),
+            );
+          };
           return (
-            <ReadonlyTextField
-              key={field.key}
-              label={field.label}
-              id={`seed-${obj.id}`}
-              value={`${field.seed}`}
-              title="烘焙式变体 seed：放置瞬间掷出，渲染侧按 seed 确定性复算变体（同 seed 同结果）；不可编辑"
-              numeric
-            />
+            <div className="ed-field" key={field.key}>
+              <label className="ed-field__label" htmlFor={`seed-${obj.id}`}>
+                {field.label}
+              </label>
+              <div className="ed-field__value">
+                <input
+                  id={`seed-${obj.id}`}
+                  className="ed-input ed-input--num"
+                  readOnly
+                  value={`${field.seed}`}
+                  title="烘焙式变体 seed：放置瞬间掷出，渲染侧按 seed 确定性复算变体（同 seed 同结果）；不可编辑"
+                  aria-label={`${field.label}（只读）`}
+                />
+                <button
+                  type="button"
+                  className="ed-btn ed-btn--ghost"
+                  title="重掷变体 seed：按新 seed 重算形态槽与实例表现（缩放/旋转增量换算，位置与手调保留；可撤销）"
+                  aria-label="重掷变体 seed"
+                  onClick={rerollVariantSeed}
+                >
+                  <Dices size={14} aria-hidden="true" />
+                </button>
+              </div>
+            </div>
           );
         }
         return null;

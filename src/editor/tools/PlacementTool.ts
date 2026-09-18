@@ -146,7 +146,8 @@ export class PlacementTool implements Tool {
     if (this.ghostVisible) {
       ctx.preview.updateGhost(t);
     } else {
-      ctx.preview.showGhost(this.params.assetId, t);
+      // T008.4：Ghost 携带当前掷出的 seed——程序化资产同 seed 同槽同几何（所见即所放）
+      ctx.preview.showGhost(this.params.assetId, t, this.rolledSeed ?? undefined);
       this.ghostVisible = true;
     }
   }
@@ -179,15 +180,13 @@ export class PlacementTool implements Tool {
     if (!ok) return; // 执行失败：场景未变，不推进工具状态
 
     if (this.params.continuous) {
-      // 连续放置：重摇下一枚随机值，Ghost 更新为新姿态（未显示则从当前位置亮出）
+      // 连续放置：重摇下一枚随机值，Ghost 更新为新姿态（未显示则从当前位置亮出）；
+      // T008.4：roll 后 seed 已换 → 走 showGhost 携新 seed 重取源（新槽 = 新形态预览；
+      // 实现方按 (assetId, seed) 去重，GLB/无 seed 同参时等价仅更新 transform）
       this.roll();
       const next = this.buildTransform(ground);
-      if (this.ghostVisible) {
-        ctx.preview.updateGhost(next);
-      } else {
-        ctx.preview.showGhost(this.params.assetId, next);
-        this.ghostVisible = true;
-      }
+      ctx.preview.showGhost(this.params.assetId, next, this.rolledSeed ?? undefined);
+      this.ghostVisible = true;
     } else {
       // 单次放置：隐藏 Ghost 并停止响应后续点击（重新激活后复位）
       this.hideGhost();

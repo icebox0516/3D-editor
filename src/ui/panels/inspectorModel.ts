@@ -99,7 +99,7 @@ export type InspectorParamField =
       assetId: string;
     }
   | {
-      /** 烘焙式变体 seed 只读（model 对象 asset.seed，程序化资产放置掷出；T002.3——不做变体编辑） */
+      /** 烘焙式变体 seed 只读（model 对象 asset.seed，程序化资产放置掷出；T002.3——行值只读，重掷经 T008.4 ChangeAssetSeedCommand 按钮） */
       kind: 'variant-seed';
       key: 'seed';
       label: string;

@@ -13,6 +13,7 @@
  *      rotationJitter 绕 Y ±deg、hueJitter ±deg；负值/非有限值按 0（防御）。
  */
 import { mulberry32 } from '../../core/random';
+import type { Transform } from '../../core/types';
 import type { ProceduralVariants } from './AssetDescriptor';
 
 /** 一次变体采样结果（相对标称值的增量；恒等 = 1 / 0 / 0） */
@@ -70,4 +71,35 @@ export function hasVariantJitter(variants: ProceduralVariants | undefined): bool
     jitterOf(variants?.rotationJitter) > 0 ||
     jitterOf(variants?.hueJitter) > 0
   );
+}
+
+/**
+ * 重掷重采样（T008.4）：换 seed 时按新旧 seed 的采样差重合成 transform——
+ * 缩放乘性换系数（÷oldSample ×newSample，逐轴）、Y 旋转加性换偏移（−old +new），
+ * 位置与 X/Z 旋转不动。放置时烘进 transform 的变体项被精确拆出换新，用户后续
+ * gizmo 编辑（相对增量）天然保留——「重掷换一棵」不吞用户手调。
+ * 语义与 buildTransform 的合成律一致（乘性/加性）；variants 缺省或全 0 → 两采样
+ * 恒等 → 返回原值的浅结构拷贝（调用方可安全持有，原 transform 不被引用共享）。
+ * 纯函数确定性：同 (variants, oldSeed, newSeed, current) 逐位一致（撤销重做根基）。
+ */
+export function resampleVariantTransform(
+  variants: ProceduralVariants | undefined,
+  oldSeed: number,
+  newSeed: number,
+  current: Transform,
+): Transform {
+  const oldSample = applyAssetVariants(variants, oldSeed);
+  const newSample = applyAssetVariants(variants, newSeed);
+  // oldSample.scaleFactor ≥ 1−j > 0（mulberry32 ∈ [0,1)），除法安全
+  const scaleRatio = newSample.scaleFactor / oldSample.scaleFactor;
+  const rotationDelta = newSample.rotationYOffset - oldSample.rotationYOffset;
+  return {
+    position: { ...current.position },
+    rotation: { ...current.rotation, y: current.rotation.y + rotationDelta },
+    scale: {
+      x: current.scale.x * scaleRatio,
+      y: current.scale.y * scaleRatio,
+      z: current.scale.z * scaleRatio,
+    },
+  };
 }

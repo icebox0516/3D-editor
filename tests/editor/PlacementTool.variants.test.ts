@@ -58,16 +58,20 @@ class FakeCamera implements CameraPort {
 }
 
 class FakePreview implements PreviewPort {
-  readonly shown: Array<{ assetId: ID; t: Transform }> = [];
+  readonly shown: Array<{ assetId: ID; t: Transform; seed?: number }> = [];
   readonly updates: Transform[] = [];
   visible = false;
   hideCount = 0;
   readonly drawUpdates: DrawPreviewState[] = [];
   clearCount = 0;
 
-  showGhost(assetId: ID, t: Transform): void {
+  showGhost(assetId: ID, t: Transform, seed?: number): void {
     this.visible = true;
-    this.shown.push({ assetId, t: { position: { ...t.position }, rotation: { ...t.rotation }, scale: { ...t.scale } } });
+    this.shown.push({
+      assetId,
+      seed,
+      t: { position: { ...t.position }, rotation: { ...t.rotation }, scale: { ...t.scale } },
+    });
   }
   updateGhost(t: Transform): void {
     if (!this.visible) throw new Error('updateGhost 在未 showGhost 时调用');
@@ -200,12 +204,28 @@ describe('PlacementTool：变体 seed 注入与合成', () => {
 
   it('Ghost 所见即所放：放置前 Ghost transform 与落地对象一致', () => {
     fx.tool.onPointerMove(pointer());
-    const ghostT = fx.preview.shown[0].t;
+    const ghost = fx.preview.shown[0];
     fx.tool.onPointerDown(pointer());
     const placed = modelObjects(fx.sceneManager)[0];
-    expect(placed.transform.position).toEqual(ghostT.position);
-    expect(placed.transform.rotation).toEqual(ghostT.rotation);
-    expect(placed.transform.scale).toEqual(ghostT.scale);
+    expect(placed.transform.position).toEqual(ghost.t.position);
+    expect(placed.transform.rotation).toEqual(ghost.t.rotation);
+    expect(placed.transform.scale).toEqual(ghost.t.scale);
+    // T008.4：Ghost 携带当前掷出的 seed（同 seed 同槽同几何——形态维度所见即所放）
+    expect(ghost.seed).toBe(placed.asset.seed);
+  });
+
+  it('T008.4 连放逐枚换源：每次放置后 showGhost 携新 seed，与下一枚落地 seed 逐位对应', () => {
+    fx.tool.onPointerMove(pointer());
+    fx.tool.onPointerDown(pointer());
+    fx.tool.onPointerDown(pointer());
+    fx.tool.onPointerDown(pointer());
+    const objs = modelObjects(fx.sceneManager);
+    expect(objs).toHaveLength(3);
+    // shown = [首显（move）, roll 后 ×3]；shown[k].seed = 第 k 枚落地 seed（预览即所得）
+    expect(fx.preview.shown).toHaveLength(4);
+    for (let k = 0; k < 3; k++) {
+      expect(fx.preview.shown[k].seed).toBe(objs[k].asset.seed);
+    }
   });
 
   it('连放每枚重摇（含新 seed）：10 枚 seed 不全同', () => {
@@ -255,6 +275,8 @@ describe('PlacementTool：变体不启用的路径', () => {
   it('GLB（file 资产）：无 seed、transform = 资产默认（路径零变化）', () => {
     const fx = setup(FILE_ASSET, 'file');
     fx.tools.activate('placement', { assetId: FILE_ASSET.id });
+    fx.tool.onPointerMove(pointer()); // T008.4：Ghost 不携 seed（undefined 透传）
+    expect(fx.preview.shown[0].seed).toBeUndefined();
     const objs = placeN(fx, 3);
     for (const obj of objs) {
       expect('seed' in obj.asset).toBe(false);
