@@ -29,7 +29,7 @@ function makeControlsStub() {
 }
 
 describe('mount / unmount / stats', () => {
-  it('mount：group 挂 scene + stats 账目 = slot-0 锚点实数（皮 20724 / 叶 8796 / 4398 卡，T009.1 通透规则后）', () => {
+  it('mount：group 挂 scene + stats 账目 = slot-0 锚点实数（皮 20724 / 叶 14334 / 7167 卡，T009.2 枝梢驱动叶簇后）', () => {
     const scene = new THREE.Scene();
     const handle = createTree3aHandle({ scene });
     handle.mount();
@@ -37,8 +37,8 @@ describe('mount / unmount / stats', () => {
     const stats = handle.stats();
     expect(stats.mounted).toBe(true);
     expect(stats.barkTriangles).toBe(20724);
-    expect(stats.leafTriangles).toBe(8796);
-    expect(stats.leafCards).toBe(4398);
+    expect(stats.leafTriangles).toBe(14334);
+    expect(stats.leafCards).toBe(7167);
     handle.dispose();
     expect(scene.children).toHaveLength(0);
   });
@@ -99,7 +99,7 @@ describe('StrictMode 双挂载安全（dispose 只摘自己的）', () => {
     expect(scene.children[0]!.position.x).toBe(10); // B 的树还在
     const stats = b.stats();
     expect(stats.mounted).toBe(true);
-    expect(stats.leafCards).toBe(4398);
+    expect(stats.leafCards).toBe(7167);
     b.dispose();
     expect(scene.children).toHaveLength(0);
   });

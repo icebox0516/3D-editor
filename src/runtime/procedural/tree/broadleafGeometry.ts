@@ -1,10 +1,10 @@
 /**
  * runtime/procedural/tree/broadleafGeometry —— 夏栎（橡树系）CPU 几何生成器
- * （T008.2 建立，T009.1 结构真实性升级）。
+ * （T008.2 建立，T009.1 结构真实性升级，T009.2 枝梢驱动叶簇）。
  *
  * 职责：morphRng（mulberry32 流，消费顺序即契约——同 seed 逐位同结果）驱动的五级递归
  *      分枝拓扑 → 锥度管状枝干（平行传输标架，径向分段随枝级递减 12→4、主干到枝梢锥度
- *      连续）→ 枝梢/冠内叶卡烘焙，产出树皮/叶两层非索引几何；层间
+ *      连续）→ 枝梢驱动叶簇烘焙，产出树皮/叶两层非索引几何；层间
  *      mergeGeometries(useGroups=true) 恰 2 组（D15 免组膨胀：树皮 0 / 叶 1）。
  *      形态参数全部来自 shapeProfile（./tree3aShapeProfile——夏栎私有参数面，build 只
  *      负责 slot → profile 路由，不进 ProceduralBuild 公共签名）。
@@ -12,15 +12,30 @@
  *      ②逐级子/父起径比低级陡末级缓（0.46→0.62，自 008.2 近平的 0.55+0.03·level）；
  *      ③L1 锥度 0.7 通体粗壮（Spec「骨架枝粗壮有力」Verified 的方向性表达）；
  *      ④姿态语言分级——粗枝刚直（wander 0.12）细枝纷乱（0.34）。
- * 冠内通透（T009.1 核心）：显式规则替代「叶卡只挂外段」的涌现式空腔——
- *      ①枝干通道（主干/领导枝/骨架枝基段周围半径带内叶卡硬抑制——主干大枝进冠不被
- *      封死）；②内层密度衰减（冠内归一化径向深度 q 的密度场：壳层满密 → 冠心地板，
- *      外密内疏）；③局部空腔（rng 驱动的冠内空腔球剔卡）。叶卡沿枝挂点自 008.2 的
- *      外段限制放宽至沿途，内层稀疏由密度场接管。Spec：crown_transparency（冠内明显
- *      空隙、逆光透视，Verified 照片）+ crown_fill_gradient（外密内疏，Verified 照片）。
- * 结构计数：皮拓扑（枝数/环数/径向段）槽间恒定 → 皮面数恒等；叶卡候选计数恒定、
- *      实际叶卡数随 seed 在通透规则下确定（同槽同 seed 恒等——确定性不破；
- *      跨槽面数差异为 009.3 八槽形态向量的设计预期）。
+ * 枝梢驱动叶簇（T009.2 核心，替代 008.2/009.1 的「沿途均匀发卡」）：枝梢 → 簇空间 →
+ *      叶片分布——L4 外段 1 簇 / L5 沿途外段 + 枝端共 2 簇（叶着生一年生小枝
+ *      leaf_attachment_rule Verified [1][2]，冠壳外段受光集中 Inferred [6]）；簇中心 =
+ *      挂点沿簇方向（= 挂点枝切向）前移极近一位，簇半径入 profile（显著小于枝梢间距——
+ *      簇间间隙由「簇只挂枝梢离散位」自然产生）；簇内叶位外壳偏置 r̂ =
+ *      mix(1−shellBias, 1, rng^γ)（簇内稀疏成腔）；卡根朝内（dir/side 同取负翻转根尖、
+ *      卡面法线不变）——叶尖恒指簇外，「叶从簇内向外生长」读向；卡宽 0.08–0.13m +
+ *      长宽比 1.6–2.7（Spec #12/#13 偏差收敛——真叶典型 ≈10×5cm、长宽比 ≈2
+ *      Verified [1][2]，单卡 = 叶簇抽象 ≈ 真叶 2× 的工程映射）；仰角 ±43° + 卡面
+ *      滚转全随机语言不动（#11 已符合项）。视觉目标：外层密实成形、中层递减透枝、
+ *      内层稀疏成腔、簇间有间隙——「多个叶簇构成的树冠」。簇参数共性标注（阔叶共性
+ *      候选 / 夏栎特有）见 tree3aShapeProfile 字段注释，供 T010.1 家族契约提炼取证。
+ * 冠内通透（T009.1，判定口径不变）：叶簇候选照旧统一过三规则——①枝干通道（主干/
+ *      领导枝/骨架枝基段周围半径带内叶卡硬抑制）；②内层密度衰减（冠内归一化径向深度 q
+ *      的密度场：壳层满密 → 冠心地板，外密内疏）；③局部空腔（rng 驱动的冠内空腔球
+ *      剔卡）。Spec：crown_transparency + crown_fill_gradient（均 Verified 照片 [6]）。
+ * 结构计数：皮拓扑（枝数/环数/径向段）槽间恒定 → 皮面数恒等；簇位数/每簇叶量为结构
+ *      计数类（rng 消费次数恒定），保留簇数与实际叶卡数随 seed 由簇级距离抑制 + 通透
+ *      规则确定（同槽同 seed 恒等——确定性不破；跨槽面数差异为 009.3 八槽形态向量的
+ *      设计预期）。
+ * 确定性纪律：簇生成与叶片候选的 rng 消费均为无条件固定次数（每簇 2 次：t 抖动 + 半径；
+ *      每叶 9 次：偏移向 2 + r̂ 1 + az 1 + el 1 + roll 1 + 宽 1 + 长宽比 1 + rand 1），
+ *      被簇级距离抑制丢弃的簇位同样足额消费后丢弃；通透 roll 每卡无条件 1 次（009.1
+ *      纪律延续）——任何条件跳过都禁止。
  * 叶卡属性契约（008.3 起冻结，本任务只消费不修改）：
  *      - aLeafRand：Float32 itemSize 1，逐叶 ∈ [0,1)，同一叶卡 6 顶点同值——色相/透光/
  *        大小变奏源；
@@ -41,11 +56,23 @@ import type { Tree3aShapeProfile } from './tree3aShapeProfile';
 /** 叶卡描述子：烘焙前先收集（候选 → 通透过滤 → 两段式烘焙，冠内高度权重需存活卡 Y 域） */
 interface LeafCard {
   center: THREE.Vector3;
-  dir: THREE.Vector3; // 卡长方向（根→尖）
+  dir: THREE.Vector3; // 卡长方向（根→尖；簇内生成后恒指簇外——卡根朝内）
   side: THREE.Vector3; // 卡宽方向（水平随机滚转）
   width: number;
   height: number;
   rand: number; // aLeafRand
+  rhat: number; // 簇内归一化半径（shellBias 结构证据账目）
+  clusterIndex: number; // 所属簇（存活后归账 clusterLeaves）
+}
+
+/** 叶簇记录：挂点 + 簇中心 + 簇方向（= 挂点枝切向）+ 半径（T009.2 枝梢驱动叶簇） */
+interface ClusterRecord {
+  /** 挂簇枝级（3 = L4 / 4 = L5） */
+  level: number;
+  attach: THREE.Vector3;
+  center: THREE.Vector3;
+  radius: number;
+  dir: THREE.Vector3;
 }
 
 /** 枝干发射槽：非索引三角形流（pos/normal/uv 三数组同步追加） */
@@ -72,9 +99,11 @@ interface CavitySphere {
   radius: number;
 }
 
-/** 构建上下文：发射槽 + 候选叶卡 + 通道表 + 逐级统计（全树共享，逐枝累加） */
+/** 构建上下文：发射槽 + 簇表 + 候选叶卡 + 通道表 + 逐级统计（全树共享，逐枝累加） */
 interface BuildCtx {
   bark: BarkSink;
+  clusters: ClusterRecord[];
+  clustersCulled: number; // 簇级距离抑制丢弃的簇位数（工程账目）
   leafCandidates: LeafCard[];
   channels: ChannelSeg[];
   levelBranches: number[]; // L1–L5 枝数（L1 含领导枝）
@@ -107,6 +136,30 @@ export interface BroadleafTreeResult {
     qSurvived: number[];
     /** 通道线段表（诊断/测试口径：ax..bz + 半径 r；世界坐标 = 贴地平移前） */
     channels: { ax: number; ay: number; az: number; bx: number; by: number; bz: number; r: number }[];
+    /** 叶簇账目（T009.2 枝梢驱动叶簇）：簇列表（挂簇枝级 / 挂点 / 簇中心 / 半径 /
+     *  簇方向 = 挂点枝切向单位向量；世界坐标 = 贴地平移前，与 channels 同口径）与
+     *  簇级距离抑制丢弃数 */
+    clusters: {
+      level: number;
+      attachX: number;
+      attachY: number;
+      attachZ: number;
+      cx: number;
+      cy: number;
+      cz: number;
+      radius: number;
+      dirX: number;
+      dirY: number;
+      dirZ: number;
+    }[];
+    clustersCulled: number;
+    /** 逐簇存活叶卡数（索引对齐 clusters）与 min/mean/max（每簇叶量域） */
+    clusterLeaves: number[];
+    clusterLeafMin: number;
+    clusterLeafMean: number;
+    clusterLeafMax: number;
+    /** 逐存活卡簇内归一化半径（对齐存活卡烘焙序——shellBias 外偏的结构证据） */
+    leafRhat: number[];
   };
 }
 
@@ -264,6 +317,8 @@ export function buildBroadleafGeometry(
 ): BroadleafTreeResult {
   const ctx: BuildCtx = {
     bark: { pos: [], nrm: [], uv: [] },
+    clusters: [],
+    clustersCulled: 0,
     leafCandidates: [],
     channels: [],
     levelBranches: [0, 0, 0, 0, 0],
@@ -438,6 +493,14 @@ export function buildBroadleafGeometry(
     }
   }
 
+  // ── 簇账目（T009.2）：逐簇存活叶量 + 逐存活卡簇内归一化半径（存活卡烘焙序对齐）──
+  const clusterLeaves: number[] = new Array(ctx.clusters.length).fill(0);
+  const leafRhat: number[] = [];
+  for (const card of leafCards) {
+    clusterLeaves[card.clusterIndex]!++;
+    leafRhat.push(card.rhat);
+  }
+
   // ── 叶卡烘焙（两段式：存活卡 Y 域 → 冠内高度权重 aBend）──
   let crownMinY = Infinity;
   let crownMaxY = -Infinity;
@@ -535,6 +598,26 @@ export function buildBroadleafGeometry(
         bz: ch.bz,
         r: Math.sqrt(ch.r2),
       })),
+      clusters: ctx.clusters.map((c) => ({
+        level: c.level,
+        attachX: c.attach.x,
+        attachY: c.attach.y,
+        attachZ: c.attach.z,
+        cx: c.center.x,
+        cy: c.center.y,
+        cz: c.center.z,
+        radius: c.radius,
+        dirX: c.dir.x,
+        dirY: c.dir.y,
+        dirZ: c.dir.z,
+      })),
+      clustersCulled: ctx.clustersCulled,
+      clusterLeaves,
+      clusterLeafMin: clusterLeaves.length > 0 ? Math.min(...clusterLeaves) : 0,
+      clusterLeafMean:
+        clusterLeaves.length > 0 ? clusterLeaves.reduce((s, n) => s + n, 0) / clusterLeaves.length : 0,
+      clusterLeafMax: clusterLeaves.length > 0 ? Math.max(...clusterLeaves) : 0,
+      leafRhat,
     },
   };
 }
@@ -548,8 +631,8 @@ function segOf(a: THREE.Vector3, b: THREE.Vector3, radius: number): ChannelSeg {
  * 分枝递归：level 0–4（L1–L5）；路径 = 起点方向 + 每步游走 + 上扬偏置（夏栎横枝末段
  * 上翘）；起径 = 父径 × profile.radiusRatio[level]（低级陡末级缓——主次分级）、末径 =
  * 起径 × profile.endRatio[level]（L1 0.7 通体粗壮）；子枝挂点内埋父径内（起点回退
- * 2.5×子径，杜绝接缝黑洞）；末两级沿途发叶卡候选（挂点下限放宽——内层稀疏由冠内
- * 通透密度场接管，不再「只挂外段」）。
+ * 2.5×子径，杜绝接缝黑洞）；末两级挂枝梢驱动叶簇（T009.2：簇挂点外段/枝端、簇方向 =
+ * 局部切向、簇内壳偏置发叶片候选；通透过滤在收冠后统一执行，内层稀疏由密度场接管）。
  */
 function growBranch(
   ctx: BuildCtx,
@@ -597,30 +680,86 @@ function growBranch(
     return pts[i]!.clone().lerp(pts[i + 1]!, idx - i);
   };
 
-  // 末两级：沿途发叶卡候选（通透过滤在收冠后统一执行）
-  const leafCards = level === 3 ? profile.leafCardsL4 : level === 4 ? profile.leafCardsL5 : 0;
-  if (leafCards > 0) {
-    const inner = level === 3 ? profile.leafInnerStartL4 : profile.leafInnerStartL5;
-    for (let i = 0; i < leafCards; i++) {
-      const t = THREE.MathUtils.clamp(inner + ((i + 0.5) / leafCards) * (1 - inner) + jitter(rng, 0.06), 0, 1);
-      const center = pointAt(t).add(randUnit(rng).multiplyScalar(profile.leafOffsetMax * rng()));
-      const az = rng() * Math.PI * 2;
-      const el = jitter(rng, 0.75); // 仰角 ±43°（水平叶面为主混合——已符合项不动）
-      const dir = new THREE.Vector3(Math.cos(el) * Math.cos(az), Math.sin(el), Math.cos(el) * Math.sin(az)).normalize();
-      let side = dir.clone().cross(UP);
-      if (side.lengthSq() < 1e-4) side = new THREE.Vector3(1, 0, 0);
-      side.normalize();
-      const roll = rng() * Math.PI; // 卡面滚转（取向全随机——打散规则感）
-      side.applyAxisAngle(dir, roll).normalize();
-      const width = profile.leafWidthMin + rng() * profile.leafWidthSpan;
-      ctx.leafCandidates.push({
-        center,
-        dir,
-        side,
-        width,
-        height: width * (profile.leafLenRatioMin + rng() * profile.leafLenRatioSpan),
-        rand: rng(),
-      });
+  // 末两级：枝梢驱动叶簇（T009.2）——枝梢 → 簇空间 → 叶片分布：L4/L5 外段 + L5 枝端
+  // 按簇计划挂簇（挂点 / 簇方向 = 局部切向 / 半径），簇内发叶片候选（壳偏置 + 近水平
+  // 朝向 + 尺寸域）；通透过滤在收冠后统一执行。簇间间隙 = 「簇只挂枝梢离散位」（拓扑
+  // 相关处的父子/兄弟共位由簇级距离抑制保险，见下）。
+  const clusterCount = level === 3 ? profile.clustersL4 : level === 4 ? profile.clustersL5 : 0;
+  if (clusterCount > 0) {
+    const isL5 = level === 4;
+    const inner = isL5 ? profile.clusterInnerStartL5 : profile.clusterInnerStartL4;
+    const leavesPerCluster = isL5 ? profile.clusterLeavesL5 : profile.clusterLeavesL4;
+    for (let i = clusterCount - 1; i >= 0; i--) {
+      // 簇沿枝 t：末位簇 = 枝端（t=1），其余在外段均匀散布（+抖动）；单簇枝落外段中后部。
+      //  生成序枝端簇优先（倒序）——短枝上簇级抑制先保证枝端簇位，沿途簇让位
+      const spread = clusterCount === 1 ? 0.6 : i / (clusterCount - 1);
+      const t = THREE.MathUtils.clamp(inner + spread * (1 - inner) + jitter(rng, 0.05), 0, 1);
+      const attach = pointAt(t);
+      // 簇方向承接挂点局部切向（簇-枝梢生长关系；t 端点自动退化为单侧差分）
+      const tangent = pointAt(Math.min(1, t + 0.15)).sub(pointAt(Math.max(0, t - 0.15))).normalize();
+      // 簇半径：profile 域抽样 × 挂簇枝长比例上限 cap（rng 先消费再 cap——消费次数恒定；
+      //  短枝梢簇随之缩小：簇尺度随枝条活力，且同枝两簇中心距 > 半径和——簇间间隙成立）
+      const radius = Math.min(
+        (profile.clusterRadiusMinL5 + rng() * profile.clusterRadiusSpanL5) *
+          (isL5 ? 1 : profile.clusterRadiusScaleL4),
+        length * profile.clusterRadiusLengthCap,
+      );
+      // 簇中心 = 挂点沿簇方向前移（极近——簇坐枝梢稍前方，叶量越枝端）
+      const center = attach.clone().addScaledVector(tangent, radius * profile.clusterForwardOffset);
+      // 簇级显式剔除（工程设定）：与已保留簇中心距 < clusterMinSeparation×(ri+rj) 的簇位
+      // 丢弃（父子/兄弟枝梢拓扑共位——后生成者让位）；簇位与叶片 rng 仍无条件消费，
+      // 消费次数与数据分支无关（确定性纪律）
+      let kept = true;
+      for (const k of ctx.clusters) {
+        if (center.distanceTo(k.center) < profile.clusterMinSeparation * (radius + k.radius)) {
+          kept = false;
+          break;
+        }
+      }
+      const clusterIndex = ctx.clusters.length;
+      if (kept) {
+        ctx.clusters.push({ level, attach: attach.clone(), center: center.clone(), radius, dir: tangent.clone() });
+      } else {
+        ctx.clustersCulled++;
+      }
+      for (let j = 0; j < leavesPerCluster; j++) {
+        const offsetDir = randUnit(rng); // 2 次
+        // 外壳偏置：r̂ = mix(1−shellBias, 1, rng^γ)——叶位沿簇壳、簇内自然稀疏成腔
+        const rhat =
+          1 - profile.clusterShellBias + profile.clusterShellBias * Math.pow(rng(), profile.clusterShellGamma);
+        const cardCenter = center.clone().addScaledVector(offsetDir, rhat * radius);
+        const az = rng() * Math.PI * 2;
+        const el = jitter(rng, 0.75); // 仰角 ±43°（近水平摊开为主混合——#11 已符合项不动；阔叶共性候选）
+        const dir = new THREE.Vector3(Math.cos(el) * Math.cos(az), Math.sin(el), Math.cos(el) * Math.sin(az)).normalize();
+        let side = dir.clone().cross(UP);
+        if (side.lengthSq() < 1e-4) side = new THREE.Vector3(1, 0, 0);
+        side.normalize();
+        const roll = rng() * Math.PI; // 卡面滚转（取向全随机——打散规则感；阔叶共性候选）
+        side.applyAxisAngle(dir, roll).normalize();
+        // 卡根朝内：dir 与簇内偏移方向反向时 dir/side 同取负（卡面不变、根尖互换、法线不变），
+        // 叶尖恒指簇外——「叶从簇内向外生长」读向（根边 uv v=0 = aBend 低端）
+        if (dir.dot(offsetDir) < 0) {
+          dir.negate();
+          side.negate();
+        }
+        // 尺寸/aLeafRand 抽样无条件消费（含被剔除簇位——消费次数与 kept 分支无关，
+        // 009.3 调 clusterMinSeparation 等参数时保留簇随机流不重排——确定性纪律）
+        const width = profile.leafWidthMin + rng() * profile.leafWidthSpan;
+        const height = width * (profile.leafAspectMin + rng() * profile.leafAspectSpan);
+        const rand = rng();
+        if (kept) {
+          ctx.leafCandidates.push({
+            center: cardCenter,
+            dir,
+            side,
+            width,
+            height,
+            rand,
+            rhat,
+            clusterIndex,
+          });
+        }
+      }
     }
   }
 

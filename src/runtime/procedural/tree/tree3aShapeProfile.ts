@@ -32,9 +32,12 @@ export interface ChildPlan {
 }
 
 /**
- * 夏栎 shapeProfile：字段分五组——冠形 / 骨架 / 逐级分级 / 冠内通透 / 叶卡与拓扑预算。
- * 槽间差异（009.3）= 同字段集不同值组合；结构计数类（radial/segs/childPlan/每枝卡数）
- * 保持槽间恒定以维持皮面数恒等，槽差异全部落在连续形态参数上。
+ * 夏栎 shapeProfile：字段分五组——冠形 / 骨架 / 逐级分级 / 冠内通透 / 叶簇与拓扑预算。
+ * 槽间差异（009.3）= 同字段集不同值组合；结构计数类（radial/segs/childPlan/簇位数/
+ * 每簇叶量）保持槽间恒定以维持皮面数恒等与 rng 消费次数恒定（保留簇数与叶卡数随 seed
+ * 由簇级距离抑制 + 冠内通透规则确定），槽差异全部落在连续形态参数上。
+ * 叶簇字段组逐字段标【阔叶共性候选】/【夏栎特有】（T009.2——供 T010.1 家族契约提炼
+ * 取证，只标注不做公共抽象）。
  */
 export interface Tree3aShapeProfile {
   // ── 冠形（009.3 形态向量原料；冠参考系同时是冠内通透密度场的判定基准）──
@@ -112,21 +115,58 @@ export interface Tree3aShapeProfile {
   voidRadiusMax: number;
   voidCenterBias: number;
 
-  // ── 叶卡与拓扑预算（结构计数类——槽间保持恒定以维持皮面数恒等）──
-  /** L4/L5 每枝叶卡数（候选数，通透过滤前）。工程设定（leaf_cluster_density Unknown）。 */
-  leafCardsL4: number;
-  leafCardsL5: number;
-  /** 沿枝挂点起点（t 下限）——放宽自 008.2 的 0.55/0.3：内层挂点交由显式密度场裁汰
-   *  （外密内疏不再依赖「只挂外段」的涌现式空腔）。工程设定。 */
-  leafInnerStartL4: number;
-  leafInnerStartL5: number;
-  /** 叶位径向外扩上限（米）。工程设定（008.2 现值维持）。 */
-  leafOffsetMax: number;
-  /** 卡宽域 / 长宽比域（009.2 叶簇生成将重校，本任务维持现值）。 */
+  // ── 叶簇（T009.2 枝梢驱动叶簇：L4/L5 枝梢 → 簇空间 → 叶片分布）——
+  // 「多个叶簇构成的树冠」替代「叶片堆起来的树冠」；共性标注供 T010.1 家族契约提炼取证，
+  // 本任务只标注不做公共抽象 ──
+  /** L5 / L4 每枝簇位数量（结构计数类——rng 消费次数恒定的来源，槽间恒定；保留簇数随
+   *  seed 由簇级距离抑制确定，见 clusterMinSeparation）。
+   *  L5 = 沿途外段 + 枝端共 2 簇、L4 = 外段 1 簇。Spec：叶着生一年生小枝
+   *  （leaf_attachment_rule，Verified [1][2]）；冠壳外段受光集中（Inferred [6]）。
+   *  【夏栎特有】（挂簇枝级 L4/L5 与簇位数为夏栎五级拓扑的私有映射）。 */
+  clustersL5: number;
+  clustersL4: number;
+  /** 簇挂点 t 域下限（沿枝弧长；枝端簇固定 t=1，其余簇在外段均匀散布）。
+   *  工程设定（「外段」Inferred [6] 的幅度映射；内层枝梢的外段仍进冠心——内层候选来源）。 */
+  clusterInnerStartL5: number;
+  clusterInnerStartL4: number;
+  /** L5 簇半径域（米）/ L4 簇半径乘子（L4 簇略大——承接更粗末级枝）。工程设定
+   *  （clump_scale 仅定性「簇团状」Inferred [6]，数值尺度照片不可靠）。【簇半径比类 =
+   *  阔叶共性候选；绝对量级 = 夏栎特有】。半径须显著小于典型枝梢间距（簇间间隙来源）。 */
+  clusterRadiusMinL5: number;
+  clusterRadiusSpanL5: number;
+  clusterRadiusScaleL4: number;
+  /** 簇半径 / 挂簇枝长 比例上限（cap：短枝梢簇随之缩小——簇尺度随枝条活力，且保证同枝
+   *  两簇中心距 > 簇半径和、簇间间隙成立）。工程设定（无现实基准）。【阔叶共性候选】 */
+  clusterRadiusLengthCap: number;
+  /** 簇级显式剔除：与已保留簇中心距 < clusterMinSeparation×(ri+rj) 的簇位丢弃（后生成
+   *  者让位——父子/兄弟枝梢拓扑共位处的距离抑制；簇位 rng/叶片 rng 无条件消费后丢弃，
+   *  确定性不破）。工程设定（leaf_cluster_density Unknown——离散挂簇的间隙保险，
+   *  无现实基准）。【阔叶共性候选】 */
+  clusterMinSeparation: number;
+  /** 簇中心沿簇方向（挂点枝切向）前移量（× 簇半径）——簇坐枝梢稍前方、叶量越枝端。
+   *  工程设定（簇-枝梢生长关系的幅度项）。【阔叶共性候选】 */
+  clusterForwardOffset: number;
+  /** 每簇叶量（候选上限，固定计数——确定性纪律：rng 消费次数与数据分支无关，被簇级
+   *  剔除的簇位足额消费后丢弃；簇间疏密差异由簇级剔除与通透三规则承担）。工程设定
+   *  （leaf_cluster_density Unknown，无现实基准——不得编造依据）。
+   *  【每簇叶量类 = 阔叶共性候选；绝对值 = 夏栎特有】 */
+  clusterLeavesL5: number;
+  clusterLeavesL4: number;
+  /** 外壳偏置 ∈ (0,1]：簇内叶位归一化半径 r̂ = mix(1−shellBias, 1, rng^gamma)——
+   *  叶沿簇壳偏置、簇内自然稀疏成腔。工程设定（crown_fill_gradient 外密内疏
+   *  Verified [6] 的簇内同构映射；簇内幅度无现实基准）。【阔叶共性候选】 */
+  clusterShellBias: number;
+  /** 外壳偏置分布形状 γ（<1 向簇壳聚、>1 向簇心聚）。工程设定。【阔叶共性候选】 */
+  clusterShellGamma: number;
+  /** 卡宽域（米）。Spec：真叶 6–20 × 3–8cm、典型 ≈10 × 5cm（leaf_size Verified [1][2]）——
+   *  单卡视觉 ≈ 真叶 1.6–2.6×、中位 ≈2×（附录#12 偏差收敛的工程映射；卡 = 叶簇抽象，
+   *  非等比复刻）。【卡尺寸域类 = 阔叶共性候选；绝对量级 = 夏栎特有】 */
   leafWidthMin: number;
   leafWidthSpan: number;
-  leafLenRatioMin: number;
-  leafLenRatioSpan: number;
+  /** 卡长宽比域。Spec：leaf_aspect_ratio ≈1.6–2.7、典型 ≈2（Verified [1][2]）——
+   *  附录#13 收敛，直接采用 Verified 域。【阔叶共性候选】 */
+  leafAspectMin: number;
+  leafAspectSpan: number;
   /** 主干拓扑（径向 12 满足近景圆度、环段 14 承载根部 flare 与挂点插值）。工程设定。 */
   trunk: { radial: number; segs: number; wander: number; upturn: number };
   /** 五级枝拓扑（L1 骨架枝 → L5 末梢）。分枝 4–5 级为附录#7 已符合项
@@ -181,16 +221,26 @@ export const TREE3A_SLOT0_PROFILE: Tree3aShapeProfile = {
   voidRadiusMax: 0.9,
   voidCenterBias: 0.6,
 
-  // 叶卡与拓扑预算
-  leafCardsL4: 7,
-  leafCardsL5: 14,
-  leafInnerStartL4: 0.18,
-  leafInnerStartL5: 0.08,
-  leafOffsetMax: 0.07,
-  leafWidthMin: 0.15,
-  leafWidthSpan: 0.08,
-  leafLenRatioMin: 0.85,
-  leafLenRatioSpan: 0.3,
+  // 叶簇与拓扑预算（T009.2 slot-0 锚点终值——探针矩阵实测收敛：存活卡 7167 / 总面
+  //  35058 / 保留簇 398（剔 412）/ 保留簇近邻比全 ≥0.554 中位 0.73，依据见任务完成记录）
+  clustersL5: 2,
+  clustersL4: 1,
+  clusterInnerStartL5: 0.5,
+  clusterInnerStartL4: 0.45,
+  clusterRadiusMinL5: 0.11,
+  clusterRadiusSpanL5: 0.04,
+  clusterRadiusScaleL4: 1.25,
+  clusterRadiusLengthCap: 0.6,
+  clusterMinSeparation: 0.55,
+  clusterForwardOffset: 0.2,
+  clusterLeavesL5: 22,
+  clusterLeavesL4: 22,
+  clusterShellBias: 0.62,
+  clusterShellGamma: 0.8,
+  leafWidthMin: 0.08,
+  leafWidthSpan: 0.05,
+  leafAspectMin: 1.6,
+  leafAspectSpan: 1.1,
   trunk: { radial: 12, segs: 14, wander: 0.05, upturn: 0.06 },
   levels: [
     { radial: 8, segs: 9, wander: 0.12, upturn: 0.3 },

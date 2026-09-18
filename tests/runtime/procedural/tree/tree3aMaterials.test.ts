@@ -18,6 +18,10 @@
  * - 锚点门 R1 微调参数锚定（2026-09-18 四项）：树皮 tri³ 深沟剖面/沟内冷灰 AO/节疤核+
  *   愈伤环/苔痕方位门控；叶齿载波合成锯齿（噪声频率 42 不升——alphaTest 裁切闪烁纪律）/
  *   中脉沟侧翼/透光峰值 0.65；深度材质同一 SDF 齿形同步；
+ * - T009.2 叶形 SDF 重构 + 叶背粉绿（Spec tree3a-reference 1.0 附录 #13/#14）：倒卵形
+ *   包络指数 1.4（最宽点 ≈61% 叶长）/5 对圆裂（31.42 = 2π·5）/基部耳形 t3aEar（振幅
+ *   ≤ 坡宽 0.03×75%）/齿载波与噪声频率维持；深度材质 SDF 单一来源同步；叶背粉绿
+ *   gl_FrontFacing 双面调制（纯 ALU）；旧 4 对裂常数 25.13 退役；
  * - program 键纪律：叶/皮/深度三键互异；两次工厂调用材质对象不同（无模块级共享）但键相同；
  * - 成本记账（10 万实例每像素预算，hash21=1×/vnoise=3×）：叶片元 facVnoise 调用 2 处
  *   （锯齿+斑块；另 1 处为库定义）= 6×、皮 2 处 = 6×；顶点/深度零噪声；全源零循环/
@@ -204,6 +208,34 @@ describe('锚点门第 1 轮微调参数锚定（2026-09-18 四项，近观 8m�
     expect(leaf.fragmentShader).toContain('* t3aTransVar * t3aAlpha * 0.65;'); // 透光峰值 0.45 → 0.65
     const depth = assemble(track(createTree3aLeafDepthMaterial()), THREE.ShaderLib.depth);
     expect(depth.fragmentShader).toContain('t3aTooth'); // SDF 单一来源——影裁切齿形自动同步
+  });
+});
+
+describe('T009.2 叶形 SDF 重构 + 叶背粉绿（Spec 1.0 附录 #13/#14，Verified [1][2][5]）', () => {
+  it('倒卵形包络（v^1.4 预扭曲，最宽点 ≈61% 叶长）+ 5 对圆裂（2π·5）+ 基部耳形 t3aEar；深度材质 SDF 单一来源同步', () => {
+    const leaf = assemble(track(createTree3aLeafMaterial()), THREE.ShaderLib.physical);
+    expect(leaf.fragmentShader).toContain('pow(clamp(t3aP.y, 0.001, 0.999), 1.4)'); // 倒卵形包络指数（v=0.5 → v≈0.61 最宽点）
+    expect(leaf.fragmentShader).toContain('t3aP.y * 31.42'); // 5 对圆裂（25.13 = 2π·4 → 31.42 = 2π·5，域 4–7 取中）
+    expect(leaf.fragmentShader).toContain('float t3aEar = sin(3.14159 * clamp(t3aP.y / 0.15, 0.0, 1.0)) * 0.02;'); // 基部耳形：带 [0,0.15] 钟形，振幅 0.02 ≤ 坡宽 0.03×75%
+    expect(leaf.fragmentShader).not.toContain('25.13'); // 旧 4 对裂常数退役
+    const depth = assemble(track(createTree3aLeafDepthMaterial()), THREE.ShaderLib.depth);
+    expect(depth.fragmentShader).toContain('pow(clamp(t3aP.y, 0.001, 0.999), 1.4)'); // SDF 单一来源——影裁切叶形自动同步
+    expect(depth.fragmentShader).toContain('t3aP.y * 31.42');
+    expect(depth.fragmentShader).toContain('t3aEar');
+  });
+
+  it('齿载波 6 齿维持 + 锯齿噪声频率 42 不升（锚点门 R1 裁切闪烁纪律；卡长变化 +15% 下密度仍合）', () => {
+    const leaf = assemble(track(createTree3aLeafMaterial()), THREE.ShaderLib.physical);
+    expect(leaf.fragmentShader).toContain('float t3aTooth = pow(0.5 + 0.5 * cos(t3aP.y * 37.7 - t3aRand * 6.28), 3.0);'); // 6 齿载波维持
+    expect(leaf.fragmentShader).toContain('t3aP.y * 42.0'); // 噪声频率不升
+  });
+
+  it('叶背粉绿：gl_FrontFacing 双面区分（背面略浅/去饱和/冷绿偏移，纯 ALU 零采样）；深度材质不吃面色', () => {
+    const leaf = assemble(track(createTree3aLeafMaterial()), THREE.ShaderLib.physical);
+    expect(leaf.fragmentShader).toContain('float(gl_FrontFacing)'); // WebGL2 内建双面判定（背面法线由 three 翻转）
+    expect(leaf.fragmentShader).toContain('mix(vec3(0.94, 1.05, 1.16), vec3(1.0), float(gl_FrontFacing))'); // FRPS「叶背粉绿色」调制向量
+    const depth = assemble(track(createTree3aLeafDepthMaterial()), THREE.ShaderLib.depth);
+    expect(depth.fragmentShader).not.toContain('gl_FrontFacing'); // 深度 pass 只裁 alpha，无面色语义
   });
 });
 

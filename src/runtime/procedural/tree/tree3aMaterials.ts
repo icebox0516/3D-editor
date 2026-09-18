@@ -5,9 +5,10 @@
  *   范式全套纪律：replaceOnce 缺失即抛 / customProgramCacheKey 必写且键唯一 / 原生 chunk
  *   原句保留后追加 / <color_fragment> 绝不触碰——instanceColor 逐实例色相乘算链安全，
  *   注入乘法与 vColor 乘法交换律安全）：
- *   - 叶（组 1）：SDF 程序化橡树叶形 alpha（uv 域 0–1 四边形，零贴图 D13）——卵形包络
- *     + 4 对圆裂（cos 波内切）+ 叶缘锯齿（齿载波+噪声合成 ±0.022 半宽）+ 中脉/沟侧翼/
- *     侧脉明暗（纯 ALU）；
+ *   - 叶（组 1）：SDF 程序化橡树叶形 alpha（uv 域 0–1 四边形，零贴图 D13）——倒卵形包络
+ *     （T009.2：v^1.4 预扭曲，最宽点 ≈61% 叶长）+ 5 对圆裂（cos 波内切）+ 基部耳形
+ *     （v∈[0,0.15] sin 钟形外扩）+ 叶缘锯齿（齿载波+噪声合成 ±0.022 半宽）+ 中脉/沟侧翼/
+ *     侧脉明暗（纯 ALU）+ 叶背粉绿（gl_FrontFacing 双面区分）；
  *     裁切走 alphaTest 0.5 + alphaToCoverage（MSAA 抗锯边；不 transparent——实例化 +
  *     深度排序灾难）；背光透射项（太阳在冠后时叶背透暖绿——近观层级感）；逐叶 aLeafRand
  *     变奏（色相通道摆幅 ≤15% 纪律内）+ 冠内竖向自遮蔽梯度 + 中频叶团斑块（位置域）。
@@ -35,8 +36,9 @@
  *   升级点。风动位移不进 depth pass（静态影，摆幅 cm 级 + 影贴图 ~16cm/_texel
  *   下不可辨，已知取舍）。
  * 成本记账（10 万实例每像素纪律，hash21=1× / vnoise=3× 口径；模块头记账）：
- *   - 叶片元 = 6× 噪声（叶缘锯齿 1× vnoise + 叶团斑块 1× vnoise）+ SDF/叶脉/透光纯 ALU
- *     （sin/cos/smoothstep 折算 ≈ 4×——R1 加齿载波与脉侧翼）≈ 10× 压线预算（再增先降载）；
+ *   - 叶片元 = 6× 噪声（叶缘锯齿 1× vnoise + 叶团斑块 1× vnoise）+ SDF/叶脉/透光/叶背
+ *     粉绿纯 ALU（sin/cos/smoothstep 折算 ≈ 4.5×——R1 加齿载波与脉侧翼，T009.2 加倒卵
+ *     形预扭曲 pow、耳形 sin、叶背粉绿 mix 三项纯 ALU，零新采样）≈ 10.5× 压线预算（再增先降载）；
  *   - 皮片元 = 2× vnoise = 6× + 脊沟强化/愈伤环/苔痕门控 smoothstep 纯 ALU ≈ 1.5× ≈ 7.5×
  *     （节疤/苔痕为既有噪声高带/门控复用，零额外采样）；
  *   - 顶点 = 两次 sin + 一次法线乘，无循环；深度片元 = SDF 纯 ALU（影 pass 不吃噪声）。
@@ -58,6 +60,27 @@
  *   4) 透光：峰值系数 0.45→0.65（区间 0.6–0.75 取中偏低）——透射色 (0.62,0.94,0.34) 绿分量
  *      最先触顶、红蓝余量大 → 冠缘读作暖绿而非泛白；NoToneMapping 白化风险有界，
  *      t3aTransVar∈[0.45,1.0] 逐叶变奏压住均值叶不过曝。
+ * **T009.2 叶形 SDF 重构 + 叶背粉绿记档（Spec docs/research/tree3a-reference.md 1.0，
+ *   附录 #13/#14 偏差收敛；卡长宽比域 1.6–2.7（典型 ≈2）下适配——Step 1 几何重构后）**：
+ *   1) 倒卵形包络：sin(π·v)^0.75 → sin(π·v^1.4)^0.75——最宽点 v=0.50 → ≈0.61 叶长（自
+ *      基部计，= 0.5^(1/1.4)；任务域 60–65%），基部爬升变缓收窄、顶端下降变陡钝圆收口
+ *      （Spec「长倒卵形至椭圆形、顶端圆钝」Verified [1][2][5]）；两端仍收零（v=0 贴枝
+ *      /v=1 闭合），指数 0.75 圆钝度维持；
+ *   2) 裂对数 4 → 5（25.13 → 31.42 = 2π·5；Spec 域 4–7 取中典型；新卡长 ≈0.13–0.35m
+ *      （≈真叶 2×）下 5 对 ≈4.6cm/对，匹配真叶换算域 2.8–5cm/对；逐叶相位错开保持）；
+ *   3) 基部耳形 t3aEar：v∈[0,0.15] sin 钟形两侧外扩、峰值 v≈0.075、振幅 0.02（u 域归一，
+ *      ≈2mm@0.1m 宽卡/侧——真叶耳 mm 级；≤ 覆盖率坡宽 0.03 的 75% 裁切闪烁纪律，梯度
+ *      ≈0.42/v 与齿载波同量级有界无高频），v=0 仍收零——中脉收口两侧读作一对「耳」
+ *      （Spec「基部耳形、叶柄极短 2–5mm」Verified [1][2][5]）；纯 ALU 零采样；
+ *   4) 齿载波维持 6 齿（37.7）/锯齿噪声频率 42 不升（锚点门 R1 纪律）：新卡长中位较旧仅
+ *      +15%，6 齿齿距 ≈33–38mm 读作裂缘圆钝细齿密度仍合；升齿数会推高边缘梯度逼近
+ *      alphaTest 0.5 裁切闪烁红线；裂:齿 = 5:6 近频拍自然产生裂幅「深浅不等」的逐叶变化
+ *      （Spec「深浅不等的圆钝锯齿」Verified [1]）——维持即最优解；
+ *   5) 叶背粉绿：gl_FrontFacing 区分背面（WebGL2 内建 bool；DoubleSide 双面片元，背面
+ *      法线由 three 双面光照翻转），背面 diffuseColor ×(0.94,1.05,1.16)（底色 #4e7c33 上
+ *      亮度 +3%/饱和度 −6%/冷绿偏移 R:B 1.53→1.29——FRPS「叶背粉绿色」Verified [1][2]，
+ *      幅度克制读得出不跳色）；mix 线性混合零分支零采样；不触碰 <color_fragment>/vColor；
+ *      透射项暖绿（背光透射语义）不动。
  * 边界：工厂每次调用 new 全部材质（D17 所有权随调用移交，禁止模块级共享对象）；零贴图/
  *   零 DataTexture（D13）；GLSL float 字面量全带小数点；aSeed=0（DEV 普通 Mesh 无该属性，
  *   WebGL 缺省属性值 0）路径相位退化为正常数——hash 无除法无 NaN。
@@ -104,23 +127,28 @@ uniform float uTime;
 
 /**
  * 橡树叶形覆盖率（uv 域：u 横向 0–1、v 卡根 0 → 叶尖 1）：
- * 卵形包络（sin^0.75，两端收零=叶柄贴枝/圆钝叶尖）× 4 对圆裂（cos 波 42% 内切，裂幅两端
- * 收敛为全缘）× 叶缘锯齿（齿载波 0.7 + 值噪声抖动 0.3 合成 ±0.022 半宽 ≈ ±4.4mm @0.2m 卡；
- * 载波 pow³ 锐化齿尖使齿形可辨，噪声频率 42 维持不升——alphaTest 0.5 下更高频会裁切闪烁，
- * ×taper 两端收敛全缘）；返回近似符号距离的覆盖率坡（edge/0.03 —— alphaToCoverage 的
- * fwidth smoothstep 吃这条坡抗锯边）。
+ * 倒卵形包络（T009.2：sin(π·v^1.4)^0.75——v^1.4 预扭曲把 sin 峰推到 v≈0.61 叶长（自基部），
+ * 基部爬升段变缓收窄、顶端下降段变陡钝圆收口，两端仍收零=贴枝/闭合；Spec「长倒卵形至
+ * 椭圆形、顶端圆钝」Verified [1][2][5]）× 5 对圆裂（cos 波 42% 内切，裂幅两端收敛为全缘；
+ * 31.42 = 2π·5——Spec 域 4–7 取中典型）× 基部耳形（t3aEar：v∈[0,0.15] sin 钟形两侧外扩、
+ * 峰值 v≈0.075、振幅 0.02 ≤ 覆盖率坡宽 0.03 的 75%（裁切闪烁纪律，与齿载波同款约束），
+ * v=0 仍收零——中脉收口两侧读作一对「耳」；Spec 基部耳形 Verified [1][2][5]）× 叶缘锯齿
+ * （齿载波 0.7 + 值噪声抖动 0.3 合成 ±0.022 半宽；载波 pow³ 锐化齿尖使齿形可辨，噪声频率
+ * 42 维持不升——alphaTest 0.5 下更高频会裁切闪烁，×taper 两端收敛全缘）；返回近似符号
+ * 距离的覆盖率坡（edge/0.03 —— alphaToCoverage 的 fwidth smoothstep 吃这条坡抗锯边）。
  */
 const TREE3A_LEAF_SDF = /* glsl */ `
 float t3aLeafAlpha(vec2 t3aUv, float t3aRand) {
   vec2 t3aP = vec2(t3aUv.x - 0.5, t3aUv.y);
-  float t3aEnv = pow(sin(3.14159 * clamp(t3aP.y, 0.001, 0.999)), 0.75);
+  float t3aEnv = pow(sin(3.14159 * pow(clamp(t3aP.y, 0.001, 0.999), 1.4)), 0.75); // v^1.4：最宽点 v≈0.61（倒卵形）
   float t3aTaper = smoothstep(0.04, 0.32, t3aP.y) * (1.0 - smoothstep(0.70, 0.96, t3aP.y));
-  float t3aLobe = 0.5 + 0.5 * cos(t3aP.y * 25.13 + (t3aRand - 0.5) * 0.9); // 25.13 = 2π·4 圆裂
+  float t3aLobe = 0.5 + 0.5 * cos(t3aP.y * 31.42 + (t3aRand - 0.5) * 0.9); // 31.42 = 2π·5 圆裂（域 4–7 取中）
   float t3aMargin = 0.5 * t3aEnv * (1.0 - 0.42 * t3aTaper * t3aLobe);
+  float t3aEar = sin(3.14159 * clamp(t3aP.y / 0.15, 0.0, 1.0)) * 0.02; // 基部耳形：带 [0,0.15] 钟形外扩，纯 ALU
   // 齿载波：2π·6 ≈ 6 齿/叶，pow³ 出窄峰宽谷（齿尖外凸/齿缺内凹），逐叶 -rand·2π 相位错开
   float t3aTooth = pow(0.5 + 0.5 * cos(t3aP.y * 37.7 - t3aRand * 6.28), 3.0);
   float t3aSerr = (t3aTooth * 0.7 + facVnoise(vec2(t3aP.y * 42.0, t3aRand * 13.0)) * 0.3 - 0.5) * 0.045 * t3aTaper;
-  float t3aEdge = t3aMargin + t3aSerr - abs(t3aP.x);
+  float t3aEdge = t3aMargin + t3aEar + t3aSerr - abs(t3aP.x);
   return clamp(t3aEdge / 0.03 + 0.5, 0.0, 1.0);
 }
 `;
@@ -148,6 +176,11 @@ vec3 t3aMul = t3aHue * t3aLuma * (0.76 + 0.24 * t3aShade) * (0.94 + 0.12 * t3aCl
 t3aMul *= 1.0 - 0.07 * t3aVeinFlank * smoothstep(0.05, 0.28, t3aP.y) * (1.0 - smoothstep(0.74, 0.96, t3aP.y)); // 沟影限中段（两端收）
 t3aMul = mix(t3aMul, t3aMul * vec3(1.28, 1.17, 0.68), t3aVeinMid * 0.58 + t3aVeinLat * 0.42);
 diffuseColor.rgb *= t3aMul;
+// 叶背粉绿（T009.2）：gl_FrontFacing 区分背面（WebGL2 内建；DoubleSide 材质双面片元，
+// 背面法线由 three 双面光照自动翻转，此处只调固有色）——FRPS「叶背粉绿色」Verified [1][2]：
+// 背面比叶面略浅、轻度去饱和、冷绿偏移（红蓝相对绿抬升），幅度克制（读得出双面差异不跳色）；
+// 纯 ALU 零采样零分支；透光项暖绿为背光透射语义，与背面固有色区分不冲突
+diffuseColor.rgb *= mix(vec3(0.94, 1.05, 1.16), vec3(1.0), float(gl_FrontFacing));
 `;
 
 /** 叶背光透射（<opaque_fragment> 前注入 outgoingLight——透射项走完整色调映射管线） */

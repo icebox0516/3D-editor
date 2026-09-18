@@ -1,5 +1,6 @@
 /**
- * tests/runtime/procedural/tree/broadleafStructure.test.ts —— 夏栎枝干结构真实性测试（T009.1）。
+ * tests/runtime/procedural/tree/broadleafStructure.test.ts —— 夏栎枝干结构真实性测试
+ * （T009.1 建立，T009.2 增枝梢驱动叶簇块）。
  *
  * 覆盖（零 mock——真实几何生成；直调 buildBroadleafGeometry 消费扩展 stats，与资产
  * 契约测试（asset_tree_3a.test.ts）互补——本文件锁「结构怎么长」，那边锁「契约怎么传」）：
@@ -11,8 +12,15 @@
  * - 冠内通透（显式规则替代涌现式空腔）：候选 → 存活存在剔卡且密度场/空腔两规则均
  *   实际命中；外密内疏——内核（水平半径 < 0.4 冠半径）面积归一密度显著低于外壳
  *   （> 0.7）环（Spec crown_fill_gradient Verified 的结构化证据）；枝干通道——存活
- *   叶卡中心距主干轴 < 0.3m 数为 0（主干大枝进冠不被封死）；通透不挖空整层——
+ *   叶卡挂点（根边中点 = 过滤判定口径）距通道线段带内数为 0（主干大枝进冠不被封死；
+ *   T009.2 起度量点自 6 顶点质心改为根边中点——质心含卡体伸展，越带属卡几何伪影）；
+ *   通透不挖空整层——
  *   冠顶/冠底 1/3 高度带均有存活叶卡（冠壳轮廓连续性）；
+ * - 枝梢驱动叶簇（T009.2）：簇-枝梢绑定（簇中心贴挂点 + 簇方向 = 挂点枝切向单位
+ *   向量 + L5 末梢挂簇占主导）；簇间间隙（近邻簇中心距 ≥ gapFactor×(ri+rj) 占比——
+ *   profile clusterMinSeparation 距离抑制的输出不变量回归锁）；shellBias 外偏（存活卡
+ *   簇内归一化半径均值）；每簇叶量域与卡几何域（宽/长宽比落 profile 域——Spec #12/#13
+ *   偏差收敛证据）；
  * - shapeProfile 参数面真实驱动：canopyDensity 压低 → 叶卡数显著下降（009.3 八槽
  *   形态向量的原料字段有真实消费者，非摆设）。
  * 边界：构建产物 afterEach 统一 dispose。
@@ -96,6 +104,22 @@ describe('冠内通透（显式规则：通道 / 内层密度衰减 / 局部空�
     return centers;
   }
 
+  /** 存活叶卡挂点数组（根边中点 = 顶点 0,1 均值 = 通透过滤时的候选中心——与规则判定
+   *  口径严格对齐；6 顶点质心含卡体向外的伸展（≤ 半卡长），越带属卡几何伪影非规则失效） */
+  function cardRootMidpoints(result: BroadleafTreeResult): { x: number; y: number; z: number }[] {
+    const leaf = result.geometry.groups[1]!;
+    const pos = result.geometry.getAttribute('position');
+    const roots: { x: number; y: number; z: number }[] = [];
+    for (let base = leaf.start; base < leaf.start + leaf.count; base += 6) {
+      roots.push({
+        x: (pos.array[base * 3]! + pos.array[(base + 1) * 3]!) / 2,
+        y: (pos.array[base * 3 + 1]! + pos.array[(base + 1) * 3 + 1]!) / 2,
+        z: (pos.array[base * 3 + 2]! + pos.array[(base + 1) * 3 + 2]!) / 2,
+      });
+    }
+    return roots;
+  }
+
   it('通透规则实际生效：存在剔卡，且密度场与空腔两规则均命中（通道为拓扑保险）', () => {
     const { stats } = buildTracked(SEED0);
     expect(stats.leafCards).toBeLessThan(stats.leafCandidates);
@@ -119,11 +143,11 @@ describe('冠内通透（显式规则：通道 / 内层密度衰减 / 局部空�
     expect(innerRet / shellRet, '内核保留率应显著低于外壳').toBeLessThanOrEqual(0.55);
   }, 30000);
 
-  it('枝干通道：存活叶卡中心距任一通道线段 < r-0.05 的数量为 0（主干大枝进冠不被封死）', () => {
+  it('枝干通道：存活叶卡挂点距任一通道线段 < r-0.05 的数量为 0（主干大枝进冠不被封死；T009.2 起判定点 = 根边中点 = 过滤口径，6 顶点质心含卡体伸展不计）', () => {
     const result = buildTracked(SEED0);
-    const centers = cardCenters(result);
+    const roots = cardRootMidpoints(result);
     let invasion = 0;
-    for (const c of centers) {
+    for (const c of roots) {
       for (const ch of result.stats.channels) {
         const dx = c.x - ch.ax;
         const dy = c.y - ch.ay;
@@ -151,6 +175,89 @@ describe('冠内通透（显式规则：通道 / 内层密度衰减 / 局部空�
     const top = centers.filter((c) => c.y > yMax - third).length;
     expect(bottom, '冠底 1/3 带应有存活卡').toBeGreaterThan(100);
     expect(top, '冠顶 1/3 带应有存活卡').toBeGreaterThan(100);
+  }, 30000);
+});
+
+describe('枝梢驱动叶簇（T009.2：枝梢 → 簇空间 → 叶片分布）', () => {
+  it('簇-枝梢绑定：簇数 > 0、L5 末梢挂簇占主导；簇中心贴挂点（cm 级）；簇方向 = 枝切向单位向量', () => {
+    const { stats } = buildTracked(SEED0);
+    expect(stats.clusters.length, '应有保留簇').toBeGreaterThan(0);
+    const l5 = stats.clusters.filter((c) => c.level === 4).length;
+    const l4 = stats.clusters.filter((c) => c.level === 3).length;
+    expect(l5, 'L5 末梢簇应占主导（叶着生一年生小枝）').toBeGreaterThan(l4);
+    // 簇剔除账目守恒：保留 + 剔除 = 簇位总数（每 L5 枝 clustersL5 簇 + 每 L4 枝 clustersL4 簇）
+    expect(stats.clusters.length + stats.clustersCulled).toBe(
+      stats.levelBranches[4]! * TREE3A_SLOT0_PROFILE.clustersL5 + stats.levelBranches[3]! * TREE3A_SLOT0_PROFILE.clustersL4,
+    );
+    // 簇中心 = 挂点沿切向前移极近一位（前移 ≤ 0.2×簇半径 ≤ 0.2×0.1875 < 0.05m——cm 级）
+    let maxBind = 0;
+    let maxUnitErr = 0;
+    for (const c of stats.clusters) {
+      maxBind = Math.max(maxBind, Math.hypot(c.cx - c.attachX, c.cy - c.attachY, c.cz - c.attachZ));
+      maxUnitErr = Math.max(maxUnitErr, Math.abs(Math.hypot(c.dirX, c.dirY, c.dirZ) - 1));
+    }
+    expect(maxBind, '簇中心到挂点距离应 < 0.05m（cm 级）').toBeLessThan(0.05);
+    expect(maxUnitErr, '簇方向应为单位向量').toBeLessThan(1e-6);
+  }, 30000);
+
+  it('簇间间隙：近邻簇中心距 ≥ 0.5×(ri+rj) 的簇占比 ≥ 90%（gapFactor=0.5 取值依据：profile clusterMinSeparation=0.55 距离抑制保证下界，实测 min≈0.554 / 中位≈0.73，留 0.05 边际）', () => {
+    const { stats } = buildTracked(SEED0);
+    const n = stats.clusters.length;
+    let pass = 0;
+    for (let i = 0; i < n; i++) {
+      const a = stats.clusters[i]!;
+      let nnRatio = Infinity;
+      for (let j = 0; j < n; j++) {
+        if (i === j) continue;
+        const b = stats.clusters[j]!;
+        const d = Math.hypot(a.cx - b.cx, a.cy - b.cy, a.cz - b.cz);
+        nnRatio = Math.min(nnRatio, d / (a.radius + b.radius));
+      }
+      if (nnRatio >= 0.5) pass++;
+    }
+    expect(pass / n, '近邻簇对应以 0.5×(ri+rj) 间隙的占比').toBeGreaterThanOrEqual(0.9);
+  }, 30000);
+
+  it('shellBias 外偏：存活卡簇内归一化半径均值 ≥ 0.6（叶沿簇壳分布、簇内稀疏成腔）', () => {
+    const { stats } = buildTracked(SEED0);
+    expect(stats.leafRhat).toHaveLength(stats.leafCards);
+    const mean = stats.leafRhat.reduce((s, r) => s + r, 0) / stats.leafRhat.length;
+    expect(mean, '存活卡 r̂ 均值应 ≥ 0.6（shellBias=0.62/γ=0.8 外偏）').toBeGreaterThanOrEqual(0.6);
+  }, 30000);
+
+  it('每簇叶量域 + 卡几何域：逐簇存活数 ≤ 每簇预算且总数守恒；卡宽/长宽比落 profile 域（Spec #12/#13）', () => {
+    const result = buildTracked(SEED0);
+    const { stats } = result;
+    const budget = Math.max(TREE3A_SLOT0_PROFILE.clusterLeavesL5, TREE3A_SLOT0_PROFILE.clusterLeavesL4);
+    expect(stats.clusterLeafMax).toBeLessThanOrEqual(budget);
+    expect(stats.clusterLeafMean).toBeGreaterThanOrEqual(budget * 0.5);
+    expect(stats.clusterLeaves.reduce((s, n) => s + n, 0)).toBe(stats.leafCards);
+    // 卡几何域：从叶组顶点提取（宽 = 根边长，长 = 根→尖；聚合扫描一次断言）
+    const leaf = result.geometry.groups[1]!;
+    const pos = result.geometry.getAttribute('position');
+    let bad = 0;
+    for (let base = leaf.start; base < leaf.start + leaf.count; base += 6) {
+      const w = Math.hypot(
+        pos.array[(base + 1) * 3]! - pos.array[base * 3]!,
+        pos.array[(base + 1) * 3 + 1]! - pos.array[base * 3 + 1]!,
+        pos.array[(base + 1) * 3 + 2]! - pos.array[base * 3 + 2]!,
+      );
+      const len = Math.hypot(
+        pos.array[(base + 5) * 3]! - pos.array[base * 3]!,
+        pos.array[(base + 5) * 3 + 1]! - pos.array[base * 3 + 1]!,
+        pos.array[(base + 5) * 3 + 2]! - pos.array[base * 3 + 2]!,
+      );
+      const aspect = len / w;
+      if (
+        w < TREE3A_SLOT0_PROFILE.leafWidthMin - 1e-6 ||
+        w > TREE3A_SLOT0_PROFILE.leafWidthMin + TREE3A_SLOT0_PROFILE.leafWidthSpan + 1e-6 ||
+        aspect < TREE3A_SLOT0_PROFILE.leafAspectMin - 1e-6 ||
+        aspect > TREE3A_SLOT0_PROFILE.leafAspectMin + TREE3A_SLOT0_PROFILE.leafAspectSpan + 1e-6
+      ) {
+        bad++;
+      }
+    }
+    expect(bad, '卡宽应 ∈ [0.08, 0.13]、长宽比 ∈ [1.6, 2.7]（profile 域）').toBe(0);
   }, 30000);
 });
 

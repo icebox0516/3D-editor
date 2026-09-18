@@ -11,9 +11,10 @@
  *   aBend 根（钉枝顶点）≤ 尖、UV 标准 0–1 四边形域；树顶叶 aBend 均值 > 树底叶（高度权重语义）；
  * - 几何健康：法线无 NaN 有限、包围盒有限、minY ∈ [-0.01, 0.01]（贴地）、顶高与冠幅落
  *   任务书带（7–9m / 5–7.5m）、恰 2 材质组且材质对应（皮 FrontSide / 叶 DoubleSide 占位）；
- * - 预算与声明：皮 1.5–3 万面 / 叶卡 2000–6000 张（初始目标预算）；triangleCount 实测
- *   一致（T009.1 起叶卡数随冠内通透规则确定：slot-0 声明实数、同槽恒等、跨槽差异为
- *   8 槽形态向量设计预期）；两次 build 资源新实例（缓存契约）；
+ * - 预算与声明：皮 1.5–3 万面 / 叶簇卡 6500–9500 张（T009.2 带——卡宽 0.15–0.23 减半到
+ *   0.08–0.13 后的增卡补偿覆盖带，slot-0 实际 7167）；triangleCount 实测
+ *   一致（T009.1 起叶卡数随冠内通透规则确定、T009.2 起叠加簇级距离抑制：slot-0 声明
+ *   实数、同槽恒等、跨槽差异为 8 槽形态向量设计预期）；两次 build 资源新实例（缓存契约）；
  * - 契约第一锁（D19，缓存路径）：同槽两对象 seed → 同 Source 同引用；异槽异 Source；
  *   8 槽健康横扫（法线/minY/带内——008.5 扩槽的前置保障）。
  * 边界：测试内 build/load 产物 afterEach 统一 dispose 兜底，不跨测试泄漏 GPU 资源。
@@ -58,7 +59,7 @@ describe('meta 契约', () => {
   it('variants 参照 asset_oak 量级 / levels 接口位单档 high / triangleCount 实数声明', () => {
     expect(meta.variants).toEqual({ scaleJitter: 0.16, rotationJitter: 180, hueJitter: 9 });
     expect(meta.levels).toEqual([{ id: 'high' }]);
-    expect(meta.triangleCount).toBe(29520); // T009.1：皮 20724 恒定 + slot-0 叶卡 4398×2（通透规则确定值）
+    expect(meta.triangleCount).toBe(35058); // T009.2：皮 20724 恒定 + slot-0 叶簇卡 7167×2（簇级剔除 + 通透规则确定值）
   });
 });
 
@@ -228,7 +229,7 @@ describe('几何健康与材质组结构', () => {
   }, 30000);
 });
 
-describe('预算与声明（初始目标预算：皮 1.5–3 万面 / 叶卡 2000–6000 张）', () => {
+describe('预算与声明（T009.2 叶簇带：皮 1.5–3 万面 / 叶簇卡 6500–9500 张——卡尺寸减半后的增卡补偿覆盖带）', () => {
   it('皮/叶面数与叶卡数落预算带；triangleCount 实测一致（±5%）', () => {
     const { geometry } = buildTracked(undefined);
     const barkTris = geometry.groups[0]!.count / 3;
@@ -236,8 +237,8 @@ describe('预算与声明（初始目标预算：皮 1.5–3 万面 / 叶卡 200
     const leafCards = geometry.groups[1]!.count / 6;
     expect(barkTris).toBeGreaterThanOrEqual(15000);
     expect(barkTris).toBeLessThanOrEqual(30000);
-    expect(leafCards).toBeGreaterThanOrEqual(2000);
-    expect(leafCards).toBeLessThanOrEqual(6000);
+    expect(leafCards).toBeGreaterThanOrEqual(6500);
+    expect(leafCards).toBeLessThanOrEqual(9500);
     const total = barkTris + leafTris;
     expect(Math.abs(total - meta.triangleCount!)).toBeLessThanOrEqual(meta.triangleCount! * 0.05);
   }, 30000);
