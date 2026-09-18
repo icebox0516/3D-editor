@@ -4,9 +4,11 @@
 
 ## Current
 
-- [ ] T008 程序化树木（4/6）→ [tasks/008-procedural-tree.md](tasks/008-procedural-tree.md)
-  - [ ] T008.6 夏栎视觉参考研究（锚点门已过，可启动；T009 前置）→ [tasks/008.6-plant-reference.md](tasks/008.6-plant-reference.md)
+- [ ] T009 夏栎结构真实性与生产化（0/7；2026-09-18 解锁）→ [tasks/009-tree-realism.md](tasks/009-tree-realism.md)
+  - [ ] T009.1 枝干结构真实性（进行中：shapeProfile 参数面 + 主次分级 + 冠内通透显式规则 + slot-0 重校）→ [tasks/009.1-branch-structure.md](tasks/009.1-branch-structure.md)
+- [ ] T008 程序化树木（5/6；008.5 收官门后置于 T009 全部完成）→ [tasks/008-procedural-tree.md](tasks/008-procedural-tree.md)
   - [ ] T008.5 T008 收官验收门（修订版 → D20，后置于 T009 全部完成）→ [tasks/008.5-acceptance.md](tasks/008.5-acceptance.md)
+  - [x] T008.6 夏栎视觉参考研究（done 2026-09-18：spec 1.0 + plant-schema v0.2 + 对照 7/3/6/2；用户过目门按放行处置——「继续任务」指令后问询未获回答，异议窗口开放，见任务书处置记档）→ [tasks/008.6-plant-reference.md](tasks/008.6-plant-reference.md)
   - [x] T008.4 放置全链路集成（done 2026-09-18；+22 测试 → 2443 全绿；Ghost 携 seed / 重掷命令 / 孪生 / 存档 e2e + 冒烟零错误）→ [tasks/008.4-placement-integration.md](tasks/008.4-placement-integration.md)
   - [x] T008.3 叶/树皮材质+风动（done 2026-09-18；锚点门过：近观 R1 四项微调一轮终裁定稿，+24 测试 → 2421 全绿）→ [tasks/008.3-leaf-shader-wind.md](tasks/008.3-leaf-shader-wind.md)
   - [x] T008.2 树几何生成器·slot-0 锚点形态（done 2026-09-17）→ [tasks/008.2-tree-geometry.md](tasks/008.2-tree-geometry.md)
@@ -30,7 +32,6 @@
 - [ ] T005 Animation Pathway（0/3）→ [tasks/005-animation-pathway.md](tasks/005-animation-pathway.md)
 - [ ] T006 LOD Chunking（0/4）→ [tasks/006-lod-chunking.md](tasks/006-lod-chunking.md)
 - [ ] T007 Bake Scatter（可选；启动前 grill 拷问门见任务书）→ [tasks/007-bake-scatter.md](tasks/007-bake-scatter.md)
-- [ ] T009 夏栎结构真实性与生产化（0/7；2026-09-18 立项 → D20）→ [tasks/009-tree-realism.md](tasks/009-tree-realism.md)
 - [ ] T010 程序化资产公共能力与规范（0/5；2026-09-18 立项 → D20）→ [tasks/010-asset-capability.md](tasks/010-asset-capability.md)
 - [ ] T011 第一批阔叶乔木：朴树 / 香樟 / 榉树 / 银杏【占位】
 - [ ] T012 针叶族【占位】
