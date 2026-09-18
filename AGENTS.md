@@ -22,6 +22,7 @@
 ## three.js 任务与调试
 
 - **多 Agent 按 Step 派遣**：主代理启动 Task 后先按实际工作拆分为独立 Step，每个独立 Step 默认启动全新的子代理实例，避免跨 Step 上下文污染；生产渲染代码按 Step 实际职责固定路由：Three.js Runtime / Cache / Pool / Renderer / LOD Runtime / Shadow Runtime → `threejs-runtime-agent`；Procedural Geometry / 结构 / Shape / Morph / Asset LOD 内容 → `procedural-asset-agent`；Shader / Material / SDF / Wind / Depth Material → `park-shader-agent`；研究、通用实现、独立验证及不属于上述三类的工作 → 通用子代理自定
+- **Research Gate（资产现实调研，D26）**：所有新程序化资产开工前必过 Gate 并在任务书留痕；需调研时由通用子代理加载 asset-research 技能执行，结论落盘 `docs/research/<asset>-reference.md`——Reference Spec 是资产现实事实的唯一来源，建造任务书只做带 Spec Version 锚点的执行快照（工程预算/面数/性能阈值归任务书）；豁免的是调研动作而非 Spec 落盘；GLB 导入与纯技术测试不触发
 - 渲染实现的实质修改（`src/runtime`、Renderer、InstancedMesh、Source/Cache/Pool、LOD Runtime、Shadow Pipeline、程序化 Geometry、Shader/Material）主代理不得直接编写，必须由具备对应专业能力的子代理交付（上述三个，必要时可新增或临时使用具备相应 Skill 的专业 Agent）；纯机械性修改（格式修正、注释、日志、测试记录、任务文档）不受此限；主代理负责任务拆分、派遣、协调、审查、合并和最终验收
 - 调试取证：先 MCP 结构化数据定位（按需拉起，先过金丝雀——canvas 尺寸 ≈ 主视口才可信，错绑小地图即弃用）→ 收尾浏览器截图验收；结论冲突以像素为准；MCP 拉不起/金丝雀失败直接回退截图。完整细则：`docs/threejs-debugging.md`
 
