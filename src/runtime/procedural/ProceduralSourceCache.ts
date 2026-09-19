@@ -16,6 +16,7 @@
  *      （条目间 geometry/material 不共享）、独立释放（evict——单档单槽精确释放，
  *      T006 换档释放旧档的消费面）；资产未声明该档时的回落由资产 build 自行决定，
  *      选档/距离切换策略归 T006，Cache 只透传。
+ *      LOD 声明/调度规范真相源 = docs/procedural-assets/lod-spec.md（T010.3）。
  *      未声明 shapeFamily 的资产：键回退纯 assetId、build 以无参 `build()` 调用
  *      （preset/level 一并忽略），行为与现状逐位一致。
  *      失败语义镜像 AssetLoader：未注册 id 与 build 抛错均 reject 且**不缓存坏

@@ -30,7 +30,8 @@ export interface ProceduralBuildParams {
   /** LOD 档位 Runtime 参数（D23/D27.7）：缺省 = 'high'（缩略图/Ghost/Preview 固定 High，
    *  D27.14）；**不参与 shapeSlot / morphSeed / sourceKey 形态身份计算**，档位缓存维度 =
    *  sourceKey + level 由 ProceduralSourceCache 维护；旧资产 `build()` 无参声明继续兼容
-   *  （TS 少参可赋多参签名）；资产未声明该档时的回落由资产 build 自行决定。 */
+   *  （TS 少参可赋多参签名）；资产未声明该档时的回落由资产 build 自行决定。
+   *  声明/调度规范真相源 = docs/procedural-assets/lod-spec.md（T010.3）。 */
   level?: ProceduralLevel;
 }
 
