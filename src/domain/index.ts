@@ -1,5 +1,5 @@
 /**
- * domain 层汇总导出：geometry / regions / styles / assets / validate。
+ * domain 层汇总导出：geometry / regions / styles / assets / validate / lod。
  *
  * 职责：园区业务的纯数据模型（几何、区域对象、样式参数元数据、资产）与领域校验
  *      （validateGeometry）。T6.9：v1 elements（Element 旧要素基础接口）已随旧契约
@@ -12,3 +12,4 @@ export * from './regions';
 export * from './styles';
 export * from './assets';
 export * from './validate/validateGeometry';
+export * from './lod';

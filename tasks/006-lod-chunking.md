@@ -31,7 +31,7 @@
 
 ## 子任务（2026-09-19 D27 修订重构：原 006.1 植物三档实装职责已被 T009.6 承担，拆分并顺延重编号）
 
-- [ ] T006.1 LOD 公共语义层（Profile 最小契约 + 选档评估器）→ [006.1-lod-semantics.md](006.1-lod-semantics.md)
+- [x] T006.1 LOD 公共语义层（done 2026-09-19：lodPolicy 候选常量 + evaluateLodRepresentation 纯函数——统一度量 m/单边迟滞/不完整链跳档/总开关语义；+38 测试 → 2585 全绿）→ [006.1-lod-semantics.md](006.1-lod-semantics.md)
 - [ ] T006.2 非植物第二资产档位验证 → [006.2-second-asset-levels.md](006.2-second-asset-levels.md)
 - [ ] T006.3 块×档分桶+换档 → [006.3-chunk-lod-bucketing.md](006.3-chunk-lod-bucketing.md)
 - [ ] T006.4 批次控制 → [006.4-batch-control.md](006.4-batch-control.md)
@@ -42,3 +42,4 @@
 ## 进度
 
 - 2026-09-16 拆分立项（旧结构 006.1–006.4，植物三档口径，D11/D17 时期）；2026-09-19 D27 修订重构为本结构（通用 Asset Runtime 口径），0/5。
+- 2026-09-19 006.1 done（1/5）：LOD 公共语义层落地——选档评估器纯函数 + 全局策略常量（候选值）+ 总开关语义；006.2 ∥ 006.3 解锁。

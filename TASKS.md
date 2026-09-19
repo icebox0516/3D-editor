@@ -4,7 +4,9 @@
 
 ## Current
 
-- （空——上一 epic T010 已收官；下一个：T006 Asset Runtime LOD（D27 排期，T010 后、T011 前），启动时移入）
+- T006 Asset Runtime LOD（**1/5 进行中**，2026-09-19 启动）→ [tasks/006-lod-chunking.md](tasks/006-lod-chunking.md)
+  - [x] T006.1 LOD 公共语义层（done 2026-09-19：evaluateLodRepresentation 纯函数 + 候选阈值常量 + 总开关语义；+38 测试 → 2585 全绿）→ [tasks/006.1-lod-semantics.md](tasks/006.1-lod-semantics.md)
+  - 下一步：006.2（非植物第二资产档位验证）∥ 006.3（块×档分桶+换档）可并行
 
 ## Done（近）
 
@@ -48,7 +50,7 @@
 - [ ] T004 Style Gallery（0/3）→ [tasks/004-style-gallery.md](tasks/004-style-gallery.md)
 - [ ] T005 Animation Pathway（0/3）→ [tasks/005-animation-pathway.md](tasks/005-animation-pathway.md)
 - [ ] T007 Bake Scatter（可选；启动前 grill 拷问门见任务书）→ [tasks/007-bake-scatter.md](tasks/007-bake-scatter.md)
-- [ ] T006 Asset Runtime LOD（0/5；2026-09-19 D27 修订重构，排期 T010 后、T011 前——**T010 已收官，启动条件就绪**）→ [tasks/006-lod-chunking.md](tasks/006-lod-chunking.md)
+- [ ] T006 Asset Runtime LOD（1/5；2026-09-19 D27 修订重构，排期 T010 后、T011 前——已启动）→ [tasks/006-lod-chunking.md](tasks/006-lod-chunking.md)
 - [ ] T011 第一批阔叶乔木：朴树 / 香樟 / 榉树 / 银杏【占位】
 - [ ] T012 针叶族【占位】
 - [ ] T013 花木族【占位】
