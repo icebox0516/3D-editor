@@ -40,7 +40,7 @@
 
 - [x] T003.1 撒点纯函数（done 2026-09-16；+25 测试 → 2168 全绿）→ [003.1-scatter-function.md](003.1-scatter-function.md)
 - [x] T003.2 分块实例化管线（done 2026-09-16；+24 测试 → 2192 全绿）→ [003.2-chunk-pipeline.md](003.2-chunk-pipeline.md)
-- [ ] T003.3 Style 配方+序列化 → [003.3-style-recipe.md](003.3-style-recipe.md)
+- [x] T003.3 Style 配方+序列化（done 2026-09-19：代码 09-17 已随 73ee316 入库；验收续走收官端到端全过，中断点判定为验收读数误判非产品 bug；取证 `docs/acceptance/t003/003.3/`）→ [003.3-style-recipe.md](003.3-style-recipe.md)
 - [ ] T003.4 植物资产 4–5 种 → [003.4-plant-assets.md](003.4-plant-assets.md)
 - [ ] T003.5 绿地样式 5 种 → [003.5-grass-styles.md](003.5-grass-styles.md)
 - [ ] T003.6 T003 验收门 → [003.6-acceptance.md](003.6-acceptance.md)
@@ -54,3 +54,4 @@
 - 2026-09-16 T003.1 完成：撒点纯函数落地（抖动网格 + cell 哈希确定性 + κ=4 聚簇模型 + smoothstep 边缘衰减 + 块级 API，+25 测试 → 2168 全绿），1/6。
 - 2026-09-16 T003.2 完成：runtime/scatter 分块实例化管线落地（32m 块网格 + 每 块×资产 合批 InstancedMesh + 逐块视锥剔除 + recomputeChunks 局部重算机制 + computeAffectedChunks 保守受影响块纯函数 + DEV 冒烟面 window.__scatterSmoke，+24 测试 → 2192 全绿），2/6。
 - 2026-09-17 **epic 冻结**：用户裁定程序化资产观感路线转 T008 程序化树木（3A 单树开路，D19）；003.3/003.4 代码完成未提交挂账（2331 全绿），003.5/003.6/设施返工挂起，T008 树协议稳定后恢复。
+- 2026-09-19 T003.3 收官：恢复条件达成（T008/T009 双 epic 完结）后续走验收——挂账代码实已随 09-17 历史整理入库（73ee316），端到端验收全过（散布应用/密度重算/换装语义/拾取反查/seed 重掷/序列化往返全绿），中断点判定为验收读数误判非产品 bug；2542 全绿。epic 3/6（003.4 冻结挂账、003.5/003.6 待排期）。

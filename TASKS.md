@@ -4,7 +4,7 @@
 
 ## Current
 
-- 无进行中——T008 收官（2026-09-19）后下一任务见 Next（T010 / T003 恢复二选一，按 PROGRESS 下一步序）。
+- 无进行中——2026-09-19 会话裁定先清 T003.3 挂账（验收续走收官 done），下一任务 = T010（010.1 家族契约提炼，见 Next）。
 
 ## Done（近）
 
@@ -23,8 +23,8 @@
   - [x] T009.3 8 槽形态向量表（done 2026-09-18：8 组 shapeProfile 差量展开 + mountSlots 批量出图面；用户裁定门两轮批量 8/8 通过定稿零微调；+14 测试 → 2473 全绿；取证 `docs/acceptance/t009/009.3/`）→ [tasks/009.3-shape-slots.md](tasks/009.3-shape-slots.md)
   - [x] T009.4 树皮近景微起伏（done 2026-09-18：emitTube 低频环向谐波起伏（零 rng/拓扑恒等/法线解析修正）+ 树皮灰度校正 #63513f→#5c534a 并行交付；+9 测试 → 2482 全绿；四机位 vs 009.3 基线取证 `docs/acceptance/t009/009.4/`）→ [tasks/009.4-bark-relief.md](tasks/009.4-bark-relief.md)
   - [x] T009.6 夏栎 LOD 三档（done 2026-09-19：三档同流派生 + 材质 9 键分档 + 缓存 sourceKey::level 双维 + asset 路由/meta 三档；预算锁定 High ≤40K / Mid 6–10K / Low 1.5–3K；+32 测试 → 2514 全绿；7 图取证 `docs/acceptance/t009/009.6/`）→ [tasks/009.6-lod-levels.md](tasks/009.6-lod-levels.md)
-- [❄] T003 Scatter Styles（2/6；冻结 2026-09-17，恢复入口见任务书）→ [tasks/003-scatter-styles.md](tasks/003-scatter-styles.md)
-  - [~] T003.3 Style 配方+序列化（代码完成，验收中断冻结——交接快照见任务书）→ [tasks/003.3-style-recipe.md](tasks/003.3-style-recipe.md)
+- [❄] T003 Scatter Styles（3/6；003.3 收官 2026-09-19，冻结其余——恢复入口见任务书）→ [tasks/003-scatter-styles.md](tasks/003-scatter-styles.md)
+  - [x] T003.3 Style 配方+序列化（done 2026-09-19：验收续走收官端到端全过，中断点=验收读数误判非 bug；2542 全绿）→ [tasks/003.3-style-recipe.md](tasks/003.3-style-recipe.md)
   - [~] T003.4 植物资产 4 种（代码完成；返工升格 T008 路线（D19），冻结）→ [tasks/003.4-plant-assets.md](tasks/003.4-plant-assets.md)
   - [x] T003.2 分块实例化管线（done 2026-09-16）→ [tasks/003.2-chunk-pipeline.md](tasks/003.2-chunk-pipeline.md)
   - [x] T003.1 撒点纯函数（done 2026-09-16）→ [tasks/003.1-scatter-function.md](tasks/003.1-scatter-function.md)

@@ -1,0 +1,174 @@
+{
+  "version": "2.0",
+  "id": "scene_mu7q2qwm0dxg1q8yg",
+  "name": "未命名场景",
+  "environment": {
+    "preset": "day"
+  },
+  "layers": [
+    {
+      "id": "layer_mu7q2qwm1k4yg00yx",
+      "name": "未分类",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "order": 0,
+      "objectIds": [
+        "region_mu7q49t50qirgzihp"
+      ]
+    },
+    {
+      "id": "layer_mu7q2qwm2exk02pr6",
+      "name": "水面",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "order": 1,
+      "objectIds": []
+    },
+    {
+      "id": "layer_mu7q2qwm3jde0sm6s",
+      "name": "绿地",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "order": 2,
+      "objectIds": []
+    },
+    {
+      "id": "layer_mu7q2qwm4lrcaaitr",
+      "name": "广场",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "order": 3,
+      "objectIds": []
+    },
+    {
+      "id": "layer_mu7q2qwm52sxzfqu9",
+      "name": "停车场",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "order": 4,
+      "objectIds": []
+    },
+    {
+      "id": "layer_mu7q2qwm6bv4rllcr",
+      "name": "裸地",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "order": 5,
+      "objectIds": []
+    },
+    {
+      "id": "layer_mu7q2qwm7zjwhw5xr",
+      "name": "道路",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "order": 6,
+      "objectIds": []
+    },
+    {
+      "id": "layer_mu7q2qwm8wxmmbg2y",
+      "name": "建筑",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "order": 7,
+      "objectIds": []
+    },
+    {
+      "id": "layer_mu7q2qwm91l0hmxj5",
+      "name": "POI",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "order": 8,
+      "objectIds": []
+    },
+    {
+      "id": "layer_mu7q2qwmawghovhqn",
+      "name": "自定义",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "order": 9,
+      "objectIds": []
+    },
+    {
+      "id": "layer_mu7q2qwmbcrfbpvzz",
+      "name": "模型",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "order": 10,
+      "objectIds": []
+    }
+  ],
+  "objects": [
+    {
+      "id": "region_mu7q49t50qirgzihp",
+      "type": "region",
+      "name": "未命名区域 1",
+      "parentId": null,
+      "layerId": "layer_mu7q2qwm1k4yg00yx",
+      "visible": true,
+      "locked": false,
+      "transform": {
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "scale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        }
+      },
+      "properties": {},
+      "shape": {
+        "type": "polygon",
+        "points": [
+          {
+            "x": -35,
+            "y": 50
+          },
+          {
+            "x": -35,
+            "y": -30
+          },
+          {
+            "x": 15,
+            "y": -30
+          },
+          {
+            "x": 15,
+            "y": 50
+          }
+        ],
+        "baseHeight": 0,
+        "closed": true
+      },
+      "semantic": {
+        "type": "unclassified",
+        "properties": {}
+      },
+      "style": {
+        "presetId": "dev.scatter_smoke",
+        "overrides": {
+          "scatter.densityPerM2": 0.06
+        },
+        "seed": 1523935307
+      }
+    }
+  ]
+}
