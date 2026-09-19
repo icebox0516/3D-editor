@@ -21,7 +21,8 @@
  *      不走本池（PreviewManager 独立路径）；userData 不写业务数据（锚点 id 映射
  *      由 RuntimeObjectMap.set 负责）；池创建的渲染网格统一投影/接收阴影
  *      （castShadow/receiveShadow = true——singleMesh / instancedMesh / 诊断亮网格
- *      三个创建点；锚点补挂 Mesh 不设：不进场景仅包围盒）。
+ *      三个创建点；源带 customDepthMaterial 时同三点挂影 pass 深度材质，T009.5——
+ *      归源所有，池只挂引用不 dispose；锚点补挂 Mesh 不设两者：不进场景仅包围盒）。
  * 实例颜色（T002.3 烘焙式变体色相微差）：源无关颜色槽——setColor(id, color) /
  *      clearColor(id) 只登记「id + 颜色」，池不读 meta/seed（变体采样在调用方）。
  *      InstancedMesh 路径任意实例有色时建 instanceColor 逐槽写（未设色实例白 1,1,1
@@ -45,8 +46,10 @@
  *      setColor 路径同步写。无任何 seed 的池零开销（不建缓冲）；材质未声明
  *      aSeed attribute 时 three 自动忽略（GLB/旧资产行为零变化）。物理边界：
  *      three 仅 instanceMatrix/instanceColor 为对象级实例属性，自定义 aSeed 必须
- *      geometry 绑定——同 sourceKey 只有一个桶，桶间不串扰；Ghost/锚点/散布网格
- *      材质不声明 aSeed，缓冲对其惰性无效；诊断分组 split 两网格共享同几何的同一
+ *      geometry 绑定——同 sourceKey 只有一个桶，桶间不串扰；aSeed 仅 InstancedMesh
+ *      逐实例消费——非实例绘制（Ghost/锚点装饰共享同几何与材质，T008.3 起夏栎
+ *      皮/叶材质声明 aSeed）读缓冲首元素（缓冲未建时读 GL 缺省 0）：确定性相位、
+ *      无未定义行为；诊断分组 split 两网格共享同几何的同一
  *      aSeed 缓冲（islands 分遍用 override 材质不消费 aSeed，split 期间值惰性，
  *      拆除后 writeAllSlots 按 entries 序全量重写恢复）。资源归属：aSeed 缓冲挂
  *      共享几何上，随几何由源端（缓存/loader）dispose 统一释放，池不 dispose
@@ -57,10 +60,25 @@ import { aSeedValueOf } from '../../domain/assets';
 import type { ModelObject } from '../../domain/assets';
 import * as THREE from 'three';
 
-/** 实例化源：模板中抽取的可共享几何/材质（InstancedMesh / 单例 Mesh 共用） */
+/** 实例化源：模板中抽取的可共享几何/材质（InstancedMesh / 单例 Mesh 共用）。
+ *  资源语义：全部字段归源所有——与缓存条目/loader 同生命周期，源端统一 dispose
+ *  （ProceduralSourceCache.releaseSource / AssetLoader）；消费方（池/散布/Ghost/舞台）
+ *  只挂引用、不 dispose（「池不 dispose 共享模板资源」边界）。 */
 export interface InstanceSource {
   geometry: THREE.BufferGeometry;
   material: THREE.Material | THREE.Material[];
+  /**
+   * 影 pass 专用深度材质（T009.5 叶影裁切通道）：源资产声明时池在三个建网格点
+   * （singleMesh / instancedMesh / 诊断亮网格）挂 mesh.customDepthMaterial——
+   * undefined 不赋值保持 three 缺省（GLB/旧资产行为零变化）。归源所有：与
+   * geometry/material 同生命周期，源端统一 dispose，消费方只挂引用。
+   */
+  customDepthMaterial?: THREE.Material;
+  /**
+   * 点光源影距离材质：**仅类型占位**（T009.5 零实装零消费零 dispose——点光源影
+   * 需求出现时再立项，届时挂载/释放与 customDepthMaterial 同规则一并实装）。
+   */
+  customDistanceMaterial?: THREE.Material;
 }
 
 /** 源提供者：assetId + 对象 seed → 实例化源（Renderer 注入复合源路由 AssetSourceRouter；
@@ -403,6 +421,10 @@ export class InstancedAssetPool {
       split.highlightMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
       split.highlightMesh.castShadow = true;
       split.highlightMesh.receiveShadow = true;
+      // T009.5：亮网格与主网格同待遇——源带影 pass 深度材质则挂（归源所有，只挂引用）
+      if (source.customDepthMaterial !== undefined) {
+        split.highlightMesh.customDepthMaterial = source.customDepthMaterial;
+      }
       split.highlightMesh.layers.set(diag.highlightLayer);
       pool.split = split;
       this.root.add(split.highlightMesh);
@@ -543,6 +565,10 @@ export class InstancedAssetPool {
       pool.singleMesh = new THREE.Mesh(source.geometry, source.material);
       pool.singleMesh.castShadow = true;
       pool.singleMesh.receiveShadow = true;
+      // T009.5：源带影 pass 深度材质则挂（复用对象创建点挂一次——源不变于池生命周期）
+      if (source.customDepthMaterial !== undefined) {
+        pool.singleMesh.customDepthMaterial = source.customDepthMaterial;
+      }
     }
     if (pool.singleMesh.userData.objectId !== pool.entries[0].id) {
       pool.singleMesh.userData.objectId = pool.entries[0].id;
@@ -565,6 +591,8 @@ export class InstancedAssetPool {
       mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
       mesh.castShadow = true;
       mesh.receiveShadow = true;
+      // T009.5：源带影 pass 深度材质则挂（Mesh 对象跨扩容复用，创建点挂一次即可）
+      if (source.customDepthMaterial !== undefined) mesh.customDepthMaterial = source.customDepthMaterial;
       pool.instancedMesh = mesh;
       this.root.add(mesh);
     } else if (pool.capacity < count) {
@@ -760,7 +788,8 @@ export class InstancedAssetPool {
     target.visible = entry.visible;
   }
 
-  /** 锚点补挂共享 Mesh 子节点（CameraController.focusObjects 的包围盒来源；不进场景） */
+  /** 锚点补挂共享 Mesh 子节点（CameraController.focusObjects 的包围盒来源；不进
+   *  场景、无影 pass 参与——故不设投影与 customDepthMaterial，T009.5 任务边界排除） */
   private decorateAnchor(pool: AssetPool, anchor: THREE.Object3D): void {
     if (!pool.source || anchor.children.length > 0) return;
     anchor.add(new THREE.Mesh(pool.source.geometry, pool.source.material));

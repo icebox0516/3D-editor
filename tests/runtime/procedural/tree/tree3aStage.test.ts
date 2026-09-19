@@ -23,6 +23,9 @@
  *   （既有几何全 dispose）；unmount 3 份 geometry + 6 份双材质 + 3 份深度材质全 dispose
  *   且幂等；stats.levels 3 行序 high/mid/low + 顶层三档合计；viewLevels 缺省机位
  *   球坐标复算 + viewLevel 档位特写绕档树位 + 未知档位 warn no-op。
+ * - T009.5 customDepthMaterial 同源消费：fake build 带字段 → mount/mountLevels 挂载
+ *   与 source.customDepthMaterial 同引用（不自建）、unmount 随 disposeSource 释放恰
+ *   一次（幂等）；不带字段 → 回退自建进自持释放（两路径行为对账）。
  */
 import { describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
@@ -43,6 +46,53 @@ function makeControlsStub() {
     },
   };
   return stub;
+}
+
+/** fake build 记录（透传断言）+ 产出引用（dispose 断言） */
+interface FakeBuildLog {
+  params: (ProceduralBuildParams | undefined)[];
+  sources: InstanceSource[];
+}
+
+/** fake build（deps.build seam 注入）：记录调用参数；产出带双材质组的合法 InstanceSource
+ *  ——皮组 30 索引 = 10 三角、叶组 60 索引 = 20 三角 = 10 卡（任意合法值，不锁真实档位面数） */
+function makeFakeBuild(log: FakeBuildLog): (params?: ProceduralBuildParams) => InstanceSource {
+  return (params) => {
+    log.params.push(params);
+    const geometry = new THREE.BoxGeometry(1, 1, 1);
+    geometry.clearGroups();
+    geometry.addGroup(0, 30, 0);
+    geometry.addGroup(30, 60, 1);
+    const source: InstanceSource = {
+      geometry,
+      material: [new THREE.MeshStandardMaterial(), new THREE.MeshStandardMaterial()],
+    };
+    log.sources.push(source);
+    return source;
+  };
+}
+
+/** fake build 变体（T009.5）：产出带 customDepthMaterial 的 InstanceSource——模拟正式
+ *  build 契约（夏栎 build 自 T009.5 起返回深度材质；不带字段的 makeFakeBuild 即回退路径） */
+function makeFakeBuildWithDepth(log: FakeBuildLog): (params?: ProceduralBuildParams) => InstanceSource {
+  return (params) => {
+    log.params.push(params);
+    const geometry = new THREE.BoxGeometry(1, 1, 1);
+    geometry.clearGroups();
+    geometry.addGroup(0, 30, 0);
+    geometry.addGroup(30, 60, 1);
+    const source: InstanceSource = {
+      geometry,
+      material: [new THREE.MeshStandardMaterial(), new THREE.MeshStandardMaterial()],
+      customDepthMaterial: new THREE.MeshDepthMaterial(),
+    };
+    log.sources.push(source);
+    return source;
+  };
+}
+
+function makeLog(): FakeBuildLog {
+  return { params: [], sources: [] };
 }
 
 describe('mount / unmount / stats', () => {
@@ -319,34 +369,6 @@ describe('mountSlots / viewSlots / viewSlot（T009.3 8 槽批量出图面）', (
 });
 
 describe('mountLevels / viewLevels / viewLevel（T009.6 档位强制出图面——deps.build 注入 fake）', () => {
-  /** fake build 记录（透传断言）+ 产出引用（dispose 断言） */
-  interface FakeBuildLog {
-    params: (ProceduralBuildParams | undefined)[];
-    sources: InstanceSource[];
-  }
-
-  /** fake build（deps.build seam 注入）：记录调用参数；产出带双材质组的合法 InstanceSource
-   *  ——皮组 30 索引 = 10 三角、叶组 60 索引 = 20 三角 = 10 卡（任意合法值，不锁真实档位面数） */
-  function makeFakeBuild(log: FakeBuildLog): (params?: ProceduralBuildParams) => InstanceSource {
-    return (params) => {
-      log.params.push(params);
-      const geometry = new THREE.BoxGeometry(1, 1, 1);
-      geometry.clearGroups();
-      geometry.addGroup(0, 30, 0);
-      geometry.addGroup(30, 60, 1);
-      const source: InstanceSource = {
-        geometry,
-        material: [new THREE.MeshStandardMaterial(), new THREE.MeshStandardMaterial()],
-      };
-      log.sources.push(source);
-      return source;
-    };
-  }
-
-  function makeLog(): FakeBuildLog {
-    return { params: [], sources: [] };
-  }
-
   it('mountLevels：build 恰调 3 次、同 seed + level 依次 high/mid/low（透传）；3 独立 Mesh 一字排开（−11/0/+11）castShadow + 逐档深度材质互异；slot/spacing 自定义；slot 越界 warn no-op 不拆现场', () => {
     const scene = new THREE.Scene();
     const log = makeLog();
@@ -520,5 +542,61 @@ describe('mountLevels / viewLevels / viewLevel（T009.6 档位强制出图面—
     expect(warn).toHaveBeenCalledTimes(1);
     warn.mockRestore();
     handle.dispose();
+  });
+});
+
+describe('customDepthMaterial 同源消费（T009.5：DEV 预览 = 正式场景——源带字段消费之，fake 不带回退自建）', () => {
+  it('mount：源带深度材质 → mesh.customDepthMaterial 与 source 同引用（不自建）；unmount 随 disposeSource 释放恰一次，幂等不重复', () => {
+    const scene = new THREE.Scene();
+    const log = makeLog();
+    const handle = createTree3aHandle({ scene, build: makeFakeBuildWithDepth(log) });
+    handle.mount();
+    const mesh = scene.children[0]!.children[0] as THREE.Mesh;
+    expect(mesh.customDepthMaterial).toBe(log.sources[0]!.customDepthMaterial); // 同源单一真相
+    const depths = log.sources.map((s) => s.customDepthMaterial as THREE.Material);
+    let depthDisposed = 0;
+    for (const depth of depths) depth.addEventListener('dispose', () => depthDisposed++);
+    handle.unmount();
+    expect(depthDisposed).toBe(1); // 源带深度材质归 disposeSource 释放（非自持数组）
+    handle.unmount(); // 幂等
+    expect(() => handle.dispose()).not.toThrow();
+    expect(depthDisposed).toBe(1); // 不重复释放
+  });
+
+  it('mountLevels：三档消费各自 source.customDepthMaterial（互异引用、逐档 level 匹配）；unmount 释放 3 份源深度材质恰一次，幂等', () => {
+    const scene = new THREE.Scene();
+    const log = makeLog();
+    const handle = createTree3aHandle({ scene, build: makeFakeBuildWithDepth(log) });
+    handle.mountLevels();
+    const meshes = scene.children[0]!.children as THREE.Mesh[];
+    expect(meshes).toHaveLength(3);
+    for (let i = 0; i < 3; i++) {
+      expect(meshes[i]!.customDepthMaterial).toBe(log.sources[i]!.customDepthMaterial); // 逐档同源
+    }
+    expect(new Set(meshes.map((m) => m.customDepthMaterial)).size).toBe(3); // 三档互异实例
+    const depths = log.sources.map((s) => s.customDepthMaterial as THREE.Material);
+    let depthDisposed = 0;
+    for (const depth of depths) depth.addEventListener('dispose', () => depthDisposed++);
+    handle.unmount();
+    expect(depthDisposed).toBe(3); // 全部经 disposeSource 释放（自建回退数组为空——不自建）
+    handle.unmount(); // 幂等
+    expect(() => handle.dispose()).not.toThrow();
+    expect(depthDisposed).toBe(3);
+  });
+
+  it('回退路径对账：fake build 不带字段 → 回退自建深度材质挂载并随 unmount 释放恰一次（既有行为不回归）', () => {
+    const scene = new THREE.Scene();
+    const log = makeLog();
+    const handle = createTree3aHandle({ scene, build: makeFakeBuild(log) }); // 不带深度字段
+    handle.mount();
+    const mesh = scene.children[0]!.children[0] as THREE.Mesh;
+    expect(mesh.customDepthMaterial).toBeDefined(); // 回退自建（源不带字段）
+    const depth = mesh.customDepthMaterial as THREE.Material;
+    let depthDisposed = 0;
+    depth.addEventListener('dispose', () => depthDisposed++);
+    handle.unmount();
+    expect(depthDisposed).toBe(1); // 自建回退进自持 leafDepth 释放
+    handle.dispose(); // 幂等
+    expect(depthDisposed).toBe(1);
   });
 });

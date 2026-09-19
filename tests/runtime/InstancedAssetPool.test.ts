@@ -12,6 +12,9 @@
  * - 隐藏实例零缩放矩阵（单例模式退化为 mesh.visible=false）；
  * - anchor（供 Renderer 挂 RuntimeObjectMap 的脱离渲染树锚点）与 resolvePick（拾取反查）；
  * - 源加载失败降级：告警一次、渲染根保持空、后续操作不崩。
+ * - T009.5 customDepthMaterial：源带深度材质三建网格点（singleMesh/instancedMesh/
+ *   诊断亮网格）挂同一引用；不带 → undefined（three 缺省）；锚点补挂 Mesh 不挂；
+ *   池任何生命周期点不 dispose（深度材质归源所有）。
  * 边界：GLB 加载用注入的 fake geometry/material 工厂替代（InstanceSourceProvider），
  *      本文件不触碰 AssetLoader / WebGL。
  */
@@ -1065,5 +1068,93 @@ describe('InstancedAssetPool：aSeed 逐实例属性（D19.7）', () => {
     const attr = seedAttrOf(unified)!;
     for (let i = 0; i < 4; i++) expect(attr.array[i]).toBe(f32Seed(10 + i));
     pool.dispose();
+  });
+});
+
+// ── T009.5 customDepthMaterial（影 pass 深度材质通道——源所有，池只挂引用） ──
+
+describe('InstancedAssetPool：customDepthMaterial 挂载（T009.5）', () => {
+  /** 带（deep=true）/不带深度材质的 fake 源提供者（同 assetId 共享一份源——模拟缓存去重） */
+  function makeDepthProvider(withDepth: boolean) {
+    const depth = withDepth ? new THREE.MeshDepthMaterial() : undefined;
+    const source: InstanceSource = {
+      geometry: new THREE.BoxGeometry(1, 2, 1),
+      material: new THREE.MeshStandardMaterial({ color: 0x2e8b57 }),
+      ...(depth !== undefined ? { customDepthMaterial: depth } : {}),
+    };
+    return {
+      provider: vi.fn(async (): Promise<InstanceSource> => source),
+      source,
+      depth,
+    };
+  }
+
+  it('源带 customDepthMaterial：三个建网格点挂载同一引用（singleMesh → instancedMesh → 诊断亮网格）', async () => {
+    const { provider, source, depth } = makeDepthProvider(true);
+    const pool = new InstancedAssetPool({ provideSource: provider });
+
+    // 单实例退化 Mesh（无 seed 路径）
+    pool.attach(makeModel('only', 'asset_tree', transformAt(0)));
+    await flush();
+    const single = meshOf(pool) as THREE.Mesh;
+    expect(single.customDepthMaterial).toBe(depth);
+    expect(single.customDepthMaterial).toBe(source.customDepthMaterial); // 源字段同一引用
+
+    // 升级 InstancedMesh
+    pool.attach(makeModel('b', 'asset_tree', transformAt(1)));
+    const instanced = meshOf(pool) as THREE.InstancedMesh;
+    expect(instanced).toBeInstanceOf(THREE.InstancedMesh);
+    expect(instanced.customDepthMaterial).toBe(depth);
+
+    // 诊断混合拆分：亮网格同待遇挂载
+    pool.setDiagnosticGrouping(classifyBy(['b']), DIAG);
+    const [primary, brightMesh] = pool.root.children as [THREE.InstancedMesh, THREE.InstancedMesh];
+    expect(primary.customDepthMaterial).toBe(depth);
+    expect(brightMesh.customDepthMaterial).toBe(depth);
+    pool.dispose();
+  });
+
+  it('源不带 customDepthMaterial：建网格点不赋值（undefined 保持 three 缺省——GLB/旧资产零变化）', async () => {
+    const { provider } = makeDepthProvider(false);
+    const pool = new InstancedAssetPool({ provideSource: provider });
+    pool.attach(makeModel('a', 'asset_tree', transformAt(0)));
+    pool.attach(makeModel('b', 'asset_tree', transformAt(1)));
+    await flush();
+    expect((meshOf(pool) as THREE.InstancedMesh).customDepthMaterial).toBeUndefined();
+
+    // 诊断拆分亮网格同样不赋值
+    pool.setDiagnosticGrouping(classifyBy(['b']), DIAG);
+    const [, brightMesh] = pool.root.children as [THREE.InstancedMesh, THREE.InstancedMesh];
+    expect(brightMesh.customDepthMaterial).toBeUndefined();
+    pool.dispose();
+  });
+
+  it('锚点补挂 Mesh 不挂深度材质（不进场景仅包围盒——T009.5 任务边界排除）', async () => {
+    const { provider } = makeDepthProvider(true);
+    const pool = new InstancedAssetPool({ provideSource: provider });
+    const anchor = pool.attach(makeModel('a', 'asset_tree', transformAt(0)));
+    await flush();
+    expect(anchor.children).toHaveLength(1);
+    const helper = anchor.children[0] as THREE.Mesh;
+    expect(helper.isMesh).toBe(true);
+    expect(helper.customDepthMaterial).toBeUndefined();
+    pool.dispose();
+  });
+
+  it('池 dispose/拆池/拆分均不 dispose 深度材质（源所有权——池只挂引用的反向断言）', async () => {
+    const { provider, depth } = makeDepthProvider(true);
+    const depthDispose = vi.spyOn(depth!, 'dispose');
+    const pool = new InstancedAssetPool({ provideSource: provider });
+    for (let i = 0; i < 4; i++) pool.attach(makeModel(`m${i}`, 'asset_tree', transformAt(i)));
+    await flush();
+
+    // 拆分建亮网格 → 拆除分组（teardownSplit 释放矩阵缓冲不触深度材质）
+    pool.setDiagnosticGrouping(classifyBy(['m1', 'm3']), DIAG);
+    pool.setDiagnosticGrouping(null, DIAG);
+    // 拆池（detach 清空成员 → teardownPool）→ 整池 dispose
+    for (let i = 0; i < 4; i++) pool.detach(`m${i}`);
+    pool.dispose();
+    expect(depthDispose).not.toHaveBeenCalled(); // 深度材质归源所有，池任何生命周期点不释放
+    depthDispose.mockRestore();
   });
 });

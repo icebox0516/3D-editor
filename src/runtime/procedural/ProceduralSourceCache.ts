@@ -88,8 +88,9 @@ export class ProceduralSourceCache {
 
   /** 精确释放单档单槽条目（档位独立释放的最小 API——T006 换档释放旧档的消费面）：
    *  键规则与 load 完全一致（同一 resolveEntry——params.seed 同口径参与槽路由、level
-   *  同口径归一）。命中：dispose 其 geometry/material 并移除条目，返回 true；未命中
-   *  返回 false；幂等（已释放条目重复 evict 返回 false）。 */
+   *  同口径归一）。命中：dispose 其 geometry/material 与 customDepthMaterial（T009.5
+   *  影 pass 深度材质归源所有）并移除条目，返回 true；未命中返回 false；幂等（已释放
+   *  条目重复 evict 返回 false）。 */
   evict(assetId: string, params?: ProceduralSourceLoadParams): boolean {
     const { key } = this.resolveEntry(assetId, params);
     const source = this.cache.get(key);
@@ -99,13 +100,14 @@ export class ProceduralSourceCache {
     return true;
   }
 
-  /** 释放全部所持 geometry/material（数组与单值都处理）并清空缓存；幂等 */
+  /** 释放全部所持 geometry/material/影 pass 深度材质（数组与单值都处理）并清空缓存；幂等 */
   dispose(): void {
     for (const source of this.cache.values()) this.releaseSource(source);
     this.cache.clear();
   }
 
-  /** 释放单个条目所持资源（dispose/evict 同款释放逻辑） */
+  /** 释放单个条目所持资源（dispose/evict 同款释放逻辑；customDistanceMaterial 为
+   *  T009.5 类型占位——零实装不释放） */
   private releaseSource(source: InstanceSource): void {
     source.geometry.dispose();
     const material = source.material;
@@ -114,6 +116,7 @@ export class ProceduralSourceCache {
     } else {
       material.dispose();
     }
+    source.customDepthMaterial?.dispose();
   }
 
   /** 当前缓存条目数（测试断言用） */

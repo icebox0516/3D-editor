@@ -9,9 +9,10 @@
  *      T008.3 扩展：mountWindDemo(count) 风动验收载体——build() 一次锚点源 →
  *      InstancedMesh ×N 间距 8m 一排，桶几何挂 aSeed InstancedBufferAttribute（值各异
  *      → 同槽树不同相位摆动，D19.7）；mesh 挂 customDepthMaterial（叶影 SDF 裁切——
- *      舞台自持 Mesh 有挂载点，产品路径 InstanceSource 无此通道，取舍见 tree3aMaterials
- *      头记档）+ castShadow；freezeTime/unfreezeTime 转调注入的 time deps（锚点取证
- *      冻结风相位，固定机位三距离截图可比）。
+ *      T009.5 起 build 产物自带 source.customDepthMaterial，四处挂载点优先同源消费 =
+ *      正式场景同一份；fake build 注入不带字段时才回退自建，见边界段）+ castShadow；
+ *      freezeTime/unfreezeTime 转调注入的 time deps（锚点取证冻结风相位，固定机位
+ *      三距离截图可比）。
  *      T009.3 扩展：mountSlots 8 槽批量出图面——slot i 各 build({seed: morphSeedOf(id,i)})
  *      独立 Mesh（跨槽几何各异，InstancedMesh 不适用）4×2 行主序网格（间距缺省 11m——
  *      展开槽冠幅 ≈8.9m 防交叠）挂 slots 组直挂 scene 兄弟层；viewSlots 全景 / viewSlot(i)
@@ -20,17 +21,21 @@
  *      各异——**本模块不感知槽内容**，morphSeed → slot → shapeProfile 路由全在 build 内）；
  *      转台旋转目标 = 当前挂载的主组（单树 / slots / levels；风动排不转——平排观察语义不变）。
  *      T009.6 扩展：mountLevels 档位强制出图面——指定槽三档实例沿 X 一字排开（high 左 /
- *      mid 中 / low 右），build({seed: morphSeedOf(id, slot), level}) 逐档独立 Mesh +
- *      逐档 createTree3aLeafDepthMaterial(level)（档间影裁切同步分档）；viewLevels 三树
- *      全景 / viewLevel(level) 单档特写（球坐标同 view 语义）；stats 扩 levels 逐档账目。
+ *      mid 中 / low 右），build({seed: morphSeedOf(id, slot), level}) 逐档独立 Mesh（castShadow）
+ *      + 逐档深度材质同源消费 source.customDepthMaterial（T009.5：build 返回的深度材质
+ *      已随 level 档位匹配；fake build 不带字段回退自建 createTree3aLeafDepthMaterial(level)）；
+ *      viewLevels 三树全景 / viewLevel(level) 单档特写（球坐标同 view 语义）；stats 扩
+ *      levels 逐档账目。
  *      deps.build 注入位 = 测试 seam（缺省夏栎 asset build，产品路径不变——档位透传断言
  *      不依赖真实 level 路由落地时序）。
  * 边界：DEV 专用（组合根 import.meta.env.DEV 守卫挂 window，生产零痕迹）；资源所有权
- *      归本句柄——unmount/dispose 摘自己的 group 并 dispose 自建 geometry/material/
- *      深度材质/InstancedMesh 实例缓冲（build 契约每次 new 全部资源，绝无缓存共享误拆；
- *      slots 模式 = 8 份 source + 8 份深度材质逐一释放）；rAF 成对取消、unmount/dispose
- *      幂等（StrictMode 双挂载下先卸载者只拆自己的）；time deps 未注入时 freeze/unfreeze
- *      为 no-op（测试注桩/独立使用安全）。
+ *      归本句柄——unmount/dispose 摘自己的 group 并 dispose source 资源（geometry/
+ *      material/customDepthMaterial——T009.5 起深度材质随 source 释放）与自建回退深度
+ *      材质/InstancedMesh 实例缓冲（build 契约每次 new 全部资源，绝无缓存共享误拆；
+ *      深度材质两路对账：源带的归 disposeSource、fake build 不带字段时回退自建的进
+ *      自持数组释放——slots/levels 模式 = 8/3 份 source 逐一释放）；rAF 成对取消、
+ *      unmount/dispose 幂等（StrictMode 双挂载下先卸载者只拆自己的）；time deps 未注入
+ *      时 freeze/unfreeze 为 no-op（测试注桩/独立使用安全）。
  */
 import * as THREE from 'three';
 import { build, meta } from '../assets/asset_tree_3a.asset';
@@ -85,12 +90,14 @@ export interface Tree3aHandle {
   /** 档位强制挂载（T009.6 档间取证面）：指定槽（缺省 0；越界 warn + no-op）三档实例沿 X
    *  一字排开——high 左（−spacing）/ mid 中（0）/ low 右（+spacing），spacing 缺省 11m
    *  （沿用 SLOTS_DEFAULT_SPACING 依据：同槽冠幅 XZ 最大 ≈9.8m 防交叠）；每档
-   *  build({seed: morphSeedOf(id, slot), level}) 独立 Mesh（castShadow）+ 逐档
-   *  createTree3aLeafDepthMaterial(level)（档间影裁切同步分档——level 参数为并行落地的
-   *  钉死契约）；与 mount/mountWindDemo/mountSlots 互斥（先 unmount 再建） */
+   *  build({seed: morphSeedOf(id, slot), level}) 独立 Mesh（castShadow）+ 逐档深度材质
+   *  同源消费 source.customDepthMaterial（T009.5：level 已档位匹配；fake build 不带
+   *  字段回退自建 createTree3aLeafDepthMaterial(level)）；与 mount/mountWindDemo/
+   *  mountSlots 互斥（先 unmount 再建） */
   mountLevels(opts?: { slot?: number; spacing?: number }): void;
-  /** 摘除并释放本句柄自建的全部资源（单树 + 风动演示 + 8 槽批量 + 档位三连——8 份/3 份
-   *  source 与深度材质逐一释放；幂等） */
+  /** 摘除并释放本句柄自建的全部资源（单树 + 风动演示 + 8 槽批量 + 档位三连——source
+   *  资源含其 customDepthMaterial 随 disposeSource 释放、自建回退深度材质随自持数组
+   *  释放；幂等） */
   unmount(): void;
   /** 冻结 uTime 时钟（deps.time 未注入 no-op）——锚点取证固定风相位（slots 模式同生效） */
   freezeTime(): void;
@@ -197,13 +204,15 @@ export function createTree3aHandle(deps: Tree3aStageDeps): Tree3aHandle {
     rafId = requestAnimationFrame(spin);
   };
 
-  /** InstanceSource 资源释放（build 契约 new 全部——本句柄自建，无共享误拆） */
+  /** InstanceSource 资源释放（build 契约 new 全部——本句柄自建，无共享误拆；
+   *  T009.5 起含 source.customDepthMaterial——源带深度材质的释放归此处） */
   const disposeSource = (target: InstanceSource | null): void => {
     if (!target) return;
     target.geometry.dispose();
     const material = target.material;
     if (Array.isArray(material)) for (const m of material) m.dispose();
     else material.dispose();
+    target.customDepthMaterial?.dispose();
   };
 
   /** 槽 i 网格落点（行主序 4×2：col=i%4 定 x 等距、row=floor(i/4) 定 z——前排 0 / 后排 +spacing） */
@@ -246,8 +255,15 @@ export function createTree3aHandle(deps: Tree3aStageDeps): Tree3aHandle {
       group.position.set(opts.x ?? 0, 0, opts.z ?? 0);
       const mesh = new THREE.Mesh(source.geometry, source.material);
       mesh.castShadow = true; // 锚点取证含树影（地面 receiveShadow 已开）
-      leafDepth = createTree3aLeafDepthMaterial(); // 叶影 SDF 裁切（皮组守卫实心）
-      mesh.customDepthMaterial = leafDepth;
+      // 叶影 SDF 裁切（T009.5 同源单一真相）：源带深度材质直接消费（归 disposeSource
+      // 释放）；仅 fake build 注入不带字段时回退自建（进 leafDepth 自持释放）
+      const sourceDepth = source.customDepthMaterial;
+      if (sourceDepth) {
+        mesh.customDepthMaterial = sourceDepth;
+      } else {
+        leafDepth = createTree3aLeafDepthMaterial();
+        mesh.customDepthMaterial = leafDepth;
+      }
       group.add(mesh);
       deps.scene.add(group);
     },
@@ -269,8 +285,15 @@ export function createTree3aHandle(deps: Tree3aStageDeps): Tree3aHandle {
       mesh.computeBoundingSphere(); // 覆盖全实例（几何球不含实例位移，不补则整排误剔除）
       geometry.setAttribute('aSeed', new THREE.InstancedBufferAttribute(seeds, 1)); // 逐实例风相位（InstancedAssetPool 同款绑定方式）
       mesh.castShadow = true;
-      windLeafDepth = createTree3aLeafDepthMaterial();
-      mesh.customDepthMaterial = windLeafDepth;
+      // 叶影 SDF 裁切（T009.5 同源单一真相）：源带消费之（归 disposeSource），fake
+      // build 不带字段才回退自建（进 windLeafDepth 自持释放）
+      const windSourceDepth = windSource.customDepthMaterial;
+      if (windSourceDepth) {
+        mesh.customDepthMaterial = windSourceDepth;
+      } else {
+        windLeafDepth = createTree3aLeafDepthMaterial();
+        mesh.customDepthMaterial = windLeafDepth;
+      }
       windGroup = new THREE.Group();
       windGroup.name = 'tree3a-dev-wind';
       windGroup.add(mesh);
@@ -287,9 +310,16 @@ export function createTree3aHandle(deps: Tree3aStageDeps): Tree3aHandle {
         slotsSources.push(tree);
         const mesh = new THREE.Mesh(tree.geometry, tree.material); // 跨槽几何各异——独立 Mesh
         mesh.castShadow = true; // 批量取证含树影（与 mount 单树同待遇）
-        const depth = createTree3aLeafDepthMaterial(); // 逐槽叶影 SDF 裁切深度材质
-        slotsLeafDepths.push(depth);
-        mesh.customDepthMaterial = depth;
+        // 叶影 SDF 裁切（T009.5 同源单一真相）：源带消费之（归 disposeSource），fake
+        // build 不带字段才回退自建（进 slotsLeafDepths 自持释放）
+        const sourceDepth = tree.customDepthMaterial;
+        if (sourceDepth) {
+          mesh.customDepthMaterial = sourceDepth;
+        } else {
+          const depth = createTree3aLeafDepthMaterial();
+          slotsLeafDepths.push(depth);
+          mesh.customDepthMaterial = depth;
+        }
         mesh.position.set(slotOffsetX(slot), 0, slotOffsetZ(slot));
         slotsGroup.add(mesh);
       }
@@ -313,9 +343,17 @@ export function createTree3aHandle(deps: Tree3aStageDeps): Tree3aHandle {
         levelsSources.push(tree);
         const mesh = new THREE.Mesh(tree.geometry, tree.material); // 档间几何各异——独立 Mesh
         mesh.castShadow = true; // 档位取证含树影（与 mount 单树同待遇）
-        const depth = createTree3aLeafDepthMaterial(level); // 逐档叶影 SDF 裁切（level 为钉死契约）
-        levelsLeafDepths.push(depth);
-        mesh.customDepthMaterial = depth;
+        // 逐档叶影 SDF 裁切（T009.5 同源单一真相）：build({level}) 返回的深度材质已档位
+        // 匹配——直接消费（归 disposeSource）；fake build 不带字段才回退自建（进
+        // levelsLeafDepths 自持释放，level 随档）
+        const sourceDepth = tree.customDepthMaterial;
+        if (sourceDepth) {
+          mesh.customDepthMaterial = sourceDepth;
+        } else {
+          const depth = createTree3aLeafDepthMaterial(level);
+          levelsLeafDepths.push(depth);
+          mesh.customDepthMaterial = depth;
+        }
         mesh.position.set(levelOffsetX(index), 0, 0);
         levelsGroup.add(mesh);
       }

@@ -15,6 +15,8 @@
  *   load 命中不重建；缺省 level 与显式 'high' 同键同条目；level 透传 build；evict
  *   单档精确释放（另一档不受影响、未命中 false、幂等）；未声明 shapeFamily 带 level
  *   仍无参 build 单条目（现状逐位一致）；sourceKeyOf 输出形态原样（level 不掺形态身份）。
+ * - customDepthMaterial 释放（T009.5）：evict 单条目与 dispose 全量均释放源所持影
+ *   pass 深度材质（恰一次、互不误伤、幂等）。
  * 边界：绝无模块级单例——每测试 new 独立实例（D17 StrictMode 双挂载裁定）。
  */
 import { afterEach, describe, expect, it } from 'vitest';
@@ -418,5 +420,71 @@ describe('LOD 档位维度（档位几何独立缓存、独立释放）', () => 
     expect(sourceKeyOf('test.tree', 2)).toBe('test.tree:slot-2');
     expect(sourceKeyOf('test.tree', 2, 'p')).toBe('test.tree:p:slot-2');
     expect(sourceKeyOf('test.tree')).toBe('test.tree');
+  });
+});
+
+// ── customDepthMaterial 释放（T009.5 影 pass 深度材质归源所有）──────────────────
+
+describe('customDepthMaterial 释放（T009.5：源所持影 pass 深度材质随条目释放）', () => {
+  it('evict 精确释放条目：customDepthMaterial 一并 dispose 恰一次；缓存内其他档不受影响；幂等未命中不重复释放', async () => {
+    const id = 'test.depth_evict';
+    tempIds.push(id);
+    const depths: THREE.MeshDepthMaterial[] = [];
+    registerProceduralRoute(
+      id,
+      (): InstanceSource => {
+        const depth = new THREE.MeshDepthMaterial();
+        depths.push(depth);
+        return {
+          geometry: new THREE.BoxGeometry(),
+          material: new THREE.MeshStandardMaterial(),
+          customDepthMaterial: depth,
+        };
+      },
+      familyMeta(id, 2),
+    );
+    const cache = newCache();
+    const seed = 3;
+    await cache.load(id, { seed, level: 'high' });
+    await cache.load(id, { seed, level: 'mid' });
+    expect(depths).toHaveLength(2);
+    const disposed = depths.map(() => 0);
+    depths.forEach((depth, i) => depth.addEventListener('dispose', () => disposed[i]!++));
+
+    expect(cache.evict(id, { seed, level: 'high' })).toBe(true);
+    expect(disposed).toEqual([1, 0]); // 只释放被 evict 档的深度材质（另一档不动）
+    expect(cache.size).toBe(1);
+    expect(cache.evict(id, { seed, level: 'high' })).toBe(false); // 幂等：已释放条目未命中
+    expect(disposed).toEqual([1, 0]);
+  });
+
+  it('dispose 全量释放：每条目 customDepthMaterial 均释放恰一次；二次调用幂等不重复', async () => {
+    const id = 'test.depth_dispose_all';
+    tempIds.push(id);
+    const depths: THREE.MeshDepthMaterial[] = [];
+    registerProceduralRoute(
+      id,
+      (): InstanceSource => {
+        const depth = new THREE.MeshDepthMaterial();
+        depths.push(depth);
+        return {
+          geometry: new THREE.BoxGeometry(),
+          material: new THREE.MeshStandardMaterial(),
+          customDepthMaterial: depth,
+        };
+      },
+      familyMeta(id, 2),
+    );
+    const cache = newCache();
+    const seed = 0;
+    await cache.load(id, { seed, level: 'high' });
+    await cache.load(id, { seed, level: 'mid' });
+    await cache.load(id, { seed, level: 'low' });
+    let depthDisposed = 0;
+    for (const depth of depths) depth.addEventListener('dispose', () => depthDisposed++);
+    cache.dispose();
+    expect(depthDisposed).toBe(3); // 全量条目的深度材质均释放
+    cache.dispose(); // 幂等
+    expect(depthDisposed).toBe(3);
   });
 });

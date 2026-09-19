@@ -21,6 +21,8 @@
  * - LOD 档位路由（T009.6）：build 透传 params.level——三档 position 数量逐档递减
  *   （几何分档生效）、组序 [皮, 叶] 契约三档不变、材质 customProgramCacheKey 按档
  *   唯一（high 无后缀 / mid / low）、缺省 = 显式 'high' 逐位一致（High 不回归）。
+ * - customDepthMaterial 契约通道（T009.5）：build 返回非空深度材质、三档独立实例、
+ *   customProgramCacheKey 分档（tree3a:leaf-depth 系）。
  * 边界：测试内 build/load 产物 afterEach 统一 dispose 兜底，不跨测试泄漏 GPU 资源。
  */
 import { afterEach, describe, expect, it } from 'vitest';
@@ -56,6 +58,7 @@ afterEach(() => {
   for (const source of built.splice(0)) {
     source.geometry.dispose();
     for (const material of new Set(materialsOf(source))) material.dispose();
+    source.customDepthMaterial?.dispose(); // T009.5：深度材质随产物释放（测试兜底）
   }
 });
 
@@ -292,6 +295,17 @@ describe('LOD 档位路由（T009.6：build 透传 params.level——几何/材�
       expect(a.geometry.getAttribute(attr).array).toEqual(b.geometry.getAttribute(attr).array);
     }
     expect(materialsOf(a)[0]!.customProgramCacheKey()).toBe(materialsOf(b)[0]!.customProgramCacheKey());
+  }, 30000);
+
+  it('customDepthMaterial 契约通道（T009.5）：三档各返回非空 MeshDepthMaterial 独立实例、customProgramCacheKey 分档（high 无后缀 / mid 与 high 同 SDF 键分档 / low 独立）', () => {
+    const levels = ['high', 'mid', 'low'] as ProceduralLevel[];
+    const sources = levels.map((level) => buildLevelTracked(level));
+    for (const source of sources) {
+      expect(source.customDepthMaterial).toBeInstanceOf(THREE.MeshDepthMaterial);
+    }
+    expect(new Set(sources.map((s) => s.customDepthMaterial)).size).toBe(3); // 每次调用 new（缓存契约）
+    const keys = sources.map((s) => s.customDepthMaterial!.customProgramCacheKey());
+    expect(keys).toEqual(['tree3a:leaf-depth', 'tree3a:leaf-depth:mid', 'tree3a:leaf-depth:low']);
   }, 30000);
 });
 

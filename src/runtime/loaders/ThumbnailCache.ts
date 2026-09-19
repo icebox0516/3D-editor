@@ -279,7 +279,9 @@ export class OffscreenSnapshotter implements ThumbnailSnapshotProducer {
    * 程序化资产快照：routes 路由 → 一次性 build（不走 ProceduralSourceCache——对齐 GLB
    * 快照的独立加载模式，模板缓存留给放置管线）→ 复用本类渲染管线。
    * 契约：build 产物所有权随调用移交 → try/finally 无论渲染成败都 dispose
-   * （geometry + material 单值/数组）。未注册 id / 无 document / build 抛错 → null（不抛错）。
+   * （geometry + material 单值/数组 + customDepthMaterial——T009.5 深度材质同契约
+   * 释放；缩略图渲染器无 shadowMap 用不到影 pass，只补释放不挂载）。未注册 id /
+   * 无 document / build 抛错 → null（不抛错）。
    */
   async captureProcedural(meta: ProceduralAssetMeta): Promise<string | null> {
     const build = getProceduralBuild(meta.id);
@@ -308,6 +310,7 @@ export class OffscreenSnapshotter implements ThumbnailSnapshotProducer {
         } else {
           source.material.dispose();
         }
+        source.customDepthMaterial?.dispose(); // T009.5：影 pass 深度材质同契约释放
       }
     } catch {
       return null; // WebGL 不可用 / build 抛错：保持 SVG 占位

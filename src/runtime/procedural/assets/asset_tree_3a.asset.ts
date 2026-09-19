@@ -25,14 +25,16 @@
  *        风动（整树缓摆 aSeed 相位 + aBend 叶片快颤）；uTime 经材质级 uniforms 接
  *        TimeUniformService（D19.7：uTime 全局风帧 / aSeed 个体相位）
  *      注：层间 mergeGeometries useGroups=true → 恰 2 组（皮 0 / 叶 1，D15 免组膨胀）；
- *      叶影裁切深度材质（createTree3aLeafDepthMaterial）无 InstanceSource 契约通道——
- *      产品路径降级为影无裁切（2026-09-18 起池路径桶网格已投影，叶影 = 整卡剪影），
- *      DEV 舞台自持 Mesh 挂（取舍记档见 tree3aMaterials 头）。
+ *      叶影裁切深度材质走 InstanceSource 契约通道 customDepthMaterial（T009.5 立契）：
+ *      build 返回 createTree3aLeafDepthMaterial(level)（档位匹配——Mid=High SDF /
+ *      Low=Low SDF，分档语义在工厂内），产品路径池桶网格/单例网格/诊断亮网格挂
+ *      source.customDepthMaterial 出 SDF 裁切影，DEV 舞台同源消费——DEV 预览 =
+ *      正式场景（取舍记档见 tree3aMaterials 头）。
  * 叶卡顶点属性（几何固有，冻结契约）：aLeafRand（逐叶随机 ∈ [0,1)，同卡 6 顶点同值）、
  *      aBend（风动摆幅权重 = 离枝距离 + 冠内高度权重，卡内根→尖非降；树皮组恒 0）。
- * 边界：每次调用 new 全部 geometry/material（所有权随调用移交调用方，缓存会 dispose，
- *      禁止模块级共享对象，D17）；8 槽差异归 008.5（本资产只交付 slot-0，shapeFamily
- *      size 8 为槽路由声明面）。
+ * 边界：每次调用 new 全部 geometry/material/深度材质（所有权随调用移交调用方，
+ *      缓存会 dispose，禁止模块级共享对象，D17）；8 槽差异归 008.5（本资产只交付
+ *      slot-0，shapeFamily size 8 为槽路由声明面）。
  * LOD（T009.6 夏栎三档交付）：build 透传 params.level（缺省 'high'——旧无参路径逐位
  *      不变）到几何与皮/叶材质工厂；三档同 rng 流同骨架决策（档间不变量、Mid⊂High 掩码
  *      口径与发射计划见 broadleafGeometry 模块头 T009.6 段），材质档位变体（Mid 去节疤
@@ -54,7 +56,7 @@ import type { InstanceSource } from '../../instancing/InstancedAssetPool';
 import type { ProceduralBuildParams } from '../types';
 import { buildBroadleafGeometry } from '../tree/broadleafGeometry';
 import { TREE3A_SHAPE_PROFILES } from '../tree/tree3aShapeProfile';
-import { createTree3aBarkMaterial, createTree3aLeafMaterial } from '../tree/tree3aMaterials';
+import { createTree3aBarkMaterial, createTree3aLeafDepthMaterial, createTree3aLeafMaterial } from '../tree/tree3aMaterials';
 
 export const meta: ProceduralAssetMeta = {
   id: 'asset_tree_3a',
@@ -92,5 +94,11 @@ export function build(params?: ProceduralBuildParams): InstanceSource {
   const { geometry } = buildBroadleafGeometry(rng, profileForSeed(seed), level);
   const bark = createTree3aBarkMaterial(level); // 组 0（契约序 [皮, 叶]——mergeGeometries 层序）
   const leaf = createTree3aLeafMaterial(level);
-  return { geometry, material: [bark, leaf] };
+  // T009.5：影 pass 叶影裁切走 InstanceSource 契约通道——工厂每次 new（build 契约
+  // 「每次调用 new 全部资源」天然满足），档位随 level 匹配；归源所有（缓存 dispose）
+  return {
+    geometry,
+    material: [bark, leaf],
+    customDepthMaterial: createTree3aLeafDepthMaterial(level),
+  };
 }

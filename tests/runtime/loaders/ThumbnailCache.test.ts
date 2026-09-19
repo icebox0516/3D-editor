@@ -9,7 +9,9 @@
  * - 降级：producer 返回 null / 抛错、store.get / store.set 抛错 → 均不冒泡（best-effort）。
  * - 程序化源分支（T002.2 混排）：thumbnailKey 泛化（无 metadata.bytes → id@?）、
  *   getProcedural 与 get 同构语义（内存/并发/持久层/降级）且共享 key 空间；
- *   OffscreenSnapshotter.captureProcedural 在 node 无 document → null 不抛错。
+ *   OffscreenSnapshotter.captureProcedural 在 node 无 document → null 不抛错；
+ *   注入桩渲染器走通渲染路径 → finally 释放 geometry/material/customDepthMaterial
+ *   （T009.5 一次性产物即弃契约）。
  * 边界：不测真实 WebGL 离屏渲染（node 无 WebGL，阶段门裁定 3）——
  *      快照生产者一律注入 fake；OffscreenSnapshotter 属浏览器运行时路径（仅测降级分支）。
  */
@@ -25,6 +27,7 @@ import {
 } from '../../../src/runtime/loaders/ThumbnailCache';
 import type { ThumbnailSnapshotProducer, ThumbnailStore } from '../../../src/runtime/loaders/ThumbnailCache';
 import { registerProceduralRoute, unregisterProceduralRoute } from '../../../src/runtime/procedural/routes';
+import type { InstanceSource } from '../../../src/runtime/instancing/InstancedAssetPool';
 
 function makeAsset(partial: Partial<ModelAsset> = {}): ModelAsset {
   return {
@@ -358,5 +361,45 @@ describe('OffscreenSnapshotter.captureProcedural：node 环境降级（不测真
     const snapshotter = new OffscreenSnapshotter();
     expect(typeof document).toBe('undefined'); // 前置：node 无 DOM 全局（typeof 探针，裸引用会 ReferenceError）
     await expect(snapshotter.captureProcedural(makeProceduralMeta({ id: tempId }))).resolves.toBeNull();
+  });
+
+  it('渲染路径 finally 释放：geometry + material 数组 + customDepthMaterial 全 dispose（一次性产物即弃契约——T009.5 深度材质同释放）', async () => {
+    // 预置 document 全局（captureProcedural 前置探针）+ 渲染器/场景/相机桩（私有字段
+    // 注入——ensureRenderer 见 renderer 已建即早退），node 无 WebGL 绕开真实构造，
+    // 走完整「build → 渲染 → finally 释放」路径
+    const source: InstanceSource = {
+      geometry: new THREE.BoxGeometry(1, 1, 1),
+      material: [new THREE.MeshStandardMaterial(), new THREE.MeshStandardMaterial()],
+      customDepthMaterial: new THREE.MeshDepthMaterial(),
+    };
+    registerProceduralRoute(tempId, () => source);
+    let geoDisposed = 0;
+    let matDisposed = 0;
+    let depthDisposed = 0;
+    source.geometry.addEventListener('dispose', () => geoDisposed++);
+    for (const material of source.material as THREE.Material[]) {
+      material.addEventListener('dispose', () => matDisposed++);
+    }
+    source.customDepthMaterial!.addEventListener('dispose', () => depthDisposed++);
+    vi.stubGlobal('document', {});
+    try {
+      const snapshotter = new OffscreenSnapshotter();
+      Object.assign(snapshotter, {
+        renderer: {
+          render(): void {},
+          domElement: { toDataURL: () => 'data:image/png;base64,STUB' },
+        },
+        scene: new THREE.Scene(),
+        camera: new THREE.PerspectiveCamera(),
+      });
+      await expect(snapshotter.captureProcedural(makeProceduralMeta({ id: tempId }))).resolves.toBe(
+        'data:image/png;base64,STUB',
+      );
+      expect(geoDisposed).toBe(1);
+      expect(matDisposed).toBe(2);
+      expect(depthDisposed).toBe(1); // T009.5：影 pass 深度材质随一次性产物释放（缩略图渲染器无 shadowMap 用不到，只补释放）
+    } finally {
+      vi.unstubAllGlobals(); // 恢复 node 无 document 环境（不影响后续降级分支测试）
+    }
   });
 });
