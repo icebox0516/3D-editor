@@ -1,0 +1,217 @@
+{
+  "env": {
+    "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 2080 Ti (0x00001E07) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "disjointTimerAvailable": true,
+    "viewport": [
+      1920,
+      1080
+    ],
+    "dpr": 1
+  },
+  "baseline": {
+    "sample": {
+      "fps": 664.6907988944021,
+      "mean": 1.5044589178356713,
+      "p50": 1.300000000000182,
+      "p95": 3.100000000000364,
+      "max": 56.400000000000546,
+      "frames": 1996
+    },
+    "stats": {
+      "drawCalls": 3,
+      "triangles": 4,
+      "geometries": 3,
+      "textures": 4,
+      "programs": 3,
+      "objects": 0
+    }
+  },
+  "tiers": [
+    {
+      "count": 1,
+      "sample": {
+        "fps": 710.1584003208109,
+        "mean": 1.408136550308008,
+        "p50": 0.8999999999996362,
+        "p95": 2.7000000000007276,
+        "max": 937.1000000000004,
+        "frames": 3896
+      },
+      "stats": {
+        "drawCalls": 7,
+        "triangles": 57512,
+        "geometries": 4,
+        "textures": 4,
+        "programs": 7,
+        "objects": 1
+      }
+    },
+    {
+      "count": 20,
+      "sample": {
+        "fps": 426.2209871853821,
+        "mean": 2.3462007504690434,
+        "p50": 2.2999999999992724,
+        "p95": 3.900000000001455,
+        "max": 10.899999999999636,
+        "frames": 2132
+      },
+      "stats": {
+        "drawCalls": 31,
+        "triangles": 1365592,
+        "geometries": 10,
+        "textures": 4,
+        "programs": 7,
+        "objects": 20
+      }
+    },
+    {
+      "count": 100,
+      "sample": {
+        "fps": 266.5707491557261,
+        "mean": 3.7513493253373307,
+        "p50": 3.2999999999992724,
+        "p95": 6.799999999999272,
+        "max": 307.7000000000007,
+        "frames": 1334
+      },
+      "stats": {
+        "drawCalls": 35,
+        "triangles": 6925864,
+        "geometries": 11,
+        "textures": 4,
+        "programs": 7,
+        "objects": 100
+      }
+    },
+    {
+      "count": 500,
+      "sample": {
+        "fps": 82.1890547263681,
+        "mean": 12.167070217917685,
+        "p50": 7.700000000000728,
+        "p95": 29.600000000002183,
+        "max": 990.9000000000015,
+        "frames": 413
+      },
+      "stats": {
+        "drawCalls": 35,
+        "triangles": 34512792,
+        "geometries": 11,
+        "textures": 4,
+        "programs": 7,
+        "objects": 500
+      }
+    },
+    {
+      "count": 1000,
+      "sample": {
+        "fps": 49.3421052631579,
+        "mean": 20.266666666666666,
+        "p50": 11.80000000000291,
+        "p95": 33.200000000004366,
+        "max": 1854.5999999999985,
+        "frames": 270
+      },
+      "stats": {
+        "drawCalls": 35,
+        "triangles": 68982308,
+        "geometries": 11,
+        "textures": 4,
+        "programs": 7,
+        "objects": 1000
+      }
+    }
+  ],
+  "shadowAB": {
+    "sunShadowOff": {
+      "fps": 214.5354645354645,
+      "mean": 4.661233993015134,
+      "p50": 0.5,
+      "p95": 20.5,
+      "max": 1370.2000000000044,
+      "frames": 859
+    },
+    "sunShadowOn": {
+      "fps": 87.1994170512509,
+      "mean": 11.467966573816156,
+      "p50": 0.5999999999985448,
+      "p95": 33.5,
+      "max": 2010.7999999999956,
+      "frames": 359
+    }
+  },
+  "afterClear": {
+    "cleared": true,
+    "stats": {
+      "drawCalls": 3,
+      "triangles": 4,
+      "geometries": 11,
+      "textures": 4,
+      "programs": 12,
+      "objects": 0
+    }
+  },
+  "cycles10": [
+    {
+      "geometries": 11,
+      "afterClearGeometries": 11,
+      "textures": 4,
+      "programs": 12
+    },
+    {
+      "geometries": 11,
+      "afterClearGeometries": 11,
+      "textures": 4,
+      "programs": 12
+    },
+    {
+      "geometries": 11,
+      "afterClearGeometries": 11,
+      "textures": 4,
+      "programs": 12
+    },
+    {
+      "geometries": 11,
+      "afterClearGeometries": 11,
+      "textures": 4,
+      "programs": 12
+    },
+    {
+      "geometries": 11,
+      "afterClearGeometries": 11,
+      "textures": 4,
+      "programs": 12
+    },
+    {
+      "geometries": 11,
+      "afterClearGeometries": 11,
+      "textures": 4,
+      "programs": 12
+    },
+    {
+      "geometries": 11,
+      "afterClearGeometries": 11,
+      "textures": 4,
+      "programs": 12
+    },
+    {
+      "geometries": 11,
+      "afterClearGeometries": 11,
+      "textures": 4,
+      "programs": 12
+    },
+    {
+      "geometries": 11,
+      "afterClearGeometries": 11,
+      "textures": 4,
+      "programs": 12
+    },
+    {
+      "geometries": 11,
+      "afterClearGeometries": 11,
+      "textures": 4,
+      "programs": 12
+    }
+  ]
+}

@@ -30,10 +30,10 @@
  */
 import { EventBus } from '../core/events/EventBus';
 import { createId } from '../core/id';
-import type { ID, Vec3 } from '../core/types';
+import type { ID, Transform, Vec3 } from '../core/types';
 import { deepClone } from '../core/utils';
-import type { ModelAsset } from '../domain/assets';
-import { MODEL_LAYER_NAME } from '../domain/assets';
+import type { AssetDescriptor, ModelAsset, ModelObject } from '../domain/assets';
+import { MODEL_BASE_HEIGHT, MODEL_LAYER_NAME, applyAssetVariants } from '../domain/assets';
 import { SEMANTIC_DEFINITIONS } from '../domain/regions';
 import type { RegionObject } from '../domain/regions';
 import type { Layer } from '../scene/Layer';
@@ -66,6 +66,7 @@ import {
 } from '../editor/commands';
 import type { Command } from '../editor/commands';
 import { HistoryManager } from '../editor/history/HistoryManager';
+import { createModelObjectAt } from '../editor/factories/modelFactory';
 import type { CameraPort, FootprintGhostPort, MeasurePort, PreviewPort, ViewportPort } from '../editor/services/ports';
 import type { RectPickPort } from '../editor/services/ports';
 import { MeasureSession } from '../editor/services/measure';
@@ -374,6 +375,7 @@ declare global {
   interface Window {
     __scatterSmoke?: ScatterSmokeHandle;
     __tree3a?: Tree3aHandle;
+    __tree3aPerf?: Tree3aPerfHandle;
   }
 }
 
@@ -390,6 +392,294 @@ function defaultSmokeScatterParams(): ScatterParams {
     assets: [{ assetId: 'asset_trashbin', weight: 1 }],
     seed: 20260916,
     scaleRange: { min: 0.85, max: 1.15 },
+  };
+}
+
+// ── T009.7 性能验收 DEV 驱动面（window.__tree3aPerf）─────────
+
+/**
+ * T009.7 性能验收驱动面 —— 经**产品放置路径**批量放置/清除夏栎 + 性能采样句柄。
+ *
+ * 口径：句柄只给数据与驱动，阈值/环境（2080 Ti / 1920×1080 / DPR=1 / Shadow 开…）归
+ * 任务书 009.7。place 走真实命令管线（CreateObjectCommand×N → BatchCommand →
+ * HistoryManager → SceneSync → InstancedAssetPool），渲染侧自然实例化——性能验收
+ * 「走池而非 DEV 舞台」的前提；clear 同经 DeleteObjectCommand 批，一次 undo 可回退。
+ * 幂等语义（本文件裁定并记档）：再次 place 前自动 clear 自己上次的对象——验收循环
+ * place(1)→sample→place(20)→sample→… 无需手动 clear，场景棵数恒等于最近一次 count。
+ * 确定性：count/seedBase/spacing/jitter 同参 → 对象 seed 与 transform 逐位一致
+ * （id 除外——createId 每次新掷）；seed = seedBase + i 经槽路由自然铺开 8 形态槽。
+ */
+
+/** place 参数（批量确定性放置） */
+export interface Tree3aPerfPlaceOptions {
+  /** 棵数（缺省 100；验收档 1/20/100/500/1000） */
+  count?: number;
+  /** seed 基（缺省 1；对象 i 的 seed = seedBase + i） */
+  seedBase?: number;
+  /** 网格间距（米，缺省 11——展开冠幅 ≈8.9m 防交叠，沿 tree3aStage slots 间距口径；
+   *  1000 棵 32×32 ≈341m 见方**居中于原点**，任务书口径下不出太阳 shadow camera 覆盖域） */
+  spacing?: number;
+  /** 变体抖动（缺省 true：以对象 seed 经 domain applyAssetVariants 确定性采样；false 纯网格恒等姿态） */
+  jitter?: boolean;
+}
+
+/** view 参数（球坐标固定机位；公式沿 tree3aStage.placeCamera 口径，实现复写在组合根侧不改舞台） */
+export interface Tree3aPerfViewOptions {
+  /** 距离（米；缺省按当前网格 extent 自适应：max((cols−1),(rows−1))×spacing + 冠幅 9，未 place 回退 25） */
+  distance?: number;
+  /** 方位角（度，缺省 35） */
+  azimuthDeg?: number;
+  /** 仰角（度，缺省 16；水平为 0） */
+  elevationDeg?: number;
+}
+
+/** rAF 帧间隔统计（毫秒口径；fps = 1000/mean，百分位 nearest-rank） */
+export interface Tree3aPerfFrameStats {
+  fps: number;
+  mean: number;
+  p50: number;
+  p95: number;
+  max: number;
+  /** 采样帧数（不含预热） */
+  frames: number;
+}
+
+/** stats() 形状：renderer.info（render / memory / programs）+ 本句柄存活对象数 */
+export interface Tree3aPerfStats {
+  /** 上一完整帧 draw call 数（renderer.info.render.calls，经 Renderer.getViewportStats） */
+  drawCalls: number;
+  /** 上一完整帧三角数（renderer.info.render.triangles） */
+  triangles: number;
+  /** 几何计数（renderer.info.memory.geometries——**个数而非字节**，资源契约对账口径） */
+  geometries: number;
+  /** 纹理计数（renderer.info.memory.textures——个数而非字节） */
+  textures: number;
+  /** 着色程序数（renderer.info.programs.length） */
+  programs: number;
+  /** 场景内本句柄放置且仍存活的对象数（撤销后归零、重做复活再计入） */
+  objects: number;
+}
+
+/** window.__tree3aPerf 句柄（DEV-only；装配见 createEditor，工厂可无头注桩测试） */
+export interface Tree3aPerfHandle {
+  /** 批量放置（幂等：先自动 clear 上次的）；false = 资产缺失或命令批失败（场景不变） */
+  place(opts?: Tree3aPerfPlaceOptions): boolean;
+  /** 经真实命令移除本句柄放置的全部存活对象（不碰用户手放的）；false = 无可删对象 */
+  clear(): boolean;
+  /** 性能快照（形状见 Tree3aPerfStats；无头/未注入视口依赖时渲染字段为零值） */
+  stats(): Tree3aPerfStats;
+  /** rAF 帧间隔采样（缺省 5000ms；先丢 30 帧预热再计窗——放置/切阴影后的材质与灯重编译等一次性成本不进统计） */
+  sampleFrames(durationMs?: number): Promise<Tree3aPerfFrameStats>;
+  /** 太阳 castShadow 切换（Shadow 成本 A/B 用；切换后的重编译属一次性，采样方自行 warmup） */
+  setSunShadow(on: boolean): void;
+  /** 固定机位取景（球坐标绕网格中心=原点，视心高 ≈3.6；无相机依赖时 no-op） */
+  view(opts?: Tree3aPerfViewOptions): void;
+  /** 终结：clear 自己的对象（经命令，幂等）；window 槽摘除归组合根 dispose */
+  dispose(): void;
+}
+
+/** 句柄装配依赖（结构类型——浏览器注入 renderer 实件，测试注桩；无头可只给命令面） */
+export interface Tree3aPerfDeps {
+  /** 命令执行入口（HistoryManager 实件——产品放置路径） */
+  history: { execute(command: Command): boolean };
+  /** 场景只读面（对象存活对账 + 归「模型」默认层） */
+  sceneManager: Pick<SceneManager, 'getObject' | 'getObjects' | 'getLayers'>;
+  /** 资产注册表（asset_tree_3a meta：默认姿态 + variants 声明） */
+  assets: { get(id: ID): AssetDescriptor | undefined };
+  /** 视口侧依赖（可选：stats 数据源 / 机位写入 / 太阳遍历；缺省即无头退化零值/no-op） */
+  view?: {
+    /** 渲染场景（setSunShadow 遍历 DirectionalLight；结构类型兼容 THREE.Scene.traverse——组合根不引入 three） */
+    scene?: { traverse(callback: (node: { castShadow: boolean; isDirectionalLight?: boolean }) => void): void };
+    camera?: { position: { set(x: number, y: number, z: number): unknown } };
+    controls?: { target: { set(x: number, y: number, z: number): unknown }; update(): void };
+    stats?: {
+      getViewportStats(): { drawCalls: number; triangles: number };
+      getResourceStats(): { geometries: number; textures: number; programs: number };
+    };
+  };
+}
+
+/** 目标资产 id（夏栎——T009 性能验收对象） */
+const TREE3A_PERF_ASSET_ID: ID = 'asset_tree_3a';
+/** 缺省网格间距（米）：展开冠幅 ≈8.9m，11m 留 ≈2m 防交叠（沿 tree3aStage slots 间距口径） */
+const TREE3A_PERF_SPACING = 11;
+/** 冠幅估计（米）：view 自适应距离的 extent 余量（9 ≈ XZ 跨上限 8.9 上取整，009.3 实测口径） */
+const TREE3A_PERF_CROWN = 9;
+/** 取景视心高（米）：树半高口径（沿 tree3aStage.placeCamera 的 3.6） */
+const TREE3A_PERF_TARGET_Y = 3.6;
+/** 采样预热帧数（丢弃——一次性编译/上传成本不进统计窗） */
+const TREE3A_PERF_WARMUP_FRAMES = 30;
+/** 采样缺省时长（毫秒） */
+const TREE3A_PERF_SAMPLE_MS = 5000;
+
+/** 帧间隔统计（百分位 nearest-rank：升序第 ⌈p·n⌉ 位，1 基） */
+function summarizeFrameDeltas(deltas: number[]): Tree3aPerfFrameStats {
+  const sorted = [...deltas].sort((a, b) => a - b);
+  const n = sorted.length;
+  const mean = deltas.reduce((sum, dt) => sum + dt, 0) / n;
+  const pick = (p: number): number => sorted[Math.min(Math.max(Math.ceil(p * n), 1), n) - 1]!;
+  return { fps: 1000 / mean, mean, p50: pick(0.5), p95: pick(0.95), max: sorted[n - 1]!, frames: n };
+}
+
+/** 句柄工厂：放置状态封闭于闭包（placedIds + 最近网格 extent），句柄间零共享 */
+export function createTree3aPerfHandle(deps: Tree3aPerfDeps): Tree3aPerfHandle {
+  /** 本句柄放置过的对象 id 集（clear/stats 对账——撤销/重做后按场景存活过滤，不追赶历史） */
+  const placedIds = new Set<ID>();
+  /** 最近一次 place 的网格实宽（view 缺省距离自适应；未 place 为 0 → 回退 25m） */
+  let lastExtent = 0;
+
+  /** 内部 clear：只删本句柄放置且仍在场景的对象（经命令批，一次 undo 可回退；幂等） */
+  const clearPlaced = (): boolean => {
+    const alive = [...placedIds].filter((id) => deps.sceneManager.getObject(id) !== undefined);
+    if (alive.length === 0) {
+      placedIds.clear();
+      return false;
+    }
+    const ok = deps.history.execute(new BatchCommand(alive.map((id) => new DeleteObjectCommand(id))));
+    if (ok) placedIds.clear();
+    return ok;
+  };
+
+  return {
+    place(opts = {}) {
+      const descriptor = deps.assets.get(TREE3A_PERF_ASSET_ID);
+      if (!descriptor || descriptor.kind !== 'procedural') {
+        console.warn(`[tree3aPerf] 资产未注册或非程序化: ${TREE3A_PERF_ASSET_ID}——place no-op`);
+        return false;
+      }
+      const asset = descriptor.asset;
+      const count = Math.max(1, Math.floor(opts.count ?? 100));
+      const seedBase = Math.floor(opts.seedBase ?? 1);
+      const spacing =
+        typeof opts.spacing === 'number' && Number.isFinite(opts.spacing) && opts.spacing > 0
+          ? opts.spacing
+          : TREE3A_PERF_SPACING;
+      const jitter = opts.jitter !== false; // 缺省 true
+      const layerId = deps.sceneManager.getLayers().find((l) => l.name === MODEL_LAYER_NAME)?.id ?? null;
+
+      // 幂等：先清自己上次的（验收循环 place→sample→place 不叠加，见段首记档）
+      clearPlaced();
+
+      // 方形网格（ceil(√count) 列）居中于原点；对象构建对齐 PlacementTool.place 惯例
+      //（createModelObjectAt：name=资产名 / 归「模型」层 / seed 随对象落盘）。变体合成 =
+      // PlacementTool.buildTransform 同款乘性/加性律（无随机区间/滚轮/R 键项）：
+      // scale = defaultScale × scaleFactor、rotY = defaultRotation.y + rotationYOffset；
+      // hue 不进 transform——渲染侧按 obj.asset.seed 复算 instanceColor（产品路径同源）
+      const columns = Math.ceil(Math.sqrt(count));
+      const rows = Math.ceil(count / columns);
+      const objects: ModelObject[] = [];
+      for (let i = 0; i < count; i++) {
+        const seed = seedBase + i;
+        const variant = jitter ? applyAssetVariants(asset.variants, seed) : null;
+        const scaleFactor = variant?.scaleFactor ?? 1;
+        const rotationYOffset = variant?.rotationYOffset ?? 0;
+        const transform: Transform = {
+          position: {
+            x: ((i % columns) - (columns - 1) / 2) * spacing,
+            y: MODEL_BASE_HEIGHT, // 贴地抬升（groundPoint y=0 同款落点，T9.2）
+            z: (Math.floor(i / columns) - (rows - 1) / 2) * spacing,
+          },
+          rotation: {
+            x: asset.defaultRotation.x,
+            y: asset.defaultRotation.y + rotationYOffset,
+            z: asset.defaultRotation.z,
+          },
+          scale: {
+            x: asset.defaultScale.x * scaleFactor,
+            y: asset.defaultScale.y * scaleFactor,
+            z: asset.defaultScale.z * scaleFactor,
+          },
+        };
+        objects.push(createModelObjectAt({ asset, layerId, transform, seed }));
+      }
+      const ok = deps.history.execute(new BatchCommand(objects.map((o) => new CreateObjectCommand(o))));
+      if (!ok) return false;
+      for (const o of objects) placedIds.add(o.id);
+      lastExtent = Math.max((columns - 1) * spacing, (rows - 1) * spacing) + TREE3A_PERF_CROWN;
+      return true;
+    },
+    clear: clearPlaced,
+    stats() {
+      const viewport = deps.view?.stats?.getViewportStats();
+      const resources = deps.view?.stats?.getResourceStats();
+      let objects = 0;
+      for (const id of placedIds) if (deps.sceneManager.getObject(id) !== undefined) objects += 1;
+      return {
+        drawCalls: viewport?.drawCalls ?? 0,
+        triangles: viewport?.triangles ?? 0,
+        geometries: resources?.geometries ?? 0,
+        textures: resources?.textures ?? 0,
+        programs: resources?.programs ?? 0,
+        objects,
+      };
+    },
+    sampleFrames(durationMs = TREE3A_PERF_SAMPLE_MS) {
+      return new Promise<Tree3aPerfFrameStats>((resolve, reject) => {
+        if (typeof requestAnimationFrame !== 'function') {
+          reject(new Error('[tree3aPerf] 无 requestAnimationFrame（无头环境）——sampleFrames 不可用'));
+          return;
+        }
+        // 连续渲染模式下 rAF 间隔即帧间隔：先丢 30 帧预热（放置/切阴影后的材质与灯重编译、
+        // 几何上传等一次性成本不进统计窗），再按累计时长截窗收 delta（毫秒口径）
+        const deltas: number[] = [];
+        let last = 0;
+        let warmed = 0;
+        let elapsed = 0;
+        const step = (t: number): void => {
+          if (last !== 0) {
+            const dt = t - last;
+            if (warmed < TREE3A_PERF_WARMUP_FRAMES) warmed += 1;
+            else {
+              deltas.push(dt);
+              elapsed += dt;
+            }
+          }
+          last = t;
+          if (deltas.length > 0 && elapsed >= durationMs) {
+            resolve(summarizeFrameDeltas(deltas));
+            return;
+          }
+          requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      });
+    },
+    setSunShadow(on) {
+      const scene = deps.view?.scene;
+      if (!scene) {
+        console.warn('[tree3aPerf] 无视口场景依赖（无头）——setSunShadow no-op');
+        return;
+      }
+      // 遍历渲染场景切 DirectionalLight.castShadow（场景内唯一太阳在 envGroup；结构判别
+      // isDirectionalLight，app 层不 import three——沿「three 经 runtime 间接」纪律）
+      scene.traverse((node) => {
+        if (node.isDirectionalLight === true) node.castShadow = on;
+      });
+    },
+    view(opts = {}) {
+      const view = deps.view;
+      if (!view?.camera || !view.controls) {
+        console.warn('[tree3aPerf] 无相机依赖（无头）——view no-op');
+        return;
+      }
+      // 球坐标落位（公式沿 tree3aStage.placeCamera 口径）：目标 = 网格中心（网格居中于
+      // 原点 → (0, 3.6, 0)，3.6 = 视心高≈树半高）；缺省 distance ≈ 网格实宽（沿 viewSlots
+      // 「distance ≈ 实宽」换算口径）、方位 35°、俯角 16°
+      const distance = opts.distance ?? Math.max(lastExtent, 25);
+      const az = ((opts.azimuthDeg ?? 35) * Math.PI) / 180;
+      const el = ((opts.elevationDeg ?? 16) * Math.PI) / 180;
+      const cosEl = Math.cos(el);
+      view.camera.position.set(
+        distance * cosEl * Math.cos(az),
+        TREE3A_PERF_TARGET_Y + distance * Math.sin(el),
+        distance * cosEl * Math.sin(az),
+      );
+      view.controls.target.set(0, TREE3A_PERF_TARGET_Y, 0);
+      view.controls.update();
+    },
+    dispose() {
+      clearPlaced(); // 经命令清自己的对象（幂等）；window 槽摘除归组合根 dispose
+    },
   };
 }
 
@@ -508,6 +798,26 @@ export function createEditor(canvas: HTMLCanvasElement | null, opts: CreateEdito
       time: renderer.uTime,
     });
     window.__tree3a = tree3a;
+  }
+  // T009.7 性能验收 DEV 驱动面：window.__tree3aPerf（import.meta.env.DEV 守卫，生产零痕迹；
+  // 无 Renderer（无头）不挂）。经产品放置路径（真实命令管线 → SceneSync → 实例化池）批量
+  // 放置/清除夏栎 + 帧采样/资源计数/太阳阴影 A/B/固定机位——句柄只给数据，阈值/环境归
+  // 任务书 009.7。dispose 只摘自己的对象与 window 槽（StrictMode 双挂载下先卸载者不得
+  // 拆掉后挂载者的钩子）；无头测试经 createTree3aPerfHandle 工厂直接注桩。
+  let tree3aPerf: Tree3aPerfHandle | null = null;
+  if (import.meta.env.DEV && renderer && typeof window !== 'undefined') {
+    tree3aPerf = createTree3aPerfHandle({
+      history,
+      sceneManager,
+      assets,
+      view: {
+        scene: renderer.scene,
+        camera: renderer.camera,
+        controls: renderer.controls,
+        stats: renderer,
+      },
+    });
+    window.__tree3aPerf = tree3aPerf;
   }
   const ports: EditorPorts = {
     viewport: opts.ports?.viewport ?? renderer?.viewport ?? NOOP_PORTS.viewport,
@@ -737,6 +1047,11 @@ export function createEditor(canvas: HTMLCanvasElement | null, opts: CreateEdito
       if (tree3a && typeof window !== 'undefined' && window.__tree3a === tree3a) {
         tree3a.dispose();
         delete window.__tree3a;
+      }
+      // T009.7 性能验收驱动面成对拆除（clear 自己的对象——经命令；仅摘自己的 window 槽）
+      if (tree3aPerf && typeof window !== 'undefined' && window.__tree3aPerf === tree3aPerf) {
+        tree3aPerf.dispose();
+        delete window.__tree3aPerf;
       }
       tools.deactivate();
       input?.dispose();

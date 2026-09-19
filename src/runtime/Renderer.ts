@@ -843,6 +843,20 @@ export class Renderer {
   }
 
   /**
+   * renderer.info 资源计数只读快照（T009.7 性能验收 DEV 驱动面数据源；最小面只读 getter，
+   * 不动渲染循环）：geometries/textures = memory 计数（**个数而非字节**——资源契约
+   * 「删除无残留 / 连续放置删除无持续增长」的对账口径）；programs = 已编译着色程序数
+   * （null 安全）。drawCalls/triangles/fps 见 getViewportStats（上一完整帧）。
+   */
+  getResourceStats(): { geometries: number; textures: number; programs: number } {
+    return {
+      geometries: this.renderer.info.memory.geometries,
+      textures: this.renderer.info.memory.textures,
+      programs: this.renderer.info.programs?.length ?? 0,
+    };
+  }
+
+  /**
    * 视口尺寸变更（画布 CSS 像素；幂等——同值重复调用不再触发 setSize）。
    * 非正尺寸一律忽略：布局未稳时保持原状，等待下一轮（RO 回调或逐帧自检）重试。
    */
