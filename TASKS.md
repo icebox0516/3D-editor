@@ -4,8 +4,12 @@
 
 ## Current
 
-- [ ] T008 收官路径（5/6；T008.5 收官门已解锁——T009 收官 2026-09-19）→ [tasks/008-procedural-tree.md](tasks/008-procedural-tree.md)
-  - [ ] T008.5 T008 收官验收门（修订版 → D20；T009 全部完成后执行——**已解锁**）→ [tasks/008.5-acceptance.md](tasks/008.5-acceptance.md)
+- 无进行中——T008 收官（2026-09-19）后下一任务见 Next（T010 / T003 恢复二选一，按 PROGRESS 下一步序）。
+
+## Done（近）
+
+- [x] T008 程序化树木（**6/6 epic 收官 2026-09-19**；树协议冻结为稳定基线）→ [tasks/008-procedural-tree.md](tasks/008-procedural-tree.md)
+  - [x] T008.5 T008 收官验收门（done 2026-09-19：全链路 + 同 sourceKey 合批三次实证 + 零错误五拆 + 8 槽终态复核全过；2542 全绿）→ [tasks/008.5-acceptance.md](tasks/008.5-acceptance.md)
   - [x] T008.6 夏栎视觉参考研究（done 2026-09-18：spec 1.0 + plant-schema v0.2 + 对照 7/3/6/2；用户过目门按放行处置——「继续任务」指令后问询未获回答，异议窗口开放，见任务书处置记档）→ [tasks/008.6-plant-reference.md](tasks/008.6-plant-reference.md)
   - [x] T008.4 放置全链路集成（done 2026-09-18；+22 测试 → 2443 全绿；Ghost 携 seed / 重掷命令 / 孪生 / 存档 e2e + 冒烟零错误）→ [tasks/008.4-placement-integration.md](tasks/008.4-placement-integration.md)
   - [x] T008.3 叶/树皮材质+风动（done 2026-09-18；锚点门过：近观 R1 四项微调一轮终裁定稿，+24 测试 → 2421 全绿）→ [tasks/008.3-leaf-shader-wind.md](tasks/008.3-leaf-shader-wind.md)

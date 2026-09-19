@@ -1,0 +1,304 @@
+{
+  "version": "2.0",
+  "id": "scene_mu7owxbd0p8yrc6vd",
+  "name": "未命名场景",
+  "environment": {
+    "preset": "day"
+  },
+  "layers": [
+    {
+      "id": "layer_mu7owxbd1bee6j71t",
+      "name": "未分类",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "order": 0,
+      "objectIds": []
+    },
+    {
+      "id": "layer_mu7owxbd298kmyyu3",
+      "name": "水面",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "order": 1,
+      "objectIds": []
+    },
+    {
+      "id": "layer_mu7owxbd36n2exgok",
+      "name": "绿地",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "order": 2,
+      "objectIds": []
+    },
+    {
+      "id": "layer_mu7owxbd4u86kmafu",
+      "name": "广场",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "order": 3,
+      "objectIds": []
+    },
+    {
+      "id": "layer_mu7owxbd5kpvumop6",
+      "name": "停车场",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "order": 4,
+      "objectIds": []
+    },
+    {
+      "id": "layer_mu7owxbd6mhf2eq63",
+      "name": "裸地",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "order": 5,
+      "objectIds": []
+    },
+    {
+      "id": "layer_mu7owxbd7aw7x476u",
+      "name": "道路",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "order": 6,
+      "objectIds": []
+    },
+    {
+      "id": "layer_mu7owxbd8199rl3o8",
+      "name": "建筑",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "order": 7,
+      "objectIds": []
+    },
+    {
+      "id": "layer_mu7owxbd9ou0va38f",
+      "name": "POI",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "order": 8,
+      "objectIds": []
+    },
+    {
+      "id": "layer_mu7owxbdaq9r1zjml",
+      "name": "自定义",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "order": 9,
+      "objectIds": []
+    },
+    {
+      "id": "layer_mu7owxbdb8njadwza",
+      "name": "模型",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "order": 10,
+      "objectIds": [
+        "model_mu7p8xs8052pynrt2",
+        "model__mu7pc18r0jc7x6q4p",
+        "model__mu7pc1x50ri730uq3",
+        "model__mu7pc2mr0x6e3xh6a",
+        "model__mu7pc3cf0l5dqqr0z",
+        "model__mu7pc41t01zsx9j8d"
+      ]
+    }
+  ],
+  "objects": [
+    {
+      "id": "model_mu7p8xs8052pynrt2",
+      "type": "model",
+      "name": "夏栎",
+      "parentId": null,
+      "layerId": "layer_mu7owxbdb8njadwza",
+      "visible": true,
+      "locked": false,
+      "transform": {
+        "position": {
+          "x": -104.80758230796289,
+          "y": 0.03,
+          "z": 27.65134318304051
+        },
+        "rotation": {
+          "x": 0,
+          "y": -1.4193075287241097,
+          "z": 0
+        },
+        "scale": {
+          "x": 1.0306235651671887,
+          "y": 1.0306235651671887,
+          "z": 1.0306235651671887
+        }
+      },
+      "properties": {},
+      "asset": {
+        "assetId": "asset_tree_3a",
+        "seed": 462780077
+      }
+    },
+    {
+      "id": "model__mu7pc18r0jc7x6q4p",
+      "type": "model",
+      "name": "夏栎",
+      "parentId": null,
+      "layerId": "layer_mu7owxbdb8njadwza",
+      "visible": true,
+      "locked": false,
+      "transform": {
+        "position": {
+          "x": -103.80758230796289,
+          "y": 0.03,
+          "z": 28.65134318304051
+        },
+        "rotation": {
+          "x": 0,
+          "y": -1.4193075287241097,
+          "z": 0
+        },
+        "scale": {
+          "x": 1.0306235651671887,
+          "y": 1.0306235651671887,
+          "z": 1.0306235651671887
+        }
+      },
+      "properties": {},
+      "asset": {
+        "assetId": "asset_tree_3a",
+        "seed": 462780077
+      }
+    },
+    {
+      "id": "model__mu7pc1x50ri730uq3",
+      "type": "model",
+      "name": "夏栎",
+      "parentId": null,
+      "layerId": "layer_mu7owxbdb8njadwza",
+      "visible": true,
+      "locked": false,
+      "transform": {
+        "position": {
+          "x": -102.80758230796289,
+          "y": 0.03,
+          "z": 29.65134318304051
+        },
+        "rotation": {
+          "x": 0,
+          "y": -1.4193075287241097,
+          "z": 0
+        },
+        "scale": {
+          "x": 1.0306235651671887,
+          "y": 1.0306235651671887,
+          "z": 1.0306235651671887
+        }
+      },
+      "properties": {},
+      "asset": {
+        "assetId": "asset_tree_3a",
+        "seed": 462780077
+      }
+    },
+    {
+      "id": "model__mu7pc2mr0x6e3xh6a",
+      "type": "model",
+      "name": "夏栎",
+      "parentId": null,
+      "layerId": "layer_mu7owxbdb8njadwza",
+      "visible": true,
+      "locked": false,
+      "transform": {
+        "position": {
+          "x": -101.80758230796289,
+          "y": 0.03,
+          "z": 30.65134318304051
+        },
+        "rotation": {
+          "x": 0,
+          "y": -1.4193075287241097,
+          "z": 0
+        },
+        "scale": {
+          "x": 1.0306235651671887,
+          "y": 1.0306235651671887,
+          "z": 1.0306235651671887
+        }
+      },
+      "properties": {},
+      "asset": {
+        "assetId": "asset_tree_3a",
+        "seed": 462780077
+      }
+    },
+    {
+      "id": "model__mu7pc3cf0l5dqqr0z",
+      "type": "model",
+      "name": "夏栎",
+      "parentId": null,
+      "layerId": "layer_mu7owxbdb8njadwza",
+      "visible": true,
+      "locked": false,
+      "transform": {
+        "position": {
+          "x": -100.80758230796289,
+          "y": 0.03,
+          "z": 31.65134318304051
+        },
+        "rotation": {
+          "x": 0,
+          "y": -1.4193075287241097,
+          "z": 0
+        },
+        "scale": {
+          "x": 1.0306235651671887,
+          "y": 1.0306235651671887,
+          "z": 1.0306235651671887
+        }
+      },
+      "properties": {},
+      "asset": {
+        "assetId": "asset_tree_3a",
+        "seed": 462780077
+      }
+    },
+    {
+      "id": "model__mu7pc41t01zsx9j8d",
+      "type": "model",
+      "name": "夏栎",
+      "parentId": null,
+      "layerId": "layer_mu7owxbdb8njadwza",
+      "visible": true,
+      "locked": false,
+      "transform": {
+        "position": {
+          "x": -99.80758230796289,
+          "y": 0.03,
+          "z": 32.65134318304051
+        },
+        "rotation": {
+          "x": 0,
+          "y": -1.4193075287241097,
+          "z": 0
+        },
+        "scale": {
+          "x": 1.0306235651671887,
+          "y": 1.0306235651671887,
+          "z": 1.0306235651671887
+        }
+      },
+      "properties": {},
+      "asset": {
+        "assetId": "asset_tree_3a",
+        "seed": 462780077
+      }
+    }
+  ]
+}
