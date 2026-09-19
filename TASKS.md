@@ -4,9 +4,12 @@
 
 ## Current
 
-- **T010 程序化资产公共能力与规范**（1/5；2026-09-19 T010.1 done）→ [tasks/010-asset-capability.md](tasks/010-asset-capability.md)
+- **T010 程序化资产公共能力与规范**（4/5；2026-09-19 T010.2/010.3/010.4 并行 done）→ [tasks/010-asset-capability.md](tasks/010-asset-capability.md)
   - [x] T010.1 家族契约提炼与文件组织规范（done 2026-09-19；2542 全绿零回退）→ [tasks/010.1-family-contract.md](tasks/010.1-family-contract.md)
-  - [ ] T010.2 / T010.3 / T010.4（已解锁，可并行）
+  - [x] T010.2 元数据与分类契约（done 2026-09-19：taxonomy 大类+family 枚举 + 11 资产映射 + proceduralProfile 植物语义隔离；+5 测试 → 2547 全绿）→ [tasks/010.2-metadata-taxonomy.md](tasks/010.2-metadata-taxonomy.md)
+  - [x] T010.3 LOD 声明规范固化（done 2026-09-19：lod-spec.md 唯一真相源；纯文档零行为改动）→ [tasks/010.3-lod-spec.md](tasks/010.3-lod-spec.md)
+  - [x] T010.4 Shadow 公共能力规范 + 视觉验收 SOP（done 2026-09-19：shadow-visual-sop.md；纯文档零代码）→ [tasks/010.4-shadow-visual-sop.md](tasks/010.4-shadow-visual-sop.md)
+  - [ ] T010.5 模板固化验收门（已解锁）→ [tasks/010.5-acceptance.md](tasks/010.5-acceptance.md)
 
 ## Done（近）
 

@@ -1,7 +1,7 @@
 # 程序化资产文件组织与三级职责边界
 
 > T010.1 产出（2026-09-19）。适用范围：一切程序化资产（`*.asset.ts` 插件体系，D17）；GLB 导入资产不适用。
-> 姊妹规范（T010 后续落档）：元数据与分类契约（010.2）→ `metadata-taxonomy.md`；LOD 声明规范（010.3）→ `lod-spec.md`；Shadow 公共能力与视觉验收 SOP（010.4）→ `shadow-visual-sop.md`。
+> 姊妹规范（均已落档 2026-09-19）：元数据与分类契约（010.2）→ [metadata-taxonomy.md](metadata-taxonomy.md)；LOD 声明规范（010.3）→ [lod-spec.md](lod-spec.md)；Shadow 公共能力与视觉验收 SOP（010.4）→ [shadow-visual-sop.md](shadow-visual-sop.md)。
 > 决策锚：D17（插件契约）、D19（形态身份/sourceKey）、D20.3（不预抽象/四文件为推荐结构）、D22（大类+family+asset 三级可寻址）、D23.5（职责边界不重划）。
 
 ## 1. 三级职责边界
