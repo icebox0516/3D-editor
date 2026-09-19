@@ -11,8 +11,10 @@
  *      降档方向（high 恒 1 = 近处全保真硬约束），撒点确定性契约（domain/scatter）不经参数
  *      扩展——抽稀在 runtime 消费侧按实例稳定序过滤（006.4 记档裁定）。
  *
- * ⚠ 数值状态 = D27 候选值（同 LOD_THRESHOLDS 纪律）：实测锁定前为候选，待 006.5 验收门
- *   实测复核锁定；任何文档 / 代码不得将下列数值当作锁定值引用；候选值变更必须走实测锁定记档。
+ * ✅ 数值状态 = **已锁定**（T006.5 验收门，2026-09-19，docs/acceptance/t006/006.5/）：
+ *   双档验收（城市档峰值 531 ≤ 650、园区档树场景峰值 327；抽稀后视觉核验无空洞带；
+ *   合并桶压缩 4,096 → ~300 桶运行正常）实测通过；数值变更须重开实测锁定记档
+ *   （沿「一次锁全量」测试断言联动）。
  */
 
 import type { ProceduralLevel } from '../assets/AssetDescriptor';
@@ -22,8 +24,8 @@ export interface BatchControlPolicy {
   /**
    * draw call 预算上限（renderer.info.render.calls 口径，主遍 + 影遍合计——分遍渲染模式下
    * 为最后遍口径，与 getViewportStats 同源）。超限 = console 节流告警（不做运行时降级——
-   * 治理观测面，降级手段归档位策略）。候选：006.4 压力实测校准（见 docs/acceptance/t006/
-   * 006.4），006.5 验收门锁定。
+   * 治理观测面，降级手段归档位策略）。006.4 实测标定 + 006.5 验收门锁定（见
+   * docs/acceptance/t006/006.4 与 006.5）。
    */
   drawCallBudget: number;
   /** 预算超限告警最小间隔（毫秒）：连续超限帧至多每 interval 一次告警，不刷屏 */
@@ -45,7 +47,7 @@ export interface BatchControlPolicy {
 }
 
 /**
- * Runtime 全局批次控制策略（D27 候选值——实测锁定前为候选，数值状态见模块头注）。
+ * Runtime 全局批次控制策略（T006.5 实测锁定——锁定依据见模块头注）。
  * drawCallBudget 依据 006.4 压力实测标定（RTX 2080 Ti / 10 万路灯散布 / 远近混合视角）：
  * LOD on 峰值 531（近景混合机位：92 内容桶 × 6 材质组 × 主遍+影遍）+ ~20% 余量 → 650；
  * LOD off 同场景对照 7773（批次治理效果 93%↓）。见 docs/acceptance/t006/006.4。

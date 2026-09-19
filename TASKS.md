@@ -4,14 +4,16 @@
 
 ## Current
 
-- T006 Asset Runtime LOD（**4/5 进行中**，2026-09-19 启动）→ [tasks/006-lod-chunking.md](tasks/006-lod-chunking.md)
+（T006 已收官——下一个建议：T011 第一批阔叶乔木，待启动）
+
+## Done（近）
+
+- [x] T006 Asset Runtime LOD（**5/5 epic 收官 2026-09-19**；通用 Runtime LOD 调度完整交付，策略常量实测锁定）→ [tasks/006-lod-chunking.md](tasks/006-lod-chunking.md)
+  - [x] T006.5 T006 验收门（done 2026-09-19：双档达标——城市 10 万路灯 175-190fps/531≤650、园区 2 万树 206-229fps@1080p（核显 BIOS 禁用→2080 Ti 实测+临界外推+遗留核显复验）；范围门三项全绿 Impostor 不立项；树 A/B 207↔17fps；换档序列无震荡+diff 不超运动基线；LOD_THRESHOLDS/BATCH_POLICY 候选→锁定；2657 零回归）→ [tasks/006.5-acceptance.md](tasks/006.5-acceptance.md)
   - [x] T006.1 LOD 公共语义层（done 2026-09-19：evaluateLodRepresentation 纯函数 + 候选阈值常量 + 总开关语义；+38 测试 → 2585 全绿）→ [tasks/006.1-lod-semantics.md](tasks/006.1-lod-semantics.md)
   - [x] T006.2 非植物第二资产档位验证（done 2026-09-19：路灯 High/Low 两档 328/136 面 + SourceCache 无族多档键 assetId::level 扩展；+16 测试）→ [tasks/006.2-second-asset-levels.md](tasks/006.2-second-asset-levels.md)
   - [x] T006.3 块×档分桶+换档（done 2026-09-19：两链接线评估器——散布 chunk×source×level / 放置 source×level 跨桶迁移 + 迟滞 + 拾取跨档一致 + 总开关；+23 测试，合并态 2624 全绿）→ [tasks/006.3-chunk-lod-bucketing.md](tasks/006.3-chunk-lod-bucketing.md)
   - [x] T006.4 批次控制（done 2026-09-19：BATCH_POLICY 候选常量 + 确定性抽稀 + 粗档稀疏块 2×2 超块合并 + 桶级提交跳过 + 预算 650 节流告警 + LOD 分布双口径；10 万实例 531≤650 压测留档；+33 测试 → 2657 全绿）→ [tasks/006.4-batch-control.md](tasks/006.4-batch-control.md)
-  - 下一步：006.5 T006 验收门（双档性能验收 + 换档点人工复核窗口 D27.10 + LOD_THRESHOLDS/BATCH_POLICY 实测锁定）
-
-## Done（近）
 
 - [x] T010 程序化资产公共能力与规范（**5/5 epic 收官 2026-09-19**）→ [tasks/010-asset-capability.md](tasks/010-asset-capability.md)
   - [x] T010.5 模板固化验收门（done 2026-09-19：夏栎零回退复核全过——锚点/8 槽 stats 逐位、8 机位像素 diff 99%+ 一致视觉核验、五档性能全过且资源账目逐位同；规范齐备互指一致；T011 启动条件确认就绪；2547 全绿）→ [tasks/010.5-acceptance.md](tasks/010.5-acceptance.md)
@@ -53,7 +55,6 @@
 - [ ] T004 Style Gallery（0/3）→ [tasks/004-style-gallery.md](tasks/004-style-gallery.md)
 - [ ] T005 Animation Pathway（0/3）→ [tasks/005-animation-pathway.md](tasks/005-animation-pathway.md)
 - [ ] T007 Bake Scatter（可选；启动前 grill 拷问门见任务书）→ [tasks/007-bake-scatter.md](tasks/007-bake-scatter.md)
-- [ ] T006 Asset Runtime LOD（1/5；2026-09-19 D27 修订重构，排期 T010 后、T011 前——已启动）→ [tasks/006-lod-chunking.md](tasks/006-lod-chunking.md)
 - [ ] T011 第一批阔叶乔木：朴树 / 香樟 / 榉树 / 银杏【占位】
 - [ ] T012 针叶族【占位】
 - [ ] T013 花木族【占位】

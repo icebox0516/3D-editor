@@ -1,0 +1,332 @@
+{
+  "env": {
+    "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 2080 Ti (0x00001E07) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "viewport": [
+      1920,
+      1080
+    ],
+    "dpr": 1
+  },
+  "canary": {
+    "main": {
+      "cls": "ed-viewport__canvas",
+      "w": 1292,
+      "h": 932
+    },
+    "dpr": 1,
+    "inner": [
+      1920,
+      1080
+    ]
+  },
+  "tree": {
+    "stages": [
+      {
+        "viewpoint": {
+          "name": "near-mixed",
+          "distance": 80,
+          "azimuthDeg": 35,
+          "elevationDeg": 8
+        },
+        "stats": {
+          "drawCalls": 299,
+          "triangles": 8217754,
+          "totalChunks": 4061,
+          "visibleChunks": 928,
+          "instances": 16772,
+          "visibleInstances": 3705,
+          "lod": {
+            "instances": {
+              "high": 98,
+              "mid": 428,
+              "low": 3179,
+              "culled": 13420
+            },
+            "buckets": {
+              "high": 19,
+              "mid": 28,
+              "low": 320,
+              "culled": 2746
+            }
+          }
+        },
+        "frames": {
+          "frames": 1028,
+          "mean": 4.87,
+          "p50": 4.6,
+          "p95": 7,
+          "p99": 7.7,
+          "max": 8.5,
+          "fps": 206
+        }
+      },
+      {
+        "viewpoint": {
+          "name": "mid",
+          "distance": 200,
+          "azimuthDeg": 35,
+          "elevationDeg": 20
+        },
+        "stats": {
+          "drawCalls": 289,
+          "triangles": 6732942,
+          "totalChunks": 4061,
+          "visibleChunks": 1059,
+          "instances": 16381,
+          "visibleInstances": 3314,
+          "lod": {
+            "instances": {
+              "high": 0,
+              "mid": 413,
+              "low": 2901,
+              "culled": 13758
+            },
+            "buckets": {
+              "high": 0,
+              "mid": 26,
+              "low": 297,
+              "culled": 2773
+            }
+          }
+        },
+        "frames": {
+          "frames": 1107,
+          "mean": 4.52,
+          "p50": 4.2,
+          "p95": 6.5,
+          "p99": 7.6,
+          "max": 8.4,
+          "fps": 221
+        }
+      },
+      {
+        "viewpoint": {
+          "name": "overview",
+          "distance": 500,
+          "azimuthDeg": 35,
+          "elevationDeg": 45
+        },
+        "stats": {
+          "drawCalls": 253,
+          "triangles": 2178216,
+          "totalChunks": 4061,
+          "visibleChunks": 809,
+          "instances": 15122,
+          "visibleInstances": 2154,
+          "lod": {
+            "instances": {
+              "high": 0,
+              "mid": 0,
+              "low": 2154,
+              "culled": 14683
+            },
+            "buckets": {
+              "high": 0,
+              "mid": 0,
+              "low": 218,
+              "culled": 2851
+            }
+          }
+        },
+        "frames": {
+          "frames": 1148,
+          "mean": 4.36,
+          "p50": 4,
+          "p95": 6,
+          "p99": 7.1,
+          "max": 8.1,
+          "fps": 229
+        }
+      }
+    ],
+    "ab": {
+      "on": {
+        "stats": {
+          "drawCalls": 271,
+          "triangles": 6380902,
+          "totalChunks": 4061,
+          "visibleChunks": 1005,
+          "instances": 15970,
+          "visibleInstances": 3002,
+          "lod": {
+            "instances": {
+              "high": 80,
+              "mid": 306,
+              "low": 2616,
+              "culled": 14013
+            },
+            "buckets": {
+              "high": 17,
+              "mid": 24,
+              "low": 263,
+              "culled": 2792
+            }
+          }
+        },
+        "frames": {
+          "frames": 1035,
+          "mean": 4.83,
+          "p50": 4.6,
+          "p95": 7,
+          "p99": 7.7,
+          "max": 8.1,
+          "fps": 207
+        }
+      },
+      "off": {
+        "stats": {
+          "drawCalls": 2199,
+          "triangles": 184146756,
+          "totalChunks": 4061,
+          "visibleChunks": 1005,
+          "instances": 20014,
+          "visibleInstances": 20014,
+          "lod": {
+            "instances": {
+              "high": 20014,
+              "mid": 0,
+              "low": 0,
+              "culled": 0
+            },
+            "buckets": {
+              "high": 4061,
+              "mid": 0,
+              "low": 0,
+              "culled": 0
+            }
+          }
+        },
+        "frames": {
+          "frames": 85,
+          "mean": 59.12,
+          "p50": 57.7,
+          "p95": 83.7,
+          "p99": 477.9,
+          "max": 477.9,
+          "fps": 17
+        }
+      }
+    }
+  },
+  "lamp": {
+    "stages": [
+      {
+        "viewpoint": {
+          "name": "near-mixed",
+          "distance": 80,
+          "azimuthDeg": 35,
+          "elevationDeg": 8
+        },
+        "stats": {
+          "drawCalls": 417,
+          "triangles": 98068,
+          "totalChunks": 4061,
+          "visibleChunks": 926,
+          "instances": 19255,
+          "visibleInstances": 769,
+          "lod": {
+            "instances": {
+              "high": 30,
+              "mid": 0,
+              "low": 739,
+              "culled": 18567
+            },
+            "buckets": {
+              "high": 6,
+              "mid": 0,
+              "low": 78,
+              "culled": 3770
+            }
+          }
+        },
+        "frames": {
+          "frames": 1096,
+          "mean": 3.65,
+          "p50": 3.4,
+          "p95": 5.3,
+          "p99": 6.1,
+          "max": 6.6,
+          "fps": 274
+        }
+      },
+      {
+        "viewpoint": {
+          "name": "mid",
+          "distance": 200,
+          "azimuthDeg": 35,
+          "elevationDeg": 20
+        },
+        "stats": {
+          "drawCalls": 375,
+          "triangles": 87860,
+          "totalChunks": 4061,
+          "visibleChunks": 1052,
+          "instances": 19055,
+          "visibleInstances": 674,
+          "lod": {
+            "instances": {
+              "high": 0,
+              "mid": 0,
+              "low": 674,
+              "culled": 18601
+            },
+            "buckets": {
+              "high": 0,
+              "mid": 0,
+              "low": 70,
+              "culled": 3764
+            }
+          }
+        },
+        "frames": {
+          "frames": 1088,
+          "mean": 3.68,
+          "p50": 3.4,
+          "p95": 5.7,
+          "p99": 6.3,
+          "max": 7.1,
+          "fps": 272
+        }
+      },
+      {
+        "viewpoint": {
+          "name": "overview",
+          "distance": 500,
+          "azimuthDeg": 35,
+          "elevationDeg": 45
+        },
+        "stats": {
+          "drawCalls": 3,
+          "triangles": 4,
+          "totalChunks": 4061,
+          "visibleChunks": 787,
+          "instances": 18381,
+          "visibleInstances": 0,
+          "lod": {
+            "instances": {
+              "high": 0,
+              "mid": 0,
+              "low": 0,
+              "culled": 19275
+            },
+            "buckets": {
+              "high": 0,
+              "mid": 0,
+              "low": 0,
+              "culled": 3834
+            }
+          }
+        },
+        "frames": {
+          "frames": 1235,
+          "mean": 3.24,
+          "p50": 3,
+          "p95": 4.9,
+          "p99": 5.6,
+          "max": 6.1,
+          "fps": 309
+        }
+      }
+    ]
+  }
+}

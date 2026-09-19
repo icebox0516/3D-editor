@@ -7,8 +7,10 @@
  *      消费方 = lodEvaluation（缺省阈值）与 006.3 Runtime 接线。
  * 边界：纯数据 + 纯类型，零 THREE；度量口径（m = 视口高归一化视距）归 lodEvaluation 头注。
  *
- * ⚠ 数值状态 = D27 候选值，实测锁定前为候选：待 006.4 / 006.5 实测锁定，
- *   任何文档 / 代码不得将下列数值当作锁定值引用；候选值变更必须走实测锁定记档。
+ * ✅ 数值状态 = **已锁定**（T006.5 验收门，2026-09-19，docs/acceptance/t006/006.5/）：
+ *   双档验收（2 万树 / 10 万路灯）+ 推拉换档序列（选档迁移单调、迟滞零震荡、帧间 diff
+ *   不超运动基线）+ 视觉核验（档间过渡连续无分层条带）实测通过；数值变更须重开实测
+ *   锁定记档（沿「一次锁全量」测试断言联动）。
  *   标定参照：夏栎 r ≈ 5m、默认 fov 50°（tan25° ≈ 0.466）换算成视距——
  *   highToMid = 6 ≈ 64m、midToLow = 16 ≈ 172m、lowToCulled = 60 ≈ 643m。
  */
@@ -25,7 +27,7 @@ export interface LodThresholds {
   hysteresisBand: number;
 }
 
-/** Runtime 全局 LOD 阈值（D27 候选值——实测锁定前为候选，数值状态见模块头注） */
+/** Runtime 全局 LOD 阈值（T006.5 实测锁定——锁定依据见模块头注） */
 export const LOD_THRESHOLDS: LodThresholds = {
   highToMid: 6,
   midToLow: 16,

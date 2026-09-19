@@ -1,0 +1,403 @@
+{
+  "frames": [
+    {
+      "d": 60,
+      "stats": {
+        "drawCalls": 305,
+        "triangles": 8835256,
+        "lod": {
+          "instances": {
+            "high": 109,
+            "mid": 417,
+            "low": 3136,
+            "culled": 13463
+          },
+          "buckets": {
+            "high": 21,
+            "mid": 28,
+            "low": 317,
+            "culled": 2748
+          }
+        }
+      }
+    },
+    {
+      "d": 90,
+      "stats": {
+        "drawCalls": 315,
+        "triangles": 8962128,
+        "lod": {
+          "instances": {
+            "high": 98,
+            "mid": 427,
+            "low": 3115,
+            "culled": 13485
+          },
+          "buckets": {
+            "high": 19,
+            "mid": 27,
+            "low": 315,
+            "culled": 2750
+          }
+        }
+      }
+    },
+    {
+      "d": 120,
+      "stats": {
+        "drawCalls": 325,
+        "triangles": 8679996,
+        "lod": {
+          "instances": {
+            "high": 81,
+            "mid": 412,
+            "low": 3072,
+            "culled": 13546
+          },
+          "buckets": {
+            "high": 16,
+            "mid": 28,
+            "low": 310,
+            "culled": 2756
+          }
+        }
+      }
+    },
+    {
+      "d": 150,
+      "stats": {
+        "drawCalls": 315,
+        "triangles": 8197748,
+        "lod": {
+          "instances": {
+            "high": 102,
+            "mid": 377,
+            "low": 2986,
+            "culled": 13638
+          },
+          "buckets": {
+            "high": 20,
+            "mid": 27,
+            "low": 305,
+            "culled": 2762
+          }
+        }
+      }
+    },
+    {
+      "d": 180,
+      "stats": {
+        "drawCalls": 327,
+        "triangles": 8433914,
+        "lod": {
+          "instances": {
+            "high": 73,
+            "mid": 395,
+            "low": 2893,
+            "culled": 13736
+          },
+          "buckets": {
+            "high": 14,
+            "mid": 28,
+            "low": 297,
+            "culled": 2773
+          }
+        }
+      }
+    },
+    {
+      "d": 210,
+      "stats": {
+        "drawCalls": 317,
+        "triangles": 7130024,
+        "lod": {
+          "instances": {
+            "high": 65,
+            "mid": 406,
+            "low": 2892,
+            "culled": 13707
+          },
+          "buckets": {
+            "high": 13,
+            "mid": 27,
+            "low": 292,
+            "culled": 2764
+          }
+        }
+      }
+    },
+    {
+      "d": 240,
+      "stats": {
+        "drawCalls": 299,
+        "triangles": 6582010,
+        "lod": {
+          "instances": {
+            "high": 57,
+            "mid": 398,
+            "low": 2921,
+            "culled": 13631
+          },
+          "buckets": {
+            "high": 11,
+            "mid": 26,
+            "low": 295,
+            "culled": 2747
+          }
+        }
+      }
+    },
+    {
+      "d": 270,
+      "stats": {
+        "drawCalls": 303,
+        "triangles": 5668658,
+        "lod": {
+          "instances": {
+            "high": 34,
+            "mid": 406,
+            "low": 2915,
+            "culled": 13585
+          },
+          "buckets": {
+            "high": 7,
+            "mid": 28,
+            "low": 293,
+            "culled": 2728
+          }
+        }
+      }
+    },
+    {
+      "d": 300,
+      "stats": {
+        "drawCalls": 299,
+        "triangles": 5477256,
+        "lod": {
+          "instances": {
+            "high": 16,
+            "mid": 401,
+            "low": 2884,
+            "culled": 13582
+          },
+          "buckets": {
+            "high": 3,
+            "mid": 25,
+            "low": 290,
+            "culled": 2715
+          }
+        }
+      }
+    },
+    {
+      "d": 330,
+      "stats": {
+        "drawCalls": 305,
+        "triangles": 5204262,
+        "lod": {
+          "instances": {
+            "high": 0,
+            "mid": 413,
+            "low": 2865,
+            "culled": 13541
+          },
+          "buckets": {
+            "high": 0,
+            "mid": 27,
+            "low": 288,
+            "culled": 2701
+          }
+        }
+      }
+    },
+    {
+      "d": 360,
+      "stats": {
+        "drawCalls": 299,
+        "triangles": 4721656,
+        "lod": {
+          "instances": {
+            "high": 0,
+            "mid": 402,
+            "low": 2866,
+            "culled": 13463
+          },
+          "buckets": {
+            "high": 0,
+            "mid": 26,
+            "low": 290,
+            "culled": 2672
+          }
+        }
+      }
+    },
+    {
+      "d": 390,
+      "stats": {
+        "drawCalls": 283,
+        "triangles": 4117640,
+        "lod": {
+          "instances": {
+            "high": 0,
+            "mid": 395,
+            "low": 2865,
+            "culled": 13387
+          },
+          "buckets": {
+            "high": 0,
+            "mid": 26,
+            "low": 291,
+            "culled": 2647
+          }
+        }
+      }
+    },
+    {
+      "d": 420,
+      "stats": {
+        "drawCalls": 293,
+        "triangles": 3942548,
+        "lod": {
+          "instances": {
+            "high": 0,
+            "mid": 353,
+            "low": 2832,
+            "culled": 13392
+          },
+          "buckets": {
+            "high": 0,
+            "mid": 24,
+            "low": 288,
+            "culled": 2633
+          }
+        }
+      }
+    },
+    {
+      "d": 450,
+      "stats": {
+        "drawCalls": 277,
+        "triangles": 3478426,
+        "lod": {
+          "instances": {
+            "high": 0,
+            "mid": 340,
+            "low": 2852,
+            "culled": 13296
+          },
+          "buckets": {
+            "high": 0,
+            "mid": 22,
+            "low": 291,
+            "culled": 2605
+          }
+        }
+      }
+    },
+    {
+      "d": 480,
+      "stats": {
+        "drawCalls": 271,
+        "triangles": 3231454,
+        "lod": {
+          "instances": {
+            "high": 0,
+            "mid": 311,
+            "low": 2872,
+            "culled": 13212
+          },
+          "buckets": {
+            "high": 0,
+            "mid": 20,
+            "low": 292,
+            "culled": 2580
+          }
+        }
+      }
+    },
+    {
+      "d": 510,
+      "stats": {
+        "drawCalls": 261,
+        "triangles": 3190664,
+        "lod": {
+          "instances": {
+            "high": 0,
+            "mid": 288,
+            "low": 2851,
+            "culled": 13174
+          },
+          "buckets": {
+            "high": 0,
+            "mid": 18,
+            "low": 286,
+            "culled": 2562
+          }
+        }
+      }
+    },
+    {
+      "d": 540,
+      "stats": {
+        "drawCalls": 267,
+        "triangles": 2758134,
+        "lod": {
+          "instances": {
+            "high": 0,
+            "mid": 249,
+            "low": 2859,
+            "culled": 13114
+          },
+          "buckets": {
+            "high": 0,
+            "mid": 19,
+            "low": 291,
+            "culled": 2540
+          }
+        }
+      }
+    },
+    {
+      "d": 570,
+      "stats": {
+        "drawCalls": 245,
+        "triangles": 2806638,
+        "lod": {
+          "instances": {
+            "high": 0,
+            "mid": 249,
+            "low": 2833,
+            "culled": 13067
+          },
+          "buckets": {
+            "high": 0,
+            "mid": 16,
+            "low": 284,
+            "culled": 2521
+          }
+        }
+      }
+    },
+    {
+      "d": 600,
+      "stats": {
+        "drawCalls": 237,
+        "triangles": 2496896,
+        "lod": {
+          "instances": {
+            "high": 0,
+            "mid": 212,
+            "low": 2811,
+            "culled": 13065
+          },
+          "buckets": {
+            "high": 0,
+            "mid": 14,
+            "low": 280,
+            "culled": 2509
+          }
+        }
+      }
+    }
+  ]
+}

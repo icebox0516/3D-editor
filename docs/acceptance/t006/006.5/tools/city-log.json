@@ -1,0 +1,224 @@
+{
+  "env": {
+    "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 2080 Ti (0x00001E07) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "viewport": [
+      1904,
+      985
+    ],
+    "dpr": 1
+  },
+  "canary": {
+    "canvases": [
+      {
+        "cls": "ed-viewport__canvas",
+        "w": 1276,
+        "h": 837
+      },
+      {
+        "cls": "ed-viewport__axes",
+        "w": 88,
+        "h": 88
+      },
+      {
+        "cls": "ed-viewport__minimap",
+        "w": 198,
+        "h": 138
+      }
+    ],
+    "main": {
+      "cls": "ed-viewport__canvas",
+      "w": 1276,
+      "h": 837
+    },
+    "dpr": 1,
+    "inner": [
+      1904,
+      985
+    ]
+  },
+  "stages": [
+    {
+      "viewpoint": {
+        "name": "near-mixed",
+        "distance": 90,
+        "azimuthDeg": 35,
+        "elevationDeg": 14
+      },
+      "stats": {
+        "drawCalls": 531,
+        "triangles": 584356,
+        "totalChunks": 4096,
+        "visibleChunks": 982,
+        "instances": 99764,
+        "visibleInstances": 4002,
+        "lod": {
+          "instances": {
+            "high": 157,
+            "mid": 0,
+            "low": 3845,
+            "culled": 96020
+          },
+          "buckets": {
+            "high": 6,
+            "mid": 0,
+            "low": 86,
+            "culled": 3787
+          }
+        }
+      },
+      "frames": {
+        "frames": 700,
+        "mean": 5.71,
+        "p50": 5.7,
+        "p95": 7.3,
+        "p99": 8.4,
+        "max": 9.1,
+        "fps": 175
+      }
+    },
+    {
+      "viewpoint": {
+        "name": "mid",
+        "distance": 260,
+        "azimuthDeg": 30
+      },
+      "stats": {
+        "drawCalls": 381,
+        "triangles": 416980,
+        "totalChunks": 4096,
+        "visibleChunks": 1209,
+        "instances": 97847,
+        "visibleInstances": 3415,
+        "lod": {
+          "instances": {
+            "high": 0,
+            "mid": 0,
+            "low": 3415,
+            "culled": 95878
+          },
+          "buckets": {
+            "high": 0,
+            "mid": 0,
+            "low": 72,
+            "culled": 3765
+          }
+        }
+      },
+      "frames": {
+        "frames": 747,
+        "mean": 5.36,
+        "p50": 5.4,
+        "p95": 7.1,
+        "p99": 7.8,
+        "max": 8.4,
+        "fps": 187
+      }
+    },
+    {
+      "viewpoint": {
+        "name": "high-far",
+        "distance": 520,
+        "azimuthDeg": 55
+      },
+      "stats": {
+        "drawCalls": 147,
+        "triangles": 161300,
+        "totalChunks": 4096,
+        "visibleChunks": 1598,
+        "instances": 94159,
+        "visibleInstances": 2651,
+        "lod": {
+          "instances": {
+            "high": 0,
+            "mid": 0,
+            "low": 2651,
+            "culled": 95208
+          },
+          "buckets": {
+            "high": 0,
+            "mid": 0,
+            "low": 54,
+            "culled": 3702
+          }
+        }
+      },
+      "frames": {
+        "frames": 761,
+        "mean": 5.26,
+        "p50": 5.4,
+        "p95": 6.7,
+        "p99": 7.4,
+        "max": 8.4,
+        "fps": 190
+      }
+    }
+  ],
+  "ab": {
+    "on": {
+      "stats": {
+        "drawCalls": 339,
+        "triangles": 384204,
+        "totalChunks": 4096,
+        "visibleChunks": 1166,
+        "instances": 94802,
+        "visibleInstances": 3294,
+        "lod": {
+          "instances": {
+            "high": 0,
+            "mid": 0,
+            "low": 3294,
+            "culled": 94565
+          },
+          "buckets": {
+            "high": 0,
+            "mid": 0,
+            "low": 69,
+            "culled": 3687
+          }
+        }
+      },
+      "frames": {
+        "frames": 730,
+        "mean": 5.49,
+        "p50": 5.6,
+        "p95": 6.9,
+        "p99": 7.4,
+        "max": 8.4,
+        "fps": 182
+      }
+    },
+    "off": {
+      "stats": {
+        "drawCalls": 7773,
+        "triangles": 10917484,
+        "totalChunks": 4096,
+        "visibleChunks": 1166,
+        "instances": 103988,
+        "visibleInstances": 103988,
+        "lod": {
+          "instances": {
+            "high": 103988,
+            "mid": 0,
+            "low": 0,
+            "culled": 0
+          },
+          "buckets": {
+            "high": 4096,
+            "mid": 0,
+            "low": 0,
+            "culled": 0
+          }
+        }
+      },
+      "frames": {
+        "frames": 142,
+        "mean": 28.36,
+        "p50": 28.4,
+        "p95": 36.1,
+        "p99": 49.9,
+        "max": 51.7,
+        "fps": 35
+      }
+    }
+  }
+}

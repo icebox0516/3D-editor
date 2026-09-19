@@ -2,7 +2,7 @@
  * tests/domain/lod/batchPolicy.test.ts —— 批次控制策略常量与确定性抽稀规则测试（T006.4）。
  *
  * 覆盖：
- * - 策略常量：BATCH_POLICY 一次锁全量候选值（候选值变更须走 006.5 实测锁定记档，
+ * - 策略常量：BATCH_POLICY 一次锁全量锁定值（T006.5 实测锁定；数值变更须重开实测记档，
  *   并连带更新本断言——沿 LOD_THRESHOLDS 锁值先例）；
  * - 确定性抽稀规则 keepThinnedInstance：比例域（1 全保真 / ≤0 全剔除）、保留数 =
  *   ⌈n·r⌉（Bresenham 式均匀步进）、首实例恒保留（r>0）、纯函数性（同输入逐位同输出）、
@@ -13,7 +13,7 @@ import { describe, expect, it } from 'vitest';
 import { BATCH_POLICY, keepThinnedInstance } from '../../../src/domain/lod/batchPolicy';
 
 describe('BATCH_POLICY 策略常量', () => {
-  it('字段齐全且当前候选一次锁全量（候选值变更须走 006.5 实测锁定记档，并连带更新本断言；drawCallBudget = 006.4 实测峰值 531 + ~20% 余量）', () => {
+  it('字段齐全且锁定值一次锁全量（T006.5 实测锁定；数值变更须重开实测记档并连带更新本断言；drawCallBudget = 006.4 实测峰值 531 + ~20% 余量）', () => {
     expect(BATCH_POLICY).toEqual({
       drawCallBudget: 650,
       budgetAlertIntervalMs: 5000,

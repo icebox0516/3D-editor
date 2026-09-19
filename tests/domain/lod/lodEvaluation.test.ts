@@ -354,7 +354,7 @@ describe('输入防御（调用方 bug 早暴露）', () => {
 });
 
 describe('策略常量与阈值覆写', () => {
-  it('LOD_THRESHOLDS 字段齐全且当前候选 = 6/16/60/0.15（一次锁全量；候选值变更须走 006.4/006.5 实测锁定记档，并连带更新本断言）', () => {
+  it('LOD_THRESHOLDS 字段齐全且锁定值 = 6/16/60/0.15（一次锁全量；T006.5 实测锁定，数值变更须重开实测记档并连带更新本断言）', () => {
     expect(LOD_THRESHOLDS).toEqual({
       highToMid: 6,
       midToLow: 16,

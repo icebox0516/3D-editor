@@ -39,7 +39,7 @@ export class BudgetAlert {
       options.warn ??
       ((drawCalls, budget) =>
         console.warn(
-          `[Renderer] draw calls 超预算：${drawCalls} > ${budget}（BATCH_POLICY.drawCallBudget 候选值，待 006.5 实测锁定）——批次治理观测告警，非降级`,
+          `[Renderer] draw calls 超预算：${drawCalls} > ${budget}（BATCH_POLICY.drawCallBudget，T006.5 已锁定值）——批次治理观测告警，非降级`,
         ));
   }
 
