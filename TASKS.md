@@ -4,11 +4,12 @@
 
 ## Current
 
-- T006 Asset Runtime LOD（**3/5 进行中**，2026-09-19 启动）→ [tasks/006-lod-chunking.md](tasks/006-lod-chunking.md)
+- T006 Asset Runtime LOD（**4/5 进行中**，2026-09-19 启动）→ [tasks/006-lod-chunking.md](tasks/006-lod-chunking.md)
   - [x] T006.1 LOD 公共语义层（done 2026-09-19：evaluateLodRepresentation 纯函数 + 候选阈值常量 + 总开关语义；+38 测试 → 2585 全绿）→ [tasks/006.1-lod-semantics.md](tasks/006.1-lod-semantics.md)
   - [x] T006.2 非植物第二资产档位验证（done 2026-09-19：路灯 High/Low 两档 328/136 面 + SourceCache 无族多档键 assetId::level 扩展；+16 测试）→ [tasks/006.2-second-asset-levels.md](tasks/006.2-second-asset-levels.md)
   - [x] T006.3 块×档分桶+换档（done 2026-09-19：两链接线评估器——散布 chunk×source×level / 放置 source×level 跨桶迁移 + 迟滞 + 拾取跨档一致 + 总开关；+23 测试，合并态 2624 全绿）→ [tasks/006.3-chunk-lod-bucketing.md](tasks/006.3-chunk-lod-bucketing.md)
-  - 下一步：006.4 批次控制（桶内全 culled 跳过提交 + drawCalls 峰值治理 + 阈值实测锁定输入面）
+  - [x] T006.4 批次控制（done 2026-09-19：BATCH_POLICY 候选常量 + 确定性抽稀 + 粗档稀疏块 2×2 超块合并 + 桶级提交跳过 + 预算 650 节流告警 + LOD 分布双口径；10 万实例 531≤650 压测留档；+33 测试 → 2657 全绿）→ [tasks/006.4-batch-control.md](tasks/006.4-batch-control.md)
+  - 下一步：006.5 T006 验收门（双档性能验收 + 换档点人工复核窗口 D27.10 + LOD_THRESHOLDS/BATCH_POLICY 实测锁定）
 
 ## Done（近）
 

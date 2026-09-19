@@ -36,6 +36,10 @@ import { isModelObject } from '../domain/assets';
 import type { ModelObject } from '../domain/assets';
 import type { ProceduralLevel } from '../domain/assets';
 import { applyAssetVariants, shapeSlotOf, sourceKeyOf } from '../domain/assets';
+import { BATCH_POLICY } from '../domain/lod/batchPolicy';
+import type { LodDistribution } from './lodDistribution';
+import { LodDistributionCounter } from './lodDistribution';
+import { BudgetAlert } from './budgetAlert';
 import {
   baseLevelOf,
   collectElevationSnapLevels,
@@ -366,6 +370,12 @@ export class Renderer {
    * setLodEnabled API + app 组合根 URL query（?lod=0/off）。
    */
   private lodEnabled = true;
+  /**
+   * draw call 预算告警（T006.4）：每帧 render 后喂 renderer.info.render.calls，超
+   * BATCH_POLICY.drawCallBudget 且过节流间隔告警一次（console 日志侧；状态栏 UI 不在
+   * 本任务）。纯观测面——不做运行时降级（降级手段归档位策略，006.5 验收门裁定）。
+   */
+  private readonly budgetAlert = new BudgetAlert();
   private disposed = false;
 
   constructor(canvas: HTMLCanvasElement, deps: RendererDeps) {
@@ -473,6 +483,12 @@ export class Renderer {
             return descriptor && descriptor.kind === 'procedural' ? descriptor.asset.variants : undefined;
           },
           getAssetLevels: declaredLevelsOf,
+          // T006.4 块自适应合并（生产开）：粗档稀疏 (块×资产) 并入超块合并桶——防
+          // 「块×资产×档」批次爆炸（006.3 记档：散布 400m drawCalls 峰值 393）
+          sparseMerge: {
+            maxInstancesPerChunk: BATCH_POLICY.sparseMergeMaxInstances,
+            groupFactor: BATCH_POLICY.mergeGroupFactor,
+          },
         })
       : null;
     if (this.scatter) this.scene.add(this.scatter.root);
@@ -828,6 +844,9 @@ export class Renderer {
       // 环境/辅助豁免；islands 双内容遍（暗 layer 0 + 亮 DIAG_LAYER）各取 dim/highlight。
       this.renderModePasses();
     }
+    // T006.4 draw call 预算告警（render 后——renderer.info 为上一完整帧口径；分遍模式
+    // 为末遍口径，与 getViewportStats 同源）。节流去抖在 BudgetAlert 内（console 侧）
+    this.budgetAlert.frame(this.renderer.info.render.calls);
     // 帧成功：计数入滑动窗口（getViewportStats().fps 口径 = 已渲染帧）
     this.frameStats.tick();
     // 坐标轴指示器：主渲染后的第二个小 render（隐藏/无头时零开销空转）
@@ -876,6 +895,20 @@ export class Renderer {
       triangles: this.renderer.info.render.triangles,
       drawCalls: this.renderer.info.render.calls,
     };
+  }
+
+  /**
+   * LOD 分布双口径只读快照（T006.4，D27.9 归因数据——供 006.5 验收报表与调试）：
+   * 聚合散布链（chunk×source×level 自有桶 + 合并桶）与放置链（source×level 桶）的
+   * 各档实例数 / 各档桶数（口径见 runtime/lodDistribution 头注）。按需调用，不进帧路径。
+   */
+  getLodDistribution(): LodDistribution {
+    const counter = new LodDistributionCounter();
+    const scatter = this.scatter?.getLodDistribution();
+    if (scatter) counter.addDistribution(scatter);
+    const pool = this.instancedPool?.getLodDistribution();
+    if (pool) counter.addDistribution(pool);
+    return counter.snapshot();
   }
 
   /**

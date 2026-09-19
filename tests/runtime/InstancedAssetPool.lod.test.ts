@@ -10,6 +10,11 @@
  * - 迟滞防抖：阈值带内往返不换桶（桶集与源请求零 churn）、越线单次换档；
  * - 拾取跨档一致：任意档网格命中 → 同一业务 id；
  * - culled：超远实例槽写零缩放（复用隐藏实例语义）、单例 Mesh visible=false；回视恢复原矩阵；
+ * - 桶级提交跳过（T006.4，006.3 遗留治理面）：桶内全实例零像素（全 culled / 全隐藏）
+ *   → InstancedMesh 整体 visible=false（省整桶 draw call，画面零变化）；部分 renderable
+ *   → 保持提交；回视恢复同帧回 true；拾取语义不变（零缩放实例本就不可命中）；
+ * - LOD 分布双口径（T006.4，D27.9）：实例按当前展示表示、桶按提交口径（整桶隐藏计
+ *   culled）；
  * - 总开关：off = 全 High（跨桶迁移回 high）+ culled 旁路（超远不裁剪）；
  * - 单档资产（无 levels 声明）：恒 high、无 mid/low 源请求。
  * 边界：fake 源提供者按 (assetId × 槽 × level) 分源；几何包围手工钉死——选档输入
@@ -322,6 +327,96 @@ describe('InstancedAssetPool LOD：culled', () => {
     pool.frameLod(cameraForM(t.highToMid * 0.5), true);
     await flush();
     expect(soloMesh.visible).toBe(true);
+    pool.dispose();
+  });
+});
+
+// ── 桶级提交跳过（T006.4，006.3 遗留治理面）────────────────
+
+describe('InstancedAssetPool LOD：桶级提交跳过', () => {
+  it('桶内全 culled → InstancedMesh visible=false（整桶零提交）；回视恢复同帧回 true', async () => {
+    const { provider, sources } = makeLeveledProvider();
+    const pool = makeLodPool(provider);
+    // 同槽两对象（合桶）：都推超远 → 全 culled → 整桶跳过提交
+    const a = makeModel('a', 'asset_tree', transformAt(0, 0, 0), 5);
+    pool.attach(a);
+    pool.attach(makeModel('b', 'asset_tree', transformAt(2, 0, 0), 5 + SLOTS));
+    await flush();
+    const t = LOD_THRESHOLDS;
+
+    pool.frameLod(cameraForM(t.midToLow + (t.lowToCulled - t.midToLow) * 0.5), true);
+    await flush();
+    const lowMesh = meshHolding(pool, sourceOf(sources, 'asset_tree', 5, 'low').geometry)!;
+    expect(lowMesh.count).toBe(2);
+    expect(lowMesh.visible).toBe(true); // 部分渲染中（都未 culled）
+
+    pool.frameLod(cameraForM(t.lowToCulled * 1.1), true);
+    await flush();
+    expect(lowMesh.count).toBe(2); // 实例仍登记（真值在 entry）
+    expect(lowMesh.visible).toBe(false); // 全 culled → 整桶零提交（T006.4）
+
+    // 回视：越过 culled 升档线 → 同帧恢复提交与真值矩阵
+    pool.frameLod(cameraForM(t.midToLow + (t.lowToCulled - t.midToLow) * 0.5), true);
+    await flush();
+    expect(lowMesh.visible).toBe(true);
+    const probe = new THREE.Matrix4();
+    lowMesh.getMatrixAt(0, probe);
+    expect(probe.equals(expectedMatrix(a.transform))).toBe(true);
+    pool.dispose();
+  });
+
+  it('部分 culled 保持提交（renderable 实例仍在）；全隐藏（visible=false）同样整桶跳过', async () => {
+    const { provider, sources } = makeLeveledProvider();
+    const pool = makeLodPool(provider);
+    const a = makeModel('a', 'asset_tree', transformAt(0, 0, 0), 5);
+    const b = makeModel('b', 'asset_tree', transformAt(2, 0, 0), 5 + SLOTS);
+    pool.attach(a);
+    pool.attach(b);
+    await flush();
+    const t = LOD_THRESHOLDS;
+
+    // b 隐藏（图层/对象级）、a 可见：桶保持提交
+    pool.update('b', b.transform, false);
+    pool.frameLod(cameraForM(t.highToMid * 0.5), true);
+    await flush();
+    const highMesh = meshHolding(pool, sourceOf(sources, 'asset_tree', 5, 'high').geometry)!;
+    expect(highMesh.visible).toBe(true);
+
+    // a 也隐藏 → 全桶零像素 → 整桶跳过
+    pool.update('a', a.transform, false);
+    expect(highMesh.visible).toBe(false);
+
+    // a 恢复 → 整桶恢复提交
+    pool.update('a', a.transform, true);
+    expect(highMesh.visible).toBe(true);
+    pool.dispose();
+  });
+
+  it('LOD 分布双口径：实例按展示表示、桶按提交口径（整桶隐藏计 culled）', async () => {
+    const { provider } = makeLeveledProvider();
+    const pool = makeLodPool(provider);
+    pool.attach(makeModel('near', 'asset_tree', transformAt(0, 0, 0), 0)); // slot-0：恒 high 带
+    pool.attach(makeModel('far', 'asset_tree', transformAt(0, 0, 0), 1)); // slot-1：推 low → culled
+    await flush();
+    const t = LOD_THRESHOLDS;
+
+    pool.frameLod(cameraForM(t.highToMid * 0.5), true); // near high
+    await flush();
+    pool.frameLod(cameraForM(t.lowToCulled * 1.1), true); // far 对象超远 culled（near 也超远！）
+    await flush();
+    // 两对象同位同机位——都 culled：桶全隐藏计 culled、实例计 culled
+    let dist = pool.getLodDistribution();
+    expect(dist.instances.culled).toBe(2);
+    expect(dist.buckets.culled).toBe(2); // slot-0/slot-1 两 high 桶各自整桶跳过
+    expect(dist.buckets.high).toBe(0);
+
+    // 回近：near 桶与 far 桶都恢复 high 提交
+    pool.frameLod(cameraForM(t.highToMid * 0.5), true);
+    await flush();
+    dist = pool.getLodDistribution();
+    expect(dist.instances.high).toBe(2);
+    expect(dist.buckets.high).toBe(2);
+    expect(dist.buckets.culled).toBe(0);
     pool.dispose();
   });
 });

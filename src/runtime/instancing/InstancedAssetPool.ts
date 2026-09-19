@@ -69,6 +69,16 @@
  *      迁移时源未就绪：entry.pendingLevel 登记，源到达后回调迁移（迟到一帧可接受，
  *      旧档持续渲染到新档就绪——换档点无 pop）。LOD 总开关由 Renderer 持有并逐帧
  *      传入（off = 全 High + culled 旁路，经评估器语义）。
+ * 桶级提交跳过（T006.4，006.3 遗留治理面）：桶内全部实例零像素（全 hidden 或全 culled
+ *      ——零缩放口径）时 InstancedMesh 整体 visible=false（省 1 draw call/桶 + 逐顶点
+ *      提交；画面零变化——零缩放实例本就无像素）。恢复 = 任一实例回 renderable 同帧
+ *      置回 true（frameLod → writeEntryRenderState → refreshSubmitVisibility，回视恢复
+ *      路径不变）；拾取语义不变（零缩放实例本就不可命中，r186 raycaster 不跳 visible=
+ *      false 对象也无影响）；迁移/成员变化经 reconcile 尾步同步重算。split 诊断分组态
+ *      两侧网格独立判定（dimEntries / brightEntries 各自含 renderable 才提交）。
+ * LOD 分布双口径（T006.4，D27.9）：getLodDistribution 只读快照——实例按当前展示表示
+ *      （currentLod ?? 桶档）、桶按提交口径（提交中计桶档；整桶隐藏计 culled），
+ *      经 runtime/lodDistribution 纯计数器聚合（Renderer 出口合并两链）。
  */
 import type { ID, Transform } from '../../core/types';
 import { aSeedValueOf } from '../../domain/assets';
@@ -76,6 +86,8 @@ import type { ModelObject } from '../../domain/assets';
 import type { ProceduralLevel } from '../../domain/assets';
 import type { LodRepresentation } from '../../domain/lod/lodEvaluation';
 import { evaluateLodRepresentation } from '../../domain/lod/lodEvaluation';
+import type { LodDistribution } from '../lodDistribution';
+import { LodDistributionCounter } from '../lodDistribution';
 import { lodViewOfCamera } from './lodView';
 import * as THREE from 'three';
 
@@ -412,6 +424,30 @@ export class InstancedAssetPool {
     return null;
   }
 
+  /**
+   * LOD 分布双口径只读快照（T006.4，D27.9 归因数据）：实例按当前展示表示
+   * （entry.currentLod ?? 桶档——未评估回退所在桶档）、桶按提交口径（提交中的网格计其
+   * 桶档 + split 亮侧独立一桶；整桶零提交（全 culled/hidden 隐藏）计 culled——单例
+   * Mesh visible 同判）。O(桶+实例) 遍历，供验收报表/调试按需调用，不进帧路径。
+   */
+  getLodDistribution(): LodDistribution {
+    const counter = new LodDistributionCounter();
+    for (const pool of this.pools.values()) {
+      for (const entry of pool.entries) {
+        counter.add(entry.currentLod ?? pool.level, 1, 0);
+      }
+      const mesh = pool.instancedMesh;
+      if (mesh) {
+        counter.add(mesh.visible ? pool.level : 'culled', 0, 1);
+        if (pool.split && pool.split.highlightMesh.visible) counter.add(pool.level, 0, 1);
+      }
+      if (pool.singleMesh) {
+        counter.add(pool.singleMesh.visible ? pool.level : 'culled', 0, 1);
+      }
+    }
+    return counter.snapshot();
+  }
+
   // ── LOD 帧路径（T006.3；Renderer 块剔除后、render 前调用）─────────
 
   /**
@@ -578,11 +614,39 @@ export class InstancedAssetPool {
       pool.singleMesh.userData.objectId = entry.id; // 单例反查随写随新
       this.applyEntryToObject(pool.singleMesh, entry);
     }
+    this.refreshSubmitVisibility(pool); // T006.4：culled 开关可能翻转整桶提交态
   }
 
   /** 槽矩阵取值：culled → 零缩放（复用隐藏实例语义）；否则 entry 真值矩阵 */
   private slotMatrixOf(entry: PoolEntry): THREE.Matrix4 {
     return entry.culled ? ZERO_SCALE_MATRIX : entry.matrix;
+  }
+
+  /** 实例是否提交像素：visible ∧ 非 culled（零缩放实例零像素——提交跳过判据） */
+  private isRenderable(entry: PoolEntry): boolean {
+    return entry.visible && !entry.culled;
+  }
+
+  /**
+   * 桶级提交跳过（T006.4，006.3 遗留面）：桶内无任何 renderable 实例 → InstancedMesh
+   * 整体 visible=false（three 对 visible=false 零提交——省整桶 draw call 与逐顶点提交，
+   * 画面零变化：全零缩放实例本就无像素）。split 态两侧独立判定；单例 Mesh 不经此处
+   * （applyEntryToObject 已合成 visible = visible ∧ ¬culled）。调用点 = 桶成员/渲染态
+   * 变化路径收尾（reconcile / writeEntry / writeEntryRenderState）——任一实例回
+   * renderable 即整桶恢复提交，回视恢复语义与 006.3 一致。
+   */
+  private refreshSubmitVisibility(pool: AssetPool): void {
+    const split = pool.split;
+    if (split) {
+      if (pool.instancedMesh) {
+        pool.instancedMesh.visible = split.dimEntries.some((entry) => this.isRenderable(entry));
+      }
+      split.highlightMesh.visible = split.brightEntries.some((entry) => this.isRenderable(entry));
+      return;
+    }
+    if (pool.instancedMesh) {
+      pool.instancedMesh.visible = pool.entries.some((entry) => this.isRenderable(entry));
+    }
   }
 
   // ── 诊断分组（T8.4 islands；Renderer 在模式切换时一次性调用，不进帧路径） ──
@@ -790,6 +854,7 @@ export class InstancedAssetPool {
     if (count === 1 && !this.hasSeedEntry(pool)) this.activateSingle(pool, source);
     else this.activateInstanced(pool, source);
     this.applyDiagnostic(pool); // T8.4：激活时按分类落侧；未激活恢复统一 layer 0（幂等）
+    this.refreshSubmitVisibility(pool); // T006.4：桶级提交跳过（成员/迁移后重算整桶可提交性）
   }
 
   /** 池内是否存在带 seed 的 entry（aSeed 缓冲与单实例退化规则的判据） */
@@ -1032,6 +1097,7 @@ export class InstancedAssetPool {
       pool.singleMesh.userData.objectId = entry.id; // 单例反查随写随新
       this.applyEntryToObject(pool.singleMesh, entry);
     }
+    this.refreshSubmitVisibility(pool); // T006.4：visible 翻转可能翻转整桶提交态
   }
 
   /** 登记矩阵 → Object3D（单例 Mesh 用；锚点走 applyTransformTo 精确欧拉角；

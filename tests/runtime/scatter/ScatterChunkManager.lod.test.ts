@@ -5,8 +5,11 @@
  * - 选档带：近 high → 中 mid → 远 low → 超远 culled（网格 visible=false、桶保留）→ 回视恢复；
  * - 迟滞防抖：降档过名义线立即执行；阈值带内往返不抖动换档（桶/源请求零churn）；
  *   升档越过 名义边界×(1−band) 才回档；
- * - 换档重建实例完整：确定性重撒（同 seed）跨档 count/矩阵/逐实例色逐位一致；桶 = 当档
- *   源 geometry/material 成套（D27.4「不做桶内换 Source」）；
+ * - 换档重建实例完整（T006.4 语义更新——抽稀只作用于降档方向）：确定性重撒（同 seed
+ *   同档逐位一致）；high/mid 全保真（keep=1，count/矩阵/逐实例色跨档逐位一致）；low 档
+ *   按 BATCH_POLICY.levelInstanceKeep.low 确定性抽稀（保留集 = 实例稳定序过滤，矩阵/色
+ *   与真相源对应下标逐位一致——subset 断言不绕开）；桶 = 当档源 geometry/material
+ *   成套（D27.4「不做桶内换 Source」）；
  * - 拾取跨档一致：任意档网格命中 → 同一源 id；culled 网格不可拾取；
  * - 总开关：off = 全 High（mid/low 桶确定性重建回 high）+ culled 旁路；
  * - 块生命周期：局部重算保档（内容编辑不改档位状态）、区域扩块新块评估收敛同档、
@@ -18,6 +21,7 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
+import { BATCH_POLICY, keepThinnedInstance } from '../../../src/domain/lod/batchPolicy';
 import { LOD_THRESHOLDS } from '../../../src/domain/lod/lodPolicy';
 import type { ProceduralLevel } from '../../../src/domain/assets';
 import type { ScatterInstance, ScatterParams } from '../../../src/domain/scatter';
@@ -261,8 +265,8 @@ describe('ScatterChunkManager LOD：迟滞防抖', () => {
 
 // ── 换档重建实例完整 ────────────────────────────────────────
 
-describe('ScatterChunkManager LOD：换档重建实例完整（确定性重撒）', () => {
-  it('跨档 count/矩阵/逐实例色逐位一致；桶 = 当档源 geometry/material 成套', async () => {
+describe('ScatterChunkManager LOD：换档重建实例完整（确定性重撒 + T006.4 降档抽稀）', () => {
+  it('high/mid 全保真逐位一致；low 按 BATCH_POLICY 确定性抽稀（保留集 ⊂ 真相源、同档双跑逐位一致）', async () => {
     const { provider, sources } = makeLeveledProvider();
     const m = new ScatterChunkManager({
       provideSource: provider,
@@ -283,18 +287,45 @@ describe('ScatterChunkManager LOD：换档重建实例完整（确定性重撒�
     expect(high.mesh.count).toBe(truth.length);
     expect(colors).not.toBeNull(); // hueJitter → instanceColor 存在
 
-    // high → mid → low：实例集合逐位一致（同 seed 确定性），只换当档成套源
-    for (const level of ['mid', 'low'] as const) {
-      const targetM = level === 'mid' ? t.highToMid * 1.1 : t.midToLow * 1.1;
-      await settleAt(m, cameraAtM(targetM));
-      const mesh = activeMeshOf(m, sources, 'asset_tree')!;
-      expect(mesh.level).toBe(level);
-      expect(mesh.mesh.geometry).toBe(sourceOf(sources, 'asset_tree', level).geometry);
-      expect(mesh.mesh.material).toBe(sourceOf(sources, 'asset_tree', level).material);
-      expect(mesh.mesh.count).toBe(truth.length);
-      expect(matrixSnapshot(mesh.mesh)).toEqual(matrices);
-      expect(colorSnapshot(mesh.mesh)).toEqual(colors);
-    }
+    // high → mid：keep=1（BATCH_POLICY.levelInstanceKeep.mid 全保真）——count/矩阵/色逐位一致
+    await settleAt(m, cameraAtM(t.highToMid * 1.1));
+    const mid = activeMeshOf(m, sources, 'asset_tree')!;
+    expect(mid.level).toBe('mid');
+    expect(mid.mesh.geometry).toBe(sourceOf(sources, 'asset_tree', 'mid').geometry);
+    expect(mid.mesh.material).toBe(sourceOf(sources, 'asset_tree', 'mid').material);
+    expect(mid.mesh.count).toBe(truth.length);
+    expect(matrixSnapshot(mid.mesh)).toEqual(matrices);
+    expect(colorSnapshot(mid.mesh)).toEqual(colors);
+
+    // mid → low：远档抽稀（T006.4 语义——密度降级只作用于降档方向）
+    await settleAt(m, cameraAtM(t.midToLow * 1.1));
+    const low = activeMeshOf(m, sources, 'asset_tree')!;
+    expect(low.level).toBe('low');
+    expect(low.mesh.geometry).toBe(sourceOf(sources, 'asset_tree', 'low').geometry);
+    expect(low.mesh.material).toBe(sourceOf(sources, 'asset_tree', 'low').material);
+    // 期望保留集：按实例稳定序的确定性规则（domain keepThinnedInstance——测试与实现共用
+    // 同一纯函数契约，规则本身的性质由 batchPolicy 测试锁定）
+    const keep = BATCH_POLICY.levelInstanceKeep.low;
+    const keptIndices: number[] = [];
+    for (let i = 0; i < truth.length; i++) if (keepThinnedInstance(i, keep)) keptIndices.push(i);
+    expect(low.mesh.count).toBe(keptIndices.length);
+    // 保留集实例 = 真相源对应下标（矩阵与色逐位一致——subset 断言，非绕开）
+    const keptMatrices = Float32Array.from(
+      keptIndices.flatMap((i) => Array.from(matrices.subarray(i * 16, (i + 1) * 16))),
+    );
+    const keptColors = Float32Array.from(
+      keptIndices.flatMap((i) => Array.from(colors!.subarray(i * 3, (i + 1) * 3))),
+    );
+    expect(matrixSnapshot(low.mesh)).toEqual(keptMatrices);
+    expect(colorSnapshot(low.mesh)).toEqual(keptColors);
+
+    // 同档确定性：low → mid → low 双跑，抽稀结果逐位一致
+    await settleAt(m, cameraAtM(t.highToMid * 1.1));
+    await settleAt(m, cameraAtM(t.midToLow * 1.1));
+    const lowAgain = activeMeshOf(m, sources, 'asset_tree')!;
+    expect(lowAgain.level).toBe('low');
+    expect(matrixSnapshot(lowAgain.mesh)).toEqual(keptMatrices);
+    expect(colorSnapshot(lowAgain.mesh)).toEqual(keptColors);
     m.dispose();
   });
 

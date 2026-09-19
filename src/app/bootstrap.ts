@@ -361,13 +361,18 @@ export interface ScatterSmokeHandle {
   scatter(opts?: ScatterSmokeOptions): void;
   /** 摘除源（无参 = 摘除本钩子 scatter 过的全部源） */
   clear(id?: string): void;
-  /** 运行态：drawCalls/triangles 取 renderer.getViewportStats（上一完整帧），块统计取散布管线 */
+  /** 运行态：drawCalls/triangles 取 renderer.getViewportStats（上一完整帧），块统计取散布管线，
+   *  lod = LOD 分布双口径（T006.4 D27.9：各档实例数 + 各档桶数，两链聚合） */
   stats(): {
     drawCalls: number;
     triangles: number;
     totalChunks: number;
     visibleChunks: number;
     instances: number;
+    lod: {
+      instances: Record<string, number>;
+      buckets: Record<string, number>;
+    };
   };
 }
 
@@ -787,7 +792,13 @@ export function createEditor(canvas: HTMLCanvasElement | null, opts: CreateEdito
       stats() {
         const chunks = renderer.scatter?.getStats() ?? { totalChunks: 0, visibleChunks: 0, instances: 0 };
         const view = renderer.getViewportStats();
-        return { drawCalls: view.drawCalls, triangles: view.triangles, ...chunks };
+        const lod = renderer.getLodDistribution();
+        return {
+          drawCalls: view.drawCalls,
+          triangles: view.triangles,
+          ...chunks,
+          lod: { instances: { ...lod.instances }, buckets: { ...lod.buckets } },
+        };
       },
     };
     window.__scatterSmoke = scatterSmoke;

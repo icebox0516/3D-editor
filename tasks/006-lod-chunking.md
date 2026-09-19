@@ -34,7 +34,7 @@
 - [x] T006.1 LOD 公共语义层（done 2026-09-19：lodPolicy 候选常量 + evaluateLodRepresentation 纯函数——统一度量 m/单边迟滞/不完整链跳档/总开关语义；+38 测试 → 2585 全绿）→ [006.1-lod-semantics.md](006.1-lod-semantics.md)
 - [x] T006.2 非植物第二资产档位验证（done 2026-09-19：路灯两档 High 328 / Low 136 面——009.6 契约跨资产复用验证 + SourceCache 无族多档键 `assetId::level` 扩展；+16 测试 → 2601 全绿）→ [006.2-second-asset-levels.md](006.2-second-asset-levels.md)
 - [x] T006.3 块×档分桶+换档（done 2026-09-19：两链接线 006.1 评估器——散布 chunk×source×level 确定性重撒换档 / 放置 source×level 跨桶迁移 + 帧内时序 + 迟滞 + 拾取跨档一致 + 总开关；+23 测试，合并态 2624 全绿）→ [006.3-chunk-lod-bucketing.md](006.3-chunk-lod-bucketing.md)
-- [ ] T006.4 批次控制 → [006.4-batch-control.md](006.4-batch-control.md)
+- [x] T006.4 批次控制（done 2026-09-19：BATCH_POLICY 候选常量 + 确定性抽稀 + 粗档稀疏块 2×2 超块合并 + 桶级提交跳过 + 预算 650 节流告警 + LOD 分布双口径；10 万实例 531 ≤ 650 压测留档；+33 测试 → 2657 全绿）→ [006.4-batch-control.md](006.4-batch-control.md)
 - [ ] T006.5 T006 验收门 → [006.5-acceptance.md](006.5-acceptance.md)
 
 依赖：006.1 →（006.2 ∥ 006.3）→ 006.4 → 006.5（006.3 另需 T003.2 已完成、T009.6 已交付档位内容）。
@@ -45,3 +45,4 @@
 - 2026-09-19 006.1 done（1/5）：LOD 公共语义层落地——选档评估器纯函数 + 全局策略常量（候选值）+ 总开关语义；006.2 ∥ 006.3 解锁。
 - 2026-09-19 006.2 done（2/5）：非植物第二消费者验证——路灯 High/Low 两档（328/136 面）+ SourceCache 无族多档键扩展（assetId::level，单档/未声明逐位保持旧行为）；006.3 消费面就绪。
 - 2026-09-19 006.3 done（3/5，与 006.2 并行交付）：两链选档接线落地——Renderer 帧内时序（controls 后 render 前）、迟滞 current 两链私有持有、换档点像素取证无 pop 无抖动；遗留面归 006.4：桶内全 culled 跳过提交、drawCalls 峰值治理、LOD_THRESHOLDS 实测锁定；换档点前后帧人工复核窗口开放至 006.5 验收门（D27.10）。006.4 解锁。
+- 2026-09-19 006.4 done（4/5）：批次控制落地——批次治理三面（抽稀/合并/预算）+ 桶级提交跳过 + LOD 分布双口径（D27.9）；10 万路灯压测 drawCalls 531 ≤ 预算 650（off 对照 7,773 → 95.6%↓）；BATCH_POLICY 数值全候选移交 006.5 实测锁定。006.5 验收门解锁（含换档点人工复核窗口 D27.10 + LOD_THRESHOLDS 实测锁定）。
