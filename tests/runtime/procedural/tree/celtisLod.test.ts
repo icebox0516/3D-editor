@@ -1,61 +1,58 @@
 /**
- * tests/runtime/procedural/tree/tree3aLod.test.ts —— 夏栎 LOD 三档几何不变量测试
- * （T009.6，正式化已删探针 __lod-probe 的打印观察——本文件全部断言）。
+ * tests/runtime/procedural/tree/celtisLod.test.ts —— 朴树 LOD 三档几何不变量测试
+ * （T011.1，对称夏栎 tree3aLod 组织——方法复制首跑；快照数为朴树自己的实测锚）。
  *
- * 覆盖（零 mock——真实几何生成；直调 buildTree3aGeometry 三档，与资产路由测试
- * （asset_tree_3a.test.ts）互补——本文件锁「档间不变量怎么成立」，那边锁「build
- * 契约怎么传 level」）：
+ * 覆盖（零 mock——真实几何生成；直调 buildCeltisGeometry 三档，与资产入口契约互补——
+ * 本文件锁「档间不变量怎么成立」）：
  * - High 逐位不动：缺省调用（profile + level 双缺省）= 显式 'high' 逐位相等；slot-0
- *   皮面 20724 / rng 消费 177234 快照延续（009.1–009.4 路径不回归的纪律锁）；
- * - rng 三档恒等：同 seed 三档 rng 消费次数全等 177234（「发射省略不省略消费」纪律——
- *   Mid/Low 被省略发射的站点/叶候选照常足额消费，消费序列档间一致是簇表/通道/候选
- *   跨档全等的前提）；
+ *   皮面 24178 / rng 消费 155072 快照延续（快照口径 = 槽内跨档恒等；跨槽消费数随保留
+ *   簇数 ±数据分支无关地恒定——保留簇 × 每簇 16 候选，槽间保留簇数不同故总数不同，
+ *   夏栎同机制）；
+ * - rng 三档恒等：同 seed 三档 rng 消费次数全等 155072（「发射省略不省略消费」纪律）；
  * - 档间同源账目：mid/low 的 stats.clusters / clustersCulled / channels / leafCandidates
- *   与 high 逐位全等（簇位表与候选生成不随档变化——Low 壳卡 = High 簇位表驱动的前提）；
+ *   与 high 逐位全等（Low 壳卡 = High 簇位表驱动的前提）；
  * - Mid ⊂ High：Mid 存活卡是 High 存活卡的逐位子集（XZ 位置块精确匹配 + 匹配卡 Y 差
- *   恒为单一贴地平移常量——几何尾部 minY 平移只改 Y，Mid 皮面采样不同致偏移档间不同；
- *   j % 3 === 1 掩码只作用于烘焙阶段；Mid 逐簇烘焙叶量 ≤ High 同簇；卡数比 ≈ 7/22
- *   统计口径复核；slot-0/6/7 三槽取证：卡数最少 / 最多 + 锚点）；
+ *   恒为单一贴地平移常量；j % 3 === 1 掩码只作用于烘焙阶段）；Mid 逐簇烘焙叶量 ≤ High
+ *   同簇；卡数比 ≈ 5/16 统计口径复核；slot-0/6/7 三槽取证（卡数最少 / 最多 + 锚点）；
  * - Low 壳卡账目：leafCards = 保留簇 × 2、leafTriangles = 保留簇 × 4（8 槽全扫）；
- * - 预算锁定（D19.8）：8 槽 × 3 档总面落锁定预算 High ≤ 40000 / Mid 6000–10000 /
- *   Low 1500–3000（锁定账目与依据见 asset_tree_3a.asset 模块头）；
- * - 档间 bbox 一致：同槽三档 XZ 跨 / 总高差 ≤ 0.4m（LOW_SHELL_MARGIN 口径）、
- *   minY 三档全 0（贴地平移语义不随档变化）；
+ * - 预算锁定（D19.8，家族行沿用）：8 槽 × 3 档总面落锁定预算 High ≤ 40000 / Mid
+ *   6000–10000 / Low 1500–3000（锁定账目与依据见 asset_tree_celtis.asset 模块头）；
+ * - 恰 2 组（皮 0 / 叶 1，D15）；档间 bbox 一致：同槽三档 XZ 跨 / 总高差 ≤ 0.4m
+ *   （LOW_SHELL_MARGIN 口径）、minY 三档全 0；
  * - Mid/Low 确定性：同 seed 同档两次构建 position/aBend 逐位复现、stats 全等；
  * - 法线健康：三档法线属性存在且逐分量有限无 NaN（Low 壳卡水平法线同样覆盖）。
- * 边界：构建产物 afterEach 统一 dispose；8 槽 × 3 档横扫集中在单测试内复用 24 次构建
- *      （预算/bbox/壳卡账目/法线四类断言一次跑完，避免逐 describe 重复构建拖慢）。
+ * 边界：构建产物 afterEach 统一 dispose；8 槽 × 3 档横扫集中在单测试内复用 24 次构建。
  */
 import { afterEach, describe, expect, it } from 'vitest';
 import { mulberry32 } from '../../../../src/core/random';
 import { morphSeedOf } from '../../../../src/domain/assets';
 import type { ProceduralLevel } from '../../../../src/domain/assets';
-import { buildTree3aGeometry } from '../../../../src/runtime/procedural/tree/tree3a/tree3aGeometry';
-import type { Tree3aGeometryResult } from '../../../../src/runtime/procedural/tree/tree3a/tree3aGeometry';
-import { TREE3A_SHAPE_PROFILES } from '../../../../src/runtime/procedural/tree/tree3a/tree3aShapeProfile';
+import { buildCeltisGeometry } from '../../../../src/runtime/procedural/tree/celtis/celtisGeometry';
+import type { CeltisGeometryResult } from '../../../../src/runtime/procedural/tree/celtis/celtisGeometry';
+import { CELTIS_SHAPE_PROFILES } from '../../../../src/runtime/procedural/tree/celtis/celtisShapeProfile';
 
 const LEVELS: ProceduralLevel[] = ['high', 'mid', 'low'];
-const SEED0 = morphSeedOf('asset_tree_3a', 0);
-/** rng 消费快照（三档恒等——009.1 起延续，任何条件跳过消费都违约） */
-const RNG_CALLS_LOCK = 177234;
-/** High slot-0 皮面快照（皮拓扑恒等不动——tree3aStructure 同款锁） */
-const BARK_TRIS_LOCK = 20724;
-/** 档间 bbox 容差（LOW_SHELL_MARGIN 口径——见 tree3aGeometry 常量注释） */
+const SEED0 = morphSeedOf('asset_tree_celtis', 0);
+/** rng 消费快照（slot-0 三档恒等——任何条件跳过消费都违约；槽内快照，跨槽随保留簇数变化） */
+const RNG_CALLS_LOCK = 155072;
+/** High slot-0 皮面快照（皮拓扑恒等不动——celtisStructure 同款锁） */
+const BARK_TRIS_LOCK = 24178;
+/** 档间 bbox 容差（LOW_SHELL_MARGIN 口径——见 celtisGeometry 常量注释） */
 const SPAN_TOLERANCE = 0.4;
 
-const built: Tree3aGeometryResult[] = [];
+const built: CeltisGeometryResult[] = [];
 
-function track(result: Tree3aGeometryResult): Tree3aGeometryResult {
+function track(result: CeltisGeometryResult): CeltisGeometryResult {
   built.push(result);
   return result;
 }
 
 /** 槽位构建（seed + 槽 profile + 档位——与资产路径 profileForSeed 同路由口径） */
-function buildSlot(slot: number, level: ProceduralLevel = 'high'): Tree3aGeometryResult {
+function buildSlot(slot: number, level: ProceduralLevel = 'high'): CeltisGeometryResult {
   return track(
-    buildTree3aGeometry(
-      mulberry32(morphSeedOf('asset_tree_3a', slot)),
-      TREE3A_SHAPE_PROFILES[Math.min(slot, TREE3A_SHAPE_PROFILES.length - 1)]!,
+    buildCeltisGeometry(
+      mulberry32(morphSeedOf('asset_tree_celtis', slot)),
+      CELTIS_SHAPE_PROFILES[Math.min(slot, CELTIS_SHAPE_PROFILES.length - 1)]!,
       level,
     ),
   );
@@ -66,7 +63,7 @@ afterEach(() => {
 });
 
 /** bbox 跨度账目（XZ 最大水平跨 / 总高 / minY） */
-function spanOf(result: Tree3aGeometryResult): { xz: number; y: number; minY: number } {
+function spanOf(result: CeltisGeometryResult): { xz: number; y: number; minY: number } {
   result.geometry.computeBoundingBox();
   const b = result.geometry.boundingBox!;
   return {
@@ -79,7 +76,7 @@ function spanOf(result: Tree3aGeometryResult): { xz: number; y: number; minY: nu
 /** 叶组逐卡 XZ 位置块键（6 顶点 × x,z 共 12 分量 join）+ 首顶点 Y——Mid ⊂ High 匹配口径：
  *  几何尾部 minY 贴地平移只改 Y 分量，Mid 皮面采样不同 → 全局 Y 偏移档间不同，raw Y
  *  不可逐位比；X/Z 不受平移影响逐位可比，公共卡 Y 差 = 单一常量偏移（贴地平移差） */
-function leafCardXZ(result: Tree3aGeometryResult): { keys: string[]; y0: number[] } {
+function leafCardXZ(result: CeltisGeometryResult): { keys: string[]; y0: number[] } {
   const leaf = result.geometry.groups[1]!;
   const pos = result.geometry.getAttribute('position');
   const keys: string[] = [];
@@ -97,7 +94,7 @@ function leafCardXZ(result: Tree3aGeometryResult): { keys: string[]; y0: number[
 
 describe('High 逐位不动（缺省档回归锁）', () => {
   it('缺省调用（profile + level 双缺省）= 显式 high：position/aBend 数组与 stats 逐位全等', () => {
-    const a = track(buildTree3aGeometry(mulberry32(SEED0)));
+    const a = track(buildCeltisGeometry(mulberry32(SEED0)));
     const b = buildSlot(0, 'high');
     expect(a.geometry.getAttribute('position').array).toEqual(b.geometry.getAttribute('position').array);
     expect(a.geometry.getAttribute('aBend').array).toEqual(b.geometry.getAttribute('aBend').array);
@@ -108,12 +105,12 @@ describe('High 逐位不动（缺省档回归锁）', () => {
     const stream = mulberry32(SEED0);
     let calls = 0;
     const { stats } = track(
-      buildTree3aGeometry(
+      buildCeltisGeometry(
         () => {
           calls++;
           return stream();
         },
-        TREE3A_SHAPE_PROFILES[0]!,
+        CELTIS_SHAPE_PROFILES[0]!,
         'high',
       ),
     );
@@ -128,12 +125,12 @@ describe('rng 消费三档恒等（发射省略不省略消费）', () => {
       const stream = mulberry32(SEED0);
       let calls = 0;
       track(
-        buildTree3aGeometry(
+        buildCeltisGeometry(
           () => {
             calls++;
             return stream();
           },
-          TREE3A_SHAPE_PROFILES[0]!,
+          CELTIS_SHAPE_PROFILES[0]!,
           level,
         ),
       );
@@ -156,15 +153,15 @@ describe('档间同源账目（簇位表 / 通道 / 候选不随档变化）', (
 });
 
 describe('Mid ⊂ High（j % 3 === 1 掩码只在烘焙阶段生效）', () => {
-  it('Mid 存活卡 XZ 位置块逐位 ∈ High 卡集（Y 差 = 单一贴地平移常量）、逐簇烘焙叶量 ≤ High 同簇、卡数比 ≈ 7/22（slot-0/6/7）', () => {
+  it('Mid 存活卡 XZ 位置块逐位 ∈ High 卡集（Y 差 = 单一贴地平移常量）、逐簇烘焙叶量 ≤ High 同簇、卡数比 ≈ 5/16（slot-0/6/7）', () => {
     for (const slot of [0, 6, 7]) {
       const high = buildSlot(slot);
       const mid = buildSlot(slot, 'mid');
-      // 掩码统计口径：Mid 卡数 ≈ High 存活卡 × 7/22（31.8%——±10% 带内复核）
+      // 掩码统计口径：Mid 卡数 ≈ High 存活卡 × 5/16（31.25%——±10% 带内复核）
       expect(mid.stats.leafCards, `slot-${slot} Mid 应有存活卡`).toBeGreaterThan(0);
       const ratio = mid.stats.leafCards / high.stats.leafCards;
-      expect(ratio, `slot-${slot} Mid/High 卡数比应 ≈ 7/22（实测 ${ratio.toFixed(4)}）`).toBeGreaterThan((7 / 22) * 0.9);
-      expect(ratio).toBeLessThan((7 / 22) * 1.1);
+      expect(ratio, `slot-${slot} Mid/High 卡数比应 ≈ 5/16（实测 ${ratio.toFixed(4)}）`).toBeGreaterThan((5 / 16) * 0.9);
+      expect(ratio).toBeLessThan((5 / 16) * 1.1);
       // 逐位子集（XZ 口径）：Mid 每张卡 6 顶点 XZ 块在 High 卡集中逐位存在；匹配对
       // Y 差恒为同一常量（= 档间 minY 贴地平移差——掩码过滤不改卡几何，只平移整树）
       const midCards = leafCardXZ(mid);
@@ -201,15 +198,19 @@ describe('Mid/Low 确定性（同 seed 同档逐位复现）', () => {
   }, 60000);
 });
 
-describe('8 槽 × 3 档横扫（预算锁定 / Low 壳卡账目 / 档间 bbox 一致 / 法线健康）', () => {
-  it('总面落锁定预算（High ≤40K / Mid 6–10K / Low 1.5–3K，D19.8）；同槽三档跨度差 ≤0.4m、minY 全 0；Low 壳卡 = 簇 × 2；法线有限', () => {
+describe('8 槽 × 3 档横扫（预算锁定 / 恰 2 组 / Low 壳卡账目 / 档间 bbox 一致 / 法线健康）', () => {
+  it('总面落锁定预算（High ≤40K / Mid 6–10K / Low 1.5–3K，D19.8）；恰 2 组；同槽三档跨度差 ≤0.4m、minY 全 0；Low 壳卡 = 簇 × 2；法线有限', () => {
     for (let slot = 0; slot < 8; slot++) {
       const spans = {} as Record<ProceduralLevel, { xz: number; y: number; minY: number }>;
       const leafCardsByLevel = {} as Record<ProceduralLevel, number>;
       for (const level of LEVELS) {
         const r = buildSlot(slot, level);
         const total = r.stats.barkTriangles + r.stats.leafTriangles;
-        // 预算锁定（锁定账目与依据见 asset_tree_3a.asset 模块头）
+        // 恰 2 组（皮 0 / 叶 1，D15 免组膨胀）
+        expect(r.geometry.groups, `slot-${slot} ${level} 应恰 2 组`).toHaveLength(2);
+        expect(r.geometry.groups[0]!.materialIndex).toBe(0);
+        expect(r.geometry.groups[1]!.materialIndex).toBe(1);
+        // 预算锁定（锁定账目与依据见 asset_tree_celtis.asset 模块头）
         if (level === 'high') {
           expect(total, `slot-${slot} High 总面应 ≤ 40000（上限预算）`).toBeLessThanOrEqual(40000);
         } else if (level === 'mid') {

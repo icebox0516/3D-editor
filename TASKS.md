@@ -4,7 +4,7 @@
 
 ## Current
 
-（T006 已收官——下一个建议：T011 第一批阔叶乔木，待启动）
+- [~] T011 第一批阔叶乔木（1/5；011.1 朴树 done 2026-09-19：首树方法复制成立——家族契约零修改实例化、十项 9/9 过、2746 零回归；下一步 011.2 香樟）→ [tasks/011-broadleaf-trees.md](tasks/011-broadleaf-trees.md)
 
 ## Done（近）
 
@@ -55,7 +55,6 @@
 - [ ] T004 Style Gallery（0/3）→ [tasks/004-style-gallery.md](tasks/004-style-gallery.md)
 - [ ] T005 Animation Pathway（0/3）→ [tasks/005-animation-pathway.md](tasks/005-animation-pathway.md)
 - [ ] T007 Bake Scatter（可选；启动前 grill 拷问门见任务书）→ [tasks/007-bake-scatter.md](tasks/007-bake-scatter.md)
-- [ ] T011 第一批阔叶乔木：朴树 / 香樟 / 榉树 / 银杏【占位】
 - [ ] T012 针叶族【占位】
 - [ ] T013 花木族【占位】
 - [ ] T014 灌木族【占位】

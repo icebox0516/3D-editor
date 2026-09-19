@@ -25,13 +25,14 @@ import {
 import { collectProceduralAssetMetas, getProceduralBuild } from '../../../../src/runtime/procedural/routes';
 import type { InstanceSource } from '../../../../src/runtime/instancing/InstancedAssetPool';
 
-/** 11 资产归类映射表（整表锁——值域依据与 GLB 侧映射见 docs/procedural-assets/metadata-taxonomy.md） */
+/** 12 资产归类映射表（整表锁——值域依据与 GLB 侧映射见 docs/procedural-assets/metadata-taxonomy.md） */
 const EXPECTED_TAXONOMY: Record<string, { category: AssetTaxonomyCategory; family?: AssetTaxonomyFamily }> = {
   asset_flower: { category: 'plant' }, // family 不填：草本/地被族（T015）落地时再定值
   asset_shrub: { category: 'plant', family: 'shrub' },
   asset_oak: { category: 'plant', family: 'broadleaf' },
   asset_pine: { category: 'plant', family: 'conifer' },
   asset_tree_3a: { category: 'plant', family: 'broadleaf' },
+  asset_tree_celtis: { category: 'plant', family: 'broadleaf' }, // T011.1 朴树——阔叶家族第二实例
   asset_signpost: { category: 'facility', family: 'road-facility' },
   asset_trashbin: { category: 'facility', family: 'public-facility' },
   asset_streetlamp: { category: 'facility', family: 'road-facility' },

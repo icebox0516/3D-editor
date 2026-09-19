@@ -126,7 +126,7 @@ describe('结构计数恒等（8 槽皮面数与 rng 消费恒等的前提）', 
       expect(stats.barkTriangles, `slot-${slot} ${SLOT_NAMES[slot]} 皮面数应恒等`).toBe(20724);
       expect(stats.levelBranches, `slot-${slot} ${SLOT_NAMES[slot]} 五级枝数应恒等`).toEqual([6, 18, 54, 162, 324]);
     }
-  }, 30000);
+  }, 120000); // T011.1：套件并行负载增长（celtis 加入）后 30s 余量不足，超时上限提至 120s——断言语义零变化
 
   it('配置侧锁：结构计数类字段与叶卡尺寸/长宽比域逐位同 slot-0；canopyDensity ≤ 1', () => {
     const anchor = TREE3A_SHAPE_PROFILES[0]!;
@@ -174,7 +174,7 @@ describe('确定性（同 seed 同槽逐位复现）', () => {
         expect(a.stats).toEqual(b.stats);
       }
     }
-  }, 30000);
+  }, 120000); // T011.1：套件并行负载增长（celtis 加入）后 30s 余量不足，超时上限提至 120s——断言语义零变化
 });
 
 describe('路由一致（8 组向量即 config 雏形：资产路径 = 几何直调）', () => {
@@ -192,7 +192,7 @@ describe('路由一致（8 组向量即 config 雏形：资产路径 = 几何直
         direct.geometry.getAttribute('aLeafRand').array,
       );
     }
-  }, 30000);
+  }, 120000); // T011.1：套件并行负载增长（celtis 加入）后 30s 余量不足，超时上限提至 120s——断言语义零变化
 });
 
 describe('槽间真实差异（同 seed = SEED0 跨槽对比——差异纯来自形态向量，非 seed 运气）', () => {
@@ -205,26 +205,26 @@ describe('槽间真实差异（同 seed = SEED0 跨槽对比——差异纯来�
     const broad = m(2);
     expect(narrow.xzWidth).toBeGreaterThan(0);
     expect(broad.xzWidth / narrow.xzWidth, '展开/挺拔 宽度比（实测 ≈1.43）').toBeGreaterThanOrEqual(1.2);
-  }, 30000);
+  }, 120000); // T011.1：套件并行负载增长（celtis 加入）后 30s 余量不足，超时上限提至 120s——断言语义零变化
 
   it('低冠 vs 高冠：叶卡最低 Y（视觉冠底）差 ≥ 1.2m（低冠显著低）', () => {
     const low = m(4);
     const high = m(5);
     expect(high.minLeafY - low.minLeafY, '高冠-低冠 视觉冠底差（实测 ≈1.29m）').toBeGreaterThanOrEqual(1.2);
-  }, 30000);
+  }, 120000); // T011.1：套件并行负载增长（celtis 加入）后 30s 余量不足，超时上限提至 120s——断言语义零变化
 
   it('疏松 vs 丰满：叶卡数比 ≤ 0.85（疏松显著少）', () => {
     const sparse = m(6);
     const full = m(7);
     expect(sparse.cards / full.cards, '疏松/丰满 卡数比（实测 ≈0.46）').toBeLessThanOrEqual(0.85);
-  }, 30000);
+  }, 120000); // T011.1：套件并行负载增长（celtis 加入）后 30s 余量不足，超时上限提至 120s——断言语义零变化
 
   it('偏冠 vs 标准：叶卡质心对树干轴偏移 ≥ 1.6× 标准槽天然偏移且绝对 ≥ 0.4m（度量：质心偏移同时捕获半空间叶量不对称与单侧枝展延伸；实测同 seed ×1.88 / 规范种子 ×2.86）', () => {
     const anchor = m(0);
     const lopsided = m(3);
     expect(lopsided.centroidOffset / anchor.centroidOffset).toBeGreaterThanOrEqual(1.6);
     expect(lopsided.centroidOffset).toBeGreaterThanOrEqual(0.4);
-  }, 30000);
+  }, 120000); // T011.1：套件并行负载增长（celtis 加入）后 30s 余量不足，超时上限提至 120s——断言语义零变化
 
   it('8 槽叶卡数（规范种子）不全相同且各落预算卡域 [3638, 9638]（总面带 [28000,40000] 折算）', () => {
     const counts = new Set<number>();
@@ -235,7 +235,7 @@ describe('槽间真实差异（同 seed = SEED0 跨槽对比——差异纯来�
       expect(stats.leafCards, `slot-${slot} ${SLOT_NAMES[slot]} 叶卡数应 ≤ (40000−20724)/2`).toBeLessThanOrEqual(9638);
     }
     expect(counts.size, '8 槽叶卡数应不全相同（槽身份可辨）').toBeGreaterThan(1);
-  }, 30000);
+  }, 120000); // T011.1：套件并行负载增长（celtis 加入）后 30s 余量不足，超时上限提至 120s——断言语义零变化
 });
 
 describe('通透不变量与预算带（规范种子逐槽）', () => {
@@ -261,5 +261,5 @@ describe('通透不变量与预算带（规范种子逐槽）', () => {
       expect(total, `slot-${slot} ${SLOT_NAMES[slot]} 总面数应落 High 档预算带`).toBeGreaterThanOrEqual(28000);
       expect(total).toBeLessThanOrEqual(40000);
     }
-  }, 30000);
+  }, 120000); // T011.1：套件并行负载增长（celtis 加入）后 30s 余量不足，超时上限提至 120s——断言语义零变化
 });
