@@ -1,13 +1,18 @@
 /**
- * runtime/procedural/tree/broadleafGeometry —— 夏栎（橡树系）CPU 几何生成器
- * （T008.2 建立，T009.1 结构真实性升级，T009.2 枝梢驱动叶簇，T009.4 树皮近景微起伏）。
+ * runtime/procedural/tree/tree3a/tree3aGeometry —— 夏栎（橡树系）CPU 几何生成器
+ * （T008.2 建立，T009.1 结构真实性升级，T009.2 枝梢驱动叶簇，T009.4 树皮近景微起伏，
+ * T010.1 shapeProfile 类型迁移阔叶家族契约）。
+ * T010.1 Step 2 重组记档：更名 broadleafGeometry → tree3a/tree3aGeometry——本文件是
+ *      夏栎私有算法而非家族泛化实现，让出 broadleaf 泛化名；broadleaf* 前缀自此专属
+ *      家族契约层（../broadleaf/），资产实现一律用资产自己的前缀（夏栎 = tree3a*）。
  *
  * 职责：morphRng（mulberry32 流，消费顺序即契约——同 seed 逐位同结果）驱动的五级递归
  *      分枝拓扑 → 锥度管状枝干（平行传输标架，径向分段随枝级递减 12→4、主干到枝梢锥度
  *      连续）→ 枝梢驱动叶簇烘焙，产出树皮/叶两层非索引几何；层间
  *      mergeGeometries(useGroups=true) 恰 2 组（D15 免组膨胀：树皮 0 / 叶 1）。
- *      形态参数全部来自 shapeProfile（./tree3aShapeProfile——夏栎私有参数面，build 只
- *      负责 slot → profile 路由，不进 ProceduralBuild 公共签名）。
+ *      形态参数类型 = 阔叶家族契约 ../broadleaf/broadleafShapeProfile（夏栎为第一实例），
+ *      数值与槽组合见 ./tree3aShapeProfile（夏栎第一实例 config；build 只负责 slot →
+ *      profile 路由，不进 ProceduralBuild 公共签名）。
  * 树皮近景微起伏（T009.4，emitTube 顶点域）：管半径叠加低频环向谐波位移
  *      d(θ,s) = A·Σₘ wₘ(s)·cos(kₘθ + φₘ(s))（整数谐波 k∈{3,4,5} ≤ 主干 radial 12 的
  *      奈奎斯特域；φₘ/wₘ 沿弧长 s 缓慢演化——脊沿轴向伸展 + 缓慢游走，非环形箍纹），
@@ -15,8 +20,9 @@
  *      1.4cm、末梢 <1mm）。起伏是管参数的**纯确定性函数**（相位源 = 管起点的 sin 散列，
  *      零 rng 消费——009.3 rng 消费次数恒等不破）；拓扑/uv/绕序全不变（皮面数恒等）；
  *      环级共享预算值使 wrap 位（θ=2π ≡ 0）与相邻四边形浮点级无缝；法线自参数面导数
- *      解析修正（详见 emitTube）。参数面 = shapeProfile.barkRelief（Spec 依据与共性
- *      标注见该文件——bark_archetype/bark_relief，成熟个体较弱浮雕端）。
+ *      解析修正（详见 emitTube）。参数面 = shapeProfile.barkRelief（机制与共性标注见
+ *      家族契约 broadleafShapeProfile 的 BroadleafBarkRelief；夏栎 Spec 依据（bark_
+ *      archetype/bark_relief，成熟个体较弱浮雕端）与数值锚见 tree3aShapeProfile）。
  * 主次分级（T009.1）：①骨架枝内部 rank 强弱势差（首枝主导 ×1.14 强化自 ×1.08）；
  *      ②逐级子/父起径比低级陡末级缓（0.46→0.62，自 008.2 近平的 0.55+0.03·level）；
  *      ③L1 锥度 0.7 通体粗壮（Spec「骨架枝粗壮有力」Verified 的方向性表达）；
@@ -32,7 +38,8 @@
  *      Verified [1][2]，单卡 = 叶簇抽象 ≈ 真叶 2× 的工程映射）；仰角 ±43° + 卡面
  *      滚转全随机语言不动（#11 已符合项）。视觉目标：外层密实成形、中层递减透枝、
  *      内层稀疏成腔、簇间有间隙——「多个叶簇构成的树冠」。簇参数共性标注（阔叶共性
- *      候选 / 夏栎特有）见 tree3aShapeProfile 字段注释，供 T010.1 家族契约提炼取证。
+ *      候选 / 夏栎特有）见家族契约 broadleafShapeProfile 字段注释（T010.1 自
+ *      tree3aShapeProfile 提炼承接）。
  * 冠内通透（T009.1，判定口径不变）：叶簇候选照旧统一过三规则——①枝干通道（主干/
  *      领导枝/骨架枝基段周围半径带内叶卡硬抑制）；②内层密度衰减（冠内归一化径向深度 q
  *      的密度场：壳层满密 → 冠心地板，外密内疏）；③局部空腔（rng 驱动的冠内空腔球
@@ -62,7 +69,7 @@
  *      叶卡属性契约（aLeafRand/aBend 六顶点卡）三档延续（Low 壳卡同样携带，材质侧
  *      消费）；树皮层恒 0 与恰 2 组（皮 0 / 叶 1，D15）三档一致；原点语义（minY 精确
  *      0）与总高/冠幅档间一致（同 profile 同 rng 派生）。三档预算锁定账目见
- *      assets/asset_tree_3a.asset 模块头（预算制 D19.8）。
+ *      ../assets/asset_tree_3a.asset 模块头（预算制 D19.8）。
  * 确定性纪律：簇生成与叶片候选的 rng 消费均为无条件固定次数（每簇 2 次：t 抖动 + 半径；
  *      每叶 9 次：偏移向 2 + r̂ 1 + az 1 + el 1 + roll 1 + 宽 1 + 长宽比 1 + rand 1），
  *      被簇级距离抑制丢弃的簇位同样足额消费后丢弃；通透 roll 每卡无条件 1 次（009.1
@@ -82,8 +89,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { TREE3A_SLOT0_PROFILE } from './tree3aShapeProfile';
-import type { Tree3aBarkRelief, Tree3aShapeProfile } from './tree3aShapeProfile';
-import type { ProceduralLevel } from '../../../domain/assets';
+import type { BroadleafBarkRelief, BroadleafShapeProfile } from '../broadleaf/broadleafShapeProfile';
+import type { ProceduralLevel } from '../../../../domain/assets';
 
 /** 叶卡描述子：烘焙前先收集（候选 → 通透过滤 → 两段式烘焙，冠内高度权重需存活卡 Y 域） */
 interface LeafCard {
@@ -147,7 +154,7 @@ interface BuildCtx {
 }
 
 /** 生成结果：合并几何（恰 2 组）+ 面数/结构账目（完成记录 / 结构真实性测试消费） */
-export interface BroadleafTreeResult {
+export interface Tree3aGeometryResult {
   geometry: THREE.BufferGeometry;
   stats: {
     barkTriangles: number;
@@ -262,14 +269,14 @@ interface LodEmissionPlan {
 
 /**
  * 档位 → 发射计划（结构依据见模块头 T009.6 段；预算记账 = 8 槽实测口径，正式预算带
- * 锁定见 assets/asset_tree_3a.asset 模块头）：
+ * 锁定见 ../assets/asset_tree_3a.asset 模块头）：
  * - High 皮 20724（拓扑恒等不动）；Mid 皮 3882 = 主干 90（7 段 ×6 + 底盖 6）+ L1 300
  *   （6 枝 ×5 段 ×5）+ L2 576（18 ×4 段 ×4）+ L3 972（54 ×3 段 ×3）+ L4 1944
  *   （162 ×2 段 ×3），L5 不发射；Low 皮 330 = 主干 90 + L1 240（6 枝 ×5 段 ×4）。
  * - Mid 叶 ≈ High 存活卡 × 7/22（22 候选掩码 7 张）× 2 三角；8 槽实测落 6.4–9.7K。
  * - Low 叶 = 保留簇数 × 2 壳卡 × 2 三角；8 槽簇数 333–455 → 1662–2150。
  */
-function lodPlanFor(profile: Tree3aShapeProfile, level: ProceduralLevel): LodEmissionPlan {
+function lodPlanFor(profile: BroadleafShapeProfile, level: ProceduralLevel): LodEmissionPlan {
   if (level === 'high') {
     // 缺省档全发射：profile 原值直读 + 步长 1（thinStations 原数组透传）——009.1–009.4
     // 路径逐位不动（皮面数 20724 / rng 177234 快照延续）
@@ -435,7 +442,7 @@ interface ReliefPhaseScratch {
 
 /** 管谐波状态：harmonics 序 → 权重基线（循环取 BARK_RELIEF_WEIGHT_BASE 后归一）+
  *  相位/游走/呼吸系数（管起点散列派生的确定性纯函数，零 rng） */
-function buildReliefHarmonics(origin: THREE.Vector3, r0: number, relief: Tree3aBarkRelief): ReliefHarmonic[] {
+function buildReliefHarmonics(origin: THREE.Vector3, r0: number, relief: BroadleafBarkRelief): ReliefHarmonic[] {
   const seed = barkReliefPhaseSeed(origin.x, origin.y, origin.z, r0);
   const raw = relief.harmonics.map((_, m) => BARK_RELIEF_WEIGHT_BASE[m % BARK_RELIEF_WEIGHT_BASE.length]!);
   const wSum = raw.reduce((sum, w) => sum + w, 0);
@@ -557,7 +564,7 @@ function emitTube(
   radii: number[],
   radial: number,
   vScale: number,
-  relief: Tree3aBarkRelief,
+  relief: BroadleafBarkRelief,
 ): void {
   const stations = points.length;
   const tangents: THREE.Vector3[] = [];
@@ -667,11 +674,11 @@ function emitBaseCapTri(sink: BarkSink, center: THREE.Vector3, radius: number, r
  * （锚点回落——单测直调便捷路径，资产路径显式传槽 profile）。level 缺省 = 'high'
  * （T009.6 三档同流派生——档位只改发射密度，不改骨架决策/rng 消费序，见 lodPlanFor）。
  */
-export function buildBroadleafGeometry(
+export function buildTree3aGeometry(
   rng: () => number,
-  profile: Tree3aShapeProfile = TREE3A_SLOT0_PROFILE,
+  profile: BroadleafShapeProfile = TREE3A_SLOT0_PROFILE,
   level: ProceduralLevel = 'high',
-): BroadleafTreeResult {
+): Tree3aGeometryResult {
   const lod = lodPlanFor(profile, level);
   const ctx: BuildCtx = {
     bark: { pos: [], nrm: [], uv: [] },
@@ -1065,7 +1072,7 @@ function segOf(a: THREE.Vector3, b: THREE.Vector3, radius: number): ChannelSeg {
 function growBranch(
   ctx: BuildCtx,
   rng: () => number,
-  profile: Tree3aShapeProfile,
+  profile: BroadleafShapeProfile,
   lod: LodEmissionPlan,
   level: number,
   start: THREE.Vector3,

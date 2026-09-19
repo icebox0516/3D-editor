@@ -3,16 +3,18 @@
  *
  * 职责：D19 契约链上的 slot-0 锚点形态资产——build(params?) 以 mulberry32(params.seed)
  *      驱动全部分枝/叶簇随机量（**rng 消费顺序即契约**：同 seed 逐位同结果），几何生成
- *      全部在 ./tree/broadleafGeometry（五级递归分枝 + 锥度枝干 + T009.2 枝梢驱动叶簇
+ *      全部在 ./tree/tree3a/tree3aGeometry（五级递归分枝 + 锥度枝干 + T009.2 枝梢驱动叶簇
  *      烘焙——L4/L5 枝梢挂簇、簇内壳偏置发卡、簇级距离抑制 + 冠内通透三规则过滤；
- *      T009.1 起形态参数消费 ./tree/tree3aShapeProfile 的夏栎私有 shapeProfile——
+ *      T009.1 起形态参数消费夏栎私有 shapeProfile——类型 = 阔叶家族契约
+ *      ./tree/broadleaf/broadleafShapeProfile 第一实例 BroadleafShapeProfile，数值与槽
+ *      组合 = ./tree/tree3a/tree3aShapeProfile——
  *      build 内做 morphSeed → slot → profile 路由，公共签名不变；皮拓扑恒定皮面数恒等、
  *      叶簇卡数随簇级剔除与通透规则在同槽同 seed 下恒定）。params.seed 缺省回落 slot-0
  *      锚点 morphSeed（morphSeedOf('asset_tree_3a', 0)——domain 纯函数，与
  *      ProceduralSourceCache 传入值逐位一致：无参路径 = 缓存路径 = 同一棵锚点树，
  *      008.3 调材质看到的永远是它）。
  *      尺度参照真实乔木：总高 7.4–8.5m、冠幅 5.4–6.6m；原点 = 底部中心 minY 精确 0。
- * 材质分层表（materialIndex → 部件 → 材质；配方在 ./tree/tree3aMaterials——onBeforeCompile
+ * 材质分层表（materialIndex → 部件 → 材质；配方在 ./tree/tree3a/tree3aMaterials——onBeforeCompile
  *      注入工厂，SDF 叶形/透光/风动/树皮配方与成本记账见该模块头）：
  *      0 树皮（主干+五级枝+底盖）—— createTree3aBarkMaterial：灰主调灰褐 #5c534a
  *        （T009.4 灰度校正，Spec bark_color Verified [6]）/ m 0 /
@@ -37,10 +39,10 @@
  *      slot-0，shapeFamily size 8 为槽路由声明面）。
  * LOD（T009.6 夏栎三档交付）：build 透传 params.level（缺省 'high'——旧无参路径逐位
  *      不变）到几何与皮/叶材质工厂；三档同 rng 流同骨架决策（档间不变量、Mid⊂High 掩码
- *      口径与发射计划见 broadleafGeometry 模块头 T009.6 段），材质档位变体（Mid 去节疤
+ *      口径与发射计划见 tree3aGeometry 模块头 T009.6 段），材质档位变体（Mid 去节疤
  *      /Low 去透光等）见 tree3aMaterials；levels 声明三档（D27 首版最小化 [{id}]——调度
  *      阈值归 Runtime 常量不进 Profile，距离切换 T006 消费）。
- * LOD 预算锁定账目（预算制 D19.8——broadleafGeometry 模块头引用此处）：锁定预算
+ * LOD 预算锁定账目（预算制 D19.8——tree3aGeometry 模块头引用此处）：锁定预算
  *      （三角形，皮 + 叶 = 总面）High ≤ 40000 / Mid 6000–10000 / Low 1500–3000。
  *      8 槽 × 3 档实测带（2026-09-19 探针）：High 总面 28754–38780（slot-6 最低 /
  *      slot-7 最高；叶卡 4015–9028、保留簇 333–455）、Mid 总面 6414–9650（叶卡
@@ -54,9 +56,9 @@ import { morphSeedOf } from '../../../domain/assets';
 import type { ProceduralAssetMeta } from '../../../domain/assets';
 import type { InstanceSource } from '../../instancing/InstancedAssetPool';
 import type { ProceduralBuildParams } from '../types';
-import { buildBroadleafGeometry } from '../tree/broadleafGeometry';
-import { TREE3A_SHAPE_PROFILES } from '../tree/tree3aShapeProfile';
-import { createTree3aBarkMaterial, createTree3aLeafDepthMaterial, createTree3aLeafMaterial } from '../tree/tree3aMaterials';
+import { buildTree3aGeometry } from '../tree/tree3a/tree3aGeometry';
+import { TREE3A_SHAPE_PROFILES } from '../tree/tree3a/tree3aShapeProfile';
+import { createTree3aBarkMaterial, createTree3aLeafDepthMaterial, createTree3aLeafMaterial } from '../tree/tree3a/tree3aMaterials';
 
 export const meta: ProceduralAssetMeta = {
   id: 'asset_tree_3a',
@@ -91,7 +93,7 @@ export function build(params?: ProceduralBuildParams): InstanceSource {
   // 不参与 shapeSlot/morphSeed/sourceKey 形态身份——档位缓存维度归 ProceduralSourceCache）
   const level = params?.level ?? 'high';
   const rng = mulberry32(seed);
-  const { geometry } = buildBroadleafGeometry(rng, profileForSeed(seed), level);
+  const { geometry } = buildTree3aGeometry(rng, profileForSeed(seed), level);
   const bark = createTree3aBarkMaterial(level); // 组 0（契约序 [皮, 叶]——mergeGeometries 层序）
   const leaf = createTree3aLeafMaterial(level);
   // T009.5：影 pass 叶影裁切走 InstanceSource 契约通道——工厂每次 new（build 契约

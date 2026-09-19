@@ -4,7 +4,9 @@
 
 ## Current
 
-- 无进行中——2026-09-19 会话裁定先清 T003.3 挂账（验收续走收官 done），下一任务 = T010（010.1 家族契约提炼，见 Next）。
+- **T010 程序化资产公共能力与规范**（1/5；2026-09-19 T010.1 done）→ [tasks/010-asset-capability.md](tasks/010-asset-capability.md)
+  - [x] T010.1 家族契约提炼与文件组织规范（done 2026-09-19；2542 全绿零回退）→ [tasks/010.1-family-contract.md](tasks/010.1-family-contract.md)
+  - [ ] T010.2 / T010.3 / T010.4（已解锁，可并行）
 
 ## Done（近）
 

@@ -1,5 +1,5 @@
 /**
- * runtime/procedural/tree/tree3aMaterials —— 夏栎（asset_tree_3a）叶/树皮 3A 材质 + 风动（T008.3）。
+ * runtime/procedural/tree/tree3a/tree3aMaterials —— 夏栎（asset_tree_3a）叶/树皮 3A 材质 + 风动（T008.3）。
  *
  * 职责：冻结几何契约（008.2）双材质组的 onBeforeCompile 注入工厂（L2，沿 plantMaterials
  *   范式全套纪律：replaceOnce 缺失即抛 / customProgramCacheKey 必写且键唯一 / 原生 chunk
@@ -90,7 +90,7 @@
  *   （苔区 R−G +10→+1，旧底偏橄榄褐）、沟内冷灰 AO 压暖更有效（沟 R−B +20→+8 读冷灰）、
  *   脊顶受光仍暖褐（R−G +13，Spec「受光局部偏暖褐」维持）。
  * **T009.6 Shader 档位分档记档（三工厂可选 level 参数，缺省 'high' 现行为不变；档位
- *   配套传参归 asset build 路由，几何档见 broadleafGeometry lodPlanFor）**：
+ *   配套传参归 asset build 路由，几何档见 ./tree3aGeometry lodPlanFor）**：
  *   - 叶 Mid：片元降复杂度——去叶脉三线（中脉亮带/沟侧翼/侧脉）+ 去中频叶团斑块
  *     （t3aClump vnoise）；保留 SDF 完整叶形（倒卵形+裂+耳+齿）/透光/叶背粉绿/hue·luma
  *     逐叶变奏/冠内竖向自遮蔽（颜色层次档间连续的保留面）；
@@ -121,8 +121,8 @@
  *   WebGL 缺省属性值 0）路径相位退化为正常数——hash 无除法无 NaN。
  */
 import * as THREE from 'three';
-import { FACILITY_GLSL_NOISE } from '../materials/facilityGlsl';
-import type { ProceduralLevel } from '../../../domain/assets';
+import { FACILITY_GLSL_NOISE } from '../../materials/facilityGlsl';
+import type { ProceduralLevel } from '../../../../domain/assets';
 
 /** onBeforeCompile 材质的 uTime 桥接面（TimeUniformService 扫描材质级 uniforms.uTime） */
 type TimeBridgedMaterial = THREE.MeshStandardMaterial & {

@@ -51,7 +51,7 @@ import {
   createTree3aBarkMaterial,
   createTree3aLeafDepthMaterial,
   createTree3aLeafMaterial,
-} from '../../../../src/runtime/procedural/tree/tree3aMaterials';
+} from '../../../../src/runtime/procedural/tree/tree3a/tree3aMaterials';
 import { build } from '../../../../src/runtime/procedural/assets/asset_tree_3a.asset';
 
 /** afterEach 统一 dispose 的材质登记（工厂直建 + build 产物） */

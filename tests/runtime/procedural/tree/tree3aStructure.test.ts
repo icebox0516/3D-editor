@@ -1,8 +1,8 @@
 /**
- * tests/runtime/procedural/tree/broadleafStructure.test.ts —— 夏栎枝干结构真实性测试
+ * tests/runtime/procedural/tree/tree3aStructure.test.ts —— 夏栎枝干结构真实性测试
  * （T009.1 建立，T009.2 增枝梢驱动叶簇块）。
  *
- * 覆盖（零 mock——真实几何生成；直调 buildBroadleafGeometry 消费扩展 stats，与资产
+ * 覆盖（零 mock——真实几何生成；直调 buildTree3aGeometry 消费扩展 stats，与资产
  * 契约测试（asset_tree_3a.test.ts）互补——本文件锁「结构怎么长」，那边锁「契约怎么传」）：
  * - 确定性：同 rng seed + 同 shapeProfile 两次构建 → 全属性逐位相等、stats 账目全等；
  *   profile 缺省调用 = slot-0 标准组合显式传入（锚点回落路径）；
@@ -28,16 +28,16 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { mulberry32 } from '../../../../src/core/random';
 import { morphSeedOf } from '../../../../src/domain/assets';
-import { buildBroadleafGeometry } from '../../../../src/runtime/procedural/tree/broadleafGeometry';
-import type { BroadleafTreeResult } from '../../../../src/runtime/procedural/tree/broadleafGeometry';
-import { TREE3A_SLOT0_PROFILE } from '../../../../src/runtime/procedural/tree/tree3aShapeProfile';
+import { buildTree3aGeometry } from '../../../../src/runtime/procedural/tree/tree3a/tree3aGeometry';
+import type { Tree3aGeometryResult } from '../../../../src/runtime/procedural/tree/tree3a/tree3aGeometry';
+import { TREE3A_SLOT0_PROFILE } from '../../../../src/runtime/procedural/tree/tree3a/tree3aShapeProfile';
 
 const SEED0 = morphSeedOf('asset_tree_3a', 0);
 
-const built: BroadleafTreeResult[] = [];
+const built: Tree3aGeometryResult[] = [];
 
-function buildTracked(seed: number, profile = TREE3A_SLOT0_PROFILE): BroadleafTreeResult {
-  const result = buildBroadleafGeometry(mulberry32(seed), profile);
+function buildTracked(seed: number, profile = TREE3A_SLOT0_PROFILE): Tree3aGeometryResult {
+  const result = buildTree3aGeometry(mulberry32(seed), profile);
   built.push(result);
   return result;
 }
@@ -57,7 +57,7 @@ describe('确定性（shapeProfile 路径）', () => {
   }, 30000);
 
   it('profile 缺省 = slot-0 标准组合显式传入（锚点回落路径逐位一致）', () => {
-    const a = buildBroadleafGeometry(mulberry32(SEED0));
+    const a = buildTree3aGeometry(mulberry32(SEED0));
     const b = buildTracked(SEED0, TREE3A_SLOT0_PROFILE);
     built.push(a);
     expect(a.geometry.getAttribute('position').array).toEqual(b.geometry.getAttribute('position').array);
@@ -86,7 +86,7 @@ describe('主次分级（一级骨架枝 vs 末梢枝视觉权重落差）', () 
 
 describe('冠内通透（显式规则：通道 / 内层密度衰减 / 局部空腔）', () => {
   /** 存活叶卡中心数组（从叶组 position 提取，6 顶点/卡取均值） */
-  function cardCenters(result: BroadleafTreeResult): { x: number; y: number; z: number }[] {
+  function cardCenters(result: Tree3aGeometryResult): { x: number; y: number; z: number }[] {
     const leaf = result.geometry.groups[1]!;
     const pos = result.geometry.getAttribute('position');
     const centers: { x: number; y: number; z: number }[] = [];
@@ -106,7 +106,7 @@ describe('冠内通透（显式规则：通道 / 内层密度衰减 / 局部空�
 
   /** 存活叶卡挂点数组（根边中点 = 顶点 0,1 均值 = 通透过滤时的候选中心——与规则判定
    *  口径严格对齐；6 顶点质心含卡体向外的伸展（≤ 半卡长），越带属卡几何伪影非规则失效） */
-  function cardRootMidpoints(result: BroadleafTreeResult): { x: number; y: number; z: number }[] {
+  function cardRootMidpoints(result: Tree3aGeometryResult): { x: number; y: number; z: number }[] {
     const leaf = result.geometry.groups[1]!;
     const pos = result.geometry.getAttribute('position');
     const roots: { x: number; y: number; z: number }[] = [];

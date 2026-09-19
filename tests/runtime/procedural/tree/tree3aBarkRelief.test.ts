@@ -1,9 +1,9 @@
 /**
- * tests/runtime/procedural/tree/broadleafBarkRelief.test.ts —— 夏栎树皮近景微起伏测试
+ * tests/runtime/procedural/tree/tree3aBarkRelief.test.ts —— 夏栎树皮近景微起伏测试
  * （T009.4）。
  *
  * 覆盖（零 mock——真实几何构建；锁 emitTube 顶点域低频环向起伏的结构不变量，与
- * broadleafStructure.test.ts（枝干结构语义）/ tree3aShapeSlots.test.ts（8 槽形态向量）
+ * tree3aStructure.test.ts（枝干结构语义）/ tree3aShapeSlots.test.ts（8 槽形态向量）
  * 互补——皮面数恒等 20724 与确定性回归由那两文件的既有断言锁死，跑绿即回归通过）：
  * - 起伏存在性与量级带：主干全部环截面半径随 θ 变化（极差/环均径 ≥ 2%——近景轮廓
  *   起伏可辨）且 ≤ 10%（成熟个体「较弱浮雕」端——Spec bark_relief Inferred [6] 的
@@ -27,16 +27,16 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { mulberry32 } from '../../../../src/core/random';
 import { morphSeedOf } from '../../../../src/domain/assets';
-import { buildBroadleafGeometry } from '../../../../src/runtime/procedural/tree/broadleafGeometry';
-import type { BroadleafTreeResult } from '../../../../src/runtime/procedural/tree/broadleafGeometry';
-import { TREE3A_SHAPE_PROFILES, TREE3A_SLOT0_PROFILE } from '../../../../src/runtime/procedural/tree/tree3aShapeProfile';
+import { buildTree3aGeometry } from '../../../../src/runtime/procedural/tree/tree3a/tree3aGeometry';
+import type { Tree3aGeometryResult } from '../../../../src/runtime/procedural/tree/tree3a/tree3aGeometry';
+import { TREE3A_SHAPE_PROFILES, TREE3A_SLOT0_PROFILE } from '../../../../src/runtime/procedural/tree/tree3a/tree3aShapeProfile';
 
 const SEED0 = morphSeedOf('asset_tree_3a', 0);
 
-const built: BroadleafTreeResult[] = [];
+const built: Tree3aGeometryResult[] = [];
 
-function buildTracked(seed: number, profile = TREE3A_SLOT0_PROFILE): BroadleafTreeResult {
-  const result = buildBroadleafGeometry(mulberry32(seed), profile);
+function buildTracked(seed: number, profile = TREE3A_SLOT0_PROFILE): Tree3aGeometryResult {
+  const result = buildTree3aGeometry(mulberry32(seed), profile);
   built.push(result);
   return result;
 }
@@ -51,7 +51,7 @@ function ringVertexIndices(base: number, seg: number, radial: number): number[] 
 }
 
 /** 环度量：各顶点到环质心的半径（质心 = 站点中心的二阶近似——均匀 θ 下偏差 ≪ 起伏量） */
-function ringRadii(result: BroadleafTreeResult, base: number, seg: number, radial: number): number[] {
+function ringRadii(result: Tree3aGeometryResult, base: number, seg: number, radial: number): number[] {
   const pos = result.geometry.getAttribute('position');
   const idx = ringVertexIndices(base, seg, radial);
   const cx = idx.reduce((s, v) => s + pos.array[v * 3]!, 0) / radial;
@@ -242,7 +242,7 @@ describe('参数面与纪律锁', () => {
       calls++;
       return stream();
     };
-    const result = buildBroadleafGeometry(counting, TREE3A_SLOT0_PROFILE);
+    const result = buildTree3aGeometry(counting, TREE3A_SLOT0_PROFILE);
     built.push(result);
     expect(calls, 'slot-0/规范种子的 rng 消费总数应与 T009.4 前快照逐位一致').toBe(177234);
   }, 30000);

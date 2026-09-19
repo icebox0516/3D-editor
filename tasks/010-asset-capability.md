@@ -34,7 +34,7 @@
 
 ## 子任务（2026-09-18 立项拆分，D16 会话粒度）
 
-- [ ] T010.1 家族契约提炼与文件组织规范 → [010.1-family-contract.md](010.1-family-contract.md)
+- [x] T010.1 家族契约提炼与文件组织规范（done 2026-09-19：Broadleaf 家族类型契约 51 字段全消费佐证 + 夏栎四文件重组第一实例 + 命名规范（broadleaf* 专属家族层）+ organization.md 三级边界落档；2542 全绿零回退）→ [010.1-family-contract.md](010.1-family-contract.md)
 - [ ] T010.2 元数据与分类契约 → [010.2-metadata-taxonomy.md](010.2-metadata-taxonomy.md)
 - [ ] T010.3 LOD 声明规范固化 → [010.3-lod-spec.md](010.3-lod-spec.md)
 - [ ] T010.4 Shadow 公共能力规范 + 视觉验收 SOP → [010.4-shadow-visual-sop.md](010.4-shadow-visual-sop.md)
@@ -45,3 +45,4 @@
 ## 进度
 
 - 2026-09-18 立项：植物资产路线 grill → D20，0/5。
+- 2026-09-19 T010.1 完成（1/5）：家族契约（BroadleafShapeProfile = Canopy 34 + Branch 13 扁平 + 4 嵌套，51 字段全消费佐证；T009.3 消费语义并入）+ 夏栎迁移第一实例（tree/tree3a/ 四文件 + broadleaf* 前缀让出家族层）+ `docs/procedural-assets/organization.md`（三级边界/两档结构/命名规范/方法论六条）；2542 全绿、逐位零回退、取证 `docs/acceptance/t010/010.1/`。010.2/010.3/010.4 解锁（可并行）。

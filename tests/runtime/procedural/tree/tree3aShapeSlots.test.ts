@@ -3,7 +3,7 @@
  * （T009.3）。
  *
  * 覆盖（零 mock——真实几何生成；TREE3A_SHAPE_PROFILES 八槽完整组合 = 「8 组向量即
- * config 雏形」的契约锁，与 broadleafStructure.test.ts（slot-0 结构语义）和
+ * config 雏形」的契约锁，与 tree3aStructure.test.ts（slot-0 结构语义）和
  * asset_tree_3a.test.ts（资产契约）互补）：
  * - 结构计数恒等：8 槽（各自 morphSeedOf(id, slot) 规范种子）构建——皮面数全部 20724、
  *   levelBranches [6,18,54,162,324]；配置侧锁——结构计数类字段（trunk/levels radial/segs、
@@ -13,7 +13,7 @@
  * - 确定性：同 seed 同槽两次构建 position 逐位相等（8 槽全量）；代表槽（0 标准 /
  *   3 偏冠 / 7 丰满——形态距锚点最远的三槽）全属性 + stats 账目全等；
  * - 路由一致（D19 契约锁）：build({seed: morphSeedOf(id, slot)})（资产路径，profileForSeed
- *   查表）与 buildBroadleafGeometry(mulberry32(seed), TREE3A_SHAPE_PROFILES[slot])（几何
+ *   查表）与 buildTree3aGeometry(mulberry32(seed), TREE3A_SHAPE_PROFILES[slot])（几何
  *   直调）逐位一致——逐槽验证；
  * - 槽间真实差异（方向性断言，**同 seed = SEED0 下跨槽对比**——隔离 profile 效应与
  *   morphSeed 随机流，差异只能来自向量本身，杜绝「seed 运气冒充形态差异」）：挺拔 vs
@@ -32,9 +32,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { mulberry32 } from '../../../../src/core/random';
 import { morphSeedOf } from '../../../../src/domain/assets';
-import { buildBroadleafGeometry } from '../../../../src/runtime/procedural/tree/broadleafGeometry';
-import type { BroadleafTreeResult } from '../../../../src/runtime/procedural/tree/broadleafGeometry';
-import { TREE3A_SHAPE_PROFILES } from '../../../../src/runtime/procedural/tree/tree3aShapeProfile';
+import { buildTree3aGeometry } from '../../../../src/runtime/procedural/tree/tree3a/tree3aGeometry';
+import type { Tree3aGeometryResult } from '../../../../src/runtime/procedural/tree/tree3a/tree3aGeometry';
+import { TREE3A_SHAPE_PROFILES } from '../../../../src/runtime/procedural/tree/tree3a/tree3aShapeProfile';
 import { build } from '../../../../src/runtime/procedural/assets/asset_tree_3a.asset';
 import type { InstanceSource } from '../../../../src/runtime/instancing/InstancedAssetPool';
 
@@ -44,19 +44,19 @@ const SLOT_NAMES = ['标准', '挺拔', '展开', '偏冠', '低冠', '高冠', 
 const SEEDS = Array.from({ length: 8 }, (_, slot) => morphSeedOf(ASSET_ID, slot));
 const SEED0 = SEEDS[0]!;
 
-const built: BroadleafTreeResult[] = [];
+const built: Tree3aGeometryResult[] = [];
 const sources: InstanceSource[] = [];
 
 /** 几何直调（规范种子 = 各槽自己的 morphSeed） */
-function buildSlot(slot: number): BroadleafTreeResult {
-  const result = buildBroadleafGeometry(mulberry32(SEEDS[slot]!), TREE3A_SHAPE_PROFILES[slot]!);
+function buildSlot(slot: number): Tree3aGeometryResult {
+  const result = buildTree3aGeometry(mulberry32(SEEDS[slot]!), TREE3A_SHAPE_PROFILES[slot]!);
   built.push(result);
   return result;
 }
 
 /** 几何直调（指定种子 = 同 seed 跨槽对比——隔离 profile 效应） */
-function buildSlotAt(slot: number, seed: number): BroadleafTreeResult {
-  const result = buildBroadleafGeometry(mulberry32(seed), TREE3A_SHAPE_PROFILES[slot]!);
+function buildSlotAt(slot: number, seed: number): Tree3aGeometryResult {
+  const result = buildTree3aGeometry(mulberry32(seed), TREE3A_SHAPE_PROFILES[slot]!);
   built.push(result);
   return result;
 }
@@ -79,7 +79,7 @@ interface LeafMetrics {
   centroidOffset: number;
 }
 
-function leafMetrics(result: BroadleafTreeResult): LeafMetrics {
+function leafMetrics(result: Tree3aGeometryResult): LeafMetrics {
   const leaf = result.geometry.groups[1]!;
   const pos = result.geometry.getAttribute('position');
   let xMin = Infinity;
@@ -178,7 +178,7 @@ describe('确定性（同 seed 同槽逐位复现）', () => {
 });
 
 describe('路由一致（8 组向量即 config 雏形：资产路径 = 几何直调）', () => {
-  it('build({seed: morphSeedOf(id, slot)}) 与 buildBroadleafGeometry(mulberry32(seed), PROFILES[slot]) 逐位一致（逐槽）', () => {
+  it('build({seed: morphSeedOf(id, slot)}) 与 buildTree3aGeometry(mulberry32(seed), PROFILES[slot]) 逐位一致（逐槽）', () => {
     for (let slot = 0; slot < 8; slot++) {
       const seed = SEEDS[slot]!;
       const asset = build({ seed });

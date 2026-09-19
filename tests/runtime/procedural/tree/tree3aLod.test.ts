@@ -1,8 +1,8 @@
 /**
- * tests/runtime/procedural/tree/broadleafLod.test.ts —— 夏栎 LOD 三档几何不变量测试
+ * tests/runtime/procedural/tree/tree3aLod.test.ts —— 夏栎 LOD 三档几何不变量测试
  * （T009.6，正式化已删探针 __lod-probe 的打印观察——本文件全部断言）。
  *
- * 覆盖（零 mock——真实几何生成；直调 buildBroadleafGeometry 三档，与资产路由测试
+ * 覆盖（零 mock——真实几何生成；直调 buildTree3aGeometry 三档，与资产路由测试
  * （asset_tree_3a.test.ts）互补——本文件锁「档间不变量怎么成立」，那边锁「build
  * 契约怎么传 level」）：
  * - High 逐位不动：缺省调用（profile + level 双缺省）= 显式 'high' 逐位相等；slot-0
@@ -30,30 +30,30 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { mulberry32 } from '../../../../src/core/random';
 import { morphSeedOf } from '../../../../src/domain/assets';
 import type { ProceduralLevel } from '../../../../src/domain/assets';
-import { buildBroadleafGeometry } from '../../../../src/runtime/procedural/tree/broadleafGeometry';
-import type { BroadleafTreeResult } from '../../../../src/runtime/procedural/tree/broadleafGeometry';
-import { TREE3A_SHAPE_PROFILES } from '../../../../src/runtime/procedural/tree/tree3aShapeProfile';
+import { buildTree3aGeometry } from '../../../../src/runtime/procedural/tree/tree3a/tree3aGeometry';
+import type { Tree3aGeometryResult } from '../../../../src/runtime/procedural/tree/tree3a/tree3aGeometry';
+import { TREE3A_SHAPE_PROFILES } from '../../../../src/runtime/procedural/tree/tree3a/tree3aShapeProfile';
 
 const LEVELS: ProceduralLevel[] = ['high', 'mid', 'low'];
 const SEED0 = morphSeedOf('asset_tree_3a', 0);
 /** rng 消费快照（三档恒等——009.1 起延续，任何条件跳过消费都违约） */
 const RNG_CALLS_LOCK = 177234;
-/** High slot-0 皮面快照（皮拓扑恒等不动——broadleafStructure 同款锁） */
+/** High slot-0 皮面快照（皮拓扑恒等不动——tree3aStructure 同款锁） */
 const BARK_TRIS_LOCK = 20724;
-/** 档间 bbox 容差（LOW_SHELL_MARGIN 口径——见 broadleafGeometry 常量注释） */
+/** 档间 bbox 容差（LOW_SHELL_MARGIN 口径——见 tree3aGeometry 常量注释） */
 const SPAN_TOLERANCE = 0.4;
 
-const built: BroadleafTreeResult[] = [];
+const built: Tree3aGeometryResult[] = [];
 
-function track(result: BroadleafTreeResult): BroadleafTreeResult {
+function track(result: Tree3aGeometryResult): Tree3aGeometryResult {
   built.push(result);
   return result;
 }
 
 /** 槽位构建（seed + 槽 profile + 档位——与资产路径 profileForSeed 同路由口径） */
-function buildSlot(slot: number, level: ProceduralLevel = 'high'): BroadleafTreeResult {
+function buildSlot(slot: number, level: ProceduralLevel = 'high'): Tree3aGeometryResult {
   return track(
-    buildBroadleafGeometry(
+    buildTree3aGeometry(
       mulberry32(morphSeedOf('asset_tree_3a', slot)),
       TREE3A_SHAPE_PROFILES[Math.min(slot, TREE3A_SHAPE_PROFILES.length - 1)]!,
       level,
@@ -66,7 +66,7 @@ afterEach(() => {
 });
 
 /** bbox 跨度账目（XZ 最大水平跨 / 总高 / minY） */
-function spanOf(result: BroadleafTreeResult): { xz: number; y: number; minY: number } {
+function spanOf(result: Tree3aGeometryResult): { xz: number; y: number; minY: number } {
   result.geometry.computeBoundingBox();
   const b = result.geometry.boundingBox!;
   return {
@@ -79,7 +79,7 @@ function spanOf(result: BroadleafTreeResult): { xz: number; y: number; minY: num
 /** 叶组逐卡 XZ 位置块键（6 顶点 × x,z 共 12 分量 join）+ 首顶点 Y——Mid ⊂ High 匹配口径：
  *  几何尾部 minY 贴地平移只改 Y 分量，Mid 皮面采样不同 → 全局 Y 偏移档间不同，raw Y
  *  不可逐位比；X/Z 不受平移影响逐位可比，公共卡 Y 差 = 单一常量偏移（贴地平移差） */
-function leafCardXZ(result: BroadleafTreeResult): { keys: string[]; y0: number[] } {
+function leafCardXZ(result: Tree3aGeometryResult): { keys: string[]; y0: number[] } {
   const leaf = result.geometry.groups[1]!;
   const pos = result.geometry.getAttribute('position');
   const keys: string[] = [];
@@ -97,7 +97,7 @@ function leafCardXZ(result: BroadleafTreeResult): { keys: string[]; y0: number[]
 
 describe('High 逐位不动（缺省档回归锁）', () => {
   it('缺省调用（profile + level 双缺省）= 显式 high：position/aBend 数组与 stats 逐位全等', () => {
-    const a = track(buildBroadleafGeometry(mulberry32(SEED0)));
+    const a = track(buildTree3aGeometry(mulberry32(SEED0)));
     const b = buildSlot(0, 'high');
     expect(a.geometry.getAttribute('position').array).toEqual(b.geometry.getAttribute('position').array);
     expect(a.geometry.getAttribute('aBend').array).toEqual(b.geometry.getAttribute('aBend').array);
@@ -108,7 +108,7 @@ describe('High 逐位不动（缺省档回归锁）', () => {
     const stream = mulberry32(SEED0);
     let calls = 0;
     const { stats } = track(
-      buildBroadleafGeometry(
+      buildTree3aGeometry(
         () => {
           calls++;
           return stream();
@@ -128,7 +128,7 @@ describe('rng 消费三档恒等（发射省略不省略消费）', () => {
       const stream = mulberry32(SEED0);
       let calls = 0;
       track(
-        buildBroadleafGeometry(
+        buildTree3aGeometry(
           () => {
             calls++;
             return stream();

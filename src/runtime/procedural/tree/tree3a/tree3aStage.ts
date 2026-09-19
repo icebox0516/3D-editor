@@ -1,5 +1,5 @@
 /**
- * runtime/procedural/tree/tree3aStage —— window.__tree3a DEV 出图面（T008.2；T008.3 扩风动）。
+ * runtime/procedural/tree/tree3a/tree3aStage —— window.__tree3a DEV 出图面（T008.2；T008.3 扩风动）。
  *
  * 职责：slot-0 锚点树的构建+挂载+转台+取景句柄工厂——build()（缺省 morphSeed 即锚点）
  *      → Mesh 挂**独立 Group 直挂渲染 scene**（contentGroup 兄弟——天然不参与拾取/大纲/
@@ -38,12 +38,12 @@
  *      时 freeze/unfreeze 为 no-op（测试注桩/独立使用安全）。
  */
 import * as THREE from 'three';
-import { build, meta } from '../assets/asset_tree_3a.asset';
-import { morphSeedOf } from '../../../domain/assets';
-import type { ProceduralLevel } from '../../../domain/assets';
-import type { ProceduralBuild } from '../types';
+import { build, meta } from '../../assets/asset_tree_3a.asset';
+import { morphSeedOf } from '../../../../domain/assets';
+import type { ProceduralLevel } from '../../../../domain/assets';
+import type { ProceduralBuild } from '../../types';
 import { createTree3aLeafDepthMaterial } from './tree3aMaterials';
-import type { InstanceSource } from '../../instancing/InstancedAssetPool';
+import type { InstanceSource } from '../../../instancing/InstancedAssetPool';
 
 /** 取景依赖：主相机 + 轨道控制目标（结构类型——bootstrap 注入 renderer 实件，测试可注桩） */
 export interface Tree3aStageDeps {

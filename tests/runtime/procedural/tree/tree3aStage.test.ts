@@ -29,7 +29,7 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
-import { createTree3aHandle } from '../../../../src/runtime/procedural/tree/tree3aStage';
+import { createTree3aHandle } from '../../../../src/runtime/procedural/tree/tree3a/tree3aStage';
 import { meta } from '../../../../src/runtime/procedural/assets/asset_tree_3a.asset';
 import { morphSeedOf } from '../../../../src/domain/assets';
 import type { ProceduralLevel } from '../../../../src/domain/assets';

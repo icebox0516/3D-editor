@@ -96,8 +96,8 @@ import { Renderer } from '../runtime/Renderer';
 import type { ScatterParams } from '../domain/scatter';
 import { collectPresetPluginMetas } from '../runtime/styles/routes';
 import { collectProceduralAssetMetas } from '../runtime/procedural/routes';
-import { createTree3aHandle } from '../runtime/procedural/tree/tree3aStage';
-import type { Tree3aHandle } from '../runtime/procedural/tree/tree3aStage';
+import { createTree3aHandle } from '../runtime/procedural/tree/tree3a/tree3aStage';
+import type { Tree3aHandle } from '../runtime/procedural/tree/tree3a/tree3aStage';
 import { clearStyleNotifier, setStyleNotifier } from '../runtime/styles/engine';
 import type { StyleNotice } from '../runtime/styles/engine';
 import { SceneSerializer } from '../io/SceneSerializer';
@@ -788,7 +788,7 @@ export function createEditor(canvas: HTMLCanvasElement | null, opts: CreateEdito
   // 兄弟组不参与拾取，沿散布 root D5 先例；转台/固定机位取景供 008.3 剪影自检与锚点取证。
   // T008.3 扩展：mountWindDemo 风动验收（aSeed 相位差异）+ freezeTime 锚点取证冻结风相位
   //（time 注入 Renderer.uTime——同一全局时钟，冻结即整树静止）。实现全在
-  // runtime/procedural/tree/tree3aStage——组合根只装配，dispose 只摘自己的实例）。
+  // runtime/procedural/tree/tree3a/tree3aStage——组合根只装配，dispose 只摘自己的实例）。
   let tree3a: Tree3aHandle | null = null;
   if (import.meta.env.DEV && renderer && typeof window !== 'undefined') {
     tree3a = createTree3aHandle({
