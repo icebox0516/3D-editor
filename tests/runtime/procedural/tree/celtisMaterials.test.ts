@@ -30,6 +30,15 @@
  *   代价）+ 载波规则度 0.80/0.20（High/Low SDF return 同步 /0.04）；中脉带半宽 0.030 +
  *   权重 0.85、三出脉带半宽 0.040 + 权重 0.65、脉色 (1.28,1.19,0.74)（albedo 亮度差中脉
  *   16%/三出脉 12.4%）；shade 地板 0.76→0.80（MUL_HIGH/MUL_SIMPLE 同步）；透射/树皮不动；
+ * - Step 4b 可见度定稿锚定（2026-09-19 主代理 256px 离屏幕像素探针：中轴 sRGB 亮度差
+ *   +6.5% 低于 ≥12% 机器判据——有效线性 +15.4% 被 sRGB 编码压缩；需有效线性 ≥+29.5%）：
+ *   脉色 (1.28,1.19,0.74)→(1.62,1.34,1.00)（相对亮度 1.18→1.375，R 主推抗 G 通道输出
+ *   裁切）+ 中脉权 0.85→1.00 满权 + 中脉带 0.008/0.030→0.012/0.040、三出脉权 0.65→0.75
+ *   + 带 0.010/0.040→0.012/0.046（tri/mid 相对关系 0.76→0.75 不破）+ 二级脉 0.18 不动
+ *   （albedo 线性亮度差 中脉 37.5%/三出脉 28.1% → 探针 sRGB 自估 ≈+15%/+11.5%；校准锚：
+ *   旧配方模型 +6.35% vs 实测 +6.5%）；齿门控坡 (0.42,0.56)→(0.48,0.56) 收窄（齿带严格
+ *   限上半部 + 起齿更陡）；载波 pow1.8 与密度 8 评估否决记档（亚像素收益/身份漂移风险）；
+ *   全部为权重/门控/常量级改动——零新增指令/采样，叶 High 11.5× 记账不变；
  * - 分档实装（level 参数，缺省 'high'）：三工厂缺省 ≡ 显式 'high'（属性 + 键 + GLSL 全文
  *   逐位相等）；3 工厂 × 3 档 = 9 键互异；叶 Mid 去叶脉三件/叶团（SDF 全形/透光/叶背/
  *   hue·luma/shade 保留）、Low 换 Low SDF（卵形+急尖+偏斜与 High 逐字同源，片元零
@@ -207,9 +216,9 @@ describe('物种配方锚定（Spec celtis-reference 1.0 §4/§5/§7）', () => 
     expect(depth.fragmentShader).toContain('mix(0.70, 1.15, smoothstep(0.40, 0.95, t3cP.y))');
   });
 
-  it('齿限上半部（四源一致核心辨识）：门控 + 圆钝齿载波 2π·9 pow² + 噪声频率 60；Step 4 幅度 0.060 峰值 0.030 = 坡宽 0.04×75% 顶格', () => {
+  it('齿限上半部（四源一致核心辨识）：门控 + 圆钝齿载波 2π·9 pow² + 噪声频率 60；Step 4 幅度 0.060 峰值 0.030 = 坡宽 0.04×75% 顶格；Step 4b 门控坡 (0.48,0.56) 收窄', () => {
     const leaf = assemble(track(createCeltisLeafMaterial()), THREE.ShaderLib.physical);
-    expect(leaf.fragmentShader).toContain('float t3cGate = smoothstep(0.42, 0.56, t3cP.y);'); // 下半部近全缘（Spec §4 Verified [1][3][5][6]）
+    expect(leaf.fragmentShader).toContain('float t3cGate = smoothstep(0.48, 0.56, t3cP.y);'); // 下半部近全缘（Spec §4 Verified [1][3][5][6]；Step 4b：起坡 0.42→0.48——齿带严格限上半部 + 起齿更陡）
     expect(leaf.fragmentShader).toContain('pow(0.5 + 0.5 * cos(t3cP.y * 56.55 - t3cRand * 6.28), 2.0)'); // 圆钝齿载波（56.55 = 2π·9；pow² 圆钝 vs 夏栎 pow³ 锐齿）
     expect(leaf.fragmentShader).toContain('t3cP.y * 60.0'); // 齿抖动噪声频率（与载波同量级）
     expect(leaf.fragmentShader).toContain('* 0.060 * t3cGate'); // Step 4：幅度域 0.040→0.060（峰值 0.030 = 坡宽 0.04×75% 顶格——宏观特写齿可辨）
@@ -219,14 +228,14 @@ describe('物种配方锚定（Spec celtis-reference 1.0 §4/§5/§7）', () => 
     expect(depth.fragmentShader).toContain('* 0.060 * t3cGate'); // 深度随 SDF 单一来源同步（影裁切齿形同幅）
   });
 
-  it('三出脉基侧脉对 + 中脉亮带 + 弱二级脉（FOC 属级 3-veined from base Verified [4]；Step 4 带宽/权重/脉色校准——亮度差中脉 16%/三出脉 12.4%）', () => {
+  it('三出脉基侧脉对 + 中脉亮带 + 弱二级脉（FOC 属级 3-veined from base Verified [4]；Step 4b 可见度定稿——权/色/带宽三推，探针 sRGB 中轴自估 ≈+15% 对 ≥12% 判据）', () => {
     const { fragmentShader } = assemble(track(createCeltisLeafMaterial()), THREE.ShaderLib.physical);
     expect(fragmentShader).toContain('float t3cTriPath = 0.30 * pow(t3cP.y, 0.45) * (1.0 - 0.45 * t3cP.y);'); // 基出侧脉轨迹（急升后近叶缘平行内行）
     expect(fragmentShader).toContain('abs(abs(t3cP.x) - t3cTriPath)'); // 两侧对称一对（±|x| 距离场）
-    expect(fragmentShader).toContain('1.0 - smoothstep(0.008, 0.030, abs(t3cP.x))'); // Step 4：中脉带半宽 ×1.5（1.24→1.86px@100px 叶）
-    expect(fragmentShader).toContain('1.0 - smoothstep(0.010, 0.040, abs(abs(t3cP.x) - t3cTriPath))'); // Step 4：三出脉带半宽 ×1.33（1.86→2.5px）
-    expect(fragmentShader).toContain('t3cVeinMid * 0.85 + t3cVeinTri * 0.65 + t3cVeinLat * 0.18'); // Step 4：中脉主 0.50→0.85 + 三出脉 0.34→0.65 + 二级脉弱 0.14→0.18（浅黄绿脉色调制）
-    expect(fragmentShader).toContain('vec3(1.28, 1.19, 0.74)'); // Step 4：脉色亮度 1.13→1.19（albedo 亮度差 中脉 6.5%→16%、三出脉 4.4%→12.4%）
+    expect(fragmentShader).toContain('1.0 - smoothstep(0.012, 0.040, abs(t3cP.x))'); // Step 4b：中脉带 0.008/0.030→0.012/0.040（平顶加宽线更实——采样不被衰减坡稀释）
+    expect(fragmentShader).toContain('1.0 - smoothstep(0.012, 0.046, abs(abs(t3cP.x) - t3cTriPath))'); // Step 4b：三出脉带 0.010/0.040→0.012/0.046（基侧脉对身份核心同步推）
+    expect(fragmentShader).toContain('t3cVeinMid * 1.00 + t3cVeinTri * 0.75 + t3cVeinLat * 0.18'); // Step 4b：中脉满权 1.00（0.85→）+ 三出脉 0.65→0.75（tri/mid 相对关系 0.76→0.75 不破）+ 二级脉 0.18 不动守背景弱层
+    expect(fragmentShader).toContain('vec3(1.62, 1.34, 1.00)'); // Step 4b：脉色相对亮度 1.18→1.375（R 主推抗 G 通道输出裁切——albedo 线性亮度差 中脉 37.5%、三出脉 28.1%）
   });
 
   it('两面区分：叶背浅灰绿 ×(1.02,1.00,1.10) 去饱和提亮 + 背面糙度 +0.12 哑光差；深度材质不吃面色', () => {

@@ -4,7 +4,7 @@
 
 ## Current
 
-- [~] T011 第一批阔叶乔木（1/5；011.1 朴树 done 2026-09-19：首树方法复制成立——家族契约零修改实例化、十项 9/9 过、2746 零回归；下一步 011.2 香樟）→ [tasks/011-broadleaf-trees.md](tasks/011-broadleaf-trees.md)
+- [~] T011 第一批阔叶乔木（1/5；011.1 朴树 done 2026-09-20：首树方法复制成立——家族契约零修改实例化、Spec 1.0 + 几何/材质/8 槽/LOD/Shadow 全链、十项检查单适用项全过（齿/脉两轮校准+离屏探针终判）、2746 零回归；下一步 011.2 香樟）→ [tasks/011-broadleaf-trees.md](tasks/011-broadleaf-trees.md)
 
 ## Done（近）
 
