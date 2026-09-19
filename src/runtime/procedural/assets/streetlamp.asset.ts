@@ -35,6 +35,8 @@ export const meta: ProceduralAssetMeta = {
   defaultRotation: { x: 0, y: 0, z: 0 },
   // 全向摆放；路灯色相不漂移，省略 hueJitter
   variants: { scaleJitter: 0.05, rotationJitter: 180 },
+  taxonomy: { category: 'facility', family: 'road-facility' }, // 道路设施（GLB road-facility 目录已有 streetlight 同族）
+  proceduralProfile: { heightRange: { min: 4.21, max: 4.21 }, widthRange: { min: 0.89, max: 0.89 } }, // 细模包围盒实测（T010.2 探针：h 4.2075 / w 0.8944——含悬臂外伸与灯头）
 };
 
 export function build(): InstanceSource {

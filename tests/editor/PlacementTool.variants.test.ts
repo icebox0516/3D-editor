@@ -103,6 +103,7 @@ function makeProceduralAsset(overrides: Partial<ProceduralAssetMeta> = {}): Proc
     defaultScale: { x: 2, y: 2, z: 2 },
     defaultRotation: { x: 0, y: 0.3, z: 0 },
     variants: { scaleJitter: 0.1, rotationJitter: 15, hueJitter: 8 },
+    taxonomy: { category: 'facility', family: 'public-facility' }, // T010.2 必填分类（测试替身按垃圾桶原型归类）
     ...overrides,
   };
 }

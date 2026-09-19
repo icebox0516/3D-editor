@@ -46,6 +46,8 @@ export const meta: ProceduralAssetMeta = {
   defaultScale: { x: 1, y: 1, z: 1 },
   defaultRotation: { x: 0, y: 0, z: 0 },
   variants: { scaleJitter: 0.1, rotationJitter: 180, hueJitter: 6 },
+  taxonomy: { category: 'facility', family: 'public-facility' }, // 公共设施（细分与 GLB public-facility 目录同粒度，T016 归并消费）
+  proceduralProfile: { heightRange: { min: 0.9, max: 0.9 }, widthRange: { min: 0.68, max: 0.68 } }, // 细模包围盒实测（T010.2 探针：h 0.8993 / w 0.6800——桶身 Ø0.60 + 投口翻盖前伸）
 };
 
 export function build(): InstanceSource {

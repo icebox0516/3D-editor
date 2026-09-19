@@ -38,6 +38,8 @@ export const meta: ProceduralAssetMeta = {
   variants: { scaleJitter: 0.3, rotationJitter: 180, hueJitter: 15 }, // 花境混色与小尺度体量差
   triangleCount: 136,
   levels: [{ id: 'high' }], // LOD 接口位：单档细模占位
+  taxonomy: { category: 'plant' }, // family 不填：花卉属草本/地被，T015 族落地时再定值（无诚实族归属不占位）
+  proceduralProfile: { heightRange: { min: 0.39, max: 0.39 }, widthRange: { min: 0.33, max: 0.33 } }, // 细模包围盒实测（T010.2 探针：h 0.3913 / w 0.3287）
 };
 
 /** 部件合并：统一转非索引（Cylinder/Box 索引态一致化才能合）；

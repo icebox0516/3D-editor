@@ -75,6 +75,7 @@ function makeRegistry(): { assets: AssetRegistry; registerFile: () => void; regi
         defaultScale: { x: 1, y: 1, z: 1 },
         defaultRotation: { x: 0, y: 0, z: 0 },
         variants: { scaleJitter: 0.1, rotationJitter: 180, hueJitter: 6 },
+        taxonomy: { category: 'facility' }, // T010.2 必填分类（测试替身按垃圾桶原型归类）
       },
     });
   return { assets, registerFile, registerProcedural };
@@ -177,6 +178,7 @@ describe('AssetSourceRouter：对象 seed 透传（T008.1 槽路由）', () => {
         id,
         name: `形态族资产 ${id}`,
         category: 'test',
+        taxonomy: { category: 'dev' }, // T010.2 必填分类（临时管线测试资产 → dev）
         tags: [],
         defaultScale: { x: 1, y: 1, z: 1 },
         defaultRotation: { x: 0, y: 0, z: 0 },
@@ -190,6 +192,7 @@ describe('AssetSourceRouter：对象 seed 透传（T008.1 槽路由）', () => {
         id,
         name: `形态族资产 ${id}`,
         category: 'test',
+        taxonomy: { category: 'dev' }, // T010.2 必填分类（临时管线测试资产 → dev）
         tags: [],
         defaultScale: { x: 1, y: 1, z: 1 },
         defaultRotation: { x: 0, y: 0, z: 0 },

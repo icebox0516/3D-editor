@@ -52,6 +52,7 @@ function makeProceduralMeta(partial: Partial<ProceduralAssetMeta> = {}): Procedu
     tags: [],
     defaultScale: { x: 1, y: 1, z: 1 },
     defaultRotation: { x: 0, y: 0, z: 0 },
+    taxonomy: { category: 'facility' }, // T010.2 必填分类（fake 按垃圾桶原型归类）
     ...partial,
   };
 }

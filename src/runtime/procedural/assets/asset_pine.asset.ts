@@ -36,6 +36,8 @@ export const meta: ProceduralAssetMeta = {
   variants: { scaleJitter: 0.15, rotationJitter: 180, hueJitter: 8 }, // 针叶树体量与叶色自然差异
   triangleCount: 136,
   levels: [{ id: 'high' }], // LOD 接口位：单档细模占位
+  taxonomy: { category: 'plant', family: 'conifer' }, // 针叶族（T012 建族的第一现役消费者）
+  proceduralProfile: { heightRange: { min: 7, max: 7 }, widthRange: { min: 3.77, max: 3.77 } }, // 细模包围盒实测（T010.2 探针：h 7.0000 / w 3.7723）
 };
 
 /** 部件合并：统一转非索引（Cylinder/Cone 索引态与组内其他部件一致化才能合）；

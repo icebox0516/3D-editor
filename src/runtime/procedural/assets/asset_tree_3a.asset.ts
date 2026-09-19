@@ -71,6 +71,14 @@ export const meta: ProceduralAssetMeta = {
   variants: { scaleJitter: 0.16, rotationJitter: 180, hueJitter: 9 }, // 参照 asset_oak 量级
   triangleCount: 35058, // 实数 = slot-0 锚点 High 档结构计数（皮 20724 恒定 + 叶簇卡 7167×2，簇级剔除 + 冠内通透规则确定；多档起声明面取细模档；见完成记录）
   levels: [{ id: 'high' }, { id: 'mid' }, { id: 'low' }], // LOD 三档（T009.6 夏栎内容交付；D27 首版最小化 [{id}]——阈值归 Runtime 常量，不进 Profile）
+  taxonomy: { category: 'plant', family: 'broadleaf' }, // 阔叶家族契约第一实例（tree/broadleaf/，T010.1）；T011 首批阔叶乔木同族
+  proceduralProfile: {
+    // 跨 8 槽细模包围盒实测带（T010.2 探针：h 7.3869–9.1183 / w 4.4415–9.8035）。
+    // 模块头「总高 7.4–8.5m、冠幅 5.4–6.6m」为 T008.2 slot-0 锚点描述（slot-0 实测
+    // 8.483/6.147 落带内）；profile 口径 = 全槽实测带，槽间差异（slot-3 展开 9.80）如实入带
+    heightRange: { min: 7.39, max: 9.12 },
+    widthRange: { min: 4.44, max: 9.8 },
+  },
 };
 
 /**

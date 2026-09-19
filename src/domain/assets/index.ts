@@ -7,3 +7,4 @@ export * from './AssetReference';
 export * from './ModelObject';
 export * from './variants';
 export * from './shapeFamily';
+export * from './taxonomy';

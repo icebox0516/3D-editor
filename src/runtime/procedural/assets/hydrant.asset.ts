@@ -38,6 +38,8 @@ export const meta: ProceduralAssetMeta = {
   defaultScale: { x: 1, y: 1, z: 1 },
   defaultRotation: { x: 0, y: 0, z: 0 },
   variants: { scaleJitter: 0.05, rotationJitter: 180, hueJitter: 5 },
+  taxonomy: { category: 'facility', family: 'fire-safety' }, // 消防设施（GLB fire-safety 目录已有 extinguisher 同族）
+  proceduralProfile: { heightRange: { min: 0.73, max: 0.73 }, widthRange: { min: 0.38, max: 0.38 } }, // 细模包围盒实测（T010.2 探针：h 0.7300 / w 0.3800——两侧横伸栓口展开）
 };
 
 export function build(): InstanceSource {

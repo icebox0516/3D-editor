@@ -37,6 +37,8 @@ export const meta: ProceduralAssetMeta = {
   variants: { scaleJitter: 0.18, rotationJitter: 180, hueJitter: 10 }, // 乔木体量与叶色自然差异
   triangleCount: 688,
   levels: [{ id: 'high' }], // LOD 接口位：单档细模占位
+  taxonomy: { category: 'plant', family: 'broadleaf' }, // 阔叶乔木（如实归类：橡树即阔叶；几何为 003.4 旧实现，分类只认树种不认实现代际）
+  proceduralProfile: { heightRange: { min: 6.12, max: 6.12 }, widthRange: { min: 5.15, max: 5.15 } }, // 细模包围盒实测（T010.2 探针：h 6.1150 / w 5.1500）
 };
 
 /** 部件合并：统一转非索引（Icosahedron 天生非索引、Cylinder 需转，索引态不一致合不出）；

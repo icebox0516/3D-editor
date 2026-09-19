@@ -24,6 +24,7 @@ function makeProcedural(id: string, overrides?: Partial<ProceduralAssetMeta>): P
     defaultScale: { x: 1, y: 1, z: 1 },
     defaultRotation: { x: 0, y: 0, z: 0 },
     variants: { scaleJitter: 0.1, rotationJitter: 180, hueJitter: 6 },
+    taxonomy: { category: 'facility' }, // T010.2 必填分类（测试替身）
     ...overrides,
   };
 }

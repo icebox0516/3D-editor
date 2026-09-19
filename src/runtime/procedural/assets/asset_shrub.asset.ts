@@ -33,6 +33,8 @@ export const meta: ProceduralAssetMeta = {
   variants: { scaleJitter: 0.25, rotationJitter: 180, hueJitter: 12 }, // 丛生体量与叶色自然差异大于乔木
   triangleCount: 400,
   levels: [{ id: 'high' }], // LOD 接口位：单档细模占位
+  taxonomy: { category: 'plant', family: 'shrub' }, // 灌木族（T014 建族的第一现役消费者）
+  proceduralProfile: { heightRange: { min: 0.9, max: 0.9 }, widthRange: { min: 1.69, max: 1.69 } }, // 细模包围盒实测（T010.2 探针：h 0.9000 / w 1.6900；头注「丛幅≈1.9」为估算值，以实测为准）
 };
 
 /** 部件合并：Icosahedron 天生非索引，直接同材质合并（useGroups=false → 无组单 draw） */

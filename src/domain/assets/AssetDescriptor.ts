@@ -9,6 +9,7 @@
  */
 import type { Euler, ID, Vec3 } from '../../core/types';
 import type { ModelAsset } from './ModelAsset';
+import type { AssetTaxonomy } from './taxonomy';
 
 /** 两种资产 meta 的公共字段（检索与放置姿态公共面：工厂/注册表按此编程，两种 kind 通吃） */
 export interface AssetCommonMeta {
@@ -38,8 +39,8 @@ export interface ProceduralVariants {
 
 /**
  * LOD 档位 id 枚举（D27.7 三值定死）：'high' = 细模；'mid' / 'low' 由各资产 LOD 任务提供内容。
- * proxy/impostor 不进类型枚举（规范语义位归 T010.3）；culled 是调度结果而非声明档位，
- * 不进枚举。Runtime build/缓存参数直接复用本类型（runtime/procedural/types.ts）。
+ * proxy/impostor 不进类型枚举（规范语义位归 T010.3，规范真相源 = docs/procedural-assets/lod-spec.md）；
+ * culled 是调度结果而非声明档位，不进枚举。Runtime build/缓存参数直接复用本类型（runtime/procedural/types.ts）。
  */
 export type ProceduralLevel = 'high' | 'mid' | 'low';
 
@@ -69,6 +70,35 @@ export interface ProceduralAssetMeta extends AssetCommonMeta {
   triangleCount?: number;
   /** LOD 档位（缺省视为单档细模，与显式声明单档等价；多档内容由 T009.6 起提供，D23） */
   levels?: ProceduralLevelDescriptor[];
+  /** 分类声明（T010.2，D22 三级可寻址——大类 → family → asset；**必填**——程序化资产
+   *  一次定契约避免二次迁移。浏览语义，不承载渲染/放置行为分支；值域与依据见
+   *  ./taxonomy 与 docs/procedural-assets/metadata-taxonomy.md）。
+   *  与 category（现行 UI 分组键，自由字符串）正交共存：category 不改、UI 分组行为不变 */
+  taxonomy: AssetTaxonomy;
+  /** 尺寸声明（可选；通用维度语义与数值纪律见 ProceduralProfile） */
+  proceduralProfile?: ProceduralProfile;
+}
+
+/** 闭区间数值范围（米；min ≤ max；记录实测带，两位小数精度） */
+export interface Range {
+  min: number;
+  max: number;
+}
+
+/**
+ * 程序化资产尺寸声明（T010.2，可选；浏览语义——T016 按尺寸筛选/排序消费）。
+ * 只收**通用维度语义**：总高/水平展幅对任何程序化资产（消防栓/路灯/灌木）都成立；
+ * 植物专属术语（冠幅 crownWidth 等）禁入本层与一切公共协议字段（D20.6/D22——
+ * 消防车/建筑/路灯不应被迫回答「冠幅是什么」），冠幅语义由家族契约层承载
+ * （tree/broadleaf 契约已有 crown* 字段，浏览侧换算用 widthRange 通用语）。
+ * 数值纪律：只填有真实依据的实测值（细模档源几何包围盒，跨形态槽取带；取证
+ * 记录见 T010.2 完成记录），无依据不填——字段全可选，不投机造数。
+ */
+export interface ProceduralProfile {
+  /** 总高带（米）：原点 = 底面中心（minY=0）→ 包围盒 maxY；跨形态槽取实测 min/max */
+  heightRange?: Range;
+  /** 水平展幅带（米）：max(X 展幅, Z 展幅)——水平包围盒两轴取大；跨形态槽取实测 min/max */
+  widthRange?: Range;
 }
 
 /** 统一资产描述符：kind 可辨识联合（D7/D17——不拍平，字段存在性由类型保证） */
