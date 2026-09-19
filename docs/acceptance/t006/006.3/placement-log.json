@@ -1,0 +1,286 @@
+{
+  "steps": [
+    {
+      "name": "far-20m",
+      "distance": 20,
+      "triangles": 620632,
+      "drawCalls": 31,
+      "geometries": 17
+    },
+    {
+      "name": "far-40m",
+      "distance": 40,
+      "triangles": 620632,
+      "drawCalls": 31,
+      "geometries": 17
+    },
+    {
+      "name": "far-55m",
+      "distance": 55,
+      "triangles": 419448,
+      "drawCalls": 39,
+      "geometries": 17
+    },
+    {
+      "name": "far-62m",
+      "distance": 62,
+      "triangles": 419448,
+      "drawCalls": 39,
+      "geometries": 17
+    },
+    {
+      "name": "far-66m",
+      "distance": 66,
+      "triangles": 254252,
+      "drawCalls": 31,
+      "geometries": 17
+    },
+    {
+      "name": "far-72m",
+      "distance": 72,
+      "triangles": 202824,
+      "drawCalls": 31,
+      "geometries": 17
+    },
+    {
+      "name": "far-90m",
+      "distance": 90,
+      "triangles": 149004,
+      "drawCalls": 31,
+      "geometries": 17
+    },
+    {
+      "name": "far-120m",
+      "distance": 120,
+      "triangles": 149004,
+      "drawCalls": 31,
+      "geometries": 17
+    },
+    {
+      "name": "far-150m",
+      "distance": 150,
+      "triangles": 114800,
+      "drawCalls": 35,
+      "geometries": 20
+    },
+    {
+      "name": "far-165m",
+      "distance": 165,
+      "triangles": 75368,
+      "drawCalls": 31,
+      "geometries": 21
+    },
+    {
+      "name": "far-175m",
+      "distance": 175,
+      "triangles": 47696,
+      "drawCalls": 31,
+      "geometries": 23
+    },
+    {
+      "name": "far-200m",
+      "distance": 200,
+      "triangles": 34400,
+      "drawCalls": 31,
+      "geometries": 24
+    },
+    {
+      "name": "far-260m",
+      "distance": 260,
+      "triangles": 34400,
+      "drawCalls": 31,
+      "geometries": 24
+    },
+    {
+      "name": "far-350m",
+      "distance": 350,
+      "triangles": 34400,
+      "drawCalls": 31,
+      "geometries": 24
+    },
+    {
+      "name": "far-500m",
+      "distance": 500,
+      "triangles": 34400,
+      "drawCalls": 31,
+      "geometries": 24
+    },
+    {
+      "name": "far-750m",
+      "distance": 750,
+      "triangles": 34400,
+      "drawCalls": 31,
+      "geometries": 24
+    },
+    {
+      "name": "far-900m",
+      "distance": 900,
+      "triangles": 34400,
+      "drawCalls": 31,
+      "geometries": 24
+    },
+    {
+      "name": "back-750m",
+      "distance": 750,
+      "triangles": 34400,
+      "drawCalls": 31,
+      "geometries": 24
+    },
+    {
+      "name": "back-500m",
+      "distance": 500,
+      "triangles": 34400,
+      "drawCalls": 31,
+      "geometries": 24
+    },
+    {
+      "name": "back-350m",
+      "distance": 350,
+      "triangles": 34400,
+      "drawCalls": 31,
+      "geometries": 24
+    },
+    {
+      "name": "back-260m",
+      "distance": 260,
+      "triangles": 34400,
+      "drawCalls": 31,
+      "geometries": 24
+    },
+    {
+      "name": "back-200m",
+      "distance": 200,
+      "triangles": 34400,
+      "drawCalls": 31,
+      "geometries": 24
+    },
+    {
+      "name": "back-170m",
+      "distance": 170,
+      "triangles": 34400,
+      "drawCalls": 31,
+      "geometries": 24
+    },
+    {
+      "name": "back-150m",
+      "distance": 150,
+      "triangles": 47696,
+      "drawCalls": 31,
+      "geometries": 24
+    },
+    {
+      "name": "back-120m",
+      "distance": 120,
+      "triangles": 149004,
+      "drawCalls": 31,
+      "geometries": 24
+    },
+    {
+      "name": "back-90m",
+      "distance": 90,
+      "triangles": 149004,
+      "drawCalls": 31,
+      "geometries": 24
+    },
+    {
+      "name": "back-70m",
+      "distance": 70,
+      "triangles": 149004,
+      "drawCalls": 31,
+      "geometries": 24
+    },
+    {
+      "name": "back-62m",
+      "distance": 62,
+      "triangles": 202824,
+      "drawCalls": 31,
+      "geometries": 24
+    },
+    {
+      "name": "back-55m",
+      "distance": 55,
+      "triangles": 254252,
+      "drawCalls": 31,
+      "geometries": 24
+    },
+    {
+      "name": "back-45m",
+      "distance": 45,
+      "triangles": 419448,
+      "drawCalls": 39,
+      "geometries": 24
+    },
+    {
+      "name": "back-30m",
+      "distance": 30,
+      "triangles": 620632,
+      "drawCalls": 31,
+      "geometries": 24
+    },
+    {
+      "name": "back-20m",
+      "distance": 20,
+      "triangles": 620632,
+      "drawCalls": 31,
+      "geometries": 24
+    }
+  ],
+  "holds": [
+    {
+      "frame": 1,
+      "triangles": 522744,
+      "drawCalls": 35
+    },
+    {
+      "frame": 2,
+      "triangles": 522744,
+      "drawCalls": 35
+    },
+    {
+      "frame": 3,
+      "triangles": 522744,
+      "drawCalls": 35
+    },
+    {
+      "frame": 4,
+      "triangles": 522744,
+      "drawCalls": 35
+    }
+  ],
+  "switchAB": {
+    "on": {
+      "drawCalls": 35,
+      "triangles": 114800,
+      "geometries": 24,
+      "textures": 4,
+      "programs": 15,
+      "objects": 9
+    },
+    "off": {
+      "drawCalls": 31,
+      "triangles": 620632,
+      "geometries": 10,
+      "textures": 4,
+      "programs": 7,
+      "objects": 9
+    },
+    "offUrlLodQuery": "?lod=off",
+    "offFar": {
+      "drawCalls": 31,
+      "triangles": 620632,
+      "geometries": 10,
+      "textures": 4,
+      "programs": 7,
+      "objects": 9
+    }
+  },
+  "canvas": {
+    "w": 1292,
+    "h": 932
+  },
+  "place": true,
+  "band": {
+    "baseTriangles": 620632,
+    "nominalD": 55
+  }
+}

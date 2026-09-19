@@ -15,6 +15,10 @@
  *   load 命中不重建；缺省 level 与显式 'high' 同键同条目；level 透传 build；evict
  *   单档精确释放（另一档不受影响、未命中 false、幂等）；未声明 shapeFamily 带 level
  *   仍无参 build 单条目（现状逐位一致）；sourceKeyOf 输出形态原样（level 不掺形态身份）。
+ * - 无 shapeFamily 多档资产键规则（T006.2）：声明多档（levels.length > 1——设施资产
+ *   两档先例）→ 键 = assetId::level、build 恰收 {level}（seed/preset 不透传）、seed
+ *   不参与键、evict 单档独立释放；单档声明（levels 恰 1）与未声明 levels 一致保持
+ *   恒单档行为（纯 assetId 键 + 无参 build，现状逐位一致回归锁）。
  * - customDepthMaterial 释放（T009.5）：evict 单条目与 dispose 全量均释放源所持影
  *   pass 深度材质（恰一次、互不误伤、幂等）。
  * 边界：绝无模块级单例——每测试 new 独立实例（D17 StrictMode 双挂载裁定）。
@@ -421,6 +425,80 @@ describe('LOD 档位维度（档位几何独立缓存、独立释放）', () => 
     expect(sourceKeyOf('test.tree', 2)).toBe('test.tree:slot-2');
     expect(sourceKeyOf('test.tree', 2, 'p')).toBe('test.tree:p:slot-2');
     expect(sourceKeyOf('test.tree')).toBe('test.tree');
+  });
+});
+
+// ── 无 shapeFamily 多档资产键规则（T006.2——assetId::level）──────────
+
+/** 未声明 shapeFamily 但声明 levels 的最小 meta（设施资产两档形态——档数可调） */
+function bareLevelsMeta(id: string, levels: { id: 'high' | 'mid' | 'low' }[]): ProceduralAssetMeta {
+  return {
+    id,
+    name: `临时多档设施资产 ${id}`,
+    category: 'test',
+    taxonomy: { category: 'dev' }, // T010.2 必填分类（临时管线测试资产 → dev）
+    tags: ['test'],
+    defaultScale: { x: 1, y: 1, z: 1 },
+    defaultRotation: { x: 0, y: 0, z: 0 },
+    levels,
+  };
+}
+
+describe('无 shapeFamily 多档资产（T006.2：键 = assetId::level、build({ level })）', () => {
+  it('声明多档：缺省/显式 high 同键、low 独立条目、build 恰收 { level }（seed/preset 不透传）', async () => {
+    const id = 'test.lod_bare_levels';
+    tempIds.push(id);
+    const log = { calls: 0, params: [] as (ProceduralBuildParams | undefined)[] };
+    registerProceduralRoute(id, recordingBuild(log), bareLevelsMeta(id, [{ id: 'high' }, { id: 'low' }]));
+    const cache = newCache();
+    const high = await cache.load(id); // 缺省 level
+    expect(log.params[0]).toEqual({ level: 'high' }); // 恰 { level }——无 seed/preset
+    expect(cache.size).toBe(1);
+    expect(await cache.load(id, { level: 'high' })).toBe(high); // 缺省 = high 同键
+    const low = await cache.load(id, { level: 'low' });
+    expect(log.params[1]).toEqual({ level: 'low' });
+    expect(cache.size).toBe(2); // 两档不撞同键
+    expect(low.geometry).not.toBe(high.geometry);
+    expect(log.calls).toBe(2);
+    // seed 不参与键（无 shapeFamily 即无 seed 声明面）：不同 seed 同档命中同条目
+    expect(await cache.load(id, { seed: 42, level: 'low' })).toBe(low);
+    expect(log.calls).toBe(2);
+  });
+
+  it('evict 单档独立释放：另一档仍命中不重建；幂等未命中 false；释放后可重建', async () => {
+    const id = 'test.lod_bare_levels_evict';
+    tempIds.push(id);
+    const calls = { count: 0 };
+    registerProceduralRoute(id, countingBuild(calls), bareLevelsMeta(id, [{ id: 'high' }, { id: 'low' }]));
+    const cache = newCache();
+    const high = await cache.load(id);
+    const low = await cache.load(id, { level: 'low' });
+    expect(cache.size).toBe(2);
+    let lowGeoDisposed = 0;
+    low.geometry.addEventListener('dispose', () => lowGeoDisposed++);
+    expect(cache.evict(id, { level: 'low' })).toBe(true);
+    expect(lowGeoDisposed).toBe(1);
+    expect(cache.size).toBe(1);
+    expect(cache.evict(id, { level: 'low' })).toBe(false); // 幂等
+    expect(await cache.load(id)).toBe(high); // high 不受影响
+    expect(calls.count).toBe(2);
+    await cache.load(id, { level: 'low' }); // 释放后可重建
+    expect(calls.count).toBe(3);
+    expect(cache.size).toBe(2);
+  });
+
+  it('单档声明（levels 恰 1 档）：保持恒单档行为——不同 level 请求同条目、build 无参调用（现状逐位一致）', async () => {
+    const id = 'test.lod_bare_single_level';
+    tempIds.push(id);
+    const log = { calls: 0, params: [] as (ProceduralBuildParams | undefined)[] };
+    registerProceduralRoute(id, recordingBuild(log), bareLevelsMeta(id, [{ id: 'high' }]));
+    const cache = newCache();
+    const a = await cache.load(id, { level: 'high' });
+    const b = await cache.load(id, { level: 'low' }); // 单档声明不触发 level 键
+    expect(b).toBe(a);
+    expect(cache.size).toBe(1);
+    expect(log.calls).toBe(1);
+    expect(log.params).toEqual([undefined]); // 无参调用（恒单档语义不变）
   });
 });
 

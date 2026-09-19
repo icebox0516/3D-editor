@@ -907,14 +907,14 @@ describe('InstancedAssetPool：池键分桶（resolvePoolKey 注入）', () => {
     await flush();
     expect(pool.root.children).toHaveLength(1);
     expect(provider).toHaveBeenCalledTimes(1);
-    expect(provider).toHaveBeenNthCalledWith(1, 'asset_tree', 0);
+    expect(provider).toHaveBeenNthCalledWith(1, 'asset_tree', 0, 'high'); // T006.3：源请求带档位（新登记 high 桶起步）
 
     // seed 1 → 槽 1 → 新桶
     pool.attach(makeModel('c', 'asset_tree', transformAt(2), true, 1));
     await flush();
     expect(pool.root.children).toHaveLength(2);
     expect(provider).toHaveBeenCalledTimes(2);
-    expect(provider).toHaveBeenNthCalledWith(2, 'asset_tree', 1);
+    expect(provider).toHaveBeenNthCalledWith(2, 'asset_tree', 1, 'high');
     const counts = pool.root.children.map((c) => (c as THREE.InstancedMesh).count).sort();
     expect(counts).toEqual([1, 2]);
     pool.dispose();
@@ -944,7 +944,7 @@ describe('InstancedAssetPool：池键分桶（resolvePoolKey 注入）', () => {
     const pool = new InstancedAssetPool({ provideSource: provider, resolvePoolKey: slotPoolKey });
     pool.attach(makeModel('a', 'asset_tree', transformAt(0)));
     await flush();
-    expect(provider).toHaveBeenNthCalledWith(1, 'asset_tree', undefined);
+    expect(provider).toHaveBeenNthCalledWith(1, 'asset_tree', undefined, 'high');
     pool.dispose();
   });
 });

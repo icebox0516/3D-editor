@@ -31,14 +31,34 @@
  *  - 异步源仿池：未就绪先登记实例数据（pending），源到达后建网格；失败告警一次不重试
  *    不崩（登记数据保留，渲染不可能）。manager 会话私有（Renderer 构造 / dispose 链
  *    管理），绝不模块级单例——StrictMode 双挂载安全（D17）。
- *  - LOD 分档 / 拾取映射 / 样式序列化明确不做（T006 / 003.3）。
+ *  - LOD 分档 / 拾取映射 / 样式序列化明确不做（T006 / 003.3）→ LOD 分档自 T006.3 起
+ *    由本管承担（拾取映射/样式序列化仍不做）。
+ *
+ * chunk × source × level 分桶与换档（T006.3，D27.4/D27.6）：
+ *  - 桶维度 = 块 × 资产 × 档：MeshEntry 携带 level，(块×资产) 同时只有一个当档桶在
+ *    渲染；**不做「桶内换 Source」**——换档 = 确定性重撒重建（同 seed 同结果，scatterChunk
+ *    纯函数保证实例集合逐位一致，只换当档 InstanceSource 成套的 geometry/material）。
+ *  - 选档 = 块粒度（§4.3 候选保守策略）：代表点 = 块 AABB 最近点（box.clampPoint）、
+ *    代表 scale = 块内实例 max（保守偏高档）、半径 = 当档源几何包围球；统一走 006.1
+ *    评估器（domain 纯函数，不复制选档逻辑），LodSubject 在本管组装（评估器不感知 chunk）。
+ *  - 帧内时序（D27.6）：frame(camera, lodEnabled) 在块视锥剔除之后逐 (块×资产) 评估——
+ *    档位每帧派生态，不进 Scene / Command / 持久状态；迟滞参考 current 由本管持有
+ *    （ChunkLodState.current，逐帧传入评估器）。
+ *  - 换档重建时机：目标档源就绪即重建（首建冷源经微任务到达后回调重建，旧档持续
+ *    渲染到新档就绪——换档点无 pop）；'culled'（超远）= 调度结果：网格 visible=false，
+ *    桶保留（回视即时恢复）。LOD 总开关（Renderer 持有、逐帧传入）：off = 恒 High +
+ *    culled 旁路（评估器语义）——非 high 桶全部确定性重建回 high。
  */
 import type { ProceduralVariants } from '../../domain/assets';
 import { applyAssetVariants } from '../../domain/assets';
+import type { ProceduralLevel } from '../../domain/assets';
+import type { LodRepresentation } from '../../domain/lod/lodEvaluation';
+import { evaluateLodRepresentation } from '../../domain/lod/lodEvaluation';
 import type { ScatterChunk, ScatterInstance, ScatterParams } from '../../domain/scatter';
 import { scatterChunk, scatterInfluenceRadius } from '../../domain/scatter';
 import type { InstanceSource } from '../instancing/InstancedAssetPool';
 import { hueOffsetToMultiplier } from '../instancing/instanceTint';
+import { lodViewOfCamera } from '../instancing/lodView';
 import type { Vec2 } from '../../core/types';
 import * as THREE from 'three';
 
@@ -50,10 +70,16 @@ export interface ScatterChunkKey {
 
 /** 依赖注入窄接口（仿 AssetSourceRouter：Renderer 注入真实路由，测试注 fake 工厂） */
 export interface ScatterChunkManagerOptions {
-  /** assetId → 实例化源（与 InstancedAssetPool 同源；几何/材质共享，本管绝不 dispose） */
-  provideSource: (assetId: string) => Promise<InstanceSource>;
+  /** assetId + 档位 → 实例化源（与 InstancedAssetPool 同源路由；level 为档位维度，
+   *  缺省 'high'——无档资产的源路由行为与现状逐位一致；几何/材质共享，本管绝不 dispose） */
+  provideSource: (assetId: string, level?: ProceduralLevel) => Promise<InstanceSource>;
   /** assetId → 程序化 meta 的变体声明（hueJitter>0 时逐实例色相微差；缺省无色） */
   getAssetVariants?: (assetId: string) => ProceduralVariants | undefined;
+  /**
+   * assetId → 已声明档位列表（T006.3 选档输入，levels meta 的 id 集）；缺省/空 =
+   * 单档语义（评估器按 ['high'] 处理）。Renderer 注入注册表查询；每资产缓存一次。
+   */
+  getAssetLevels?: (assetId: string) => ProceduralLevel[] | undefined;
   /** 块边长（米，>0；缺省 32。T006 LOD 分档要调） */
   chunkSizeM?: number;
 }
@@ -61,12 +87,29 @@ export interface ScatterChunkManagerOptions {
 /** 默认块边长（米）：D9 承重墙的初始裁定值 */
 export const CHUNK_SIZE_M = 32;
 
-/** (块×资产) 网格运行态（容量翻倍扩容、缩容保留、mesh 对象引用稳定——仿池） */
+/** (块×资产) 网格运行态（容量翻倍扩容、缩容保留、mesh 对象引用稳定——仿池）。
+ *  T006.3：entry 即「当档桶」——level 为桶维度（换档 = 拆旧桶建新桶，Mesh 对象与
+ *  geometry/material 绑定创建，不做桶内换 Source）。 */
 interface MeshEntry {
   readonly mesh: THREE.InstancedMesh<THREE.BufferGeometry, THREE.Material | THREE.Material[]>;
   capacity: number;
+  /** 桶档位（创建时绑定；与 chunk.lod 的目标档比对判定换档） */
+  readonly level: ProceduralLevel;
   /** 网格全部实例的紧致世界 AABB（块剔除盒的组成部分；写槽位时顺带累积） */
   readonly box: THREE.Box3;
+}
+
+/**
+ * (块×资产) 的 LOD 运行态（T006.3）：每帧派生评估的全部帧间状态都在此——
+ * current = 迟滞参考（本管持有、逐帧传入评估器）；level = 当前期望桶档（源就绪的
+ * 已渲染档；culled 期间保持最后档）；maxScale = 块内实例 max scale（§4.3 保守偏高档，
+ * 重撒时更新）；pending = 在途换档目标（源未就绪时登记，到达回调重建）。
+ */
+interface ChunkLodState {
+  current: LodRepresentation | undefined;
+  level: ProceduralLevel;
+  maxScale: number;
+  pending?: ProceduralLevel;
 }
 
 /** 单块运行态：块 Group（视锥剔除的开关单元）+ AABB + 合批网格 + 未就绪登记 */
@@ -82,6 +125,8 @@ interface ChunkState {
   readonly meshes: Map<string, MeshEntry>;
   /** assetId → 实例数据（源未就绪/失败时登记；源到达后建网格） */
   readonly pending: Map<string, ScatterInstance[]>;
+  /** assetId → LOD 运行态（T006.3；新资产初始 high、源就绪后评估接管） */
+  readonly lod: Map<string, ChunkLodState>;
 }
 
 /** 散布源 = 一个区域 = { id, params, baseY }（003.3 起由 Feature/Style 驱动） */
@@ -95,10 +140,14 @@ interface SourceState {
   readonly chunks: Map<string, ChunkState>;
 }
 
-/** 管理器级源缓存（跨源共享同 assetId 源；同资产只加载一次，失败告警一次不重试——仿池） */
+/** 管理器级源缓存（跨源共享同 (assetId × level) 源；同桶只加载一次，失败告警一次
+ *  不重试——仿池。T006.3 起按档分桶：键 = `${assetId}::${level}`，radius 为源几何
+ *  包围球半径的惰性缓存（选档输入；档间轮廓连续不变量下各档近似同值）） */
 interface AssetSourceState {
   source: InstanceSource | null;
   failed: boolean;
+  /** 源几何包围球半径（到达时算定；未就绪 = 0——评估路径以其 >0 为就绪判据） */
+  radius: number;
 }
 
 /** 初始容量与扩容策略（翻倍；避免逐块抖动重撒时逐实例扩容） */
@@ -111,6 +160,11 @@ function capacityFor(count: number): number {
 
 function chunkKeyString(key: ScatterChunkKey): string {
   return `${key.i}:${key.j}`;
+}
+
+/** (assetId × level) 源缓存键（档位维度后缀——与池桶/ProceduralSourceCache 同构口径） */
+function assetStateKey(assetId: string, level: ProceduralLevel): string {
+  return `${assetId}::${level}`;
 }
 
 /** 块矩形（半开 [min,max)；与撒点 chunk 语义同构） */
@@ -233,6 +287,8 @@ const _meshBox = new THREE.Box3();
 const _chunkBox = new THREE.Box3();
 const _viewProjection = new THREE.Matrix4();
 const _frustum = new THREE.Frustum();
+/** LOD 代表点暂存（块 AABB 最近点 = clampPoint(相机位)；值即时拷入纯数据入参） */
+const _nearestPoint = new THREE.Vector3();
 
 export class ScatterChunkManager {
   /** 渲染根（Renderer 挂 scene——contentGroup 兄弟；子树 = 块 Group × (源×块)） */
@@ -242,14 +298,17 @@ export class ScatterChunkManager {
   private readonly assetStates = new Map<string, AssetSourceState>();
   /** 实例网格 → 所属源 id（拾取反查，D18.7；网格 dispose 时同步摘除，与源共生命周期） */
   private readonly meshOwners = new Map<THREE.InstancedMesh<THREE.BufferGeometry, THREE.Material | THREE.Material[]>, string>();
-  private readonly provideSource: (assetId: string) => Promise<InstanceSource>;
+  private readonly provideSource: (assetId: string, level?: ProceduralLevel) => Promise<InstanceSource>;
   private readonly getAssetVariants: (assetId: string) => ProceduralVariants | undefined;
+  private readonly getAssetLevels: (assetId: string) => ProceduralLevel[] | undefined;
+  private readonly declaredLevelsCache = new Map<string, ProceduralLevel[]>();
   private readonly chunkSize: number;
   private disposed = false;
 
   constructor(options: ScatterChunkManagerOptions) {
     this.provideSource = options.provideSource;
     this.getAssetVariants = options.getAssetVariants ?? (() => undefined);
+    this.getAssetLevels = options.getAssetLevels ?? (() => undefined);
     this.chunkSize = options.chunkSizeM && options.chunkSizeM > 0 ? options.chunkSizeM : CHUNK_SIZE_M;
     this.root.name = '__scatter_chunks__';
   }
@@ -314,10 +373,11 @@ export class ScatterChunkManager {
 
   /**
    * 拾取反查（D18.7，D5）：散布 InstancedMesh 命中 → 所属源 id（regionId）；
-   * 非散布网格 / 块组不可见 → null。可见性守卫是必须的显式挡板——three r186 的
-   * Raycaster 不跳过 visible=false 子树（只测 layers），源隐藏与视锥剔除的块都
-   * 会被射线命中；以块 Group visible（源显隐与帧剔除共同写手）为「所见即所得」
-   * 判据。instanceId 本层用不上（整源选中语义，无逐实例操作）。
+   * 非散布网格 / 块组不可见 / 网格不可见 → null。可见性守卫是必须的显式挡板——
+   * three r186 的 Raycaster 不跳过 visible=false 子树（只测 layers），源隐藏、视锥
+   * 剔除的块与 LOD 超远裁剪的网格（T006.3 culled：组可见、网格 visible=false）都会
+   * 被射线命中；以块 Group visible 与网格 visible（帧剔除/源显隐与 LOD culled 的
+   * 共同写手）为「所见即所得」判据。instanceId 本层用不上（整源选中语义）。
    */
   resolvePick(hit: THREE.Intersection): string | null {
     const object = hit.object as THREE.InstancedMesh | null;
@@ -325,28 +385,80 @@ export class ScatterChunkManager {
     const owner = this.meshOwners.get(object);
     if (owner === undefined) return null;
     if (!(object.parent?.visible ?? true)) return null;
+    if (!object.visible) return null; // T006.3：LOD culled 网格不可拾取
     return owner;
   }
 
   // ── 帧路径（Renderer.renderFrame 在 controls.update 后调用）──
 
   /**
-   * 逐块视锥剔除：Frustum = projectionMatrix × matrixWorldInverse 逐块 Box3 判交 →
-   * 块 Group visible 开关（three 对 visible=false 整子树零提交——主渲染与阴影 pass
-   * 同口径）。无源 O(1) 早退；相机矩阵自更新（render 前调用的时序自主，不依赖上一帧
-   * 残留）。RenderModeState 分遍改 camera.layers.mask 不影响本路径（visible 与层正交）。
+   * 逐块视锥剔除 + 逐 (块×资产) LOD 评估（T006.3；Renderer.renderFrame 在 controls 后、
+   * render 前调用——D27.6 帧内时序：块剔除之后、render 之前评估档位）：
+   *  - 剔除：Frustum = projectionMatrix × matrixWorldInverse 逐块 Box3 判交 → 块 Group
+   *    visible 开关（three 对 visible=false 整子树零提交——主渲染与阴影 pass 同口径）；
+   *  - LOD：lodEnabled（Renderer 持有的总开关，逐帧传入；缺省 false = 管线独立使用时
+   *    的既有行为）时逐 (块×资产) 走 006.1 评估器——subject = { 块 AABB 最近点,
+   *    当档源几何包围球半径, 块内 max scale }（§4.3 候选保守策略），迟滞参考 current
+   *    由 ChunkLodState 持有；目标档 ≠ 当档桶 → 确定性重撒重建（源就绪即重建，冷源
+   *    到达后回调）；'culled' → 网格 visible=false（桶保留，回视即时恢复）；
+   *    lodEnabled=false → 评估器语义恒 High + culled 旁路（回退对比与兜底）。
+   *  无源 O(1) 早退；相机矩阵自更新。RenderModeState 分遍改 camera.layers.mask 不影响
+   *  本路径（visible 与层正交）。LOD 评估对剔除外的块照常进行（块回视口时档位/迟滞
+   *  状态已就绪，且 culled 的块不会因 group.visible=false 而饿死）。
    */
-  frame(camera: THREE.Camera): void {
+  frame(camera: THREE.Camera, lodEnabled = false): void {
     if (this.disposed || this.sources.size === 0) return;
     camera.updateMatrixWorld();
     _viewProjection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
     _frustum.setFromProjectionMatrix(_viewProjection);
+    const view = lodViewOfCamera(camera);
     for (const state of this.sources.values()) {
       // 源级显隐与视锥剔除合成一个开关（隐藏源重建/扩块时也保持 false，不闪现）
       for (const chunk of state.chunks.values()) {
         chunk.group.visible = state.visible && _frustum.intersectsBox(chunk.box);
+        if (chunk.lod.size === 0) continue;
+        camera.getWorldPosition(_position);
+        chunk.box.clampPoint(_position, _nearestPoint); // §4.3：代表点 = 块最近点
+        for (const [assetId, lod] of chunk.lod) {
+          const asset = this.assetStates.get(assetStateKey(assetId, lod.level));
+          if (!asset || asset.radius <= 0 || lod.maxScale <= 0) continue; // 源未就绪/零尺度：评估缺输入，跳过
+          const target = evaluateLodRepresentation({
+            view,
+            subject: {
+              point: { x: _nearestPoint.x, y: _nearestPoint.y, z: _nearestPoint.z },
+              radius: asset.radius,
+              scale: lod.maxScale,
+            },
+            declaredLevels: this.declaredLevelsOf(assetId),
+            current: lod.current,
+            lodEnabled,
+          });
+          lod.current = target;
+          const entry = chunk.meshes.get(assetId);
+          if (target === 'culled') {
+            if (entry) entry.mesh.visible = false;
+            lod.pending = undefined;
+            continue;
+          }
+          if (entry) entry.mesh.visible = true;
+          if (target === lod.level) {
+            if (lod.pending !== undefined) lod.pending = undefined;
+            continue;
+          }
+          if (lod.pending === target) continue; // 重建在途（冷源），不重复登记
+          this.scheduleChunkAssetRelevel(state, chunk, assetId, target);
+        }
       }
     }
+  }
+
+  /** 资产声明档位（缓存首次查询；空数组 = 单档语义，评估器自处理） */
+  private declaredLevelsOf(assetId: string): ProceduralLevel[] {
+    const cached = this.declaredLevelsCache.get(assetId);
+    if (cached) return cached;
+    const declared = this.getAssetLevels(assetId) ?? [];
+    this.declaredLevelsCache.set(assetId, declared);
+    return declared;
   }
 
   /** 运行态快照（DEV 冒烟 stats：drawCalls/triangles 由 Renderer.getViewportStats 补齐） */
@@ -376,6 +488,78 @@ export class ScatterChunkManager {
 
   // ── 内部：块计算与网格维护 ───────────────────────────────
 
+  /**
+   * (块×资产) 换档重建调度（T006.3）：登记在途目标档 → 目标档源就绪即同步重建；
+   * 冷源（首次加载）经微任务到达后由 applyPendingLevelRebuilds 回调重建——期间旧档
+   * 桶持续渲染，换档点无 pop。重复调度同一目标幂等跳过（frame 路径已过滤）。
+   */
+  private scheduleChunkAssetRelevel(
+    state: SourceState,
+    chunk: ChunkState,
+    assetId: string,
+    level: ProceduralLevel,
+  ): void {
+    const lod = chunk.lod.get(assetId);
+    if (!lod || lod.pending === level) return;
+    lod.pending = level;
+    const asset = this.requestAsset(assetId, level);
+    if (asset.source) this.rebuildChunkAsset(state, chunk, assetId, level);
+  }
+
+  /**
+   * 换档重建执行：确定性重撒（同 seed 同结果——scatterChunk 纯函数，实例集合与旧档
+   * 逐位一致）→ 拆旧档桶（实例缓冲释放，共享模板资源不动）→ 以目标档 InstanceSource
+   * 成套建新桶（geometry/material 与档绑定创建——D27.4「不做桶内换 Source」）。
+   * 同步完成拆旧建新（单 JS 块内无渲染观测点——无缺帧闪烁）。目标档实例为零（参数
+   * 在途变更的防御路径）→ 摘桶按空资产语义回收。
+   */
+  private rebuildChunkAsset(
+    state: SourceState,
+    chunk: ChunkState,
+    assetId: string,
+    level: ProceduralLevel,
+  ): void {
+    const asset = this.assetStates.get(assetStateKey(assetId, level));
+    if (!asset?.source) return; // 未就绪：lod.pending 已登记，到达回调重建
+    const lod = chunk.lod.get(assetId);
+    if (!lod) return;
+    const instances = scatterChunk(state.params, chunkRectOf(chunk.key, this.chunkSize)).filter(
+      (inst) => inst.assetId === assetId,
+    );
+    lod.level = level;
+    lod.pending = undefined;
+    const old = chunk.meshes.get(assetId);
+    if (old) {
+      old.mesh.removeFromParent();
+      old.mesh.dispose(); // 只释放实例矩阵/颜色缓冲（共享 geometry/material 不动）
+      this.meshOwners.delete(old.mesh);
+      chunk.meshes.delete(assetId);
+    }
+    if (instances.length === 0) {
+      chunk.lod.delete(assetId);
+      if (chunk.meshes.size === 0 && chunk.pending.size === 0) {
+        this.teardownChunk(chunk);
+        state.chunks.delete(chunkKeyString(chunk.key));
+      }
+      return;
+    }
+    this.writeChunkAssetMesh(chunk, assetId, instances, state.baseY, level);
+    this.refreshChunkBox(chunk, state.baseY);
+  }
+
+  /**
+   * 冷源到达后的在途换档收敛：全部源 × 块中 lod.pending 指向 (assetId, level) 的
+   * (块×资产) 逐个确定性重建（块/源可能已在等待期间被拆——按 Map 现存态自然跳过）。
+   */
+  private applyPendingLevelRebuilds(assetId: string, level: ProceduralLevel): void {
+    for (const state of this.sources.values()) {
+      for (const chunk of state.chunks.values()) {
+        const lod = chunk.lod.get(assetId);
+        if (lod?.pending === level) this.rebuildChunkAsset(state, chunk, assetId, level);
+      }
+    }
+  }
+
   /** 单块重撒：scatterChunk → 按 assetId 分组 → 网格写入 / 未就绪登记 / 空块回收 */
   private recomputeChunk(state: SourceState, key: ScatterChunkKey): void {
     const keyStr = chunkKeyString(key);
@@ -400,6 +584,7 @@ export class ScatterChunkManager {
         box: new THREE.Box3(),
         meshes: new Map(),
         pending: new Map(),
+        lod: new Map(),
       };
       chunk.group.name = `chunk:${key.i}:${key.j}`;
       chunk.group.visible = state.visible; // 隐藏源局部重算扩出的新块不闪现（frame 随后接管）
@@ -420,10 +605,18 @@ export class ScatterChunkManager {
     for (const assetId of [...chunk.pending.keys()]) {
       if (!byAsset.has(assetId)) chunk.pending.delete(assetId);
     }
+    for (const assetId of [...chunk.lod.keys()]) {
+      if (!byAsset.has(assetId)) chunk.lod.delete(assetId); // LOD 运行态随资产进出块成对清理
+    }
 
     for (const [assetId, list] of byAsset) {
-      const asset = this.assetStates.get(assetId) ?? this.requestAsset(assetId);
-      if (asset.source) this.writeChunkAssetMesh(chunk, assetId, list, state.baseY);
+      // 新资产初始 'high'（attach 时无相机评估，首帧 frame 评估即校正；迟滞无参考
+      // 按名义档起步——无残留状态）；既有资产保持当期期望档（局部重算不改档位状态）
+      const lod =
+        chunk.lod.get(assetId) ?? { current: undefined, level: 'high' as const, maxScale: 1 };
+      chunk.lod.set(assetId, lod);
+      const asset = this.requestAsset(assetId, lod.level);
+      if (asset.source) this.writeChunkAssetMesh(chunk, assetId, list, state.baseY, lod.level);
       else chunk.pending.set(assetId, list); // 未就绪/失败均登记（失败渲染不可能，数据不崩不弃）
     }
 
@@ -435,17 +628,21 @@ export class ScatterChunkManager {
     this.refreshChunkBox(chunk, state.baseY);
   }
 
-  /** 取或发起源加载（同 assetId 管理器内只一次；失败告警一次不重试——仿池） */
-  private requestAsset(assetId: string): AssetSourceState {
-    const existing = this.assetStates.get(assetId);
+  /** 取或发起源加载（同 (assetId × level) 管理器内只一次；失败告警一次不重试——仿池） */
+  private requestAsset(assetId: string, level: ProceduralLevel): AssetSourceState {
+    const key = assetStateKey(assetId, level);
+    const existing = this.assetStates.get(key);
     if (existing) return existing;
-    const asset: AssetSourceState = { source: null, failed: false };
-    this.assetStates.set(assetId, asset);
-    this.provideSource(assetId)
+    const asset: AssetSourceState = { source: null, failed: false, radius: 0 };
+    this.assetStates.set(key, asset);
+    this.provideSource(assetId, level)
       .then((source) => {
         asset.source = source;
+        if (!source.geometry.boundingSphere) source.geometry.computeBoundingSphere();
+        asset.radius = source.geometry.boundingSphere?.radius ?? 0;
         if (this.disposed) return; // dispose 后迟到的源：只记录不建网格
-        this.buildPendingMeshes(assetId);
+        this.buildPendingMeshes(assetId, level);
+        this.applyPendingLevelRebuilds(assetId, level);
       })
       .catch((err: unknown) => {
         if (!asset.failed) {
@@ -456,28 +653,35 @@ export class ScatterChunkManager {
     return asset;
   }
 
-  /** 源就绪：为全部块的该资产登记数据补建网格（仿池「源到达后一次性建网格」） */
-  private buildPendingMeshes(assetId: string): void {
-    const asset = this.assetStates.get(assetId);
+  /**
+   * 源就绪：为全部块的该资产登记数据补建网格（仿池「源到达后一次性建网格」）。
+   * T006.3：按 (assetId, level) 取源——登记发生在当期期望档 lod.level（新资产 high、
+   * 换档在途不走 pending 路径），到达的正是该档源时才建。
+   */
+  private buildPendingMeshes(assetId: string, level: ProceduralLevel): void {
+    const asset = this.assetStates.get(assetStateKey(assetId, level));
     if (!asset?.source) return;
     for (const state of this.sources.values()) {
       for (const chunk of state.chunks.values()) {
         const list = chunk.pending.get(assetId);
         if (!list) continue;
+        const lod = chunk.lod.get(assetId);
+        if (!lod || lod.level !== level) continue; // 期望档已变：本档源到达不建（换档路径接管）
         chunk.pending.delete(assetId);
-        this.writeChunkAssetMesh(chunk, assetId, list, state.baseY);
+        this.writeChunkAssetMesh(chunk, assetId, list, state.baseY, level);
         this.refreshChunkBox(chunk, state.baseY);
       }
     }
   }
 
   /**
-   * (块×资产) 网格写入：容量不足换缓冲不换对象（mesh 引用稳定），全槽重写矩阵；
-   * 资产声明 hueJitter>0 时逐实例 instanceColor（变体只吃色相——scale/rotation 已由
-   * 撒点参数管辖，不二次掷骰）；无声明零开销（不建颜色缓冲，GLB 资产行为零变化）。
-   * 顺带累积实例紧致世界 AABB（逐轴最大绝对角偏移对任意 Y 旋转恒为有效包围）——
-   * 块剔除盒用它而非 boundingSphere.getBoundingBox（球的包围盒按对角线膨胀 ~√2，
-   * 32m 块会胖出 ~12m，边缘块误可见；此路径 O(n) 已在写槽循环内，零额外遍历）。
+   * (块×资产) 当档桶网格写入：源取 (assetId, level)（当期期望档——源就绪是调用前提，
+   * 未就绪走 pending 登记）；容量不足换缓冲不换对象（mesh 引用稳定——仅同档复用，
+   * 跨档桶由 rebuildChunkAsset 拆建、绝不复用旧桶 Mesh：D27.4「不做桶内换 Source」），
+   * 全槽重写矩阵；资产声明 hueJitter>0 时逐实例 instanceColor（变体只吃色相——
+   * scale/rotation 已由撒点参数管辖，不二次掷骰）；无声明零开销（不建颜色缓冲，
+   * GLB 资产行为零变化）。顺带累积实例紧致世界 AABB（逐轴最大绝对角偏移对任意 Y
+   * 旋转恒为有效包围）与块内 max scale（T006.3 选档代表 scale，§4.3）。
    * 收尾 computeBoundingSphere 保持 three 逐对象剔除的球有效（扩容换缓冲后陈旧球
    * 会被渲染器误剔除——沿池 writeAllSlots 先例）。
    */
@@ -486,19 +690,30 @@ export class ScatterChunkManager {
     assetId: string,
     list: readonly ScatterInstance[],
     baseY: number,
+    level: ProceduralLevel,
   ): void {
-    const asset = this.assetStates.get(assetId);
+    const asset = this.assetStates.get(assetStateKey(assetId, level));
     if (!asset?.source) return; // 防御：源必已就绪（登记路径不进此处）
+    const lod = chunk.lod.get(assetId);
+    if (lod) lod.maxScale = 1; // 重撒后随写槽循环重累积
     const count = list.length;
     let entry = chunk.meshes.get(assetId);
-    if (!entry) {
+    if (!entry || entry.level !== level) {
+      if (entry) {
+        // 跨档残桶（防御路径）：先拆旧桶再建新桶——Mesh 与当档 geometry/material 绑定创建
+        entry.mesh.removeFromParent();
+        entry.mesh.dispose();
+        this.meshOwners.delete(entry.mesh);
+        chunk.meshes.delete(assetId);
+        entry = undefined;
+      }
       const capacity = capacityFor(count);
       const mesh = new THREE.InstancedMesh(asset.source.geometry, asset.source.material, capacity);
       mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
       mesh.castShadow = true; // 块 visible=false 时阴影 pass 同零提交（验收口径）
       chunk.group.add(mesh);
       this.meshOwners.set(mesh, chunk.sourceId); // 拾取反查登记（网格生灭与条目严格成对）
-      entry = { mesh, capacity, box: new THREE.Box3() };
+      entry = { mesh, capacity, level, box: new THREE.Box3() };
       chunk.meshes.set(assetId, entry);
     } else if (entry.capacity < count) {
       // 扩容：重建矩阵缓冲（保留同一 mesh 对象，渲染引用稳定——沿池先例）
@@ -532,6 +747,7 @@ export class ScatterChunkManager {
     if (tint) this.ensureColorBuffer(mesh, entry.capacity); // 容量对齐（setColorAt 惰性建按旧容量定尺寸的越界坑，同池）
     for (let slot = 0; slot < count; slot++) {
       const inst = list[slot]!;
+      if (lod && inst.scale > lod.maxScale) lod.maxScale = inst.scale; // §4.3 代表 scale = 块内 max
       _euler.set(0, inst.rotationY, 0);
       _quaternion.setFromEuler(_euler);
       _position.set(inst.position.x, baseY, inst.position.y);
@@ -587,7 +803,7 @@ export class ScatterChunkManager {
     }
   }
 
-  /** 拆块：移出渲染根并释放全部实例缓冲（共享模板资源不动） */
+  /** 拆块：移出渲染根并释放全部实例缓冲（共享模板资源不动）；LOD 运行态一并清理 */
   private teardownChunk(chunk: ChunkState): void {
     for (const entry of chunk.meshes.values()) {
       entry.mesh.removeFromParent();
@@ -596,6 +812,7 @@ export class ScatterChunkManager {
     }
     chunk.meshes.clear();
     chunk.pending.clear();
+    chunk.lod.clear();
     chunk.group.removeFromParent();
   }
 

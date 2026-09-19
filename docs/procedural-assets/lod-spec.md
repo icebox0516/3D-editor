@@ -49,7 +49,7 @@ levels?: ProceduralLevelDescriptor[]   // 夏栎实例：[{ id: 'high' }, { id: 
 | `triangleBudget` | 预算归家族预算表（§5）+ 资产模块头账目，是工程记录不是声明能力 |
 | `castShadow` / `pickable` | 影走 InstanceSource 契约通道（customDepthMaterial 随档成套，§2.3）；拾取跨档一致是 Runtime 义务（§6）——均无逐档声明消费者 |
 
-缺省语义：不写 `levels` = 单档细模（与显式 `[{ id: 'high' }]` 等价）；**未声明 shapeFamily 的资产 = 恒单档**（缓存走纯 assetId 键、build 无参调用、level 一并忽略——ProceduralSourceCache 现行为，零例外）。
+缺省语义：不写 `levels` = 单档细模（与显式 `[{ id: 'high' }]` 等价）；**未声明多档（不写 `levels` 或单档声明）且未声明 shapeFamily 的资产 = 恒单档**（缓存走纯 assetId 键、build 无参调用、level 一并忽略——ProceduralSourceCache 现行为）；未声明 shapeFamily 但声明多档的资产（T006.2 路灯两档先例 `asset_streetlamp`）缓存键 = `assetId::level`、build 以 `build({ level })` 调用（level 只作缓存档位维度，不掺形态身份，D23.2）。
 
 不完整链：资产可声明任意非空子集（路灯两档、消防栓仅 high 均合法）；选档遇到未声明档的跳档语义（取最近已声明档）归 Runtime（006.1 实装）。
 

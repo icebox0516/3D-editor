@@ -54,10 +54,29 @@
  *      拆除后 writeAllSlots 按 entries 序全量重写恢复）。资源归属：aSeed 缓冲挂
  *      共享几何上，随几何由源端（缓存/loader）dispose 统一释放，池不 dispose
  *      （与「池不 dispose 共享模板资源」边界一致）。
+ * source × level 分桶（T006.3，D27.4/D27.6）：池键 = `${sourceKey}::${level}`——档位是
+ *      池桶维度（绝不掺入 sourceKey 形态身份，D23.2）；geometry + material +
+ *      customDepthMaterial 随 sourceKey + level 的 InstanceSource 整体成套（缓存
+ *      sourceKey::level 条目即天然成套，本池只挂引用）。换档 = 实例跨桶迁移
+ *      （复用既有跨池迁移语义：entry 迁移 + 双池 reconcile + 锚点/槽位表随迁），
+ *      **不做「桶内换 Source」**——每桶创建时绑定当档源，Mesh 对象跨档重建。
+ *      frameLod（Renderer 块剔除后、render 前调）：逐对象评估（006.1 评估器——对象
+ *      包围球 × 实例 scale，代表点 = 矩阵变换后的包围球中心）→ 迁移 / culled。
+ *      culled（超远）= 调度结果：不迁移、实例矩阵槽写零缩放（复用「隐藏实例零缩放」
+ *      既有机制——entry.matrix 保留真值，槽写入时叠加 culled 判定；单例 Mesh 走
+ *      visible=false）。迟滞参考 current 由本池持有（entry.currentLod，逐帧传入评估器
+ *      ——评估器无状态，D27.6）；档位是每帧派生态，不进 Scene / Command / 持久状态。
+ *      迁移时源未就绪：entry.pendingLevel 登记，源到达后回调迁移（迟到一帧可接受，
+ *      旧档持续渲染到新档就绪——换档点无 pop）。LOD 总开关由 Renderer 持有并逐帧
+ *      传入（off = 全 High + culled 旁路，经评估器语义）。
  */
 import type { ID, Transform } from '../../core/types';
 import { aSeedValueOf } from '../../domain/assets';
 import type { ModelObject } from '../../domain/assets';
+import type { ProceduralLevel } from '../../domain/assets';
+import type { LodRepresentation } from '../../domain/lod/lodEvaluation';
+import { evaluateLodRepresentation } from '../../domain/lod/lodEvaluation';
+import { lodViewOfCamera } from './lodView';
 import * as THREE from 'three';
 
 /** 实例化源：模板中抽取的可共享几何/材质（InstancedMesh / 单例 Mesh 共用）。
@@ -81,11 +100,13 @@ export interface InstanceSource {
   customDistanceMaterial?: THREE.Material;
 }
 
-/** 源提供者：assetId + 对象 seed → 实例化源（Renderer 注入复合源路由 AssetSourceRouter；
- * seed 供源端槽路由定 sourceKey，无 seed 调用兼容——散布等无 seed 消费方照旧） */
+/** 源提供者：assetId + 对象 seed + 档位 → 实例化源（Renderer 注入复合源路由
+ * AssetSourceRouter；seed 供源端槽路由定 sourceKey，level 为档位维度（缓存
+ * sourceKey::level 键）——无 seed / 无 level 调用兼容，散布等无 seed 消费方照旧） */
 export type InstanceSourceProvider = (
   assetId: string,
   seed?: number,
+  level?: ProceduralLevel,
 ) => Promise<InstanceSource>;
 
 /** 池选项 */
@@ -95,20 +116,39 @@ export interface InstancedAssetPoolOptions {
    * 池键解析（T008.1，D19.4）：assetId + 对象 seed → 池桶键。池无法自行算槽（需
    * meta），由 Renderer 注入「查注册表 meta + domain sourceKeyOf」（与源缓存同一
    * 真相源）；缺省恒 assetId（行为回退现状——GLB/未声明形态族资产零变化）。
+   * 注：此键是 **sourceKey（形态身份）**——T006.3 起池内部再叠加 level 维度组成
+   * 桶键 `${sourceKey}::${level}`，level 绝不进本函数（D23.2）。
    */
   resolvePoolKey?: (assetId: string, seed?: number) => string;
+  /**
+   * 资产已声明档位查询（T006.3 选档输入）：返回 levels meta 的 id 列表；缺省/空 =
+   * 单档语义（评估器按 ['high'] 处理，D27 不完整链跳档由评估器承担）。
+   * Renderer 注入「查注册表 procedural meta」；每资产首次查询后池内缓存。
+   */
+  getDeclaredLevels?: (assetId: string) => ProceduralLevel[] | undefined;
 }
 
 /** 单实例登记项（slot = 所在池 entries 的下标） */
 interface PoolEntry {
   readonly id: ID;
-  /** 由 transform 组合的实例矩阵（隐藏实例 → 零缩放：不渲染、不可拾取） */
+  /** 由 transform 组合的实例矩阵（隐藏实例 → 零缩放：不渲染、不可拾取；
+   *  LOD culled 不改写本值——真值随迁移/恢复可还原，槽写入时叠加 culled 判定） */
   readonly matrix: THREE.Matrix4;
   visible: boolean;
   /** 实例颜色乘子（null = 白恒等乘子；源无关槽——变体采样在调用方） */
   color: THREE.Color | null;
   /** 对象 seed（obj.asset.seed ?? null；aSeed 逐实例属性与源路由的数据源） */
   seed: number | null;
+  /**
+   * LOD 迟滞参考（T006.3）：当前展示档（含 'culled'），由本池持有、逐帧传入评估器
+   * （评估器无状态，D27.6）；undefined = 尚未评估（首帧按名义档起步）。随 entry
+   * 跨桶迁移携带（档位状态跟业务对象走，不跟桶走）。
+   */
+  currentLod: LodRepresentation | undefined;
+  /** LOD 超远裁剪态（调度结果）：true = 槽位写零缩放 / 单例 Mesh visible=false */
+  culled: boolean;
+  /** 换档迁移目标档（源未就绪时登记；源到达回调迁移；null = 无在途迁移） */
+  pendingLevel: ProceduralLevel | null;
 }
 
 /**
@@ -129,10 +169,17 @@ interface PoolSplit {
   brightSlotOf: Map<ID, number>;
 }
 
-/** 每池键（sourceKey；缺省 assetId）一池的运行态 */
+/** 每池键（`${sourceKey}::${level}`）一池的运行态（T006.3 起桶维度 = source × level） */
 interface AssetPool {
-  /** 池桶键（resolvePoolKey 产物；pools Map 的键——同 assetId 不同槽 = 不同桶） */
+  /** 池桶键（`${sourceKey}::${level}`；pools Map 的键——同 assetId 不同槽或不同档 = 不同桶） */
   readonly key: string;
+  /**
+   * 桶键的 sourceKey 段（resolvePoolKey 产物，不含 level）——attach 幂等比对与跨档
+   * 迁移的目标池配对（同 sourceKey 不同 level 互为档位桶，T006.3）。
+   */
+  readonly sourceKey: string;
+  /** 桶档位（T006.3：桶创建时定死——不做「桶内换 Source」，换档 = 跨桶迁移） */
+  readonly level: ProceduralLevel;
   /** 源资产 id（provideSource 发起与告警用） */
   readonly assetId: string;
   /** 实例登记（插入序；undo 重挂追加到尾部） */
@@ -169,6 +216,8 @@ const _position = new THREE.Vector3();
 const _quaternion = new THREE.Quaternion();
 const _euler = new THREE.Euler();
 const _scale = new THREE.Vector3();
+/** LOD 代表点暂存（frameLod：实例矩阵作用后的包围球球心，值即时拷入纯数据入参） */
+const _subjectPoint = new THREE.Vector3();
 /** 恒等白乘子只读源（setColorAt 只读入参；未设色槽位写白 1,1,1） */
 const WHITE = new THREE.Color(1, 1, 1);
 /** aSeed 属性名（材质声明此 attribute 即消费；three 对未声明材质自动忽略） */
@@ -180,6 +229,18 @@ const ASEED_NULL_VALUE = 0.5;
 function seedUnitOf(seed: number | null): number {
   return seed === null ? ASEED_NULL_VALUE : aSeedValueOf(seed);
 }
+
+/**
+ * 桶键组装（T006.3）：`${sourceKey}::${level}`——level 是池桶/缓存共用的档位维度
+ * 后缀（与 ProceduralSourceCache 的 `sourceKey::level` 同构口径），绝不掺入
+ * sourceKey 形态身份（D23.2）。
+ */
+function composePoolKey(sourceKey: string, level: ProceduralLevel): string {
+  return `${sourceKey}::${level}`;
+}
+
+/** LOD 超远裁剪槽矩阵（零缩放：不渲染、不可拾取——同「隐藏实例」既有语义） */
+const ZERO_SCALE_MATRIX = new THREE.Matrix4().makeScale(0, 0, 0);
 
 /** Transform（Y 向上、弧度 Euler）→ 实例矩阵；隐藏实例零缩放 */
 function composeMatrixInto(target: THREE.Matrix4, t: Transform, visible: boolean): void {
@@ -211,6 +272,9 @@ export class InstancedAssetPool {
   private readonly provideSource: InstanceSourceProvider;
   /** 池键解析（缺省恒 assetId——无注入时行为回退现状，GLB 池零变化） */
   private readonly resolvePoolKey: (assetId: string, seed?: number) => string;
+  /** 资产已声明档位（T006.3 选档输入；每资产缓存一次——帧路径零重复查询） */
+  private readonly getDeclaredLevels: (assetId: string) => ProceduralLevel[] | undefined;
+  private readonly declaredLevelsCache = new Map<string, ProceduralLevel[]>();
   /**
    * 诊断分组态（T8.4 islands，Renderer 在模式切换时一次性注入/撤除）：
    * classify(id) = true → 已归类（暗侧 layer 0）/ false → 未归类（亮侧 highlightLayer）。
@@ -223,21 +287,25 @@ export class InstancedAssetPool {
   constructor(options: InstancedAssetPoolOptions) {
     this.provideSource = options.provideSource;
     this.resolvePoolKey = options.resolvePoolKey ?? ((assetId) => assetId);
+    this.getDeclaredLevels = options.getDeclaredLevels ?? (() => undefined);
     this.root.name = '__instanced_assets__';
   }
 
   // ── 对 Renderer 暴露的最小接口 ───────────────────────────
 
   /**
-   * 登记模型实例并返回锚点（幂等：同 id 同池键视为更新；同 id 池键变了——换资产
-   * 或重掷 seed 换槽——跨池迁移）。源未就绪时只登记矩阵，源到达后一次性建网格。
+   * 登记模型实例并返回锚点（幂等：同 id 同 sourceKey 视为更新——含 LOD 档位桶内
+   * 更新（frameLod 管档位，attach 不感知相机）；同 id sourceKey 变了——换资产或
+   * 重掷 seed 换槽——跨池迁移）。新登记从 'high' 桶起步（attach 时无相机评估，
+   * 首帧 frameLod 即校正；迟滞无参考按名义档起步，无残留状态）。源未就绪时只登记
+   * 矩阵，源到达后一次性建网格。
    */
   attach(obj: ModelObject): THREE.Object3D {
     if (this.disposed) return new THREE.Object3D();
     const seed = obj.asset.seed;
     const existing = this.idToPool.get(obj.id);
     if (existing) {
-      if (existing.key === this.resolvePoolKey(obj.asset.assetId, seed)) {
+      if (existing.sourceKey === this.resolvePoolKey(obj.asset.assetId, seed)) {
         const slot = existing.slotOf.get(obj.id)!;
         existing.entries[slot].seed = seed ?? null; // 同槽重掷：aSeed 槽随入口一并刷新
         this.writeEntry(existing, obj.id, obj.transform, obj.visible);
@@ -246,13 +314,16 @@ export class InstancedAssetPool {
       }
       this.detach(obj.id); // 池键变了（换资产 / 换槽）：先从旧池摘除（含旧池 reconcile）
     }
-    const pool = this.ensurePool(obj.asset.assetId, seed);
+    const pool = this.ensurePool(obj.asset.assetId, seed, 'high');
     const entry: PoolEntry = {
       id: obj.id,
       matrix: new THREE.Matrix4(),
       visible: obj.visible,
       color: null,
       seed: seed ?? null,
+      currentLod: undefined,
+      culled: false,
+      pendingLevel: null,
     };
     composeMatrixInto(entry.matrix, obj.transform, obj.visible);
     pool.entries.push(entry);
@@ -339,6 +410,179 @@ export class InstancedAssetPool {
       if (pool.instancedMesh === object) return pool.entries[index]?.id ?? null;
     }
     return null;
+  }
+
+  // ── LOD 帧路径（T006.3；Renderer 块剔除后、render 前调用）─────────
+
+  /**
+   * 逐对象 LOD 评估与换档执行（D27.6 帧内时序：Renderer.renderFrame 在 scatter 剔除
+   * 之后、render 之前调用）：
+   *  - 评估输入 = 桶源几何包围球（点 = 实例矩阵变换后的球心、scale = 矩阵三轴最大
+   *    分量——非均匀缩放的保守口径）+ 006.1 评估器（迟滞参考 current 逐帧由
+   *    entry.currentLod 传入）；隐藏实例跳过（零缩放无选档意义）。
+   *  - 目标档 ≠ 桶档 → 跨桶迁移（目标桶源就绪即同步迁移，渲染引用/实例属性完整随迁；
+   *    未就绪登记 pendingLevel，源到达回调迁移——旧档持续渲染，无 pop）。
+   *  - 'culled'（超远）→ 不迁移，槽写零缩放（复用隐藏实例机制）；恢复即经迟滞回档。
+   *  - lodEnabled=false（总开关关）→ 评估器语义恒 High + culled 旁路：在途迁移清空、
+   *    mid/low 桶实例全部迁回 high 桶（回退对比与兜底）。
+   * 迁移会改写池集合（扩桶/拆空桶），故对 pools 与 entries 均取快照遍历。
+   */
+  frameLod(camera: THREE.Camera, lodEnabled: boolean): void {
+    if (this.disposed || this.pools.size === 0) return;
+    camera.updateMatrixWorld();
+    const view = lodViewOfCamera(camera);
+    for (const pool of [...this.pools.values()]) {
+      const source = pool.source;
+      if (!source) continue; // 源未就绪：无包围球可评，实例仍在登记矩阵上
+      const sphere = source.geometry.boundingSphere;
+      if (!sphere) continue; // 防御：ensurePool 到达路径已算（见彼处），未算即跳过
+      const declared = this.declaredLevelsOf(pool.assetId);
+      for (const entry of [...pool.entries]) {
+        if (!entry.visible) continue; // 隐藏实例：矩阵已零缩放，无选档意义
+        // 代表点/scale：实例矩阵作用于源包围球（非均匀缩放下球心仿射仍正确；scale 取
+        // 三轴最大分量 = 有效半径保守放大 → 更晚降档，保守偏高档口径）
+        entry.matrix.decompose(_position, _quaternion, _scale);
+        const scale = Math.max(_scale.x, _scale.y, _scale.z);
+        if (scale <= 0) continue;
+        _subjectPoint.copy(sphere.center).applyMatrix4(entry.matrix);
+        const next = evaluateLodRepresentation({
+          view,
+          subject: {
+            point: { x: _subjectPoint.x, y: _subjectPoint.y, z: _subjectPoint.z },
+            radius: sphere.radius,
+            scale,
+          },
+          declaredLevels: declared,
+          current: entry.currentLod,
+          lodEnabled,
+        });
+        entry.currentLod = next;
+        if (next === 'culled') {
+          entry.pendingLevel = null; // 裁剪态无迁移在途
+          if (!entry.culled) {
+            entry.culled = true;
+            this.writeEntryRenderState(pool, entry);
+          }
+          continue;
+        }
+        if (entry.culled) {
+          entry.culled = false;
+          this.writeEntryRenderState(pool, entry);
+        }
+        if (next === pool.level) {
+          if (entry.pendingLevel !== null) entry.pendingLevel = null; // 目标已回本桶
+          continue;
+        }
+        if (entry.pendingLevel === next) continue; // 迁移在途（源未就绪），不重复登记
+        entry.pendingLevel = next;
+        const target = this.ensurePool(pool.assetId, entry.seed ?? undefined, next);
+        if (target.source) this.migrateEntry(pool, target, entry);
+      }
+    }
+  }
+
+  /** 资产声明档位（缓存首次查询；空数组/undefined = 单档语义，评估器自处理） */
+  private declaredLevelsOf(assetId: string): ProceduralLevel[] {
+    const cached = this.declaredLevelsCache.get(assetId);
+    if (cached) return cached;
+    const declared = this.getDeclaredLevels(assetId) ?? [];
+    this.declaredLevelsCache.set(assetId, declared);
+    return declared;
+  }
+
+  /**
+   * 实例跨桶迁移（换档执行，复用既有跨池迁移语义——D27.4「不引入桶内换 Source」）：
+   * entry 连同矩阵/颜色/seed/迟滞状态整体随迁（渲染表示变化不改实例数据），锚点
+   * 对象身份不变（RuntimeObjectMap / gizmo 引用稳定），双池 reconcile 收敛网格形态
+   * （源桶可能拆空、目标桶建网格/并入实例缓冲——instanceColor/aSeed 由
+   * writeAllSlots 全量重写，逐实例属性完整迁移）。
+   */
+  private migrateEntry(fromPool: AssetPool, toPool: AssetPool, entry: PoolEntry): void {
+    const slot = fromPool.slotOf.get(entry.id);
+    if (slot === undefined) return; // 快照遍历中已被迁移/摘除（防御）
+    if (toPool.source === null) return; // 目标源未就绪：pendingLevel 保持，到达回调再迁
+    fromPool.entries.splice(slot, 1);
+    toPool.entries.push(entry);
+    entry.pendingLevel = null;
+    const anchor = fromPool.anchors.get(entry.id);
+    if (anchor) {
+      fromPool.anchors.delete(entry.id);
+      toPool.anchors.set(entry.id, anchor);
+    }
+    this.idToPool.set(entry.id, toPool);
+    this.reindex(fromPool);
+    this.reindex(toPool);
+    if (anchor) this.rebindAnchorDecoration(toPool, anchor);
+    this.reconcile(fromPool);
+    this.reconcile(toPool);
+  }
+
+  /**
+   * 源到达后的在途迁移收敛：把同 sourceKey 家族中 pendingLevel 指向本桶档位的
+   * entry 全部迁入（frameLod 登记的迟到迁移；含总开关关闭引发的高档回迁）。
+   */
+  private applyPendingMigrations(targetPool: AssetPool): void {
+    for (const pool of [...this.pools.values()]) {
+      if (pool === targetPool || pool.sourceKey !== targetPool.sourceKey) continue;
+      for (const entry of [...pool.entries]) {
+        if (entry.pendingLevel === targetPool.level) this.migrateEntry(pool, targetPool, entry);
+      }
+    }
+  }
+
+  /**
+   * 锚点装饰子网格随档重绑（CameraController.focusObjects 包围盒取景用；锚点不在
+   * 渲染树、无影 pass 参与——不设投影与 customDepthMaterial，沿 decorateAnchor 边界）。
+   */
+  private rebindAnchorDecoration(pool: AssetPool, anchor: THREE.Object3D): void {
+    if (!pool.source) return;
+    const child = anchor.children[0] as THREE.Mesh | undefined;
+    if (child && child.isMesh) {
+      child.geometry = pool.source.geometry;
+      child.material = pool.source.material;
+    } else if (anchor.children.length === 0) {
+      anchor.add(new THREE.Mesh(pool.source.geometry, pool.source.material));
+    }
+  }
+
+  /**
+   * 单实例渲染态重写（culled 开关路径）：按当前池形态路由——split 态写对应侧网格
+   * 槽、常态写主网格槽、单例 Mesh 写 visible。与 writeEntry 的槽写入同源（矩阵 +
+   * culled 零缩放叠加），不触碰锚点（锚点始终真值变换）。
+   */
+  private writeEntryRenderState(pool: AssetPool, entry: PoolEntry): void {
+    const split = pool.split;
+    if (split) {
+      const bright = split.brightSlotOf.get(entry.id);
+      if (bright !== undefined) {
+        split.highlightMesh.setMatrixAt(bright, this.slotMatrixOf(entry));
+        split.highlightMesh.instanceMatrix.needsUpdate = true;
+        split.highlightMesh.computeBoundingSphere();
+        return;
+      }
+      const dim = split.dimSlotOf.get(entry.id);
+      if (dim !== undefined && pool.instancedMesh) {
+        pool.instancedMesh.setMatrixAt(dim, this.slotMatrixOf(entry));
+        pool.instancedMesh.instanceMatrix.needsUpdate = true;
+        pool.instancedMesh.computeBoundingSphere();
+      }
+      return;
+    }
+    const mesh = pool.instancedMesh;
+    const slot = pool.slotOf.get(entry.id);
+    if (mesh && slot !== undefined) {
+      mesh.setMatrixAt(slot, this.slotMatrixOf(entry));
+      mesh.instanceMatrix.needsUpdate = true;
+      mesh.computeBoundingSphere();
+    } else if (pool.singleMesh && pool.entries.length === 1 && pool.entries[0] === entry) {
+      pool.singleMesh.userData.objectId = entry.id; // 单例反查随写随新
+      this.applyEntryToObject(pool.singleMesh, entry);
+    }
+  }
+
+  /** 槽矩阵取值：culled → 零缩放（复用隐藏实例语义）；否则 entry 真值矩阵 */
+  private slotMatrixOf(entry: PoolEntry): THREE.Matrix4 {
+    return entry.culled ? ZERO_SCALE_MATRIX : entry.matrix;
   }
 
   // ── 诊断分组（T8.4 islands；Renderer 在模式切换时一次性调用，不进帧路径） ──
@@ -445,12 +689,12 @@ export class InstancedAssetPool {
     split.dimSlotOf.clear();
     split.brightSlotOf.clear();
     for (let i = 0; i < dimEntries.length; i++) {
-      mesh.setMatrixAt(i, dimEntries[i].matrix);
-      split.dimSlotOf.set(dimEntries[i].id, i);
+      mesh.setMatrixAt(i, this.slotMatrixOf(dimEntries[i]!));
+      split.dimSlotOf.set(dimEntries[i]!.id, i);
     }
     for (let i = 0; i < brightEntries.length; i++) {
-      split.highlightMesh.setMatrixAt(i, brightEntries[i].matrix);
-      split.brightSlotOf.set(brightEntries[i].id, i);
+      split.highlightMesh.setMatrixAt(i, this.slotMatrixOf(brightEntries[i]!));
+      split.brightSlotOf.set(brightEntries[i]!.id, i);
     }
     mesh.instanceMatrix.needsUpdate = true;
     split.highlightMesh.instanceMatrix.needsUpdate = true;
@@ -483,13 +727,21 @@ export class InstancedAssetPool {
 
   // ── 内部：池生命周期 ─────────────────────────────────────
 
-  /** 取或建池（按池键）；建池时以 (assetId, seed) 发起源加载（同键只取一次，失败告警一次、不重试） */
-  private ensurePool(assetId: string, seed: number | undefined): AssetPool {
-    const key = this.resolvePoolKey(assetId, seed);
+  /**
+   * 取或建池（按桶键 `${sourceKey}::${level}`）；建桶时以 (assetId, seed, level) 发起
+   * 源加载（同桶只取一次，失败告警一次、不重试）。源到达：补算几何包围球（LOD 选档
+   * 输入，惰性首算一次——桶内几何共享，全局只算一次）、补锚点装饰、建网格，并收敛
+   * 同 sourceKey 家族内在途迁移（applyPendingMigrations——T006.3）。
+   */
+  private ensurePool(assetId: string, seed: number | undefined, level: ProceduralLevel): AssetPool {
+    const sourceKey = this.resolvePoolKey(assetId, seed);
+    const key = composePoolKey(sourceKey, level);
     let pool = this.pools.get(key);
     if (pool) return pool;
     pool = {
       key,
+      sourceKey,
+      level,
       assetId,
       entries: [],
       slotOf: new Map(),
@@ -502,12 +754,14 @@ export class InstancedAssetPool {
       split: null,
     };
     this.pools.set(key, pool);
-    this.provideSource(assetId, seed)
+    this.provideSource(assetId, seed, level)
       .then((source) => {
         pool.source = source;
+        if (!source.geometry.boundingSphere) source.geometry.computeBoundingSphere();
         // 源就绪：给已建锚点补包围盒子网格，并为已登记实例一次性建网格
         for (const anchor of pool.anchors.values()) this.decorateAnchor(pool, anchor);
         if (!this.disposed && pool.entries.length > 0) this.reconcile(pool);
+        if (!this.disposed) this.applyPendingMigrations(pool);
       })
       .catch((err: unknown) => {
         if (!pool.failed) {
@@ -614,11 +868,12 @@ export class InstancedAssetPool {
     this.writeAllSlots(pool);
   }
 
-  /** 全量重写槽位矩阵（成员变化路径）：值 = 各实例登记矩阵；颜色/aSeed 随槽位同步重写 */
+  /** 全量重写槽位矩阵（成员变化路径）：值 = 各实例登记矩阵（culled 叠加零缩放）；
+   *  颜色/aSeed 随槽位同步重写 */
   private writeAllSlots(pool: AssetPool): void {
     const mesh = pool.instancedMesh!;
     for (let i = 0; i < pool.entries.length; i++) {
-      mesh.setMatrixAt(i, pool.entries[i].matrix);
+      mesh.setMatrixAt(i, this.slotMatrixOf(pool.entries[i]!));
     }
     mesh.instanceMatrix.needsUpdate = true;
     mesh.computeBoundingSphere();
@@ -762,7 +1017,7 @@ export class InstancedAssetPool {
         ? split.brightSlotOf.get(id)!
         : split.dimSlotOf.get(id);
       if (mesh && target !== undefined) {
-        mesh.setMatrixAt(target, entry.matrix);
+        mesh.setMatrixAt(target, this.slotMatrixOf(entry));
         mesh.instanceMatrix.needsUpdate = true;
         mesh.computeBoundingSphere();
       }
@@ -770,7 +1025,7 @@ export class InstancedAssetPool {
     }
     const mesh = pool.instancedMesh;
     if (mesh) {
-      mesh.setMatrixAt(slot, entry.matrix); // 只写对应槽
+      mesh.setMatrixAt(slot, this.slotMatrixOf(entry)); // 只写对应槽（culled 叠加零缩放）
       mesh.instanceMatrix.needsUpdate = true;
       mesh.computeBoundingSphere();
     } else if (pool.singleMesh && pool.entries.length === 1) {
@@ -779,13 +1034,14 @@ export class InstancedAssetPool {
     }
   }
 
-  /** 登记矩阵 → Object3D（单例 Mesh 用；锚点走 applyTransformTo 精确欧拉角） */
+  /** 登记矩阵 → Object3D（单例 Mesh 用；锚点走 applyTransformTo 精确欧拉角；
+   *  culled 单例 = visible=false——同隐藏实例语义，矩阵真值不动） */
   private applyEntryToObject(target: THREE.Object3D, entry: PoolEntry): void {
     entry.matrix.decompose(_position, _quaternion, _scale);
     target.position.copy(_position);
     target.quaternion.copy(_quaternion);
     target.scale.copy(_scale);
-    target.visible = entry.visible;
+    target.visible = entry.visible && !entry.culled;
   }
 
   /** 锚点补挂共享 Mesh 子节点（CameraController.focusObjects 的包围盒来源；不进

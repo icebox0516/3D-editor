@@ -17,8 +17,11 @@
  *      T006 换档释放旧档的消费面）；资产未声明该档时的回落由资产 build 自行决定，
  *      选档/距离切换策略归 T006，Cache 只透传。
  *      LOD 声明/调度规范真相源 = docs/procedural-assets/lod-spec.md（T010.3）。
- *      未声明 shapeFamily 的资产：键回退纯 assetId、build 以无参 `build()` 调用
- *      （preset/level 一并忽略），行为与现状逐位一致。
+ *      未声明 shapeFamily 的资产（T006.2 键规则细化）：恒单档（未声明 levels 或单档
+ *      声明）→ 键 = 纯 assetId、build 以无参 `build()` 调用（preset/level 一并忽略，
+ *      行为与现状逐位一致）；声明多档（levels.length > 1——设施资产两档先例
+ *      asset_streetlamp）→ 键 = `${assetId}::${level}`、build 以 `build({ level })`
+ *      调用（只透传 level——无 shapeFamily 即无 seed/preset 声明面）。
  *      失败语义镜像 AssetLoader：未注册 id 与 build 抛错均 reject 且**不缓存坏
  *      结果**（下次 load 重试）。
  * 边界：**绝不模块级单例**（D17——StrictMode 双挂载 createEditor(A)→dispose(A)→
@@ -41,34 +44,43 @@ export interface ProceduralSourceLoadParams {
 }
 
 export class ProceduralSourceCache {
-  /** sourceKey::level（未声明 shapeFamily 时为纯 assetId）→ 构建产物（本实例所持资源；dispose/evict 释放） */
+  /** sourceKey::level（未声明 shapeFamily 时：恒单档 = 纯 assetId、多档声明 = assetId::level）→ 构建产物（本实例所持资源；dispose/evict 释放） */
   private readonly cache = new Map<string, InstanceSource>();
 
   /**
    * 键/槽/档归一（load 与 evict 共用的单一真相——两 API 键规则逐位一致）：
    * 声明 shapeFamily → slot = shapeSlotOf(seed ?? 0, size)、键 = `${sourceKey}::${level}`
-   * （level 只作档位维度后缀，sourceKeyOf 零改动）；未声明 → 键 = 纯 assetId（无 level
-   * 后缀——恒单档资产，行为与现状逐位一致）。level 缺省按 'high' 归一。
+   * （level 只作档位维度后缀，sourceKeyOf 零改动）；未声明 shapeFamily 的恒单档资产
+   * （未声明 levels 或单档声明）→ 键 = 纯 assetId（无 level 后缀——行为与现状逐位
+   * 一致）；未声明 shapeFamily 但声明多档（levels.length > 1，T006.2 设施资产两档）
+   * → 键 = `${assetId}::${level}`（两档不撞同键）。level 缺省按 'high' 归一。
    */
   private resolveEntry(
     assetId: string,
     params?: ProceduralSourceLoadParams,
-  ): { key: string; slot: number | undefined; level: ProceduralLevel } {
+  ): { key: string; slot: number | undefined; level: ProceduralLevel; levelKeyed: boolean } {
     const level = params?.level ?? 'high';
-    const family = getProceduralMeta(assetId)?.shapeFamily;
-    if (!family) return { key: assetId, slot: undefined, level };
-    const slot = shapeSlotOf(params?.seed ?? 0, family.size);
-    return { key: `${sourceKeyOf(assetId, slot, params?.preset)}::${level}`, slot, level };
+    const routeMeta = getProceduralMeta(assetId);
+    const family = routeMeta?.shapeFamily;
+    if (family) {
+      const slot = shapeSlotOf(params?.seed ?? 0, family.size);
+      return { key: `${sourceKeyOf(assetId, slot, params?.preset)}::${level}`, slot, level, levelKeyed: true };
+    }
+    // 未声明 shapeFamily：恒单档 → 纯 assetId 键（现状逐位一致）；声明多档 → level 后缀
+    const levelKeyed = (routeMeta?.levels?.length ?? 0) > 1;
+    return { key: levelKeyed ? `${assetId}::${level}` : assetId, slot: undefined, level, levelKeyed };
   }
 
   /**
    * 读缓存；未命中经 getProceduralBuild 构建并缓存。未注册 id reject；build 抛错 reject 且不缓存。
    * seed 语义 = 对象 seed（槽路由用；缺省按 0 路由）；声明 shapeFamily 的资产以
-   * morphSeedOf(assetId, slot) 调用 build（契约第一锁），未声明资产无参调用（现状）。
-   * level 缺省 'high'，参与缓存键（sourceKey::level 后缀）并透传 build。
+   * morphSeedOf(assetId, slot) 调用 build（契约第一锁）；未声明 shapeFamily 的恒单档
+   * 资产无参调用（现状）；未声明 shapeFamily 但声明多档的资产以 build({ level }) 调用
+   * （T006.2——只透传 level，seed/preset 无声明面）。level 缺省 'high'，参与缓存键
+   * （sourceKey::level / assetId::level 后缀）并透传 build。
    */
   load(assetId: string, params?: ProceduralSourceLoadParams): Promise<InstanceSource> {
-    const { key, slot, level } = this.resolveEntry(assetId, params);
+    const { key, slot, level, levelKeyed } = this.resolveEntry(assetId, params);
     const cached = this.cache.get(key);
     if (cached) return Promise.resolve(cached);
     const build = getProceduralBuild(assetId);
@@ -76,9 +88,11 @@ export class ProceduralSourceCache {
     let source: InstanceSource;
     try {
       source =
-        slot === undefined
-          ? build() // 未声明 shapeFamily：无参调用（preset/level 一并忽略——行为与现状逐位一致）
-          : build({ seed: morphSeedOf(assetId, slot), preset: params?.preset, level });
+        slot !== undefined
+          ? build({ seed: morphSeedOf(assetId, slot), preset: params?.preset, level })
+          : levelKeyed
+            ? build({ level }) // 未声明 shapeFamily 多档资产：只透传 level（T006.2）
+            : build(); // 恒单档资产：无参调用（preset/level 一并忽略——行为与现状逐位一致）
     } catch (err) {
       const reason = err instanceof Error ? err.message : String(err);
       return Promise.reject(new Error(`程序化资产构建失败: ${assetId}（${reason}）`));

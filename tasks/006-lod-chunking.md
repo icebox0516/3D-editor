@@ -32,8 +32,8 @@
 ## 子任务（2026-09-19 D27 修订重构：原 006.1 植物三档实装职责已被 T009.6 承担，拆分并顺延重编号）
 
 - [x] T006.1 LOD 公共语义层（done 2026-09-19：lodPolicy 候选常量 + evaluateLodRepresentation 纯函数——统一度量 m/单边迟滞/不完整链跳档/总开关语义；+38 测试 → 2585 全绿）→ [006.1-lod-semantics.md](006.1-lod-semantics.md)
-- [ ] T006.2 非植物第二资产档位验证 → [006.2-second-asset-levels.md](006.2-second-asset-levels.md)
-- [ ] T006.3 块×档分桶+换档 → [006.3-chunk-lod-bucketing.md](006.3-chunk-lod-bucketing.md)
+- [x] T006.2 非植物第二资产档位验证（done 2026-09-19：路灯两档 High 328 / Low 136 面——009.6 契约跨资产复用验证 + SourceCache 无族多档键 `assetId::level` 扩展；+16 测试 → 2601 全绿）→ [006.2-second-asset-levels.md](006.2-second-asset-levels.md)
+- [x] T006.3 块×档分桶+换档（done 2026-09-19：两链接线 006.1 评估器——散布 chunk×source×level 确定性重撒换档 / 放置 source×level 跨桶迁移 + 帧内时序 + 迟滞 + 拾取跨档一致 + 总开关；+23 测试，合并态 2624 全绿）→ [006.3-chunk-lod-bucketing.md](006.3-chunk-lod-bucketing.md)
 - [ ] T006.4 批次控制 → [006.4-batch-control.md](006.4-batch-control.md)
 - [ ] T006.5 T006 验收门 → [006.5-acceptance.md](006.5-acceptance.md)
 
@@ -43,3 +43,5 @@
 
 - 2026-09-16 拆分立项（旧结构 006.1–006.4，植物三档口径，D11/D17 时期）；2026-09-19 D27 修订重构为本结构（通用 Asset Runtime 口径），0/5。
 - 2026-09-19 006.1 done（1/5）：LOD 公共语义层落地——选档评估器纯函数 + 全局策略常量（候选值）+ 总开关语义；006.2 ∥ 006.3 解锁。
+- 2026-09-19 006.2 done（2/5）：非植物第二消费者验证——路灯 High/Low 两档（328/136 面）+ SourceCache 无族多档键扩展（assetId::level，单档/未声明逐位保持旧行为）；006.3 消费面就绪。
+- 2026-09-19 006.3 done（3/5，与 006.2 并行交付）：两链选档接线落地——Renderer 帧内时序（controls 后 render 前）、迟滞 current 两链私有持有、换档点像素取证无 pop 无抖动；遗留面归 006.4：桶内全 culled 跳过提交、drawCalls 峰值治理、LOD_THRESHOLDS 实测锁定；换档点前后帧人工复核窗口开放至 006.5 验收门（D27.10）。006.4 解锁。

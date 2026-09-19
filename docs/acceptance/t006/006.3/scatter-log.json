@@ -1,0 +1,155 @@
+{
+  "steps": [
+    {
+      "name": "far-80m",
+      "distance": 80,
+      "triangles": 2312152,
+      "drawCalls": 179,
+      "totalChunks": 100,
+      "visibleChunks": 45,
+      "instances": 306
+    },
+    {
+      "name": "far-120m",
+      "distance": 120,
+      "triangles": 2459966,
+      "drawCalls": 221,
+      "totalChunks": 100,
+      "visibleChunks": 56,
+      "instances": 306
+    },
+    {
+      "name": "far-180m",
+      "distance": 180,
+      "triangles": 1681594,
+      "drawCalls": 289,
+      "totalChunks": 100,
+      "visibleChunks": 73,
+      "instances": 306
+    },
+    {
+      "name": "far-260m",
+      "distance": 260,
+      "triangles": 1430228,
+      "drawCalls": 371,
+      "totalChunks": 100,
+      "visibleChunks": 95,
+      "instances": 306
+    },
+    {
+      "name": "far-400m",
+      "distance": 400,
+      "triangles": 1033878,
+      "drawCalls": 393,
+      "totalChunks": 100,
+      "visibleChunks": 100,
+      "instances": 306
+    },
+    {
+      "name": "far-650m",
+      "distance": 650,
+      "triangles": 365916,
+      "drawCalls": 147,
+      "totalChunks": 100,
+      "visibleChunks": 100,
+      "instances": 306
+    },
+    {
+      "name": "far-1000m",
+      "distance": 1000,
+      "triangles": 4,
+      "drawCalls": 3,
+      "totalChunks": 100,
+      "visibleChunks": 100,
+      "instances": 306
+    },
+    {
+      "name": "back-650m",
+      "distance": 650,
+      "triangles": 100112,
+      "drawCalls": 43,
+      "totalChunks": 100,
+      "visibleChunks": 100,
+      "instances": 306
+    },
+    {
+      "name": "back-400m",
+      "distance": 400,
+      "triangles": 968290,
+      "drawCalls": 369,
+      "totalChunks": 100,
+      "visibleChunks": 100,
+      "instances": 306
+    },
+    {
+      "name": "back-260m",
+      "distance": 260,
+      "triangles": 1088084,
+      "drawCalls": 371,
+      "totalChunks": 100,
+      "visibleChunks": 95,
+      "instances": 306
+    },
+    {
+      "name": "back-180m",
+      "distance": 180,
+      "triangles": 1377466,
+      "drawCalls": 289,
+      "totalChunks": 100,
+      "visibleChunks": 73,
+      "instances": 306
+    },
+    {
+      "name": "back-120m",
+      "distance": 120,
+      "triangles": 1521174,
+      "drawCalls": 221,
+      "totalChunks": 100,
+      "visibleChunks": 56,
+      "instances": 306
+    },
+    {
+      "name": "back-80m",
+      "distance": 80,
+      "triangles": 2274136,
+      "drawCalls": 179,
+      "totalChunks": 100,
+      "visibleChunks": 45,
+      "instances": 306
+    }
+  ],
+  "holds": [
+    {
+      "frame": 1,
+      "triangles": 1499378,
+      "drawCalls": 359,
+      "instances": 306
+    },
+    {
+      "frame": 2,
+      "triangles": 1499378,
+      "drawCalls": 359,
+      "instances": 306
+    },
+    {
+      "frame": 3,
+      "triangles": 1499378,
+      "drawCalls": 359,
+      "instances": 306
+    },
+    {
+      "frame": 4,
+      "triangles": 1499378,
+      "drawCalls": 359,
+      "instances": 306
+    }
+  ],
+  "canvas": {
+    "w": 1292,
+    "h": 932
+  },
+  "band": {
+    "baseTriangles": 2312152,
+    "nominalD": 260
+  }
+}

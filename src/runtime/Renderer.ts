@@ -34,6 +34,7 @@ import type { ID, Transform } from '../core/types';
 import type { EventBus } from '../core/events/EventBus';
 import { isModelObject } from '../domain/assets';
 import type { ModelObject } from '../domain/assets';
+import type { ProceduralLevel } from '../domain/assets';
 import { applyAssetVariants, shapeSlotOf, sourceKeyOf } from '../domain/assets';
 import {
   baseLevelOf,
@@ -357,6 +358,14 @@ export class Renderer {
    * 显示开关经组合根 EditorHandle.setMinimapVisible（workspaceStore.minimapVisible）。
    */
   readonly minimap: MinimapRenderer;
+  /**
+   * LOD 总开关（T006.3，D27.13）：true = 选档调度开（散布块粒度 + 放置逐对象，
+   * 评估器语义见 domain/lod）；false = 全 High + culled 旁路（回退对比与兜底）。
+   * **渲染派生状态**：不进 Scene、不进 Command、不缓存进持久状态——由本渲染器持有、
+   * 每帧经 frame/frameLod 透传给两条渲染链（连续渲染下一帧生效）。入口最小面 =
+   * setLodEnabled API + app 组合根 URL query（?lod=0/off）。
+   */
+  private lodEnabled = true;
   private disposed = false;
 
   constructor(canvas: HTMLCanvasElement, deps: RendererDeps) {
@@ -429,15 +438,25 @@ export class Renderer {
     // 时按对象 seed 槽路由（seed 缺省按 0，与 ProceduralSourceCache 路由同一约定），
     // 与源缓存共用 domain/assets/shapeFamily 单一真相源；GLB/未声明资产回退 assetId。
     const assetRouter = this.assetRouter;
+    // T006.3：源请求携带 level（缓存 sourceKey::level 档位维度）；已声明档位查询与池键
+    // 路由同源（注册表 meta 单一真相源——levels 声明缺省 = 单档 high 语义）
+    const declaredLevelsOf = (assetId: string): ProceduralLevel[] | undefined => {
+      const descriptor = assets?.get(assetId);
+      if (!descriptor || descriptor.kind !== 'procedural') return undefined;
+      const levels = descriptor.asset.levels;
+      return levels && levels.length > 0 ? levels.map((item) => item.id) : undefined;
+    };
     this.instancedPool = assetRouter
       ? new InstancedAssetPool({
-          provideSource: (assetId, seed) => assetRouter.provideInstanceSource(assetId, { seed }),
+          provideSource: (assetId, seed, level) =>
+            assetRouter.provideInstanceSource(assetId, { seed, level }),
           resolvePoolKey: (assetId, seed) => {
             const descriptor = assets?.get(assetId);
             if (!descriptor || descriptor.kind !== 'procedural') return assetId;
             const family = descriptor.asset.shapeFamily;
             return family ? sourceKeyOf(assetId, shapeSlotOf(seed ?? 0, family.size)) : assetId;
           },
+          getDeclaredLevels: declaredLevelsOf,
         })
       : null;
     if (this.instancedPool) this.contentGroup.add(this.instancedPool.root);
@@ -447,11 +466,13 @@ export class Renderer {
     // 散布实例天然不参与拾取（映射回区域是 003.3 的事）。会话私有，随 dispose 链拆除。
     this.scatter = assetRouter
       ? new ScatterChunkManager({
-          provideSource: (assetId) => assetRouter.provideInstanceSource(assetId),
+          provideSource: (assetId, level) =>
+            assetRouter.provideInstanceSource(assetId, { level }),
           getAssetVariants: (assetId) => {
             const descriptor = assets!.get(assetId);
             return descriptor && descriptor.kind === 'procedural' ? descriptor.asset.variants : undefined;
           },
+          getAssetLevels: declaredLevelsOf,
         })
       : null;
     if (this.scatter) this.scene.add(this.scatter.root);
@@ -753,6 +774,20 @@ export class Renderer {
 
   // ── 渲染循环 / 尺寸 / 生命周期 ─────────────────────────
 
+  /**
+   * LOD 总开关（T006.3）：false = 全 High + culled 旁路（评估器 lodEnabled 语义，
+   * 回退对比与兜底）。只写渲染派生态——连续渲染下一帧经 frame/frameLod 生效；
+   * 不触发任何场景/命令变更。幂等。
+   */
+  setLodEnabled(enabled: boolean): void {
+    this.lodEnabled = enabled;
+  }
+
+  /** LOD 总开关当前态（DEV/验收对照读取） */
+  isLodEnabled(): boolean {
+    return this.lodEnabled;
+  }
+
   /** 启动渲染循环（幂等）；每帧自检尺寸 + controls.update + render */
   renderLoop(): void {
     if (this.disposed) return;
@@ -781,7 +816,8 @@ export class Renderer {
     this.vertexEdit.frame(); // 顶点句柄屏幕恒定尺寸（T6.8；无会话 O(1) 早退）
     this.alignGuides.frame(this.camera, this.canvas.clientHeight); // 参考线端点屏幕恒定尺寸（T8.1；无激活 O(1) 早退）
     this.measureOverlay.frame(this.camera, this.canvas.clientHeight); // 测量端点/标签屏幕恒定尺寸（T10.1；无激活 O(1) 早退）
-    this.scatter?.frame(this.camera); // 散布逐块视锥剔除（T003.2；无源 O(1) 早退；visible 开关与分遍 layers 改写正交）
+    this.scatter?.frame(this.camera, this.lodEnabled); // 散布逐块视锥剔除 + 块粒度 LOD 选档（T003.2/T006.3；无源 O(1) 早退）
+    this.instancedPool?.frameLod(this.camera, this.lodEnabled); // 放置逐对象 LOD 选档与跨桶迁移（T006.3；无池对象 O(1) 早退）
     if (this.renderModes.current === 'shaded') {
       // 着色模式：单遍照旧（零开销零回归）；相机开全 layer（内容 0 + 环境 2 + 辅助 3 + 诊断 4）
       this.camera.layers.enableAll();

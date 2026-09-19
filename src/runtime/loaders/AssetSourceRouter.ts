@@ -17,6 +17,7 @@
 import * as THREE from 'three';
 import type { ID } from '../../core/types';
 import { isFileAssetDescriptor } from '../../domain/assets';
+import type { ProceduralLevel } from '../../domain/assets';
 import type { AssetRegistry } from '../../registries/AssetRegistry';
 import type { InstanceSource } from '../instancing/InstancedAssetPool';
 import type { ProceduralSourceCache } from '../procedural/ProceduralSourceCache';
@@ -40,13 +41,14 @@ export class AssetSourceRouter {
   }
 
   /**
-   * 实例化源（InstancedAssetPool 的 provideSource）：file → GLB 模板抽取（seed 概念
-   * 仅程序化，file 分支不变）；procedural → 构建缓存（seed/preset 透传——seed 为对象
-   * seed，槽路由在缓存内完成，T008.1）。
+   * 实例化源（InstancedAssetPool / ScatterChunkManager 的 provideSource）：file → GLB
+   * 模板抽取（seed/level 概念仅程序化，file 分支不变）；procedural → 构建缓存
+   * （seed/preset/level 透传——seed 为对象 seed 槽路由在缓存内完成，T008.1；level 为
+   * 档位维度 `sourceKey::level` 缓存键，T006.3 消费 load({level}) 既有 API，键规则归缓存）。
    */
   provideInstanceSource(
     assetId: ID,
-    opts?: { seed?: number; preset?: string },
+    opts?: { seed?: number; preset?: string; level?: ProceduralLevel },
   ): Promise<InstanceSource> {
     const descriptor = this.deps.assets.get(assetId);
     if (!descriptor) {

@@ -757,6 +757,14 @@ export function createEditor(canvas: HTMLCanvasElement | null, opts: CreateEdito
   const renderer = canvas
     ? new Renderer(canvas, { eventBus, sceneManager, assets, environment: initial.environment, vertexSnap, objectSnap, gridSnap: drawGrid, snapTiers })
     : null;
+  // T006.3 LOD 总开关 URL 入口（最小面：?lod=0/off/false 关闭——渲染派生态，不进
+  // Scene/Command/持久状态；无头/缺参缺省开）。回退对比与兜底的调试/验收通道。
+  if (renderer && typeof window !== 'undefined') {
+    const lodQuery = new URLSearchParams(window.location.search).get('lod');
+    if (lodQuery === '0' || lodQuery === 'off' || lodQuery === 'false') {
+      renderer.setLodEnabled(false);
+    }
+  }
   // 小地图导航接线（T7.7）：小地图拖拽/点击 → CameraController.panTargetTo
   //（保持距离姿态平移观察目标；CameraPort 契约零变更，组合根内直达实现端）
   renderer?.minimap.setNavigate((x, z) => renderer.cameraController.panTargetTo(x, z));
