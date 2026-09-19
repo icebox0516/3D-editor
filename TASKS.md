@@ -4,14 +4,16 @@
 
 ## Current
 
-- **T010 程序化资产公共能力与规范**（4/5；2026-09-19 T010.2/010.3/010.4 并行 done）→ [tasks/010-asset-capability.md](tasks/010-asset-capability.md)
+- （空——上一 epic T010 已收官；下一个：T006 Asset Runtime LOD（D27 排期，T010 后、T011 前），启动时移入）
+
+## Done（近）
+
+- [x] T010 程序化资产公共能力与规范（**5/5 epic 收官 2026-09-19**）→ [tasks/010-asset-capability.md](tasks/010-asset-capability.md)
+  - [x] T010.5 模板固化验收门（done 2026-09-19：夏栎零回退复核全过——锚点/8 槽 stats 逐位、8 机位像素 diff 99%+ 一致视觉核验、五档性能全过且资源账目逐位同；规范齐备互指一致；T011 启动条件确认就绪；2547 全绿）→ [tasks/010.5-acceptance.md](tasks/010.5-acceptance.md)
   - [x] T010.1 家族契约提炼与文件组织规范（done 2026-09-19；2542 全绿零回退）→ [tasks/010.1-family-contract.md](tasks/010.1-family-contract.md)
   - [x] T010.2 元数据与分类契约（done 2026-09-19：taxonomy 大类+family 枚举 + 11 资产映射 + proceduralProfile 植物语义隔离；+5 测试 → 2547 全绿）→ [tasks/010.2-metadata-taxonomy.md](tasks/010.2-metadata-taxonomy.md)
   - [x] T010.3 LOD 声明规范固化（done 2026-09-19：lod-spec.md 唯一真相源；纯文档零行为改动）→ [tasks/010.3-lod-spec.md](tasks/010.3-lod-spec.md)
   - [x] T010.4 Shadow 公共能力规范 + 视觉验收 SOP（done 2026-09-19：shadow-visual-sop.md；纯文档零代码）→ [tasks/010.4-shadow-visual-sop.md](tasks/010.4-shadow-visual-sop.md)
-  - [ ] T010.5 模板固化验收门（已解锁）→ [tasks/010.5-acceptance.md](tasks/010.5-acceptance.md)
-
-## Done（近）
 
 - [x] T008 程序化树木（**6/6 epic 收官 2026-09-19**；树协议冻结为稳定基线）→ [tasks/008-procedural-tree.md](tasks/008-procedural-tree.md)
   - [x] T008.5 T008 收官验收门（done 2026-09-19：全链路 + 同 sourceKey 合批三次实证 + 零错误五拆 + 8 槽终态复核全过；2542 全绿）→ [tasks/008.5-acceptance.md](tasks/008.5-acceptance.md)
@@ -46,8 +48,7 @@
 - [ ] T004 Style Gallery（0/3）→ [tasks/004-style-gallery.md](tasks/004-style-gallery.md)
 - [ ] T005 Animation Pathway（0/3）→ [tasks/005-animation-pathway.md](tasks/005-animation-pathway.md)
 - [ ] T007 Bake Scatter（可选；启动前 grill 拷问门见任务书）→ [tasks/007-bake-scatter.md](tasks/007-bake-scatter.md)
-- [ ] T010 程序化资产公共能力与规范（0/5；2026-09-18 立项 → D20）→ [tasks/010-asset-capability.md](tasks/010-asset-capability.md)
-- [ ] T006 Asset Runtime LOD（0/5；2026-09-19 D27 修订重构，排期 T010 后、T011 前）→ [tasks/006-lod-chunking.md](tasks/006-lod-chunking.md)
+- [ ] T006 Asset Runtime LOD（0/5；2026-09-19 D27 修订重构，排期 T010 后、T011 前——**T010 已收官，启动条件就绪**）→ [tasks/006-lod-chunking.md](tasks/006-lod-chunking.md)
 - [ ] T011 第一批阔叶乔木：朴树 / 香樟 / 榉树 / 银杏【占位】
 - [ ] T012 针叶族【占位】
 - [ ] T013 花木族【占位】

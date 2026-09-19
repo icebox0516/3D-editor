@@ -1,0 +1,218 @@
+{
+  "env": {
+    "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 2080 Ti (0x00001E07) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "disjointTimerAvailable": true,
+    "viewport": [
+      1920,
+      1080
+    ],
+    "dpr": 1,
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36"
+  },
+  "baseline": {
+    "sample": {
+      "fps": 2173.8120520307934,
+      "mean": 0.4600213707830866,
+      "p50": 0.40000000000009095,
+      "p95": 0.8000000000001819,
+      "max": 27.899999999999636,
+      "frames": 6551
+    },
+    "stats": {
+      "drawCalls": 3,
+      "triangles": 4,
+      "geometries": 3,
+      "textures": 4,
+      "programs": 3,
+      "objects": 0
+    }
+  },
+  "tiers": [
+    {
+      "count": 1,
+      "sample": {
+        "fps": 2068.275903445793,
+        "mean": 0.48349448849352156,
+        "p50": 0.5,
+        "p95": 0.7999999999992724,
+        "max": 89.39999999999964,
+        "frames": 10342
+      },
+      "stats": {
+        "drawCalls": 7,
+        "triangles": 57512,
+        "geometries": 4,
+        "textures": 4,
+        "programs": 7,
+        "objects": 1
+      }
+    },
+    {
+      "count": 20,
+      "sample": {
+        "fps": 1081.9187011377044,
+        "mean": 0.9242838661984845,
+        "p50": 0.7000000000007276,
+        "p95": 2.2000000000007276,
+        "max": 7.200000000000728,
+        "frames": 5411
+      },
+      "stats": {
+        "drawCalls": 31,
+        "triangles": 1365592,
+        "geometries": 10,
+        "textures": 4,
+        "programs": 7,
+        "objects": 20
+      }
+    },
+    {
+      "count": 100,
+      "sample": {
+        "fps": 366.64069212172063,
+        "mean": 2.7274659400544965,
+        "p50": 0.6000000000021828,
+        "p95": 8.799999999999272,
+        "max": 25.80000000000291,
+        "frames": 1835
+      },
+      "stats": {
+        "drawCalls": 35,
+        "triangles": 6925864,
+        "geometries": 11,
+        "textures": 4,
+        "programs": 7,
+        "objects": 100
+      }
+    },
+    {
+      "count": 500,
+      "sample": {
+        "fps": 95.95818537286041,
+        "mean": 10.421205821205819,
+        "p50": 2.7999999999992724,
+        "p95": 35.79999999999927,
+        "max": 89.70000000000073,
+        "frames": 481
+      },
+      "stats": {
+        "drawCalls": 35,
+        "triangles": 34512792,
+        "geometries": 11,
+        "textures": 4,
+        "programs": 7,
+        "objects": 500
+      }
+    },
+    {
+      "count": 1000,
+      "sample": {
+        "fps": 78.58390220669952,
+        "mean": 12.725252525252518,
+        "p50": 4.69999999999709,
+        "p95": 54.299999999995634,
+        "max": 73.29999999999563,
+        "frames": 396
+      },
+      "stats": {
+        "drawCalls": 35,
+        "triangles": 68982308,
+        "geometries": 11,
+        "textures": 4,
+        "programs": 7,
+        "objects": 1000
+      }
+    }
+  ],
+  "shadowAB": {
+    "sunShadowOff": {
+      "fps": 211.3307114053865,
+      "mean": 4.731919905771497,
+      "p50": 0.3000000000029104,
+      "p95": 35.599999999998545,
+      "max": 73.80000000000291,
+      "frames": 849
+    },
+    "sunShadowOn": {
+      "fps": 122.22249993751403,
+      "mean": 8.181799591002047,
+      "p50": 0.5999999999985448,
+      "p95": 53,
+      "max": 1382.4000000000015,
+      "frames": 489
+    }
+  },
+  "afterClear": {
+    "cleared": true,
+    "stats": {
+      "drawCalls": 3,
+      "triangles": 4,
+      "geometries": 11,
+      "textures": 4,
+      "programs": 12,
+      "objects": 0
+    }
+  },
+  "cycles10": [
+    {
+      "geometries": 11,
+      "afterClearGeometries": 11,
+      "textures": 4,
+      "programs": 12
+    },
+    {
+      "geometries": 11,
+      "afterClearGeometries": 11,
+      "textures": 4,
+      "programs": 12
+    },
+    {
+      "geometries": 11,
+      "afterClearGeometries": 11,
+      "textures": 4,
+      "programs": 12
+    },
+    {
+      "geometries": 11,
+      "afterClearGeometries": 11,
+      "textures": 4,
+      "programs": 12
+    },
+    {
+      "geometries": 11,
+      "afterClearGeometries": 11,
+      "textures": 4,
+      "programs": 12
+    },
+    {
+      "geometries": 11,
+      "afterClearGeometries": 11,
+      "textures": 4,
+      "programs": 12
+    },
+    {
+      "geometries": 11,
+      "afterClearGeometries": 11,
+      "textures": 4,
+      "programs": 12
+    },
+    {
+      "geometries": 11,
+      "afterClearGeometries": 11,
+      "textures": 4,
+      "programs": 12
+    },
+    {
+      "geometries": 11,
+      "afterClearGeometries": 11,
+      "textures": 4,
+      "programs": 12
+    },
+    {
+      "geometries": 11,
+      "afterClearGeometries": 11,
+      "textures": 4,
+      "programs": 12
+    }
+  ]
+}

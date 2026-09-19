@@ -38,7 +38,7 @@
 - [x] T010.2 元数据与分类契约（done 2026-09-19：taxonomy.ts 大类 8 值+family 6 值 + 11 资产归类映射 + proceduralProfile 通用维度（植物术语禁入公共协议）+ metadata-taxonomy.md 契约文档；2547 全绿 UI 行为不变）→ [010.2-metadata-taxonomy.md](010.2-metadata-taxonomy.md)
 - [x] T010.3 LOD 声明规范固化（done 2026-09-19：lod-spec.md 立为 LOD 规范唯一真相源——声明/消费契约+六档语义集+选档语义+家族预算表+T006 接缝；纯文档零行为改动）→ [010.3-lod-spec.md](010.3-lod-spec.md)
 - [x] T010.4 Shadow 公共能力规范 + 视觉验收 SOP（done 2026-09-19：shadow-visual-sop.md——Shadow 分口径规范+十项视觉检查单+固定机位取证+性能验收模板+新增植物 SOP；纯文档零代码）→ [010.4-shadow-visual-sop.md](010.4-shadow-visual-sop.md)
-- [ ] T010.5 模板固化验收门 → [010.5-acceptance.md](010.5-acceptance.md)
+- [x] T010.5 模板固化验收门（done 2026-09-19：夏栎零回退复核全过——锚点/8 槽 stats 逐位、8 机位像素 diff 99%+ 一致视觉核验无结构差异、五档性能 2068/1082/367/96/79 全过且逐位同资源账目；规范齐备四文档互指+代码指针核实；T011 启动条件确认就绪——**T010 收官 5/5**）→ [010.5-acceptance.md](010.5-acceptance.md)
 
 依赖链：010.1 →（010.2 ∥ 010.3 ∥ 010.4）→ 010.5（010.3/010.4 规范面基于 T009.5/009.6 已落地契约，与 010.2 分类契约无依赖，无需串行等待）。
 
@@ -47,3 +47,4 @@
 - 2026-09-18 立项：植物资产路线 grill → D20，0/5。
 - 2026-09-19 T010.1 完成（1/5）：家族契约（BroadleafShapeProfile = Canopy 34 + Branch 13 扁平 + 4 嵌套，51 字段全消费佐证；T009.3 消费语义并入）+ 夏栎迁移第一实例（tree/tree3a/ 四文件 + broadleaf* 前缀让出家族层）+ `docs/procedural-assets/organization.md`（三级边界/两档结构/命名规范/方法论六条）；2542 全绿、逐位零回退、取证 `docs/acceptance/t010/010.1/`。010.2/010.3/010.4 解锁（可并行）。
 - 2026-09-19 T010.2/010.3/010.4 并行完成（4/5，三子代理并行交付 + 主代理合并验收）：010.2 触代码（taxonomy 必填 + proceduralProfile + 契约测试 +5 → 2547）｜010.3/010.4 纯文档（lod-spec.md / shadow-visual-sop.md，零行为改动）；统一三门槛 2547 / 182 文件、check:layers 449、typecheck 零错。010.5 模板固化验收门解锁。
+- 2026-09-19 T010.5 完成（**5/5，epic 收官**，主代理执行验收门）：夏栎零回退复核全过（同 seed 逐位——slot-0 锚点 20724/14334/7167、8 槽带 28754–38780 与 lod-spec §5.3 逐位同；观感——8 机位像素 diff 99%+ 一致 + 视觉模型核验三联对照无结构差异【基线 Chromium 151 vs 复测 Chrome 152，AA 级微差记档】；性能——五档 2068/1082/367/96/79 FPS 全过阈值且 triangles/drawCalls/geometries 与基线原始 JSON 逐位同、资源契约五条同值全过）+ 规范齐备（四文档互指 + 代码指针三处核实 + 一致性抽核吻合）+ T011 启动条件确认就绪（SOP 六步/asset-research 技能/Spec 先例/家族契约与预算行/基线对照全到位）；三门槛 2547/449/typecheck 零错；取证 `docs/acceptance/t010/010.5/`（含零依赖 PNG 像素对照工具）。顺带记档：T009.7 README 20 棵 1,367,720 为誊写差异（原始 JSON 1,365,592）。
