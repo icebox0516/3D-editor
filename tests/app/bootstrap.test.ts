@@ -400,7 +400,8 @@ describe('registerAssets', () => {
     // T011.2 增 asset_tree_camphor——tree_3a < tree_camphor < tree_celtis 字典序；T011.3 增
     // asset_tree_zelkova——tree_celtis < tree_zelkova 字典序；T011.4 增 asset_tree_ginkgo——
     // tree_celtis < tree_ginkgo < tree_zelkova 字典序；T011.5 增 asset_tree_platanus——
-    // tree_ginkgo < tree_platanus < tree_zelkova 字典序），追加注册在后
+    // tree_ginkgo < tree_platanus < tree_zelkova 字典序；T011.6 增 asset_tree_koelreuteria
+    // ——tree_ginkgo < tree_koelreuteria < tree_platanus 字典序），追加注册在后
     expect(facade.registries.assets.list().map((d) => d.asset.id)).toEqual([
       'asset_tree',
       'asset_flower',
@@ -412,6 +413,7 @@ describe('registerAssets', () => {
       'asset_tree_camphor',
       'asset_tree_celtis',
       'asset_tree_ginkgo',
+      'asset_tree_koelreuteria',
       'asset_tree_platanus',
       'asset_tree_zelkova',
       'asset_hydrant',

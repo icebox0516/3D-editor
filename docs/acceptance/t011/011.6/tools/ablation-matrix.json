@@ -1,0 +1,35 @@
+{
+  "note": "T011.6 X4000 根因消元矩阵（页面内手动 link 实验，零生产码改动；9340/9341/9342 全新 profile Chrome，捕获深度材质真实 fragment+vertex 源后逐变体 link 读 Program Info Log）",
+  "baseline": "P0 原文 link = (105,1) X4000 f_koeDepthAlpha（复现生产警告）",
+  "matrix": {
+    "P1_noOutCall":       "报 (88,1)  —— 花分支 koeFlowerAlpha out 参调用去掉仍报 → out 参调用无关",
+    "P2_assignThenReturn":"报 (105,1) —— 赋值再 return 形态无效 → return 位置无关",
+    "P3_noLeafCall":      "零警告     —— 叶域 koeLeafAlpha 调用去掉即清零 → 触点在 koeLeafAlpha",
+    "P4_allConstReturns": "零警告（P3 已清）",
+    "P5_noDepthCall":     "零警告     —— 不调用 koeDepthAlpha 即清零",
+    "P6_envPowClamped":   "报 —— L148 pow 底数 max 钳制无效 → pow(koeEnvSin) 无关",
+    "P7_lobPowClamped":   "报 —— L163 pow(sin) 无关",
+    "P8_bothClamped":     "报 —— 两处 pow 均无关",
+    "P9_pinnaZeroed":     "报 —— PINNA 主三行（rill/feather/pinna）置零仍报 → 该段无关",
+    "P10_noSignInYb":     "报 —— sign 无关",
+    "P11_noDivByVar":     "报 —— 除以变量 koeSpace 无关",
+    "P12_mixNoCall":      "零警告 —— mix 保留、调用去常量即清零（再证触点=调用）",
+    "P13_callSplitFromMix":"报 (106,1) —— 调用拆出 mix 仍报 → 嵌套形态无关，调用在即报",
+    "P14_modRewritten":   "报 —— mod 重写无关",
+    "P15_windowZeroed":   "报 —— 窗列块（L159-168 小叶窗列）常量化仍报 → 单去窗列不够",
+    "P16_bandConst":      "报 —— 带列块（L153-157 羽片带列）常量化仍报 → 单去带列不够",
+    "P17_leafBodyMinimal":"零警告 —— koeLeafAlpha 体压单 return（调用保留）即清零 → 触点在函数体",
+    "P18_envSinRemoved":  "报 —— 包络 sin 链无关",
+    "P19_serrZeroed":     "报 —— serr 细齿段无关",
+    "P20_sinRemoved":     "报 —— 单独 sin 无关",
+    "P23_halfBody":       "零警告 —— 基础坐标+包络+主轴+简化 PINNA+合成（去两级窗列）即清零"
+  },
+  "conclusion": "根因 = koeLeafAlpha（KOE_LEAF_SDF 完整版）两级窗列（羽片带列 L153-157 + 小叶窗列 L159-168 —— 复叶首例核心路径）共同贡献的内联复杂度触发 FXC 数据流保守误报；窗列/带列任一单独保留仍触发（P15/P16），两块同去才清零（P23），体最小化清零（P17）。与 L391 koeDCen/koeDVar 初始化无关（修复版 HLSL L101-102 {0.0} 已生效仍报、P1 证 out 参调用无关）。",
+  "hlslEvidence": "转译 HLSL（tools/hlsl-capture.json）：f_koeDepthAlpha 定义 L93、体 L95-106、报点 L105 = 尾 return 1.0 行；变量名 f_koeDepthAlpha = FXC 眼中该函数返回值临时。'uninitialized' 判定与 GLSL 语义不符（全路径 return）→ 误报级。",
+  "fixCandidates_for_shader_agent": [
+    "A 函数拆分：两级窗列拆子函数（koeLeafBands/koeLeafWindows）——两级内联或绕过阈值（P17/P23 证明复杂度阈值存在），零视觉变化首选",
+    "B 深度侧简化：koeDepthAlpha 叶域改包络+主轴简版（P23 形态）——阴影裁切到包络级，小叶间隙影丢失（vs 先例 platanus 组 0 实心守卫已更细），视觉影响需复验",
+    "C 接受记档：FXC 误报级（语义全路径初始化、运行零错误），冷启动一条 warn 记档 011.13"
+  ],
+  "L523_observation": "KOE_FLOWER_BODY koeFCen/koeFVar（颜色材质侧同型裸声明）三档首编译零报（9337 stage2 快照无新增）——颜色材质不触发（调用非 return 位 + 未内联进大函数）。无需修复。"
+}

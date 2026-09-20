@@ -1,0 +1,33 @@
+{
+  "note": "T011.6 stats 原始回读（t0116-visual.mjs 主批次 + t0116-barkfruit.mjs 树皮花果批 console）",
+  "anchorSlot0High": { "barkTriangles": 22682, "leafTriangles": 1586, "leafCards": 793 },
+  "slots": [
+    { "slot": 0, "barkTriangles": 22682, "leafTriangles": 1586, "leafCards": 793 },
+    { "slot": 1, "barkTriangles": 22726, "leafTriangles": 1638, "leafCards": 819 },
+    { "slot": 2, "barkTriangles": 22950, "leafTriangles": 1722, "leafCards": 861 },
+    { "slot": 3, "barkTriangles": 22882, "leafTriangles": 1730, "leafCards": 865 },
+    { "slot": 4, "barkTriangles": 22966, "leafTriangles": 1714, "leafCards": 857 },
+    { "slot": 5, "barkTriangles": 22722, "leafTriangles": 1644, "leafCards": 822 },
+    { "slot": 6, "barkTriangles": 22806, "leafTriangles": 1328, "leafCards": 664 },
+    { "slot": 7, "barkTriangles": 22754, "leafTriangles": 1694, "leafCards": 847 }
+  ],
+  "levels": [
+    { "level": "high", "barkTriangles": 22682, "leafTriangles": 1586, "leafCards": 793, "total": 24268 },
+    { "level": "mid", "barkTriangles": 5782, "leafTriangles": 536, "leafCards": 268, "total": 6318 },
+    { "level": "low", "barkTriangles": 330, "leafTriangles": 1208, "leafCards": 604, "total": 1538 }
+  ],
+  "budgetLine": "broadleaf High ≤40000 / Mid 6000–10000 / Low 1500–3000 — 全落",
+  "console": {
+    "mainBatch": [],
+    "barkFruitBatch": [],
+    "coldStartFreshProfile": [
+      "warn:THREE.WebGLProgram: Program Info Log: (105,1): warning X4000: use of potentially uninitialized variable (f_koeDepthAlpha)"
+    ],
+    "coldStartNote": "koelreuteriaMaterials.ts L391-392 float koeDCen; float koeDVar; 声明未初始化传入 koeFlowerAlpha（out 参）——ANGLE HLSL 转译 X4000；每次全新 profile 冷启动首次编译必报一次（program binary cache 命中后同进程不再报）"
+  },
+  "windPixel": {
+    "runM25_ab": { "pctChangedAny": 0.75, "centroidOfChanges": [959, 587] },
+    "frozen_ab": { "pctChangedAny": 0.00, "md5Identical": true },
+    "flutterC7_ab": { "pctChangedAny": 8.34, "pctRowsWithDiffGt8": 86.1, "centroid": [979, 702] }
+  }
+}
