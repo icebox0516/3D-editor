@@ -8,6 +8,7 @@ Renderer 环境从「CanvasTexture 渐变天空 + HemisphereLight + 固定太阳
 
 ## Requirements（D29 裁定面）
 
+- **018.0 Preflight Baseline（018.1 修改渲染代码前执行，D31.7）**：固定 legacy 环境为唯一改前基线——legacy 渐变天空完整参数快照 + day/dusk/night/tech 四预设 × 夏栎/朴树/香樟/路灯/GLB/金属固定机位快照 + frame time p95 基线 + renderer.info 资源账目 + 当前太阳方向记录，落 `docs/acceptance/t018/018.0/`；018.5 新旧视觉对比、FrameTime Δ、资源账目以本目录为唯一改前源；树族复用 D30 统一基线帧不重拍。
 - **Sky + Sun + Cloud Core（018.1）**：**displaySky + bakeSky 双实例**取代单一实例（D29.12）——displaySky 挂 envGroup、ENV_LAYER，受现有 Environment Layer / RenderMode 管理，相机中心跟随（渲染前 `sky.position.copy(camera.position)` 轻量维护，非 Scene 数据）；bakeSky 仅存于 environmentBakeScene 供 PMREM 烘焙（bake 用虚拟相机，无需跟随）；两实例由**同一份参数状态驱动**，参数变更同步写双实例 uniforms（Object3D 单父节点，一实例不能同时挂两 Scene）。**内建 Cloud（D29.11）**：直接消费 Sky 自带 `cloudCoverage / cloudDensity / cloudElevation / cloudScale`，第一阶段 **cloudSpeed = 0 静态云**且不接 time 驱动——不做动态云/云影/Weather，不自研云；太阳盘用内建 `showSunDisc`（displaySky 常开 / bakeSky 常闭）。`sunDirectionOf(elevation, azimuth)` 纯函数（node 可测，落点按 D27.5 先例——domain 零 THREE 或 runtime 纯模块，实施 agent 定）**双消费** Sky.sunPosition + DirectionalLight.position——「天空太阳位 = 光向 = 影向」**三一致为核心验收**；day 首候选 elevation 50.2° / azimuth 53.1°（由现行 (80,120,60) 派生，新旧对比阴影方向零漂移；终值 018.5 视觉验收锁定）。
 - **PMREM / IBL（018.2）**：独立 environmentBakeScene（只含 **bakeSky**，职责分离——禁止 fromScene(主 Scene)）；**云参与烘焙**（bakeSky 带 cloud 参数，阴天参数下 env 反射含云——D29.11/12）；太阳盘烘焙保护 = bakeSky `showSunDisc` 常闭（内建 uniform，官方文档口径，无需开合切换）；PMREMGenerator.fromScene → scene.environment；IBL 侧旋钮 = `scene.environmentIntensity`；**显示侧强度硬约束（D29.13）**：正式路径**禁止 scene.backgroundIntensity**（只作用于 scene.background，Sky 是 ENV_LAYER 网格）——以 Sky 材质自身显示强度 uniform 实现；legacy fallback 渐变背景仍可用场景级旋钮；**PMREM 仅环境状态变化触发**（预设 / 太阳角 / Sky 含 Cloud 参数变化——cloudSpeed=0 下 time 不构成触发源；相机移动 / 模型变化 / LOD 切换禁止触发）；**事务提交**（新 RT 就绪 → 替换 scene.environment → 旧 RT 释放）+ 自维护 owned/live counter。
 - **EnvironmentPreset + fallback（018.3）**：四预设（day/dusk/night/tech）转新参数面（sky 四大气参数 + **cloud 四参数 cloudCoverage·cloudDensity·cloudElevation·cloudScale**（cloudSpeed 恒 0 不进预设）/ sun elevation·azimuth·intensity·color / ibl intensity / ground / grid），Runtime 层不进 Scene 持久化（现状仅 `preset: string` + 开放扩展键，天然兼容，UI 零改动）；**HemisphereLight 正常路径删除**（禁止多光源叠加，D29.4）；**事务式 fallback 单一开关**（D29.5）：首次初始化失败（Sky 构造 / PMREM 烘焙）→ 完整 legacy 路径（CanvasGradient 背景 + Hemi + 现行太阳常量），不出现「真天空但无 IBL」混合态；**运行中环境切换重烘失败 → 保留上一份已成功提交的环境**（不降级不闪断）。
@@ -44,13 +45,14 @@ Renderer 环境从「CanvasTexture 渐变天空 + HemisphereLight + 固定太阳
 
 ## 子任务（2026-09-20 立项拆分，D16 会话粒度；018.1 合并裁定理由：Sky 无太阳角不可独立视觉验证，三一致验收不可拆——用户裁决）
 
+- [ ] 018.0 Preflight Baseline（018.1 前置 Step，不建独立子任务文件——前置证据非会话粒度工作单元，D31.7）→ 落 `docs/acceptance/t018/018.0/`
 - [ ] 018.1 Sky + Sun + Cloud Core（displaySky/bakeSky 双实例 / 相机中心 / ENV_LAYER / RenderMode 接入 + 内建 Cloud 参数面 cloudSpeed=0 + sunDirectionOf 纯函数 + 双消费三一致 + 单测）→ 018.1-sky-sun-cloud-core.md
 - [ ] 018.2 PMREM / IBL（bake scene / 太阳盘隐藏 / 事务提交 / owned-live counter / environmentIntensity + 显示侧旋钮）→ 018.2-pmrem-ibl.md
 - [ ] 018.3 EnvironmentPreset + fallback（四预设新参数面 / Hemi 删除 / 事务式 fallback 单一开关 / 运行中失败保留旧环境）→ 018.3-preset-fallback.md
 - [ ] 018.4 DEV 调参面（__sky 守卫 / 参数实时调 / PMREM debounce）→ 018.4-dev-tuning.md
 - [ ] 018.5 验收（视觉新旧对比 / 性能抽检 / 资源账 / 回归三门槛）→ 018.5-acceptance.md
 
-依赖链：018.1 → 018.2 → 018.3 → 018.4 → 018.5（018.5 候选参数终调直接用 018.4 的 DEV 面；串行维持会话粒度纪律与审查带宽）。
+依赖链：**018.0 Preflight（018.1 前置）** → 018.1 → 018.2 → 018.3 → 018.4 → 018.5（018.5 候选参数终调直接用 018.4 的 DEV 面；串行维持会话粒度纪律与审查带宽）。
 
 ## 探查事实锚点（2026-09-20 立项时点快照；实施前如相关文件大改需复核）
 
@@ -66,3 +68,4 @@ Renderer 环境从「CanvasTexture 渐变天空 + HemisphereLight + 固定太阳
 
 - 2026-09-20 立项：grilling 两轮（6+8 题）逐题裁决 → D29；参考方案归档 `docs/sky-reference.md`；任务书落盘，0/5。启动条件 = T011.5 + T006.6 Step 3 完成。
 - 2026-09-20 同日修订（用户指令，D29.11-14）：任务核心扩 r186 内建 Cloud（cloudSpeed=0 静态）+ displaySky/bakeSky 双实例 + 显示强度硬约束 + showSunDisc 内建太阳盘保护；事实核实入锚点（Sky.js:78-91 uniform 表 / 云着色 :277-328 / @types 0.185.4 类型滞后）；启动条件与其余裁定不变。
+- 2026-09-20 D31 收口：新增 018.0 Preflight Baseline 前置步骤（D31.7——018.5 对比的唯一改前基线源，防止「先改环境再找改前截图」）；其余不变。

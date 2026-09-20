@@ -3,3 +3,7 @@ dist/
 .vite/
 .zcode/
 shader-agent-temp/
+
+# 工作区素材不入库；正式验收取证统一落 docs/acceptance/（D31.9）
+screenshots/
+.zcodeignore

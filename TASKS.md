@@ -51,6 +51,8 @@
 
 ## Next
 
+> Next 仅表示已排入路线图的后续任务，不代表执行顺序；实际启动顺序由任务文件中的依赖、当前项目状态及有效架构裁定决定（D31.8）。
+
 - [ ] T006.6 LOD 选档稳定基准（D28 收官后追加；Step 1 测试先行 + Step 2 稳定基准实装 done 2026-09-20——Step 2 经用户指令提前于 T011；余 Step 3 A/B 实测 + 阈值重锁判定）→ [tasks/006.6-lod-reference-bounds.md](tasks/006.6-lod-reference-bounds.md)
 - [ ] T003 收官路径（冻结 2026-09-17；剩余 003.3 验收续走 / 003.5 / 003.6 / 设施返工）→ [tasks/003-scatter-styles.md](tasks/003-scatter-styles.md)
 - [ ] T004 Style Gallery（0/3）→ [tasks/004-style-gallery.md](tasks/004-style-gallery.md)
