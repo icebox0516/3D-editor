@@ -25,7 +25,7 @@ import {
 import { collectProceduralAssetMetas, getProceduralBuild } from '../../../../src/runtime/procedural/routes';
 import type { InstanceSource } from '../../../../src/runtime/instancing/InstancedAssetPool';
 
-/** 12 资产归类映射表（整表锁——值域依据与 GLB 侧映射见 docs/procedural-assets/metadata-taxonomy.md） */
+/** 13 资产归类映射表（整表锁——值域依据与 GLB 侧映射见 docs/procedural-assets/metadata-taxonomy.md） */
 const EXPECTED_TAXONOMY: Record<string, { category: AssetTaxonomyCategory; family?: AssetTaxonomyFamily }> = {
   asset_flower: { category: 'plant' }, // family 不填：草本/地被族（T015）落地时再定值
   asset_shrub: { category: 'plant', family: 'shrub' },
@@ -33,6 +33,7 @@ const EXPECTED_TAXONOMY: Record<string, { category: AssetTaxonomyCategory; famil
   asset_pine: { category: 'plant', family: 'conifer' },
   asset_tree_3a: { category: 'plant', family: 'broadleaf' },
   asset_tree_celtis: { category: 'plant', family: 'broadleaf' }, // T011.1 朴树——阔叶家族第二实例
+  asset_tree_camphor: { category: 'plant', family: 'broadleaf' }, // T011.2 香樟——阔叶家族第三实例（常绿阔叶首个）
   asset_signpost: { category: 'facility', family: 'road-facility' },
   asset_trashbin: { category: 'facility', family: 'public-facility' },
   asset_streetlamp: { category: 'facility', family: 'road-facility' },
@@ -143,5 +144,5 @@ describe('proceduralProfile 尺寸声明（数值纪律 + 实测落带）', () =
         }
       }
     }
-  });
+  }, 30000); // T011.2：香樟加入（8 槽 × High 实测构建）后越 5s 默认超时，提至 30s——断言语义零变化（celtis 测试同款先例）
 });

@@ -100,6 +100,8 @@ import { createTree3aHandle } from '../runtime/procedural/tree/tree3a/tree3aStag
 import type { Tree3aHandle } from '../runtime/procedural/tree/tree3a/tree3aStage';
 import { createCeltisHandle } from '../runtime/procedural/tree/celtis/celtisStage';
 import type { CeltisHandle } from '../runtime/procedural/tree/celtis/celtisStage';
+import { createCamphorHandle } from '../runtime/procedural/tree/camphor/camphorStage';
+import type { CamphorHandle } from '../runtime/procedural/tree/camphor/camphorStage';
 import { clearStyleNotifier, setStyleNotifier } from '../runtime/styles/engine';
 import type { StyleNotice } from '../runtime/styles/engine';
 import { SceneSerializer } from '../io/SceneSerializer';
@@ -383,6 +385,7 @@ declare global {
     __scatterSmoke?: ScatterSmokeHandle;
     __tree3a?: Tree3aHandle;
     __celtis?: CeltisHandle;
+    __camphor?: CamphorHandle;
     __tree3aPerf?: Tree3aPerfHandle;
   }
 }
@@ -836,6 +839,21 @@ export function createEditor(canvas: HTMLCanvasElement | null, opts: CreateEdito
     });
     window.__celtis = celtis;
   }
+  // T011.2 DEV 出图面：window.__camphor（香樟 slot-0 锚点树直挂渲染场景——夏栎 __tree3a /
+  // 朴树 __celtis 同构装配：独立 group 挂 scene 兄弟组不参与拾取；mount/mountSlots 8 槽批量 /
+  // mountLevels 三档对照 / 风动 / freezeTime / 固定机位 view 系供视觉取证与档位生成
+  // 验证。实现全在 runtime/procedural/tree/camphor/camphorStage——组合根只装配，dispose
+  // 只摘自己的实例）。
+  let camphor: CamphorHandle | null = null;
+  if (import.meta.env.DEV && renderer && typeof window !== 'undefined') {
+    camphor = createCamphorHandle({
+      scene: renderer.scene,
+      camera: renderer.camera,
+      controls: renderer.controls,
+      time: renderer.uTime,
+    });
+    window.__camphor = camphor;
+  }
   // T009.7 性能验收 DEV 驱动面：window.__tree3aPerf（import.meta.env.DEV 守卫，生产零痕迹；
   // 无 Renderer（无头）不挂）。经产品放置路径（真实命令管线 → SceneSync → 实例化池）批量
   // 放置/清除夏栎 + 帧采样/资源计数/太阳阴影 A/B/固定机位——句柄只给数据，阈值/环境归
@@ -1089,6 +1107,11 @@ export function createEditor(canvas: HTMLCanvasElement | null, opts: CreateEdito
       if (celtis && typeof window !== 'undefined' && window.__celtis === celtis) {
         celtis.dispose();
         delete window.__celtis;
+      }
+      // T011.2 DEV 出图面成对拆除（同上：仅摘自己的树与 window 槽）
+      if (camphor && typeof window !== 'undefined' && window.__camphor === camphor) {
+        camphor.dispose();
+        delete window.__camphor;
       }
       // T009.7 性能验收驱动面成对拆除（clear 自己的对象——经命令；仅摘自己的 window 槽）
       if (tree3aPerf && typeof window !== 'undefined' && window.__tree3aPerf === tree3aPerf) {

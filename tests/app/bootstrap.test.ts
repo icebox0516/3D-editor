@@ -396,7 +396,8 @@ describe('registerAssets', () => {
     expect(registerAssets(facade, [treeAsset, other])).toBe(1);
     // createEditor 内 manifest→procedural 收割先行（glob 按文件名序：植物 asset_* 前缀 < 设施裸名 h/p/s/t；
     // T008.1 增 DEV 资产 asset_seedstack——seedstack < shrub 字典序；T008.2 增 asset_tree_3a——
-    // shrub < tree_3a 字典序；T011.1 增 asset_tree_celtis——tree_3a < tree_celtis 字典序），追加注册在后
+    // shrub < tree_3a 字典序；T011.1 增 asset_tree_celtis——tree_3a < tree_celtis 字典序；
+    // T011.2 增 asset_tree_camphor——tree_3a < tree_camphor < tree_celtis 字典序），追加注册在后
     expect(facade.registries.assets.list().map((d) => d.asset.id)).toEqual([
       'asset_tree',
       'asset_flower',
@@ -405,6 +406,7 @@ describe('registerAssets', () => {
       'asset_seedstack',
       'asset_shrub',
       'asset_tree_3a',
+      'asset_tree_camphor',
       'asset_tree_celtis',
       'asset_hydrant',
       'asset_parkbench',
