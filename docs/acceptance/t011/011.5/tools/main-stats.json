@@ -1,0 +1,91 @@
+{
+  "anchorStats": {
+    "mounted": true,
+    "barkTriangles": 25098,
+    "leafTriangles": 3368,
+    "leafCards": 1684
+  },
+  "slotsStats": {
+    "mounted": true,
+    "barkTriangles": 200088,
+    "leafTriangles": 26100,
+    "leafCards": 13050,
+    "slots": [
+      {
+        "slot": 0,
+        "barkTriangles": 25098,
+        "leafTriangles": 3368,
+        "leafCards": 1684
+      },
+      {
+        "slot": 1,
+        "barkTriangles": 25162,
+        "leafTriangles": 3062,
+        "leafCards": 1531
+      },
+      {
+        "slot": 2,
+        "barkTriangles": 24914,
+        "leafTriangles": 3504,
+        "leafCards": 1752
+      },
+      {
+        "slot": 3,
+        "barkTriangles": 24850,
+        "leafTriangles": 3304,
+        "leafCards": 1652
+      },
+      {
+        "slot": 4,
+        "barkTriangles": 25042,
+        "leafTriangles": 3404,
+        "leafCards": 1702
+      },
+      {
+        "slot": 5,
+        "barkTriangles": 24930,
+        "leafTriangles": 3388,
+        "leafCards": 1694
+      },
+      {
+        "slot": 6,
+        "barkTriangles": 24866,
+        "leafTriangles": 2590,
+        "leafCards": 1295
+      },
+      {
+        "slot": 7,
+        "barkTriangles": 25226,
+        "leafTriangles": 3480,
+        "leafCards": 1740
+      }
+    ]
+  },
+  "levelsStats": {
+    "mounted": true,
+    "barkTriangles": 30902,
+    "leafTriangles": 6272,
+    "leafCards": 3136,
+    "levels": [
+      {
+        "level": "high",
+        "barkTriangles": 25098,
+        "leafTriangles": 3368,
+        "leafCards": 1684
+      },
+      {
+        "level": "mid",
+        "barkTriangles": 5434,
+        "leafTriangles": 1348,
+        "leafCards": 674
+      },
+      {
+        "level": "low",
+        "barkTriangles": 370,
+        "leafTriangles": 1556,
+        "leafCards": 778
+      }
+    ]
+  },
+  "console": []
+}

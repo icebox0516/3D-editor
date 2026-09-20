@@ -154,7 +154,7 @@ describe('全链路验收流程（可执行版 · 阶段 6 形态）', () => {
     }
     // 注册表就位（T6.9：ElementRegistry/StyleRegistry 已随旧契约类型面删除）、
     // manifest 全量资产、12 个工具（T6.8 增 vertex-edit；T7.6 增 road-split）、21 套预设
-    expect(facade.registries.assets.list()).toHaveLength(manifestAssets.length + 15); // T002.4 设施 5 种 + T003.4 植物 4 种 + T008.1 DEV 种子塔 + T008.2 夏栎 + T011.1 朴树 + T011.2 香樟 + T011.3 榉树 + T011.4 银杏（同库混排）
+    expect(facade.registries.assets.list()).toHaveLength(manifestAssets.length + 16); // T002.4 设施 5 种 + T003.4 植物 4 种 + T008.1 DEV 种子塔 + T008.2 夏栎 + T011.1 朴树 + T011.2 香樟 + T011.3 榉树 + T011.4 银杏 + T011.5 悬铃木（同库混排）
     expect(facade.registries.assets.findByKind('procedural').map((d) => d.asset.id)).toEqual([
       'asset_flower',
       'asset_oak',
@@ -165,6 +165,7 @@ describe('全链路验收流程（可执行版 · 阶段 6 形态）', () => {
       'asset_tree_camphor',
       'asset_tree_celtis',
       'asset_tree_ginkgo',
+      'asset_tree_platanus',
       'asset_tree_zelkova',
       'asset_hydrant',
       'asset_parkbench',
