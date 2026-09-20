@@ -1,0 +1,17 @@
+{
+  "window": {
+    "x0": 729,
+    "x1": 1190,
+    "y0": 378,
+    "y1": 993
+  },
+  "total": 283515,
+  "warmFrac": 0.0007,
+  "greenBaseFrac": 0.978,
+  "baseMean": [
+    121.1,
+    141.5,
+    131.6
+  ],
+  "strongWarmFrac": 0
+}
