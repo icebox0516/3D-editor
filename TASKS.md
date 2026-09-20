@@ -4,7 +4,7 @@
 
 ## Current
 
-- [~] T011 第一批阔叶乔木（3/5；011.3 榉树 done 2026-09-20 单会话：**D30 增量口径首跑**——锚定光叶榉 Z. serrata 合并口径、零修改第四实例化、榆科叶三件套（偏斜基/尖单锯齿/羽状达缘脉——脉型三分化完成）+ 树皮第四语言（光滑+暖色剥落斑驳）+ vase 冖涌现达标、Step 4b 斑驳校准一轮（屏幕可辨性）、身份判定过 + 缺口 C/D/E 记档（含门控型树皮取证机位适配）、2945 零回归；下一步 011.4 银杏——方法最远端（扇形叶/长短枝））→ [tasks/011-broadleaf-trees.md](tasks/011-broadleaf-trees.md)
+- [~] T011 阔叶乔木族生产任务集合（D33 成员集合口径；成员 4 树种：3 done / 1 排产；011.3 榉树 done 2026-09-20 单会话：**D30 增量口径首跑**——锚定光叶榉 Z. serrata 合并口径、零修改第四实例化、榆科叶三件套（偏斜基/尖单锯齿/羽状达缘脉——脉型三分化完成）+ 树皮第四语言（光滑+暖色剥落斑驳）+ vase 冖涌现达标、Step 4b 斑驳校准一轮（屏幕可辨性）、身份判定过 + 缺口 C/D/E 记档（含门控型树皮取证机位适配）、2945 零回归；下一步 011.4 银杏——方法最远端（扇形叶/长短枝））→ [tasks/011-broadleaf-trees.md](tasks/011-broadleaf-trees.md)
 
 ## Done（近）
 
@@ -64,7 +64,7 @@
 - [ ] T015 地被/草本族【占位】
 - [ ] T016 资产管理器重构（大类→小类、GLB+程序化统一入口；启动前独立拷问门 D21）【占位】
 - [ ] T017 多边形区域生成重构 · Feature Generator 体系（启动前独立拷问门 D21）【占位】
-- [ ] T018 真实程序化天空与环境光照（D29 立项 2026-09-20 + 同日修订 D29.11-14：Sky + 统一 Sun + r186 内建 Cloud（cloudSpeed=0 静态，displaySky/bakeSky 双实例）+ PMREM IBL 替换渐变天空 + Hemi，零资产改动自动获得环境光；启动排 **T011.5 + T006.6 Step 3 之后**——不打断榉树/银杏生产与 LOD 阈值收口）→ [tasks/018-real-sky-environment.md](tasks/018-real-sky-environment.md)
+- [ ] T018 真实程序化天空与环境光照（D29 立项 2026-09-20 + 同日修订 D29.11-14：Sky + 统一 Sun + r186 内建 Cloud（cloudSpeed=0 静态，displaySky/bakeSky 双实例）+ PMREM IBL 替换渐变天空 + Hemi，零资产改动自动获得环境光；启动排 **T011 族级验收门（当前编号 011.5，随成员增补顺延——D33）+ T006.6 Step 3 之后**——不打断榉树/银杏生产与 LOD 阈值收口）→ [tasks/018-real-sky-environment.md](tasks/018-real-sky-environment.md)
 
 ## Done
 
