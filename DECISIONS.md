@@ -248,3 +248,16 @@ D26.2 六情形末条「spec 关键事实含 Unknown」收窄为：**关键事�
 14. **默认（可否决）**：缩略图 / Ghost / Preview 固定取 High 档；T007 烘焙「取当前档几何」语义保留原句、细化留 T007 立项拷问门；LOD 分布 DEV 可视化并入 006.5 取证。
 
 **候选待实测（不作锁定值）**：张角/归一化视距分档阈值数值；chunk 代表距离取块最近点、代表 scale 取块内 max 的保守策略实际效果；各家族各档面数预算（010.3 家族预算表规范给出区间与锁定流程）。
+
+---
+
+## 2026-09-20 · D28 LOD 选档基准稳定化方向与 GLB LOD 消费硬约束（grilling 五题裁定）
+
+**背景**：用户检查 LOD 系统提出两项疑点（选档基准稳定性 / GLB 未来接入路径）。经只读事实探查（两链选档输入、三档 bounds 实测差异、GLB 链路、规范记档现状）+ grilling 五题逐题裁决（Q1 无观察病症定性卫生债 / Q2 GLB 已共享 Runtime / Q3 稳定基准 = High 档派生 / Q4 T011 后修 + 测试先行 / Q5 GLB 原则升格硬约束）。
+
+1. **现状定性（卫生债，非缺陷）**：两链选档度量 `m = d/(r·scale)` 的 `r` 均取**当前档位**几何 boundingSphere（放置链 `InstancedAssetPool.frameLod` 随桶迁档换源；散布链 `ScatterChunkManager.frame` 按当前档位键取缓存半径）；三档几何 bounds 实际不等（档间轮廓连续性容差 ≤0.4m，折算半径差 ~2-5%）——「迁档→半径换源→读数平移」反馈环存在，但被 15% 迟滞带（hysteresisBand）吸收，无观察病症。`ScatterChunkManager`「档间轮廓连续不变量下各档近似同值」此前仅为注释级假设，未被测试锁定。
+2. **演进方向锁定：选档基准 = High 档派生的稳定资产级半径**。Runtime 在源解析时一次计算 High 档几何包围球并缓存为资产级选档半径，两链恒用；**剔除不跟随**（逐桶视锥剔除继续用各档真实几何球——剔除用真实包围是正确语义）；`sourceKey` 形态身份、桶键、迟滞、批次控制语义零变化。实装归 **T006.6**，排期 = T011 族建设后（不阻塞当前 epic）。仓库此前无任何稳定资产级基准概念（`proceduralProfile` h/w 为 T016 浏览语义、运行时零消费者）。
+3. **阈值重锁判定义务**：统一到 High 半径后有效换档点整体平移 ≤~5%（`m = d/r` 反比），处于迟滞带内；按 006.5 常量纪律（数值变更须重开实测记档），T006.6 须带 A/B 对照实测记档，判定 LOD_THRESHOLDS 6/16/60/0.15 是否触发重锁。
+4. **D27.12 边界澄清**：稳定基准是 Runtime 从 High 档几何**派生的缓存值**，不是资产声明字段——不违反「调度阈值归 Runtime 全局策略常量、不进资产 Profile」（D27.12）；`proceduralProfile` h/w 保持浏览语义不进选档。
+5. **GLB LOD 消费硬约束（D27.3 GLB Proxy 条目升格）**：GLB 资产未来接入多档时**必须直接消费现有 Asset Runtime LOD**——扩展点 = `ModelAsset` levels 声明契约 + `Renderer.declaredLevelsOf` + `AssetSourceRouter` file 分支 level 透传；**禁止另建 GLB 专用 LOD 体系**（D27.1 资产域专属 LOD 禁令的延续，GLBLOD 类平行系统同样禁止）。现状记档：GLB 已走共享链（file 分支忽略 level → 无声明档位恒 High + 超远 culled），仓库零 GLB 专用 LOD 代码；Proxy/Impostor 规范预留位语义不变（lod-spec §3）。
+6. **测试先行（本裁定会话执行）**：`InstancedAssetPool.lod.test.ts` 三档硬 pin 同一 boundingSphere 的假前提修复 + 现状语义不变量锁定（档间半径差被迟滞带吸收、迁档半径换源不触发反向换档）——假前提不修则 T006.6 改造无可证明的验收面；交付记档归 T006.6 Step 1。

@@ -17,8 +17,13 @@
  *   culled）；
  * - 总开关：off = 全 High（跨桶迁移回 high）+ culled 旁路（超远不裁剪）；
  * - 单档资产（无 levels 声明）：恒 high、无 mid/low 源请求。
+ * - 档间半径差不变量（真实差异化包围球）：三档半径不再 pin 同球（High ≥ Mid/Low，
+ *   差 2~5% 量级）——半径差被 15% 迟滞带吸收（highToMid 临界推拉零 churn）；迁档后
+ *   半径换源（下一帧读数用新档半径、读数平移不触发反向换档——现状语义锁定）。
  * 边界：fake 源提供者按 (assetId × 槽 × level) 分源；几何包围手工钉死——选档输入
- *      确定性（球心 (0,3,0)/半径 2，镜像树木底原点几何）；评估器语义由 006.1 测试锁定。
+ *      确定性（球心 (0,3,0)，半径按档差异化 High 2 / Mid 1.92 / Low 1.96——真实
+ *      档间轮廓差 2~5% 量级，High ≥ Mid/Low；镜像树木底原点几何）；评估器语义由
+ *      006.1 测试锁定。
  */
 import { describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
@@ -32,9 +37,18 @@ import type { InstanceSource } from '../../src/runtime/instancing/InstancedAsset
 
 /** 槽数（镜像夏栎 shapeFamily size=8——多 source × level 交叉桶的 source 维度） */
 const SLOTS = 8;
-/** 源几何包围球：球心 (0,3,0)（底原点树形）、半径 2 */
-const SOURCE_RADIUS = 2;
+/** 源几何包围球球心 (0,3,0)（底原点树形）；半径按档差异化（见 LEVEL_RADIUS） */
 const SOURCE_CENTER = new THREE.Vector3(0, 3, 0);
+/**
+ * 三档源几何包围球半径（真实差异化，不再三档 pin 同球）：High 基准 2.0、Mid −4%、
+ * Low −2%——档间轮廓差实测量级 2~5%（celtisLod 跨档容差实测折算），High ≥ Mid/Low
+ * （高档包络最全、低档壳卡不涨出 High）。选档读数随「当前档位」半径换源（frameLod
+ * 取桶源几何包围球）——换档后 m 随新档半径平移是现状语义（已定性卫生债，稳定 High
+ * 派生半径另立任务治理）：本文件按真实差异锁定该现状语义的不变量。
+ */
+const LEVEL_RADIUS: Record<ProceduralLevel, number> = { high: 2, mid: 1.92, low: 1.96 };
+/** 相机定标基准半径（= High 档；cameraForM 的机位口径） */
+const SOURCE_RADIUS = LEVEL_RADIUS.high;
 
 function makeModel(
   id: ID,
@@ -57,10 +71,10 @@ function makeModel(
   };
 }
 
-/** (assetId × 槽 × 档) 源：几何身份即桶标签（按调用现场 key 缓存于 provider）；包围手工钉死 */
-function leveledSource(): InstanceSource {
+/** (assetId × 槽 × 档) 源：几何身份即桶标签（按调用现场 key 缓存于 provider）；包围按档钉死 */
+function leveledSource(level: ProceduralLevel): InstanceSource {
   const geometry = new THREE.BoxGeometry(2, 2, 2);
-  geometry.boundingSphere = new THREE.Sphere(SOURCE_CENTER.clone(), SOURCE_RADIUS);
+  geometry.boundingSphere = new THREE.Sphere(SOURCE_CENTER.clone(), LEVEL_RADIUS[level]);
   return { geometry, material: new THREE.MeshStandardMaterial({ color: 0x2e8b57 }) };
 }
 
@@ -76,7 +90,7 @@ function makeLeveledProvider() {
       const key = `${assetId}::slot-${(seed ?? 0) % SLOTS}::${level ?? 'high'}`;
       let source = sources.get(key);
       if (!source) {
-        source = leveledSource();
+        source = leveledSource(level ?? 'high');
         sources.set(key, source);
       }
       return source;
@@ -114,15 +128,21 @@ function transformAt(x: number, y: number, z: number, scale = 1): Transform {
 }
 
 /**
- * 目标度量 m 的对象位置（fov 90° → m = 视距 / R）：对象沿 +Z 排布，相机在
- * (0, 3, camZ) 沿 −Z 看；对象球心世界位 = (x, 3·scale, z) → 视距 = z − camZ。
- * 取 camZ = −R·mRef（远处参考线），对象 z = 0 → m = R·mRef/R… 简化：camZ = −m×R。
+ * 目标度量 m 的机位（按指定档半径定标；fov 90° → m = 视距 / R）：对象沿 +Z 排布，
+ * 相机在 (0, 3, camZ) 沿 −Z 看；对象球心世界位 = (x, 3·scale, z) → 视距 = z − camZ，
+ * camZ = −m × radius。cameraForM（按 high 半径定标）适用于评估 high 桶内条目；条目
+ * 迁 mid/low 桶后读数按当档半径换算（半径换源平移），评估时须按实际档半径定标。
  */
-function cameraForM(m: number): THREE.PerspectiveCamera {
+function cameraForMeasuredM(m: number, radius: number): THREE.PerspectiveCamera {
   const camera = new THREE.PerspectiveCamera(90, 1, 0.5, 100000);
-  camera.position.set(0, SOURCE_CENTER.y, -m * SOURCE_RADIUS);
+  camera.position.set(0, SOURCE_CENTER.y, -m * radius);
   camera.lookAt(0, SOURCE_CENTER.y, 10);
   return camera;
+}
+
+/** 目标度量 m 的机位（high 档半径定标——起步 / high 桶内评估用） */
+function cameraForM(m: number): THREE.PerspectiveCamera {
+  return cameraForMeasuredM(m, SOURCE_RADIUS);
 }
 
 /** 三档距离环的目标 m（相对阈值构造；对象 z=0、scale=1 → m = (z − camZ)/R 恒定） */
@@ -268,18 +288,127 @@ describe('InstancedAssetPool LOD：换档跨桶迁移', () => {
     const callsAfterDowngrade = provider.mock.calls.length;
     const meshesAfterDowngrade = pool.root.children.length;
 
+    // 带内往返：条目已迁 mid 桶 → 读数按 mid 半径换算，机位按 mid 半径定标
+    // （cameraForMeasuredM）使读数精确落带内；名义线 ×(1−band) ~ 名义线 振荡多次保持 mid
     const bandLow = t.highToMid * (1 - t.hysteresisBand);
     for (const frac of [0.05, 0.5, 0.95, 0.3, 0.8]) {
-      pool.frameLod(cameraForM(bandLow + (t.highToMid - bandLow) * frac), true);
+      const inBandM = bandLow + (t.highToMid - bandLow) * frac;
+      pool.frameLod(cameraForMeasuredM(inBandM, LEVEL_RADIUS.mid), true);
       await flush();
       expect(meshHolding(pool, sourceOf(sources, 'asset_tree', 5, 'mid').geometry)).toBeDefined();
     }
     expect(provider.mock.calls.length).toBe(callsAfterDowngrade); // 零新源请求
     expect(pool.root.children.length).toBe(meshesAfterDowngrade); // 桶集零变化
 
-    pool.frameLod(cameraForM(bandLow * 0.97), true); // 越升档线 → 回 high
+    // 越升档线（mid 半径口径读数 < 名义线 ×(1−band)）→ 单次回 high
+    pool.frameLod(cameraForMeasuredM(bandLow * 0.97, LEVEL_RADIUS.mid), true);
     await flush();
     expect(meshHolding(pool, sourceOf(sources, 'asset_tree', 5, 'high').geometry)).toBeDefined();
+    pool.dispose();
+  });
+});
+
+// ── 档间半径差（真实差异化包围球下的现状语义不变量）─────────
+
+describe('InstancedAssetPool LOD：档间半径差与迟滞吸收', () => {
+  it('档间半径差（High ≥ Mid/Low，2~5% 量级）被 15% 迟滞带吸收：highToMid 临界推拉零 churn', async () => {
+    const { provider, sources } = makeLeveledProvider();
+    const pool = makeLodPool(provider);
+    pool.attach(makeModel('a', 'asset_tree', transformAt(0, 0, 0), 4));
+    await flush();
+    const t = LOD_THRESHOLDS;
+
+    // 跨出名义线（high 桶读数 6.05）→ 立即降 mid；迁移后桶源换 mid 几何（半径 1.92）
+    pool.frameLod(cameraForM(t.highToMid + 0.05), true);
+    await flush();
+    expect(meshHolding(pool, sourceOf(sources, 'asset_tree', 4, 'mid').geometry)).toBeDefined();
+    const callsAfterDowngrade = provider.mock.calls.length;
+    const meshesAfterDowngrade = pool.root.children.length;
+
+    // 同机位下一帧：读数 = 6.05 × r_high/r_mid ≈ 6.30（半径换源平移 +4.2%）——仍在
+    // mid 名义带，零换档（平移量被迟滞带吞没）
+    pool.frameLod(cameraForM(t.highToMid + 0.05), true);
+    await flush();
+    expect(meshHolding(pool, sourceOf(sources, 'asset_tree', 4, 'mid').geometry)).toBeDefined();
+    expect(meshHolding(pool, sourceOf(sources, 'asset_tree', 4, 'high').geometry)).toBeUndefined();
+    expect(provider.mock.calls.length).toBe(callsAfterDowngrade);
+
+    // 临界推拉：读数在名义线 ±~3%（≥ 半径差量级）来回跨线多次再返回——全部被迟滞
+    // 吸收：保持 mid、桶集与源请求零 churn
+    for (const reading of [6.2, 5.8, 6.15, 5.85, 6.1, 5.9]) {
+      pool.frameLod(cameraForMeasuredM(reading, LEVEL_RADIUS.mid), true);
+      await flush();
+      expect(meshHolding(pool, sourceOf(sources, 'asset_tree', 4, 'mid').geometry)).toBeDefined();
+      expect(meshHolding(pool, sourceOf(sources, 'asset_tree', 4, 'high').geometry)).toBeUndefined();
+    }
+    expect(provider.mock.calls.length).toBe(callsAfterDowngrade); // 零源请求 churn
+    expect(pool.root.children.length).toBe(meshesAfterDowngrade); // 桶集零变化
+
+    // 决定性越过升档线（mid 半径口径读数 < 名义线 ×(1−band)）：单次回 high
+    pool.frameLod(
+      cameraForMeasuredM(t.highToMid * (1 - t.hysteresisBand) * 0.97, LEVEL_RADIUS.mid),
+      true,
+    );
+    await flush();
+    expect(meshHolding(pool, sourceOf(sources, 'asset_tree', 4, 'high').geometry)).toBeDefined();
+    pool.dispose();
+  });
+
+  it('high→mid 迁档后半径换源：下一帧读数用新档半径、平移被迟滞吸收不回弹（整链锁定）', async () => {
+    const { provider, sources } = makeLeveledProvider();
+    const pool = makeLodPool(provider);
+    pool.attach(makeModel('a', 'asset_tree', transformAt(0, 0, 0), 6));
+    await flush();
+    const t = LOD_THRESHOLDS;
+
+    // high 桶读数 6.2 → 立即降 mid（迁移后当档源 = mid 几何，半径 1.92）
+    pool.frameLod(cameraForM(t.highToMid + 0.2), true);
+    await flush();
+    expect(meshHolding(pool, sourceOf(sources, 'asset_tree', 6, 'mid').geometry)).toBeDefined();
+    const callsAfterDowngrade = provider.mock.calls.length;
+
+    // 同机位下一帧：读数 = 6.2 × r_high/r_mid ≈ 6.46（新档半径换算）→ 不回弹 high
+    pool.frameLod(cameraForM(t.highToMid + 0.2), true);
+    await flush();
+    expect(meshHolding(pool, sourceOf(sources, 'asset_tree', 6, 'mid').geometry)).toBeDefined();
+    expect(provider.mock.calls.length).toBe(callsAfterDowngrade);
+
+    // 半径换源判别机位：mid 半径口径读数 5.2 ∈ [升档线 5.1, 名义线 6)——被迟滞吸收停留
+    // mid；若下一帧仍用旧档（high）半径评估，读数 = 5.2 × r_mid/r_high = 4.99 < 5.1 会
+    // 立即升回 high。停留 mid = 「下一帧读数已用新档半径」且平移不触发反向换档的双证据
+    const holdReading = t.highToMid * (1 - t.hysteresisBand) + 0.1;
+    pool.frameLod(cameraForMeasuredM(holdReading, LEVEL_RADIUS.mid), true);
+    await flush();
+    expect(meshHolding(pool, sourceOf(sources, 'asset_tree', 6, 'mid').geometry)).toBeDefined();
+    expect(meshHolding(pool, sourceOf(sources, 'asset_tree', 6, 'high').geometry)).toBeUndefined();
+    expect(provider.mock.calls.length).toBe(callsAfterDowngrade);
+    pool.dispose();
+  });
+
+  it('mid→low 迁档读数回缩（Low 半径 > Mid）同样被吸收：名义线回读不立即回弹', async () => {
+    const { provider, sources } = makeLeveledProvider();
+    const pool = makeLodPool(provider);
+    pool.attach(makeModel('a', 'asset_tree', transformAt(0, 0, 0), 2));
+    await flush();
+    const t = LOD_THRESHOLDS;
+
+    // 推过 highToMid（high 桶读数 6.2）→ mid；再推过 midToLow（mid 半径口径 16.05）→ low
+    pool.frameLod(cameraForM(t.highToMid + 0.2), true);
+    await flush();
+    pool.frameLod(cameraForMeasuredM(t.midToLow + 0.05, LEVEL_RADIUS.mid), true);
+    await flush();
+    expect(meshHolding(pool, sourceOf(sources, 'asset_tree', 2, 'low').geometry)).toBeDefined();
+    const callsAfterDowngrade = provider.mock.calls.length;
+
+    // 同机位下一帧：读数 = 16.05 × r_mid/r_low ≈ 15.72——名义上已回 mid 带（< 16），
+    // 但升档线 = 16 × (1−band) = 13.6，回缩量（−2%）远小于迟滞带宽 → 不回弹 mid。
+    // 迁档 → 半径换源 → 读数平移 → 被迟滞吸收，整链在「读数朝升档线方向回缩」的
+    // 不利方向下同样成立
+    pool.frameLod(cameraForMeasuredM(t.midToLow + 0.05, LEVEL_RADIUS.mid), true);
+    await flush();
+    expect(meshHolding(pool, sourceOf(sources, 'asset_tree', 2, 'low').geometry)).toBeDefined();
+    expect(meshHolding(pool, sourceOf(sources, 'asset_tree', 2, 'mid').geometry)).toBeUndefined();
+    expect(provider.mock.calls.length).toBe(callsAfterDowngrade);
     pool.dispose();
   });
 });

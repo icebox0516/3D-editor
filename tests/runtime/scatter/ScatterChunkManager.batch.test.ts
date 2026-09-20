@@ -21,12 +21,15 @@
  * - LOD 分布双口径（D27.9）：各档实例数 + 桶数（提交口径；culled 成员实例计 culled）；
  * - 拾取：合并桶命中 → 源 id。
  * 边界：fake 源提供者按 (assetId × level) 分源（几何身份即档位标签）；几何包围手工
- *      钉死（半径 5 / Y ±1）；合并阈值经注入 { maxInstancesPerChunk, groupFactor } 构造
+ *      钉死（半径按档差异化 High 5 / Mid 4.8 / Low 4.9——真实档间轮廓差 2~5% 量级，
+ *      High ≥ Mid/Low；Y ±1）；合并阈值经注入 { maxInstancesPerChunk, groupFactor } 构造
  *      （不依赖 BATCH_POLICY 数值——候选锁值不碎测试）。
- * 机位口径（fov 90° → m = 最近点距离 / R；块盒 Y = [−1,1]、XZ = 块矩形闭盒）：
+ * 机位口径（fov 90° → m = 最近点距离 / 当档 R；块盒 Y = [−1,1]、XZ = 块矩形闭盒）：
  *      超块中心正上方 (32, 1+m·R, 32) → 四块最近点同距 → 全块同档（均匀档位机位）；
  *      超块角点 (0, h, 0) → 四块最近点分距 → 跨档/culled 分离机位（§4.3 解析构造）。
- *      升档迟滞方向已计入（回 low 用带内 m=38 < lowToCulled·(1−band) 保证回档）。
+ *      升档迟滞方向已计入（回 low 用带内 m=38 < lowToCulled·(1−band) 保证回档）；
+ *      角点机位下块已在 low 档时读数按 low 半径折算（mOfChunk 半径参数——半径换源
+ *      现状语义，InstancedAssetPool.lod / ScatterChunkManager.lod 测试锁定不变量）。
  */
 import { describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
@@ -42,7 +45,13 @@ import type { InstanceSource } from '../../../src/runtime/instancing/InstancedAs
 
 // ── 构造工具（镜像 006.3 测试口径）──────────────────────────
 
-const SOURCE_RADIUS = 5;
+/**
+ * 三档源几何包围球半径（真实差异化，不再三档 pin 同球）：High 基准 5.0、Mid −4%、
+ * Low −2%——档间轮廓差实测量级 2~5%（口径同 ScatterChunkManager.lod 测试）。
+ */
+const LEVEL_RADIUS: Record<ProceduralLevel, number> = { high: 5, mid: 4.8, low: 4.9 };
+/** 相机定标基准半径（= High 档；cameraAboveCenter 的机位口径） */
+const SOURCE_RADIUS = LEVEL_RADIUS.high;
 const GEO_HALF = 1;
 /** 注入的合并策略（测试常量——与 BATCH_POLICY 数值解耦） */
 const MERGE = { maxInstancesPerChunk: 32, groupFactor: 2 };
@@ -75,13 +84,13 @@ function sparseParams(overrides: Partial<ScatterParams> = {}): ScatterParams {
 /** 密集参数：~100 实例/块 > 32（合并阈值之上） */
 const denseParams = (): ScatterParams => sparseParams({ densityPerM2: 0.1 });
 
-function leveledSource(): InstanceSource {
+function leveledSource(level: ProceduralLevel): InstanceSource {
   const geometry = new THREE.BoxGeometry(2, 2, 2);
   geometry.boundingBox = new THREE.Box3(
     new THREE.Vector3(-GEO_HALF, -GEO_HALF, -GEO_HALF),
     new THREE.Vector3(GEO_HALF, GEO_HALF, GEO_HALF),
   );
-  geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), SOURCE_RADIUS);
+  geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), LEVEL_RADIUS[level]);
   return { geometry, material: new THREE.MeshStandardMaterial({ color: 0x2e8b57 }) };
 }
 
@@ -91,7 +100,7 @@ function makeLeveledProvider() {
     const key = `${assetId}::${level ?? 'high'}`;
     let source = sources.get(key);
     if (!source) {
-      source = leveledSource();
+      source = leveledSource(level ?? 'high');
       sources.set(key, source);
     }
     return source;
@@ -138,12 +147,16 @@ function cameraAboveCorner(h: number): THREE.PerspectiveCamera {
   return camera;
 }
 
-/** 角点相机下块 (i,j) 的度量 m（§4.3 代表点 = 块盒最近点；Y∈[−1,1] → dy = h−1，h>1） */
-function mOfChunk(i: number, j: number, h: number): number {
+/**
+ * 角点相机下块 (i,j) 的度量 m（§4.3 代表点 = 块盒最近点；Y∈[−1,1] → dy = h−1，h>1）。
+ * radius = 评估时当档源几何包围球半径（缺省 high——起步评估口径；块已迁 low 档时读数
+ * 按 low 半径折算：半径换源现状语义）。
+ */
+function mOfChunk(i: number, j: number, h: number, radius: number = SOURCE_RADIUS): number {
   const x = Math.min(Math.max(0, i * 32), (i + 1) * 32);
   const z = Math.min(Math.max(0, j * 32), (j + 1) * 32);
   const dy = h - 1;
-  return Math.sqrt(x * x + z * z + dy * dy) / SOURCE_RADIUS;
+  return Math.sqrt(x * x + z * z + dy * dy) / radius;
 }
 
 /** root 直下的合并桶网格（name merge: 前缀；不含块组子网格） */
@@ -396,10 +409,11 @@ describe('ScatterChunkManager 批次控制：合并成员 culled', () => {
     const fullCount = full.count;
     const fullSnapshot = Float32Array.from(full.instanceMatrix.array.subarray(0, full.count * 16));
 
-    // 角点机位抬升：块 (0,0) 仍 low 带、块 (1,1) 超 culled 线（其余两块带内）
+    // 角点机位抬升：块 (0,0) 仍 low 带、块 (1,1) 超 culled 线（其余两块带内）——四块
+    // 已迁 low 档，读数按 low 半径折算（mOfChunk 半径参数 = 当档半径换算）
     let h = 1 + t.lowToCulled * 0.9 * SOURCE_RADIUS;
-    while (mOfChunk(1, 1, h) <= t.lowToCulled * 1.001) h += 2;
-    expect(mOfChunk(0, 0, h)).toBeLessThanOrEqual(t.lowToCulled); // (0,0) 未超线
+    while (mOfChunk(1, 1, h, LEVEL_RADIUS.low) <= t.lowToCulled * 1.001) h += 2;
+    expect(mOfChunk(0, 0, h, LEVEL_RADIUS.low)).toBeLessThanOrEqual(t.lowToCulled); // (0,0) 未超线
     await settle(m, cameraAboveCorner(h));
     const partiallyCulled = mergedMeshes(m)[0]!;
     const expectedRemaining = expectedMerged(params, [

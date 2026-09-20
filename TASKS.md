@@ -8,7 +8,7 @@
 
 ## Done（近）
 
-- [x] T006 Asset Runtime LOD（**5/5 epic 收官 2026-09-19**；通用 Runtime LOD 调度完整交付，策略常量实测锁定）→ [tasks/006-lod-chunking.md](tasks/006-lod-chunking.md)
+- [x] T006 Asset Runtime LOD（**5/5 epic 收官 2026-09-19**；通用 Runtime LOD 调度完整交付，策略常量实测锁定；收官后 D28 追加演进任务 006.6 见 Next）→ [tasks/006-lod-chunking.md](tasks/006-lod-chunking.md)
   - [x] T006.5 T006 验收门（done 2026-09-19：双档达标——城市 10 万路灯 175-190fps/531≤650、园区 2 万树 206-229fps@1080p（核显 BIOS 禁用→2080 Ti 实测+临界外推+遗留核显复验）；范围门三项全绿 Impostor 不立项；树 A/B 207↔17fps；换档序列无震荡+diff 不超运动基线；LOD_THRESHOLDS/BATCH_POLICY 候选→锁定；2657 零回归）→ [tasks/006.5-acceptance.md](tasks/006.5-acceptance.md)
   - [x] T006.1 LOD 公共语义层（done 2026-09-19：evaluateLodRepresentation 纯函数 + 候选阈值常量 + 总开关语义；+38 测试 → 2585 全绿）→ [tasks/006.1-lod-semantics.md](tasks/006.1-lod-semantics.md)
   - [x] T006.2 非植物第二资产档位验证（done 2026-09-19：路灯 High/Low 两档 328/136 面 + SourceCache 无族多档键 assetId::level 扩展；+16 测试）→ [tasks/006.2-second-asset-levels.md](tasks/006.2-second-asset-levels.md)
@@ -51,6 +51,7 @@
 
 ## Next
 
+- [ ] T006.6 LOD 选档稳定基准（D28 收官后追加；Step 1 测试先行 done 2026-09-20，Step 2/3 排 T011 族建设后）→ [tasks/006.6-lod-reference-bounds.md](tasks/006.6-lod-reference-bounds.md)
 - [ ] T003 收官路径（冻结 2026-09-17；剩余 003.3 验收续走 / 003.5 / 003.6 / 设施返工）→ [tasks/003-scatter-styles.md](tasks/003-scatter-styles.md)
 - [ ] T004 Style Gallery（0/3）→ [tasks/004-style-gallery.md](tasks/004-style-gallery.md)
 - [ ] T005 Animation Pathway（0/3）→ [tasks/005-animation-pathway.md](tasks/005-animation-pathway.md)
