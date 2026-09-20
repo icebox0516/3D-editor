@@ -104,6 +104,8 @@ import { createCamphorHandle } from '../runtime/procedural/tree/camphor/camphorS
 import type { CamphorHandle } from '../runtime/procedural/tree/camphor/camphorStage';
 import { createZelkovaHandle } from '../runtime/procedural/tree/zelkova/zelkovaStage';
 import type { ZelkovaHandle } from '../runtime/procedural/tree/zelkova/zelkovaStage';
+import { createGinkgoHandle } from '../runtime/procedural/tree/ginkgo/ginkgoStage';
+import type { GinkgoHandle } from '../runtime/procedural/tree/ginkgo/ginkgoStage';
 import { clearStyleNotifier, setStyleNotifier } from '../runtime/styles/engine';
 import type { StyleNotice } from '../runtime/styles/engine';
 import { SceneSerializer } from '../io/SceneSerializer';
@@ -389,6 +391,7 @@ declare global {
     __celtis?: CeltisHandle;
     __camphor?: CamphorHandle;
     __zelkova?: ZelkovaHandle;
+    __ginkgo?: GinkgoHandle;
     __tree3aPerf?: Tree3aPerfHandle;
   }
 }
@@ -872,6 +875,21 @@ export function createEditor(canvas: HTMLCanvasElement | null, opts: CreateEdito
     });
     window.__zelkova = zelkova;
   }
+  // T011.4 DEV 出图面：window.__ginkgo（银杏 slot-0 锚点树直挂渲染场景——夏栎 __tree3a /
+  // 朴树 __celtis / 香樟 __camphor / 榉树 __zelkova 同构装配：独立 group 挂 scene 兄弟组
+  // 不参与拾取；mount/mountSlots 8 槽批量 / mountLevels 三档对照 / 风动 / freezeTime /
+  // 固定机位 view 系供视觉取证与档位生成验证。实现全在
+  // runtime/procedural/tree/ginkgo/ginkgoStage——组合根只装配，dispose 只摘自己的实例）。
+  let ginkgo: GinkgoHandle | null = null;
+  if (import.meta.env.DEV && renderer && typeof window !== 'undefined') {
+    ginkgo = createGinkgoHandle({
+      scene: renderer.scene,
+      camera: renderer.camera,
+      controls: renderer.controls,
+      time: renderer.uTime,
+    });
+    window.__ginkgo = ginkgo;
+  }
   // T009.7 性能验收 DEV 驱动面：window.__tree3aPerf（import.meta.env.DEV 守卫，生产零痕迹；
   // 无 Renderer（无头）不挂）。经产品放置路径（真实命令管线 → SceneSync → 实例化池）批量
   // 放置/清除夏栎 + 帧采样/资源计数/太阳阴影 A/B/固定机位——句柄只给数据，阈值/环境归
@@ -1135,6 +1153,11 @@ export function createEditor(canvas: HTMLCanvasElement | null, opts: CreateEdito
       if (zelkova && typeof window !== 'undefined' && window.__zelkova === zelkova) {
         zelkova.dispose();
         delete window.__zelkova;
+      }
+      // T011.4 DEV 出图面成对拆除（同上：仅摘自己的树与 window 槽）
+      if (ginkgo && typeof window !== 'undefined' && window.__ginkgo === ginkgo) {
+        ginkgo.dispose();
+        delete window.__ginkgo;
       }
       // T009.7 性能验收驱动面成对拆除（clear 自己的对象——经命令；仅摘自己的 window 槽）
       if (tree3aPerf && typeof window !== 'undefined' && window.__tree3aPerf === tree3aPerf) {
