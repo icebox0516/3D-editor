@@ -4,7 +4,7 @@
 
 ## Current
 
-- [~] T011 第一批阔叶乔木（2/5；011.2 香樟 done 2026-09-20：常绿阔叶首个实例——零修改第三实例化、全缘 SDF 零齿载波 + 离基三出脉/腺窝探针实证、Step 4b 革质光泽 0.62→0.50 一轮校准、十项适用项全过（2 例视觉疑读机器否证）、2842 零回归、跨会话恢复收官；下一步 011.3 榉树）→ [tasks/011-broadleaf-trees.md](tasks/011-broadleaf-trees.md)
+- [~] T011 第一批阔叶乔木（2/5；011.2 香樟 done 2026-09-20：常绿阔叶首个实例——零修改第三实例化、全缘 SDF 零齿载波 + 离基三出脉/腺窝探针实证、Step 4b 革质光泽 0.62→0.50 一轮校准、十项适用项全过（2 例视觉疑读机器否证）、2842 零回归、跨会话恢复收官；下一步 011.3 榉树——**011.3 起 Step 4 按 D30 增量视觉口径**）→ [tasks/011-broadleaf-trees.md](tasks/011-broadleaf-trees.md)
 
 ## Done（近）
 
@@ -56,7 +56,7 @@
 - [ ] T004 Style Gallery（0/3）→ [tasks/004-style-gallery.md](tasks/004-style-gallery.md)
 - [ ] T005 Animation Pathway（0/3）→ [tasks/005-animation-pathway.md](tasks/005-animation-pathway.md)
 - [ ] T007 Bake Scatter（可选；启动前 grill 拷问门见任务书）→ [tasks/007-bake-scatter.md](tasks/007-bake-scatter.md)
-- [ ] T012 针叶族【占位】
+- [ ] T012 针叶族【占位；立项按 D30：012.1 雪松 = ConiferShapeProfile 家族首例走完整 SOP 口径，后续资产增量口径，族末集体验收门】
 - [ ] T013 花木族【占位】
 - [ ] T014 灌木族【占位】
 - [ ] T015 地被/草本族【占位】
