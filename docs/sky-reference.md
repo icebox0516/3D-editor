@@ -2,7 +2,7 @@
 
 > 2026-09-20 T018 立项 grilling 会话的用户参考方案，逐字归档（D27 `docs/lod-reference.md` 同例）：**输入材料，不再更新；与 DECISIONS.md D29 裁决冲突处以 D29 为准**。
 >
-> 主要分歧记档：①子任务拆分——本方案 §25 SKY-1~6 六步 → D29 裁决合并 SKY-1+SKY-2 为 018.1 Sky+Sun Core（三一致验收不可拆），共五子任务；②tone mapping——D29 明确 T018 不引入 ACES，保持 NoToneMapping + SRGBColorSpace，以独立线性衰减双旋钮控制（不足则另立 T019，禁止 T018 内切换）；③HemisphereLight——本方案 §17 留「极弱 Safety Fill」后门 → D29 裁决正常路径删除、仅 fallback；④资源验收——D29 增自维护 PMREM target owned/live counter 为确定性依据（renderer.info 仅辅助）；⑤PMREM 触发——D29 增 DEV 调参 debounce 硬约束。方案 §28 十条验收全部采纳并按 D29.7 量化口径补充。
+> 主要分歧记档：①子任务拆分——本方案 §25 SKY-1~6 六步 → D29 裁决合并 SKY-1+SKY-2 为 018.1 Sky+Sun Core（三一致验收不可拆），共五子任务；②tone mapping——D29 明确 T018 不引入 ACES，保持 NoToneMapping + SRGBColorSpace，以独立线性衰减双旋钮控制（不足则另立 T019，禁止 T018 内切换）；③HemisphereLight——本方案 §17 留「极弱 Safety Fill」后门 → D29 裁决正常路径删除、仅 fallback；④资源验收——D29 增自维护 PMREM target owned/live counter 为确定性依据（renderer.info 仅辅助）；⑤PMREM 触发——D29 增 DEV 调参 debounce 硬约束；⑥**任务核心修订（用户 2026-09-20 同日指令，D29.11-14）——核心扩为 Sky + Sun + r186 内建 Cloud + PMREM（本方案未含云；§6 参数清单以 Sky 实装 uniform 为准，cloud 四参数 + cloudSpeed=0 静态锁）；§6「唯一 Sky 实例」改为 displaySky + bakeSky 双实例共享参数状态（§11 bake scene 容纳 bakeSky）；§12 太阳盘保护改用内建 showSunDisc（bakeSky 常闭，取代烘焙前后开合切换）**。方案 §28 十条验收全部采纳并按 D29.7 量化口径补充。
 
 ---
 

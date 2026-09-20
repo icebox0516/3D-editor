@@ -278,3 +278,10 @@ D26.2 六情形末条「spec 关键事实含 Unknown」收窄为：**关键事�
 8. **Research Gate 豁免（D26 情形命中）**：官方 Preetham 解析模型 = 技术渲染系统非现实资产建模，不触发 Research Gate；day 视觉基准参照在验收门以真实天空照片对照，不落 research Spec。
 9. **实施载体**：沿用 AGENTS.md 现行 Step 派遣（threejs-runtime-agent 主力，不使用 CreateWorkflow 动态工作流）；主代理拆分 / 派遣 / 审查 / 验收。
 10. **明确非目标**：Tone Mapping（T019 应急出口）/ Weather / Atmosphere(Fable5) / Volumetric Cloud / 动态时间轴 / Atmospheric Fog / Shadow Camera 重构 / LOD 重构 / 资产 Shader 重构。任务树五子任务：018.1 Sky+Sun Core（同会话，三一致不可拆）→ 018.2 PMREM·IBL → 018.3 EnvironmentPreset+fallback → 018.4 DEV 调参（__sky 守卫 + PMREM debounce）→ 018.5 验收。
+
+**2026-09-20 同日修订（用户指令，T018 任务书同步；以下四条并入裁定，其余全部不变）**：
+
+11. **任务核心扩为 Sky + Sun + r186 内建 Cloud + PMREM**：云直接消费 Sky 自带 uniform `cloudCoverage / cloudDensity / cloudElevation / cloudScale`（事实锚点 `node_modules/three/examples/jsm/objects/Sky.js:78-91` uniform 表 + `:277-328` 云着色段——fbm 噪声云 / 云自动遮挡太阳盘 / Beer 定律不透明度 / 地平线消散，天空自发光照明），**第一阶段 `cloudSpeed = 0` 静态云且不接 time 驱动，不做动态云 / 云影 / Weather**；不引入自研云系统（与 Fable5/Weather 非目标一致）。太阳盘烘焙保护直接用内建 `showSunDisc` uniform（displaySky 常开 / bakeSky 常闭——取代「烘焙前后开合切换」）。
+12. **displaySky + bakeSky 双实例结构**（取代「唯一 Sky 实例」）：displaySky 挂 envGroup / ENV_LAYER 主场景显示 + 相机中心跟随；bakeSky 仅存于 environmentBakeScene 供 PMREM 烘焙（含云参与 env 烘焙；bake 用虚拟相机无需跟随）——Object3D 单父节点，一实例不能同时挂两 Scene；两实例由**同一份参数状态驱动**，任一参数变更同步写双实例 uniforms。
+13. **显示侧强度硬约束（第 3 条注记升格正式要求）**：Sky 显示亮度正式路径**禁止走 scene.backgroundIntensity**（只作用于 scene.background，Sky 是 ENV_LAYER 网格）——以 Sky 材质自身显示强度 uniform 实现；legacy fallback 渐变背景仍可用场景级旋钮。
+14. **PMREM 触发清单扩 Cloud + 类型滞后记档**：Sky / Sun / Cloud 参数真正变化才触发重烘（cloudSpeed=0 下 time 不构成触发源）；相机移动 / 模型变化 / LOD 切换仍禁止。@types/three 0.185.4 的 Sky.d.ts **未声明** cloud / showSunDisc / time（运行时 0.186.0 已有）——实现需模块类型扩充或局部断言（禁 any 扩散）；`SkyMesh.js` 为 WebGPU/TSL 变体非本路径，勿混用。
