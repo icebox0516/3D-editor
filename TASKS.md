@@ -62,6 +62,7 @@
 - [ ] T015 地被/草本族【占位】
 - [ ] T016 资产管理器重构（大类→小类、GLB+程序化统一入口；启动前独立拷问门 D21）【占位】
 - [ ] T017 多边形区域生成重构 · Feature Generator 体系（启动前独立拷问门 D21）【占位】
+- [ ] T018 真实程序化天空与环境光照（D29 立项 2026-09-20：Sky + 统一 Sun + PMREM IBL 替换渐变天空 + Hemi，零资产改动自动获得环境光；启动排 **T011.5 + T006.6 Step 3 之后**——不打断榉树/银杏生产与 LOD 阈值收口）→ [tasks/018-real-sky-environment.md](tasks/018-real-sky-environment.md)
 
 ## Done
 

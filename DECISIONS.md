@@ -261,3 +261,20 @@ D26.2 六情形末条「spec 关键事实含 Unknown」收窄为：**关键事�
 4. **D27.12 边界澄清**：稳定基准是 Runtime 从 High 档几何**派生的缓存值**，不是资产声明字段——不违反「调度阈值归 Runtime 全局策略常量、不进资产 Profile」（D27.12）；`proceduralProfile` h/w 保持浏览语义不进选档。
 5. **GLB LOD 消费硬约束（D27.3 GLB Proxy 条目升格）**：GLB 资产未来接入多档时**必须直接消费现有 Asset Runtime LOD**——扩展点 = `ModelAsset` levels 声明契约 + `Renderer.declaredLevelsOf` + `AssetSourceRouter` file 分支 level 透传；**禁止另建 GLB 专用 LOD 体系**（D27.1 资产域专属 LOD 禁令的延续，GLBLOD 类平行系统同样禁止）。现状记档：GLB 已走共享链（file 分支忽略 level → 无声明档位恒 High + 超远 culled），仓库零 GLB 专用 LOD 代码；Proxy/Impostor 规范预留位语义不变（lod-spec §3）。
 6. **测试先行（本裁定会话执行）**：`InstancedAssetPool.lod.test.ts` 三档硬 pin 同一 boundingSphere 的假前提修复 + 现状语义不变量锁定（档间半径差被迟滞带吸收、迁档半径换源不触发反向换档）——假前提不修则 T006.6 改造无可证明的验收面；交付记档归 T006.6 Step 1。
+
+---
+
+## 2026-09-20 · D29 真实程序化天空与环境光照架构（T018 立项 grilling 两轮裁定）
+
+**背景**：用户提供 29 节天空升级参考方案（CanvasTexture 渐变天空 + HemisphereLight + 固定太阳 → Three.js Sky + 统一 Sun + PMREM IBL），逐字归档 `docs/sky-reference.md`（输入材料不再更新，冲突处以本条为准）。经只读事实探查（材质盘点 / 生命周期 / 测试面 / 工程链）+ grilling 两轮（6+8 题）逐题裁决，立项 **T018**，排期 = **T011.5 + T006.6 Step 3 之后**（用户明示：不打断榉树/银杏生产、不让天空变化干扰 LOD 阈值最终锁定）。
+
+1. **架构基线（方案核心采纳）**：官方 Sky（Preetham；沿用项目 addons 全路径导入惯例 `three/examples/jsm/objects/Sky.js`，check:layers 对 `three/*` 在 src/runtime 放行已确认）+ `sunDirectionOf(elevation, azimuth)` 纯函数统一太阳方向**双消费**（Sky.sunPosition + DirectionalLight.position），核心验收 = 天空太阳位 / 光向 / 影向**三一致**；DirectionalLight 直射 + 阴影（2048 / ±160 / bias 现配置不动）；独立 environmentBakeScene（只含 Sky，禁止 fromScene(主 Scene)）→ PMREMGenerator.fromScene → scene.environment；**PMREM 仅环境状态变化触发**（预设 / 太阳角 / Sky 参数变化；相机移动 / 模型变化 / LOD 切换禁止触发），烘焙时临时隐藏太阳盘（官方文档要求，防 env 伪影）；Sky 相机中心跟随（渲染前 position 维护，轻量 Runtime 操作非 Scene 数据）。
+2. **零资产改动的事实基础**：全仓资产材质 = MeshStandardMaterial + onBeforeCompile（三树叶皮 / 路灯 / Ground；GLB 内建）→ scene.environment 自动生效；Grid = LineBasicMaterial 不受 env；envMap / PMREM 现状零使用（011.2 记档的叶族 envMap 缺口由本任务天然补上，锐高光仍受 NoToneMapping 限制）；UI 四预设下拉已存在（InspectorPanel EnvironmentTab）、持久化仅 `preset: string` → 预设内部重构零 UI 零持久化影响；测试面无直接断言 Hemi / 天空纹理，仅 renderMode 遍计划断言需机械调整。
+3. **T018 ≠ Tone Mapping**：保持 NoToneMapping + SRGBColorSpace；高动态控制用独立线性衰减双旋钮（IBL 侧 = `scene.environmentIntensity`；显示侧旋钮语义 = backgroundIntensity，**实现注记：Sky 为 ENV_LAYER 网格而非 scene.background，场景级 backgroundIntensity 不作用于网格——以 Sky 材质局部 uniform 实现语义等同物**；legacy fallback 仍用 scene.background 时原旋钮直接可用）。已知限制记档：r186 Sky 片元含 tonemapping_fragment，NoToneMapping 下为空操作，太阳盘 / 极高亮区 / 金属亮天反射将硬裁切——第一版接受太阳盘高光饱和，大面积天空 / 地平线 / 金属反射经 DEV 参数控制在可接受范围；若证明不足，独立立 **T019 颜色管线任务**，禁止在 T018 内切换 tone mapping。
+4. **环境照明构成与 Hemi 处置**：正常路径 = Sky + scene.environment + DirectionalLight 三件套，**HemisphereLight 正常路径删除**（禁止多光源叠加）；Hemi 仅存在于 fallback。
+5. **事务式 fallback（单一开关）**：首次初始化失败（Sky 构造 / PMREM 烘焙）→ 完整 legacy 路径（CanvasGradient 背景 + Hemi + 现行太阳常量），不出现「真天空但无 IBL」混合态；**运行中环境切换重烘失败 → 保留上一份已成功提交的环境**（不降级不闪断）；新环境提交后旧 PMREM RT 释放（禁 GPU 泄漏）。
+6. **四预设全保留、深度分层**：day/dusk/night/tech 全部转为新参数面（Sky 四参数 + sun + ibl + ground + grid），Runtime 层不进 Scene 持久化；day 生产级；dusk 低太阳暖色；night = 低太阳 + 深色天空**近似**（Preetham 无夜晚语义，无星月——已知近似记档）；tech 保留不扩张。day 太阳角首候选 elevation 50.2° / azimuth 53.1°（由现行 (80,120,60) 派生——新旧对比阴影方向零漂移，终值 018.5 视觉验收锁定）。
+7. **验收量化口径**：稳态新增 ΔFrameTime p95 ≤1.5ms **且 ≤基线 10%**（对照既有基线**抽检**，不重跑 T006.5 双档全量——天空成本与实例量无关、增量恒定，超阈再升级全量）；PMREM 单次 ≤100ms = 参考开发机门（非跨设备硬承诺）、绝不进每帧路径；资源门 = day→dusk→night→tech 循环 ≥5 轮后 owned PMREM target = 1、旧环境资源 = 0、无增长，以**自维护 PMREM target owned/live counter** 为确定性验收依据（renderer.info 字段跨版本口径有差异，仅辅助）。
+8. **Research Gate 豁免（D26 情形命中）**：官方 Preetham 解析模型 = 技术渲染系统非现实资产建模，不触发 Research Gate；day 视觉基准参照在验收门以真实天空照片对照，不落 research Spec。
+9. **实施载体**：沿用 AGENTS.md 现行 Step 派遣（threejs-runtime-agent 主力，不使用 CreateWorkflow 动态工作流）；主代理拆分 / 派遣 / 审查 / 验收。
+10. **明确非目标**：Tone Mapping（T019 应急出口）/ Weather / Atmosphere(Fable5) / Volumetric Cloud / 动态时间轴 / Atmospheric Fog / Shadow Camera 重构 / LOD 重构 / 资产 Shader 重构。任务树五子任务：018.1 Sky+Sun Core（同会话，三一致不可拆）→ 018.2 PMREM·IBL → 018.3 EnvironmentPreset+fallback → 018.4 DEV 调参（__sky 守卫 + PMREM debounce）→ 018.5 验收。
