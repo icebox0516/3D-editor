@@ -16,12 +16,14 @@
  *   摘源重建（撤销重做模型）后同参确定性复原；
  * - 单档资产（无 levels 声明）：恒 high 但超远仍可 culled（culled 非声明档位）；
  * - frame 单参（无 LOD）= 既有行为：超远不裁剪、恒 high；
- * - 档间半径差不变量（真实差异化包围球）：三档半径不再 pin 同球（High ≥ Mid/Low，
- *   差 2~5% 量级）——半径差被 15% 迟滞带吸收（highToMid 临界推拉零 churn）；换档后
- *   半径换源（下一帧读数用新档半径、读数平移不触发反向换档——现状语义锁定）。
+ * - 选档稳定基准（T006.6，D28.2）：三档真实差异化包围球下选档度量恒按 High 档派生
+ *   基准——同一 (块×资产) 经不同换档历史到达任意当前档后，同机位选档结果一致（读数
+ *   不随档位平移）；换档后同机位零二次重建；临界推拉零 churn。
  * 边界：fake 源提供者按 (assetId × level) 分源（几何身份即档位标签）；几何包围
  *      手工钉死（半径按档差异化 High 5 / Mid 4.8 / Low 4.9——真实档间轮廓差 2~5%
- *      量级，High ≥ Mid/Low；Y 顶 1）——选档输入确定性；评估器语义本身由 006.1 测试锁定。
+ *      量级，High ≥ Mid/Low；Y 顶 1）——选档输入确定性：T006.6 稳定基准下机位一律
+ *      按 High 半径定标（cameraAtM），读数与块当前档位无关；评估器语义本身由 006.1
+ *      测试锁定。
  */
 import { describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
@@ -37,12 +39,11 @@ import type { InstanceSource } from '../../../src/runtime/instancing/InstancedAs
 // ── 构造工具 ────────────────────────────────────────────────
 
 /**
- * 三档源几何包围球半径（真实差异化，不再三档 pin 同球）：High 基准 5.0、Mid −4%、
- * Low −2%——档间轮廓差实测量级 2~5%（celtisLod 跨档容差实测折算口径同放置链），
- * High ≥ Mid/Low（高档包络最全）。选档读数随「当前档位」半径换源（frame 取当档
- * assetStates 惰性缓存的源几何包围球半径）——换档后 m 随新档半径平移是现状语义
- * （已定性卫生债，稳定 High 派生半径另立任务治理）：本文件按真实差异锁定该现状
- * 语义的不变量。
+ * 三档源几何包围球半径（真实差异化——档间轮廓差实测量级 2~5%，口径同放置链）：
+ * High 基准 5.0、Mid −4%、Low −2%，High ≥ Mid/Low（高档包络最全）。T006.6 起选档
+ * 基准 = High 档派生的稳定半径（Runtime 冻结缓存，不随换档换源）——差异化半径是
+ * 「基准不得随档平移」的应力输入：机位一律按 High 半径定标（cameraAtM），读数与
+ * 块当前档位无关。散布链代表点 = 块盒最近点（与几何球心无关——稳定基准只涉半径）。
  */
 const LEVEL_RADIUS: Record<ProceduralLevel, number> = { high: 5, mid: 4.8, low: 4.9 };
 /** 相机定标基准半径（= High 档；cameraAtM 的机位口径），fov 90° 下 m = 视距 / R */
@@ -113,23 +114,17 @@ function sourceOf(
 const flush = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
 
 /**
- * 目标读数 m 处的俯视相机（按指定档半径定标；fov 90° → tan(fovY/2)=1 →
- * m = 视距 / (R×scale)，scale=1）：置于块 (0,0) 中心正上方，块盒 Y 顶 =
- * baseY + GEO_HALF×maxScale = 1 → 最近点距离 = camY − 1 = m × radius。
- * cameraAtM（按 high 半径定标）适用于评估 high 档内条目；块迁 mid/low 档后读数
- * 按当档半径换算（半径换源平移），评估时须按实际档半径定标。
+ * 目标读数 m 处的俯视相机（High 档基准定标；fov 90° → tan(fovY/2)=1 →
+ * m = 视距 / (R_high×scale)，scale=1）：置于块 (0,0) 中心正上方，块盒 Y 顶 =
+ * baseY + GEO_HALF×maxScale = 1 → 最近点距离 = camY − 1 = m × R_high。T006.6
+ * 稳定基准下选档恒按 High 口径折算——机位定标与块当前档位无关（任意档下读数即目标 m）。
  */
-function cameraAtMeasuredM(m: number, radius: number, aspect = 1): THREE.PerspectiveCamera {
+function cameraAtM(m: number, aspect = 1): THREE.PerspectiveCamera {
   const camera = new THREE.PerspectiveCamera(90, aspect, 0.5, 100000);
-  const distance = m * radius;
+  const distance = m * SOURCE_RADIUS;
   camera.position.set(10, GEO_HALF + distance, 10);
   camera.lookAt(10, 0, 10);
   return camera;
-}
-
-/** 目标读数 m 处的俯视相机（high 档半径定标——起步 / high 档内评估用） */
-function cameraAtM(m: number, aspect = 1): THREE.PerspectiveCamera {
-  return cameraAtMeasuredM(m, SOURCE_RADIUS, aspect);
 }
 
 /** 块 (0,0) 内 assetId 的当档网格（按各档源几何身份反查）；返回 mesh 与其档位 */
@@ -248,18 +243,18 @@ describe('ScatterChunkManager LOD：迟滞防抖', () => {
     expect(activeMeshOf(m, sources, 'asset_tree')?.level).toBe('mid');
     const callsAfterDowngrade = provider.mock.calls.length;
 
-    // 带内往返（名义线 ×(1−band) ~ 名义线 开区间内振荡多次）：块已迁 mid 档 → 机位
-    // 按 mid 半径定标（cameraAtMeasuredM）使读数精确落带内：保持 mid、零新请求
+    // 带内往返（名义线 ×(1−band) ~ 名义线 开区间内振荡多次）：机位按 High 基准定标
+    // （cameraAtM——稳定基准下读数与块当前档无关）使读数精确落带内：保持 mid、零新请求
     const bandLow = t.highToMid * (1 - t.hysteresisBand);
     for (const frac of [0.05, 0.5, 0.95, 0.3, 0.8]) {
       const inBandM = bandLow + (t.highToMid - bandLow) * frac;
-      await settleAt(m, cameraAtMeasuredM(inBandM, LEVEL_RADIUS.mid));
+      await settleAt(m, cameraAtM(inBandM));
       expect(activeMeshOf(m, sources, 'asset_tree')?.level).toBe('mid');
     }
     expect(provider.mock.calls.length).toBe(callsAfterDowngrade);
 
-    // 越过升档线（mid 半径口径读数 < 名义线 ×(1−band)）：回 high
-    await settleAt(m, cameraAtMeasuredM(bandLow * 0.97, LEVEL_RADIUS.mid));
+    // 越过升档线（High 口径读数 < 名义线 ×(1−band)）：回 high
+    await settleAt(m, cameraAtM(bandLow * 0.97));
     expect(activeMeshOf(m, sources, 'asset_tree')?.level).toBe('high');
     m.dispose();
   });
@@ -274,8 +269,8 @@ describe('ScatterChunkManager LOD：迟滞防抖', () => {
     await flush();
     const t = LOD_THRESHOLDS;
     await settleAt(m, cameraAtM(t.highToMid * 1.05));
-    // 块已迁 mid 档 → 机位按 mid 半径定标（读数 6.06，名义线上侧的迟滞保持区内静止）
-    const camera = cameraAtMeasuredM(t.highToMid * 1.01, LEVEL_RADIUS.mid);
+    // 机位按 High 基准定标（读数 6.06，名义线上侧的迟滞保持区内静止）
+    const camera = cameraAtM(t.highToMid * 1.01);
     for (let i = 0; i < 5; i++) {
       m.frame(camera, true);
       await flush();
@@ -286,10 +281,10 @@ describe('ScatterChunkManager LOD：迟滞防抖', () => {
   });
 });
 
-// ── 档间半径差（真实差异化包围球下的现状语义不变量）─────────
+// ── 选档稳定基准（T006.6：High 档派生，与当前渲染档位解耦）─────────
 
-describe('ScatterChunkManager LOD：档间半径差与迟滞吸收', () => {
-  it('档间半径差（High ≥ Mid/Low，2~5% 量级）被 15% 迟滞带吸收：highToMid 临界推拉零 churn', async () => {
+describe('ScatterChunkManager LOD：选档稳定基准（High 档派生）', () => {
+  it('档间半径差（High ≥ Mid/Low，2~5% 量级）下临界推拉零 churn：读数名义线 ±~3% 来回跨线保持 mid', async () => {
     const { provider, sources } = makeLeveledProvider();
     const m = new ScatterChunkManager({
       provideSource: provider,
@@ -299,35 +294,33 @@ describe('ScatterChunkManager LOD：档间半径差与迟滞吸收', () => {
     await flush();
     const t = LOD_THRESHOLDS;
 
-    // 跨出名义线（high 档读数 6.05）→ 立即降 mid；重建后当档源换 mid 几何（半径 4.8）
+    // 跨出名义线（High 口径读数 6.05）→ 立即降 mid；重建后当档源换 mid 几何（半径
+    // 4.8）——选档基准不跟随（恒 High 派生冻结半径）
     await settleAt(m, cameraAtM(t.highToMid + 0.05));
     expect(activeMeshOf(m, sources, 'asset_tree')?.level).toBe('mid');
     const callsAfterDowngrade = provider.mock.calls.length;
 
-    // 同机位下一帧：读数 = 6.05 × R_high/R_mid ≈ 6.30（半径换源平移 +4.2%）——仍在
-    // mid 名义带，零换档（平移量被迟滞带吞没）
+    // 同机位下一帧：读数仍 6.05（基准不随换档换源——无平移）→ mid 带内保持，
+    // 零二次重建、零源请求
     await settleAt(m, cameraAtM(t.highToMid + 0.05));
     expect(activeMeshOf(m, sources, 'asset_tree')?.level).toBe('mid');
     expect(provider.mock.calls.length).toBe(callsAfterDowngrade);
 
-    // 临界推拉：读数在名义线 ±~3%（≥ 半径差量级）来回跨线多次再返回——全部被迟滞
-    // 吸收：保持 mid、零重建 / 零源请求
+    // 临界推拉：读数（High 口径）在名义线 ±~3%（≥ 档间半径差量级）来回跨线多次再
+    // 返回——全部被迟滞吸收：保持 mid、零重建 / 零源请求
     for (const reading of [6.2, 5.8, 6.15, 5.85, 6.1, 5.9]) {
-      await settleAt(m, cameraAtMeasuredM(reading, LEVEL_RADIUS.mid));
+      await settleAt(m, cameraAtM(reading));
       expect(activeMeshOf(m, sources, 'asset_tree')?.level).toBe('mid');
     }
     expect(provider.mock.calls.length).toBe(callsAfterDowngrade); // 零源请求 churn
 
-    // 决定性越过升档线（mid 半径口径读数 < 名义线 ×(1−band)）：单次回 high
-    await settleAt(
-      m,
-      cameraAtMeasuredM(t.highToMid * (1 - t.hysteresisBand) * 0.97, LEVEL_RADIUS.mid),
-    );
+    // 决定性越过升档线（High 口径读数 < 名义线 ×(1−band)）：单次回 high
+    await settleAt(m, cameraAtM(t.highToMid * (1 - t.hysteresisBand) * 0.97));
     expect(activeMeshOf(m, sources, 'asset_tree')?.level).toBe('high');
     m.dispose();
   });
 
-  it('high→mid 换档后半径换源：下一帧读数用新档半径、平移被迟滞吸收不回弹', async () => {
+  it('换档后读数不随档位平移：High 口径越升档线机位即时回 high（Step 1「平移被吸收停留 mid」语义的反转点）', async () => {
     const { provider, sources } = makeLeveledProvider();
     const m = new ScatterChunkManager({
       provideSource: provider,
@@ -337,22 +330,19 @@ describe('ScatterChunkManager LOD：档间半径差与迟滞吸收', () => {
     await flush();
     const t = LOD_THRESHOLDS;
 
-    // high 档读数 6.2 → 立即降 mid（重建后当档源 = mid 几何，半径 4.8）
+    // High 口径读数 6.2 → 立即降 mid（重建后当档源 = mid 几何，半径 4.8）
     await settleAt(m, cameraAtM(t.highToMid + 0.2));
     expect(activeMeshOf(m, sources, 'asset_tree')?.level).toBe('mid');
-    const callsAfterDowngrade = provider.mock.calls.length;
 
-    // 半径换源判别机位：mid 半径口径读数 5.2 ∈ [升档线 5.1, 名义线 6)——被迟滞吸收停留
-    // mid；若仍用旧档（high）半径评估，读数 = 5.2 × R_mid/R_high = 4.99 < 5.1 会回
-    // high。停留 mid = 「下一帧读数已用新档半径」且平移不触发反向换档的双证据
-    const holdReading = t.highToMid * (1 - t.hysteresisBand) + 0.1;
-    await settleAt(m, cameraAtMeasuredM(holdReading, LEVEL_RADIUS.mid));
-    expect(activeMeshOf(m, sources, 'asset_tree')?.level).toBe('mid');
-    expect(provider.mock.calls.length).toBe(callsAfterDowngrade);
+    // 判别机位（High 口径读数 5.05 < 升档线 5.1）：稳定基准下即时升回 high。若选档
+    // 仍取当前档半径，读数 = 5.05 × 5/4.8 ≈ 5.26 > 5.1 会停留 mid（Step 1 现状语义
+    // 正是停留 mid）。回 high = 度量与当前档完全解耦的直接证据
+    await settleAt(m, cameraAtM(t.highToMid * (1 - t.hysteresisBand) - 0.05));
+    expect(activeMeshOf(m, sources, 'asset_tree')?.level).toBe('high');
     m.dispose();
   });
 
-  it('mid→low 换档读数回缩（Low 半径 > Mid）同样被吸收：名义线回读不立即回弹', async () => {
+  it('mid→low 换档后同机位读数不变（无回缩）：low 桶同机位零重建、升档线内机位即时回 mid', async () => {
     const { provider, sources } = makeLeveledProvider();
     const m = new ScatterChunkManager({
       provideSource: provider,
@@ -362,19 +352,61 @@ describe('ScatterChunkManager LOD：档间半径差与迟滞吸收', () => {
     await flush();
     const t = LOD_THRESHOLDS;
 
-    // 推过 highToMid（high 档读数 6.2）→ mid；再推过 midToLow（mid 半径口径 16.05）→ low
+    // 读数 6.2 → mid；读数 16.05 → low（均 High 口径）
     await settleAt(m, cameraAtM(t.highToMid + 0.2));
-    await settleAt(m, cameraAtMeasuredM(t.midToLow + 0.05, LEVEL_RADIUS.mid));
+    await settleAt(m, cameraAtM(t.midToLow + 0.05));
     expect(activeMeshOf(m, sources, 'asset_tree')?.level).toBe('low');
     const callsAfterDowngrade = provider.mock.calls.length;
 
-    // 同机位下一帧：读数 = 16.05 × R_mid/R_low ≈ 15.72——名义上已回 mid 带（< 16），
-    // 但升档线 = 16 × (1−band) = 13.6，回缩量（−2%）远小于迟滞带宽 → 不回弹 mid。
-    // 换档 → 半径换源 → 读数平移 → 被迟滞吸收，整链在「读数朝升档线方向回缩」的
-    // 不利方向下同样成立
-    await settleAt(m, cameraAtMeasuredM(t.midToLow + 0.05, LEVEL_RADIUS.mid));
+    // 同机位下一帧：读数仍 16.05（稳定基准——旧语义此处按 low 半径回缩 ≈ 15.72 落回
+    // mid 名义带）→ 名义仍 low 带，零二次重建、零源请求（「无回缩」的可观测面）
+    await settleAt(m, cameraAtM(t.midToLow + 0.05));
     expect(activeMeshOf(m, sources, 'asset_tree')?.level).toBe('low');
     expect(provider.mock.calls.length).toBe(callsAfterDowngrade);
+
+    // low 档基准泄漏判别：High 口径读数 13.55 < low→mid 升档线 13.6 → 即时回 mid；
+    // 若误按 low 半径（4.9）评估，读数 = 13.55 × 5/4.9 ≈ 13.83 > 13.6 会停留 low
+    await settleAt(m, cameraAtM(t.midToLow * (1 - t.hysteresisBand) - 0.05));
+    expect(activeMeshOf(m, sources, 'asset_tree')?.level).toBe('mid');
+    m.dispose();
+  });
+
+  it('同一 (块×资产) 经不同换档历史到达任意当前档后：同机位选档结果一致（度量与当前档解耦）', async () => {
+    const { provider, sources } = makeLeveledProvider();
+    const m = new ScatterChunkManager({
+      provideSource: provider,
+      getAssetLevels: () => ['high', 'mid', 'low'],
+    });
+    m.setSource('s', baseParams());
+    await flush();
+    const t = LOD_THRESHOLDS;
+
+    // 到达器：把 (块×资产) 置于指定当前档（从任意档出发确定性收敛——名义线方向性 +
+    // 单边迟滞保证；跨步升档直达 resolved，无逐档爬）
+    const reach = async (tier: ProceduralLevel): Promise<void> => {
+      const cameraOf: Record<ProceduralLevel, THREE.PerspectiveCamera> = {
+        high: cameraAtM(t.highToMid * 0.5),
+        mid: cameraAtM(t.highToMid * 1.5),
+        low: cameraAtM(t.midToLow * 1.25),
+      };
+      await settleAt(m, cameraOf[tier]);
+    };
+    // 机位站（期望档只依赖机位）：high 带 / mid 带 / low→mid 升档线内侧（low 档半径
+    // 泄漏判别位：若基准随档换源，low 档读数 ≈ 13.83 > 13.6 会停留 low，与其他起径
+    // 的结果分裂）/ low 带
+    const stations: { m: number; tier: ProceduralLevel }[] = [
+      { m: t.highToMid * 0.5, tier: 'high' },
+      { m: t.highToMid + 0.5, tier: 'mid' },
+      { m: t.midToLow * (1 - t.hysteresisBand) - 0.05, tier: 'mid' },
+      { m: t.midToLow * 1.25, tier: 'low' },
+    ];
+    for (const station of stations) {
+      for (const start of ['high', 'mid', 'low'] as const) {
+        await reach(start);
+        await settleAt(m, cameraAtM(station.m));
+        expect(activeMeshOf(m, sources, 'asset_tree')?.level).toBe(station.tier);
+      }
+    }
     m.dispose();
   });
 });

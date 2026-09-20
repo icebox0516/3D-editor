@@ -60,8 +60,10 @@
  *      sourceKey::level 条目即天然成套，本池只挂引用）。换档 = 实例跨桶迁移
  *      （复用既有跨池迁移语义：entry 迁移 + 双池 reconcile + 锚点/槽位表随迁），
  *      **不做「桶内换 Source」**——每桶创建时绑定当档源，Mesh 对象跨档重建。
- *      frameLod（Renderer 块剔除后、render 前调）：逐对象评估（006.1 评估器——对象
- *      包围球 × 实例 scale，代表点 = 矩阵变换后的包围球中心）→ 迁移 / culled。
+ *      frameLod（Renderer 块剔除后、render 前调）：逐对象评估（006.1 评估器——选档
+ *      基准 = High 档源一次派生按 sourceKey 冻结的稳定基准球（T006.6，与当前桶档位
+ *      解耦：同机位读数不随迁档平移）× 实例 scale，代表点 = 基准球心过实例矩阵）
+ *      → 迁移 / culled。
  *      culled（超远）= 调度结果：不迁移、实例矩阵槽写零缩放（复用「隐藏实例零缩放」
  *      既有机制——entry.matrix 保留真值，槽写入时叠加 culled 判定；单例 Mesh 走
  *      visible=false）。迟滞参考 current 由本池持有（entry.currentLod，逐帧传入评估器
@@ -88,6 +90,7 @@ import type { LodRepresentation } from '../../domain/lod/lodEvaluation';
 import { evaluateLodRepresentation } from '../../domain/lod/lodEvaluation';
 import type { LodDistribution } from '../lodDistribution';
 import { LodDistributionCounter } from '../lodDistribution';
+import { LodReferenceSphereCache } from '../lodReference';
 import { lodViewOfCamera } from './lodView';
 import * as THREE from 'three';
 
@@ -228,7 +231,7 @@ const _position = new THREE.Vector3();
 const _quaternion = new THREE.Quaternion();
 const _euler = new THREE.Euler();
 const _scale = new THREE.Vector3();
-/** LOD 代表点暂存（frameLod：实例矩阵作用后的包围球球心，值即时拷入纯数据入参） */
+/** LOD 代表点暂存（frameLod：High 派生基准球心过实例矩阵，值即时拷入纯数据入参） */
 const _subjectPoint = new THREE.Vector3();
 /** 恒等白乘子只读源（setColorAt 只读入参；未设色槽位写白 1,1,1） */
 const WHITE = new THREE.Color(1, 1, 1);
@@ -287,6 +290,11 @@ export class InstancedAssetPool {
   /** 资产已声明档位（T006.3 选档输入；每资产缓存一次——帧路径零重复查询） */
   private readonly getDeclaredLevels: (assetId: string) => ProceduralLevel[] | undefined;
   private readonly declaredLevelsCache = new Map<string, ProceduralLevel[]>();
+  /**
+   * LOD 选档稳定基准（T006.6，D28.2）：sourceKey → High 档派生冻结基准球——选档
+   * 输入恒取此（与当前桶档位解耦，见 frameLod）；High 桶源到达时派生（ensurePool）。
+   */
+  private readonly referenceSpheres = new LodReferenceSphereCache();
   /**
    * 诊断分组态（T8.4 islands，Renderer 在模式切换时一次性注入/撤除）：
    * classify(id) = true → 已归类（暗侧 layer 0）/ false → 未归类（亮侧 highlightLayer）。
@@ -453,9 +461,10 @@ export class InstancedAssetPool {
   /**
    * 逐对象 LOD 评估与换档执行（D27.6 帧内时序：Renderer.renderFrame 在 scatter 剔除
    * 之后、render 之前调用）：
-   *  - 评估输入 = 桶源几何包围球（点 = 实例矩阵变换后的球心、scale = 矩阵三轴最大
-   *    分量——非均匀缩放的保守口径）+ 006.1 评估器（迟滞参考 current 逐帧由
-   *    entry.currentLod 传入）；隐藏实例跳过（零缩放无选档意义）。
+   *  - 评估输入 = High 档派生稳定基准球（T006.6：与当前桶档位解耦——点 = 基准球心
+   *    过实例矩阵、radius = 基准半径、scale = 矩阵三轴最大分量——非均匀缩放的保守
+   *    口径）+ 006.1 评估器（迟滞参考 current 逐帧由 entry.currentLod 传入）；隐藏
+   *    实例跳过（零缩放无选档意义）。
    *  - 目标档 ≠ 桶档 → 跨桶迁移（目标桶源就绪即同步迁移，渲染引用/实例属性完整随迁；
    *    未就绪登记 pendingLevel，源到达回调迁移——旧档持续渲染，无 pop）。
    *  - 'culled'（超远）→ 不迁移，槽写零缩放（复用隐藏实例机制）；恢复即经迟滞回档。
@@ -470,13 +479,17 @@ export class InstancedAssetPool {
     for (const pool of [...this.pools.values()]) {
       const source = pool.source;
       if (!source) continue; // 源未就绪：无包围球可评，实例仍在登记矩阵上
-      const sphere = source.geometry.boundingSphere;
-      if (!sphere) continue; // 防御：ensurePool 到达路径已算（见彼处），未算即跳过
+      // T006.6：选档基准 = High 档派生冻结的稳定基准球（整球：球心+半径同源——m 与
+      // 当前桶档位完全无关，迁档不换选档输入）。防御回退（会话内不可达：attach 起步
+      // 即 high 桶、条目首评前基准必已派生，见 ensurePool 到达路径）：当前桶源球过渡
+      // （确定性、不冻结）
+      const sphere = this.referenceSpheres.get(pool.sourceKey) ?? source.geometry.boundingSphere;
+      if (!sphere) continue; // 防御：无球可评（到达路径已算，见彼处），未算即跳过
       const declared = this.declaredLevelsOf(pool.assetId);
       for (const entry of [...pool.entries]) {
         if (!entry.visible) continue; // 隐藏实例：矩阵已零缩放，无选档意义
-        // 代表点/scale：实例矩阵作用于源包围球（非均匀缩放下球心仿射仍正确；scale 取
-        // 三轴最大分量 = 有效半径保守放大 → 更晚降档，保守偏高档口径）
+        // 代表点/scale：实例矩阵作用于 High 派生基准球（非均匀缩放下球心仿射仍正确；
+        // scale 取三轴最大分量 = 有效半径保守放大 → 更晚降档，保守偏高档口径）
         entry.matrix.decompose(_position, _quaternion, _scale);
         const scale = Math.max(_scale.x, _scale.y, _scale.z);
         if (scale <= 0) continue;
@@ -786,6 +799,7 @@ export class InstancedAssetPool {
     for (const pool of this.pools.values()) this.teardownPool(pool);
     this.pools.clear();
     this.idToPool.clear();
+    this.referenceSpheres.clear();
     this.anchorRoot.clear();
   }
 
@@ -793,9 +807,10 @@ export class InstancedAssetPool {
 
   /**
    * 取或建池（按桶键 `${sourceKey}::${level}`）；建桶时以 (assetId, seed, level) 发起
-   * 源加载（同桶只取一次，失败告警一次、不重试）。源到达：补算几何包围球（LOD 选档
-   * 输入，惰性首算一次——桶内几何共享，全局只算一次）、补锚点装饰、建网格，并收敛
-   * 同 sourceKey 家族内在途迁移（applyPendingMigrations——T006.3）。
+   * 源加载（同桶只取一次，失败告警一次、不重试）。源到达：补算几何包围球（渲染/剔除
+   * 路径用，惰性首算一次——桶内几何共享，全局只算一次；high 桶同时派生选档稳定基准
+   * ——T006.6）、补锚点装饰、建网格，并收敛同 sourceKey 家族内在途迁移
+   * （applyPendingMigrations——T006.3）。
    */
   private ensurePool(assetId: string, seed: number | undefined, level: ProceduralLevel): AssetPool {
     const sourceKey = this.resolvePoolKey(assetId, seed);
@@ -822,6 +837,9 @@ export class InstancedAssetPool {
       .then((source) => {
         pool.source = source;
         if (!source.geometry.boundingSphere) source.geometry.computeBoundingSphere();
+        // T006.6：high 桶源到达即派生选档稳定基准（sourceKey 冻结一次——选档自此与
+        // 当前桶档位解耦，迁档不换选档输入；同 key 几何确定性恒等，冻结幂等）
+        if (level === 'high') this.referenceSpheres.freezeFromHighSource(sourceKey, source);
         // 源就绪：给已建锚点补包围盒子网格，并为已登记实例一次性建网格
         for (const anchor of pool.anchors.values()) this.decorateAnchor(pool, anchor);
         if (!this.disposed && pool.entries.length > 0) this.reconcile(pool);

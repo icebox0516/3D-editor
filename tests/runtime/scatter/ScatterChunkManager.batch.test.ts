@@ -24,12 +24,12 @@
  *      钉死（半径按档差异化 High 5 / Mid 4.8 / Low 4.9——真实档间轮廓差 2~5% 量级，
  *      High ≥ Mid/Low；Y ±1）；合并阈值经注入 { maxInstancesPerChunk, groupFactor } 构造
  *      （不依赖 BATCH_POLICY 数值——候选锁值不碎测试）。
- * 机位口径（fov 90° → m = 最近点距离 / 当档 R；块盒 Y = [−1,1]、XZ = 块矩形闭盒）：
- *      超块中心正上方 (32, 1+m·R, 32) → 四块最近点同距 → 全块同档（均匀档位机位）；
+ * 机位口径（fov 90° → m = 最近点距离 / R_high；块盒 Y = [−1,1]、XZ = 块矩形闭盒）：
+ *      超块中心正上方 (32, 1+m·R_high, 32) → 四块最近点同距 → 全块同档（均匀档位机位）；
  *      超块角点 (0, h, 0) → 四块最近点分距 → 跨档/culled 分离机位（§4.3 解析构造）。
  *      升档迟滞方向已计入（回 low 用带内 m=38 < lowToCulled·(1−band) 保证回档）；
- *      角点机位下块已在 low 档时读数按 low 半径折算（mOfChunk 半径参数——半径换源
- *      现状语义，InstancedAssetPool.lod / ScatterChunkManager.lod 测试锁定不变量）。
+ *      T006.6 起选档基准 = High 档派生稳定半径——机位与 mOfChunk 折算统一按 High
+ *      半径（与块当前档位无关；稳定基准不变量由 ScatterChunkManager.lod 测试锁定）。
  */
 import { describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
@@ -149,8 +149,8 @@ function cameraAboveCorner(h: number): THREE.PerspectiveCamera {
 
 /**
  * 角点相机下块 (i,j) 的度量 m（§4.3 代表点 = 块盒最近点；Y∈[−1,1] → dy = h−1，h>1）。
- * radius = 评估时当档源几何包围球半径（缺省 high——起步评估口径；块已迁 low 档时读数
- * 按 low 半径折算：半径换源现状语义）。
+ * radius = 选档基准半径（T006.6 稳定基准恒为 High 半径——缺省即 High，与块当前档位
+ * 无关；参数保留供调用处显式表达口径）。
  */
 function mOfChunk(i: number, j: number, h: number, radius: number = SOURCE_RADIUS): number {
   const x = Math.min(Math.max(0, i * 32), (i + 1) * 32);
@@ -409,11 +409,11 @@ describe('ScatterChunkManager 批次控制：合并成员 culled', () => {
     const fullCount = full.count;
     const fullSnapshot = Float32Array.from(full.instanceMatrix.array.subarray(0, full.count * 16));
 
-    // 角点机位抬升：块 (0,0) 仍 low 带、块 (1,1) 超 culled 线（其余两块带内）——四块
-    // 已迁 low 档，读数按 low 半径折算（mOfChunk 半径参数 = 当档半径换算）
+    // 角点机位抬升：块 (0,0) 仍 low 带、块 (1,1) 超 culled 线（其余两块带内）——选档
+    // 稳定基准恒按 High 半径折算（mOfChunk 缺省口径，与四块当前 low 档无关）
     let h = 1 + t.lowToCulled * 0.9 * SOURCE_RADIUS;
-    while (mOfChunk(1, 1, h, LEVEL_RADIUS.low) <= t.lowToCulled * 1.001) h += 2;
-    expect(mOfChunk(0, 0, h, LEVEL_RADIUS.low)).toBeLessThanOrEqual(t.lowToCulled); // (0,0) 未超线
+    while (mOfChunk(1, 1, h) <= t.lowToCulled * 1.001) h += 2;
+    expect(mOfChunk(0, 0, h)).toBeLessThanOrEqual(t.lowToCulled); // (0,0) 未超线
     await settle(m, cameraAboveCorner(h));
     const partiallyCulled = mergedMeshes(m)[0]!;
     const expectedRemaining = expectedMerged(params, [

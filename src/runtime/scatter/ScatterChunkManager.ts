@@ -39,7 +39,8 @@
  *    渲染；**不做「桶内换 Source」**——换档 = 确定性重撒重建（同 seed 同结果，scatterChunk
  *    纯函数保证实例集合逐位一致，只换当档 InstanceSource 成套的 geometry/material）。
  *  - 选档 = 块粒度（§4.3 候选保守策略）：代表点 = 块 AABB 最近点（box.clampPoint）、
- *    代表 scale = 块内实例 max（保守偏高档）、半径 = 当档源几何包围球；统一走 006.1
+ *    代表 scale = 块内实例 max（保守偏高档）、半径 = High 档派生稳定基准（T006.6
+ *    assetId 级冻结缓存，与当档解耦——换档不换选档输入）；统一走 006.1
  *    评估器（domain 纯函数，不复制选档逻辑），LodSubject 在本管组装（评估器不感知 chunk）。
  *  - 帧内时序（D27.6）：frame(camera, lodEnabled) 在块视锥剔除之后逐 (块×资产) 评估——
  *    档位每帧派生态，不进 Scene / Command / 持久状态；迟滞参考 current 由本管持有
@@ -83,6 +84,7 @@ import { hueOffsetToMultiplier } from '../instancing/instanceTint';
 import { lodViewOfCamera } from '../instancing/lodView';
 import type { LodDistribution } from '../lodDistribution';
 import { LodDistributionCounter } from '../lodDistribution';
+import { LodReferenceSphereCache } from '../lodReference';
 import type { Vec2 } from '../../core/types';
 import * as THREE from 'three';
 
@@ -209,13 +211,13 @@ interface SourceState {
 }
 
 /** 管理器级源缓存（跨源共享同 (assetId × level) 源；同桶只加载一次，失败告警一次
- *  不重试——仿池。T006.3 起按档分桶：键 = `${assetId}::${level}`，radius 为源几何
- *  包围球半径的惰性缓存（选档输入；档间轮廓连续不变量下各档近似同值）） */
+ *  不重试——仿池。T006.3 起按档分桶：键 = `${assetId}::${level}`。选档不取各档源
+ *  半径——T006.6 起选档基准 = High 档源一次派生按 assetId 冻结的稳定基准
+ *  （referenceSpheres，与当前档位解耦：同一 (块×资产) 任意档位下选档度量恒定）；
+ *  本表只服务渲染源本身（当档 geometry/material 成套供给） */
 interface AssetSourceState {
   source: InstanceSource | null;
   failed: boolean;
-  /** 源几何包围球半径（到达时算定；未就绪 = 0——评估路径以其 >0 为就绪判据） */
-  radius: number;
 }
 
 /** 初始容量与扩容策略（翻倍；避免逐块抖动重撒时逐实例扩容） */
@@ -389,6 +391,12 @@ export class ScatterChunkManager {
   private readonly getAssetVariants: (assetId: string) => ProceduralVariants | undefined;
   private readonly getAssetLevels: (assetId: string) => ProceduralLevel[] | undefined;
   private readonly declaredLevelsCache = new Map<string, ProceduralLevel[]>();
+  /**
+   * LOD 选档稳定基准（T006.6，D28.2）：assetId → High 档派生冻结基准球——选档
+   * 半径恒取此（与 (块×资产) 当前期望档解耦，见 frame）；high 源到达时派生
+   * （requestAsset）。
+   */
+  private readonly referenceSpheres = new LodReferenceSphereCache();
   private readonly chunkSize: number;
   /** T006.4 合并策略（factor 语义化为每轴块数取整除；maxInstances ≤ 0 或 factor < 2 = 关闭） */
   private readonly mergeMaxInstances: number;
@@ -505,7 +513,8 @@ export class ScatterChunkManager {
    *    visible 开关（three 对 visible=false 整子树零提交——主渲染与阴影 pass 同口径）；
    *  - LOD：lodEnabled（Renderer 持有的总开关，逐帧传入；缺省 false = 管线独立使用时
    *    的既有行为）时逐 (块×资产) 走 006.1 评估器——subject = { 块 AABB 最近点,
-   *    当档源几何包围球半径, 块内 max scale }（§4.3 候选保守策略），迟滞参考 current
+   *    High 档派生稳定基准半径（T006.6——与当前档位解耦）, 块内 max scale }
+   *    （§4.3 候选保守策略），迟滞参考 current
    *    由 ChunkLodState 持有；目标档 ≠ 当档桶 → 确定性重撒重建（源就绪即重建，冷源
    *    到达后回调）；'culled' → 网格 visible=false（桶保留，回视即时恢复）；
    *    lodEnabled=false → 评估器语义恒 High + culled 旁路（回退对比与兜底）。
@@ -527,13 +536,16 @@ export class ScatterChunkManager {
         camera.getWorldPosition(_position);
         chunk.box.clampPoint(_position, _nearestPoint); // §4.3：代表点 = 块最近点
         for (const [assetId, lod] of chunk.lod) {
-          const asset = this.assetStates.get(assetStateKey(assetId, lod.level));
-          if (!asset || asset.radius <= 0 || lod.maxScale <= 0) continue; // 源未就绪/零尺度：评估缺输入，跳过
+          // T006.6：选档基准 = High 档派生稳定半径（与当前档位解耦——换档不换选档
+          // 输入）；防御回退（不可达：新资产 high 起步、首评前基准必已派生）= 当前档
+          // 源球过渡（确定性、不冻结）
+          const radius = this.referenceRadiusOf(assetId, lod.level);
+          if (radius <= 0 || lod.maxScale <= 0) continue; // 基准未就绪/零尺度：评估缺输入，跳过
           const target = evaluateLodRepresentation({
             view,
             subject: {
               point: { x: _nearestPoint.x, y: _nearestPoint.y, z: _nearestPoint.z },
-              radius: asset.radius,
+              radius,
               scale: lod.maxScale,
             },
             declaredLevels: this.declaredLevelsOf(assetId),
@@ -583,6 +595,20 @@ export class ScatterChunkManager {
     const declared = this.getAssetLevels(assetId) ?? [];
     this.declaredLevelsCache.set(assetId, declared);
     return declared;
+  }
+
+  /**
+   * 选档稳定基准半径（T006.6）：High 档派生冻结缓存优先；防御回退（会话内不可达
+   * 路径：新资产 high 起步、块首评前基准必已派生）= 当前档源球半径过渡——确定性、
+   * 不冻结，基准就绪即被取代（保证评估输入恒为正、不阻塞不报错）。
+   */
+  private referenceRadiusOf(assetId: string, level: ProceduralLevel): number {
+    const reference = this.referenceSpheres.get(assetId);
+    if (reference) return reference.radius;
+    return (
+      this.assetStates.get(assetStateKey(assetId, level))?.source?.geometry.boundingSphere
+        ?.radius ?? 0
+    );
   }
 
   /**
@@ -649,6 +675,7 @@ export class ScatterChunkManager {
     this.disposed = true;
     for (const id of [...this.sources.keys()]) this.teardownSource(id);
     this.assetStates.clear(); // 只清缓存条目（源端资源归 loader/缓存统一释放）
+    this.referenceSpheres.clear();
     this.meshOwners.clear();
     this.root.removeFromParent();
   }
@@ -813,13 +840,15 @@ export class ScatterChunkManager {
     const key = assetStateKey(assetId, level);
     const existing = this.assetStates.get(key);
     if (existing) return existing;
-    const asset: AssetSourceState = { source: null, failed: false, radius: 0 };
+    const asset: AssetSourceState = { source: null, failed: false };
     this.assetStates.set(key, asset);
     this.provideSource(assetId, level)
       .then((source) => {
         asset.source = source;
         if (!source.geometry.boundingSphere) source.geometry.computeBoundingSphere();
-        asset.radius = source.geometry.boundingSphere?.radius ?? 0;
+        // T006.6：high 源到达即派生选档稳定基准（assetId 冻结一次——选档自此与当前
+        // 档位解耦，换档不换选档输入；同 key 几何确定性恒等，冻结幂等）
+        if (level === 'high') this.referenceSpheres.freezeFromHighSource(assetId, source);
         if (this.disposed) return; // dispose 后迟到的源：只记录不建网格
         this.buildPendingMeshes(assetId, level);
         this.applyPendingLevelRebuilds(assetId, level);
