@@ -114,6 +114,8 @@ import { createTriadicaHandle } from '../runtime/procedural/tree/triadica/triadi
 import type { TriadicaHandle } from '../runtime/procedural/tree/triadica/triadicaStage';
 import { createBischofiaHandle } from '../runtime/procedural/tree/bischofia/bischofiaStage';
 import type { BischofiaHandle } from '../runtime/procedural/tree/bischofia/bischofiaStage';
+import { createSophoraHandle } from '../runtime/procedural/tree/sophora/sophoraStage';
+import type { SophoraHandle } from '../runtime/procedural/tree/sophora/sophoraStage';
 import { clearStyleNotifier, setStyleNotifier } from '../runtime/styles/engine';
 import type { StyleNotice } from '../runtime/styles/engine';
 import { SceneSerializer } from '../io/SceneSerializer';
@@ -404,6 +406,7 @@ declare global {
     __koelreuteria?: KoelreuteriaHandle;
     __triadica?: TriadicaHandle;
     __bischofia?: BischofiaHandle;
+    __sophora?: SophoraHandle;
     __tree3aPerf?: Tree3aPerfHandle;
   }
 }
@@ -968,6 +971,23 @@ export function createEditor(canvas: HTMLCanvasElement | null, opts: CreateEdito
     });
     window.__bischofia = bischofia;
   }
+  // T011.9 DEV 出图面：window.__sophora（国槐 slot-0 锚点树直挂渲染场景——夏栎
+  // __tree3a / 朴树 __celtis / 香樟 __camphor / 榉树 __zelkova / 银杏 __ginkgo / 悬铃木
+  // __platanus / 栾树 __koelreuteria / 乌桕 __triadica / 重阳木 __bischofia 同构装配：
+  // 独立 group 挂 scene 兄弟组不参与拾取；mount/mountSlots 8 槽批量 / mountLevels 三档
+  // 对照 / 风动 / freezeTime / 固定机位 view 系供视觉取证与档位生成验证。实现全在
+  // runtime/procedural/tree/sophora/sophoraStage——组合根只装配，dispose 只摘自己的
+  // 实例）。
+  let sophora: SophoraHandle | null = null;
+  if (import.meta.env.DEV && renderer && typeof window !== 'undefined') {
+    sophora = createSophoraHandle({
+      scene: renderer.scene,
+      camera: renderer.camera,
+      controls: renderer.controls,
+      time: renderer.uTime,
+    });
+    window.__sophora = sophora;
+  }
   // T009.7 性能验收 DEV 驱动面：window.__tree3aPerf（import.meta.env.DEV 守卫，生产零痕迹；
   // 无 Renderer（无头）不挂）。经产品放置路径（真实命令管线 → SceneSync → 实例化池）批量
   // 放置/清除夏栎 + 帧采样/资源计数/太阳阴影 A/B/固定机位——句柄只给数据，阈值/环境归
@@ -1256,6 +1276,11 @@ export function createEditor(canvas: HTMLCanvasElement | null, opts: CreateEdito
       if (bischofia && typeof window !== 'undefined' && window.__bischofia === bischofia) {
         bischofia.dispose();
         delete window.__bischofia;
+      }
+      // T011.9 DEV 出图面成对拆除（同上：仅摘自己的树与 window 槽）
+      if (sophora && typeof window !== 'undefined' && window.__sophora === sophora) {
+        sophora.dispose();
+        delete window.__sophora;
       }
       // T009.7 性能验收驱动面成对拆除（clear 自己的对象——经命令；仅摘自己的 window 槽）
       if (tree3aPerf && typeof window !== 'undefined' && window.__tree3aPerf === tree3aPerf) {

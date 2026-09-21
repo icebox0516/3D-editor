@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>sophora materials compile check（T011.9 真实编译验证——几何未合并前 quad 验证 GLSL）</title>
+  <script>
+    // console 捕获（先于 three/材质模块加载注入）
+    window.__SOPHORA_ERRORS = [];
+    window.__SOPHORA_WARNINGS = [];
+    (function () {
+      var oe = console.error, ow = console.warn;
+      console.error = function () {
+        window.__SOPHORA_ERRORS.push(Array.prototype.map.call(arguments, String).join(' '));
+        oe.apply(console, arguments);
+      };
+      console.warn = function () {
+        window.__SOPHORA_WARNINGS.push(Array.prototype.map.call(arguments, String).join(' '));
+        ow.apply(console, arguments);
+      };
+      window.addEventListener('error', function (e) { window.__SOPHORA_ERRORS.push('window.onerror: ' + e.message); });
+      window.addEventListener('unhandledrejection', function (e) { window.__SOPHORA_ERRORS.push('unhandledrejection: ' + String(e.reason)); });
+    })();
+  </script>
+</head>
+<body style="margin:0">
+  <script type="module" src="./compile-check-page.ts"></script>
+</body>
+</html>

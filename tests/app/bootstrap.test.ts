@@ -418,6 +418,7 @@ describe('registerAssets', () => {
       'asset_tree_ginkgo',
       'asset_tree_koelreuteria',
       'asset_tree_platanus',
+      'asset_tree_sophora',
       'asset_tree_triadica',
       'asset_tree_zelkova',
       'asset_hydrant',
