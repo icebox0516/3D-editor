@@ -39,6 +39,7 @@ const EXPECTED_TAXONOMY: Record<string, { category: AssetTaxonomyCategory; famil
   asset_tree_platanus: { category: 'plant', family: 'broadleaf' }, // T011.5 悬铃木——阔叶家族第六实例（落叶阔叶第三例，公园自然冠单干中龄个体）
   asset_tree_koelreuteria: { category: 'plant', family: 'broadleaf' }, // T011.6 栾树——阔叶家族第七实例（无患子科落叶阔叶第四例、复叶首例）
   asset_tree_triadica: { category: 'plant', family: 'broadleaf' }, // T011.7 乌桕——阔叶家族第八实例（大戟科落叶阔叶第五例、菱形叶首例——Triadica sebifera FOC 现口径，旧口径 Sapium sebiferum 记档见 Spec §1）
+  asset_tree_bischofia: { category: 'plant', family: 'broadleaf' }, // T011.8 重阳木——阔叶家族第九实例（大戟科落叶阔叶第六例、复叶第二型（三出放射对称）——Bischofia polycarpa，无花果资产记档见资产模块头）
   asset_signpost: { category: 'facility', family: 'road-facility' },
   asset_trashbin: { category: 'facility', family: 'public-facility' },
   asset_streetlamp: { category: 'facility', family: 'road-facility' },
