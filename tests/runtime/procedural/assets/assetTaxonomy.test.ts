@@ -41,6 +41,7 @@ const EXPECTED_TAXONOMY: Record<string, { category: AssetTaxonomyCategory; famil
   asset_tree_triadica: { category: 'plant', family: 'broadleaf' }, // T011.7 乌桕——阔叶家族第八实例（大戟科落叶阔叶第五例、菱形叶首例——Triadica sebifera FOC 现口径，旧口径 Sapium sebiferum 记档见 Spec §1）
   asset_tree_bischofia: { category: 'plant', family: 'broadleaf' }, // T011.8 重阳木——阔叶家族第九实例（大戟科落叶阔叶第六例、复叶第二型（三出放射对称）——Bischofia polycarpa，无花果资产记档见资产模块头）
   asset_tree_sophora: { category: 'plant', family: 'broadleaf' }, // T011.9 国槐——阔叶家族第十实例（豆科落叶阔叶第七例、复叶第三型（一回奇数羽状窗列单级化）——Styphnolobium japonicum 现用名口径（FRPS/FOC 传统口径 Sophora japonica 同实体），无花资产 + 念珠荚果串记档见资产模块头）
+  asset_tree_fraxinus: { category: 'plant', family: 'broadleaf' }, // T011.10 白蜡——阔叶家族第十一实例（木犀科落叶阔叶第八例、复叶第四型（一回奇数羽状**对生系首例**——Fraxinus chinensis subsp. chinensis 原亚种本尊，三重对生 + 匙形翅果帘幕簇记档见资产模块头）
   asset_signpost: { category: 'facility', family: 'road-facility' },
   asset_trashbin: { category: 'facility', family: 'public-facility' },
   asset_streetlamp: { category: 'facility', family: 'road-facility' },
