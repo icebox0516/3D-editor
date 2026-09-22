@@ -314,6 +314,7 @@ D26.2 六情形末条「spec 关键事实含 Unknown」收窄为：**关键事�
 7. **T018 改前基线（018.0 Preflight）**：018.1 修改渲染代码前必须先固定 legacy 环境为唯一改前基线——legacy 渐变天空完整参数快照 + day/dusk/night/tech 四预设 × 夏栎/朴树/香樟/路灯/GLB/金属固定机位快照 + frame time p95 基线 + renderer.info 资源账目 + 当前太阳方向记录，落 `docs/acceptance/t018/018.0/`；018.5 新旧视觉对比、FrameTime Δ、资源账目以该目录为唯一改前源；树族复用 D30 统一基线帧不重拍。**不建独立子任务文件**（018.1 前置证据，非会话粒度工作单元）。
 8. **TASKS.md Next 语义**：Next 仅表示已排入路线图的后续任务，不代表执行顺序；实际启动顺序由任务文件中的依赖、当前项目状态与有效架构裁定决定。
 9. **工作区素材与正式取证的仓库边界**：`screenshots/` = 本地工作区素材（临时/调试/原始工作副本），不入 git；正式验收取证统一落 `docs/acceptance/` 入 git。结构性落实：.gitignore 增 `screenshots/` 与 `.zcodeignore`（本地工具配置）；screenshots 下 10 个历史跟踪文件（ref-tmp 惯例确立前入库——含 tree3a-reference.md 自述「不入 git」的 ref-oak-render 三图与 ref-tmp 两 html、t0033 调试图 4 张、ref-gallery-check）`git rm --cached` 停止跟踪、本地保留；`t011-0111/`、`t011-0112/` 经逐文件比对与已提交取证纯重复，删除。
+10. **Skill / Workflow 执行方法层定位（2026-09-22 D36 增补）**：Skill/Workflow 属执行方法规范落点，不得覆盖项目规范与决策；任务书只提供本次实例参数与差异。文档规则优先级的补充解释：AGENTS / DECISIONS / 工程规范 docs 承载项目约束，Workflow（asset-production）承载执行方法，Task 承载实例参数——**职责分层而非同一权威链的四级**（分层架构与验收条款见 D36）。
 
 ## 2026-09-20 · D32 信息查询工具路由（两轮对照实验裁定）
 
@@ -374,4 +375,25 @@ D26.2 六情形末条「spec 关键事实含 Unknown」收窄为：**关键事�
 3. **三门槛欠账补跑（本条落档时执行）**：011.4–011.6 累计变更加入后全量 npm test 首跑——**3245 全绿（221 文件）/ check:layers 526 / typecheck 零错**，零回归；此后每子任务恢复逐个跑。
 4. **D35 轮流程教训保留**（与外派口径解绑、并入标准流程沿用）：判读前确认图片实际加载成功 + 尺度主张须像素内参照物 + 字节溯源只证来源不证内容判读。（2026-09-21 用户追加裁定：**第二视觉系统步骤取消**——照片判读回到夏栎 008.6 口径「两次独立视觉提问一致方定名 + 主代理硬数值抽查」，异系统交叉不再作为要求；「image-recognition-agent 顶层派」条随之删除。）
 5. 落点：本条决策锚 + T011 epic 头部状态与进度行 + TASKS/PROGRESS 同步 + 011.7–011.12 预立任务书还原标准口径（头部状态 / Research Gate 执行 / Step 4 / Acceptance 三门槛行）。
+
+## 2026-09-22 · D36 Asset Production Workflow 分层：生产方法层与任务体系解耦（用户 grilling 四轮 + 终审三轮裁定，纯文档零代码）
+
+**背景**：T011 十树生产验证技术链路稳定，真正的臃肿在生产流程文本的复制——每份任务书约六成为逐树重复的流程骨架（Research Gate 执行段 / Step 0–4 形状 / Acceptance·Constraints 模板），epic Requirements 再复述一遍；流程口径变更须批量同步预立任务书（D35.1 时手工同步六份，成本随资产数线性增长）；且**复述层与决策层已实际漂移**（epic D35.1 进度行仍列「异系统交叉」为现行教训，而本文件 D35.1 第 4 条追加裁定已取消——只读 epic 的会话会执行废规则，本次改造的直接动因）。核心验收句：**消灭生产流程在任务书中的复制，而非单纯让任务书变短**。防回流原则（用户终审）：真正要防的不是大方向错误，而是把旧体系的东西偷偷塞回新层。分层架构：项目约束层（AGENTS → DECISIONS → docs/procedural-assets）／执行方法层（asset-research + asset-production → workflows）／实例层（tasks）／状态导航层（TASKS·PROGRESS）／知识导航层（precedents）——职责分层，非权威链。裁定：
+
+1. **asset-production 是程序化资产生产方法入口**；SKILL.md 只含启动判定、workflow 路由、read-set 指引与验收条款，不含资产知识。
+2. **Workflow 文件是完整生产流程编排的唯一规范落点**；docs/procedural-assets/ 仅保留各自领域的稳定工程规范与局部操作要求（含领域速查），不再定义独立完整的资产生产流程。〔遗留清理记档：shadow-visual-sop §5 六步 SOP 于后续 docs 清理轮改为对 workflow 的引用，本轮零改动〕
+3. Workflow 不承载 taxonomy、不替代 docs 工程契约；路由按生产方法，不按资产分类。
+4. Task 只描述本次实例的前置、workflow 声明、Spec 锚点、现实身份与差异、Research Gate 判定留痕、重点调研面、特殊参数与裁决位、Scope、特殊验收、取证路径与完成记录，不复制稳定生产流程；任务书头部 `workflow:` 声明为会话确定性加载锚。
+5. **Workflow 分裂与创建规则**：仅当 Step 集合 / Agent 派遣职责面 / 验收结构无法通过参数位或局部扩展解决时才新建 Workflow；新 Workflow 必须由真实消费者触发，不预建（D20.3 同构）。
+6. **read-set 消费链**：Workflow 定义必读集 → 主代理解析 resolved paths → 派遣简报只传 resolved paths → 专业代理自读正文。
+7. 跨资产、属于现实研究与证据验证的方法论，归 asset-research/references/；生产 Workflow 只引用，不复制（照片判读规程 photo-verification.md 首例落位）。
+8. **Precedent Index 只做导航不是事实源**；当前 broadleaf 初版维度为建议维度（非永久 schema，可随真实先例自然增维）；维护绑定资产完成同步步（至少一条资产入口、新先例补项、不灌水）。
+9. **Workflow 同步机制 = 对应先例/知识索引同步（如该生产方法存在对应索引）+ 流程教训评估 + 完成记录收口；不含任务排程**（预立下一任务由 Epic/TASKS 排程规则决定，不属 Workflow——防把 T011 串行生产方式泛化进方法层）。
+10. **完成记录记结果、偏离、事故、验证证据与遗留问题，不重复稳定方法论**；历史完成记录不回改（D31.1）。
+11. **流程教训评估** = 四问筛选器（当前有效？流程级？跨资产可复用？无更合适归属？）+ 五向分流（历史事实→完成记录 / 先例知识→索引 / 候选流程教训→Workflow / 工程契约变化→docs / 执行规则变化→DECISIONS）+ 三级升格（主代理直接记档 / 正常同步 / 主代理提案 + 用户确认〔重大者独立 grill〕）；执行模式位（连续轮 vs 标准模式）不进 Workflow，按 DECISIONS 当前有效裁定。
+12. **验收条款：三类变更各归其主载体**——生产方法的规范正文落在 Workflow，工程规范正文落在 docs，执行模式裁定落在 DECISIONS；凡发生需要升格的生产方法或工程规范变更，其决策原因按第 11 条留痕于 DECISIONS；任何一类变更均不得要求批量同步预立任务书。
+
+**抽取裁归附记（四问筛选器首跑样本，定档于本条）**：「中断即未验证」全量重验 → Workflow 执行纪律；「GLSL 改动先过真实编译」→ Workflow 一行纪律（详细规范归 shader 域）；「照片异系统交叉」→ 不保留（D35.1 追加裁定已取消，唯一有效口径 = photo-verification.md 六条）；「X4000 终裁口径」→ 不作通用 Workflow 规则（特定运行环境家族/历史验证结论，留 DECISIONS 与先例索引，新树查先例而非默认执行）；「测试超时加固」→ 不进 Workflow（阶段性工程事故修复，留历史与决策层）。
+
+**落点**：`.zcode/skills/asset-production/{SKILL.md, workflows/tree.md}`（本轮只建 tree——当前唯一真实消费者 broadleaf 家族参数位）；asset-research 路由句修正 + `references/photo-verification.md`；`docs/procedural-assets/precedents/broadleaf.md`（11 条目：011.1–011.10 + 夏栎基线）；AGENTS.md 两处指针（启动流程 workflow 字段加载 + 多 Agent 派遣 read-set 句）；D31 第 10 条补句；T011 迁移（011.11 试点 + 011.12 + epic 瘦身，字段映射审计落 `docs/architecture-audit/asset-production-task-migration-011.11.md`——一次性迁移证据不进长期生产文件）。后续真实出现新生产方法（灌木/地被/设施/生物…）时才新增 workflows/<name>.md，不预建。
 
