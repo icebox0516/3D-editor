@@ -397,3 +397,15 @@ D26.2 六情形末条「spec 关键事实含 Unknown」收窄为：**关键事�
 
 **落点**：`.zcode/skills/asset-production/{SKILL.md, workflows/tree.md}`（本轮只建 tree——当前唯一真实消费者 broadleaf 家族参数位）；asset-research 路由句修正 + `references/photo-verification.md`；`docs/procedural-assets/precedents/broadleaf.md`（11 条目：011.1–011.10 + 夏栎基线）；AGENTS.md 两处指针（启动流程 workflow 字段加载 + 多 Agent 派遣 read-set 句）；D31 第 10 条补句；T011 迁移（011.11 试点 + 011.12 + epic 瘦身，字段映射审计落 `docs/architecture-audit/asset-production-task-migration-011.11.md`——一次性迁移证据不进长期生产文件）。后续真实出现新生产方法（灌木/地被/设施/生物…）时才新增 workflows/<name>.md，不预建。
 
+---
+
+## 2026-09-22 · D37 资产立项入口与新 Family 首例契约草案（grilling 三轮点选裁定，纯文档零代码）
+
+**背景**：D36 落地后以两条路径交叉核验生产体系——路径 A 已有资产（011.11 女贞 → workflow: tree → broadleaf 契约实例化）整体成立；路径 B 全新 Family 首例（T012 雪松——首个 **Workflow 契约消费者**，库内既有非 Workflow 旧资产〔如 asset_pine〕不承担首例职责）推演发现两处入口缺口：①用户直接指定的新资产是否必须先进候选池无明文（D34 只覆盖「池→epic」代选方向）；②tree Workflow Step 2 / read-set 前置「家族契约文件」，而新 Family 首例无契约可实例化——organization.md §4.2「家族无契约→单资产先行，等真实第二消费者」会使首例走 solo 分叉，与 Workflow 生产连续性冲突。裁定：
+
+1. **新资产立项入口**：用户明确指定的新资产**可直接立项**——候选池是候选发现 / 证据整理 / 优先级 / 分流建议的维护点，**不是立项强制前置**；立项后仍必须走生产方法路由（Workflow 判定，D36 第 5 条）+ Family 判定 + Research Gate（D26）。落 AGENTS.md 一句 + 本条为锚。
+2. **新 Family 首例 = 契约草案口径**：族已立项、经 Workflow 生产的首个家族成员创建**家族契约草案**——字段全部有真实消费点（organization.md §3.1 无投机字段不变）、一律标注【家族共性候选】（单样本不足以判定家族共性；broadleaf 先例 = 夏栎 solo → T010.1 单样本提炼 → 后续靠增量修订消化）；**共性转正推迟到第二例真实消费时**，第二例修订候选字段属草案转正轻量路径、不算契约缺口（不占 D31.2 阻塞例外）。organization.md §4.2 按此分流改写：族立项 Workflow 首例建草案；非族简单资产维持「单资产先行，不主动建家族层」（D20.3 原意场景保留）。
+3. **任务书立项假设纪律**：任务书现实身份段 = **立项假设层**——未经验证的物种细节不得写成既成事实，身份 / 形态断言以 Reference Spec 为准（D26.5「任务书不得重新定义现实参数」的身份段延伸）；预立任务书按「资产工作身份 + 立项假设」书写。011.11 Goal 首行按此补注（试点单点示范，非批量同步）。
+
+**落点**：DECISIONS 本条（含 organization.md / tree.md 变更的决策原因留痕，D36 第 12 条）+ tree.md（§1 增「新 Family 首例流程」段——Epic 立项→Research Gate→契约草案→首例完整验收〔D30 第 4 条〕→先例索引首建→第二例起增量；Step 0 骨架措辞对齐 asset-research 最小充分口径；§6 补「索引不存在则首例建立」半句）+ organization.md §4.2 + AGENTS.md 立项入口一句 + 011.11 Goal 假设标注。本轮不建任何 conifer 文件、不预建家族先例索引、不动 broadleaf 契约。
+

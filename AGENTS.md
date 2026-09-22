@@ -7,7 +7,7 @@
 - **AGENTS.md**（本文件）→ 项目规则 ｜ **TASKS.md** → 现在干哪个任务 ｜ **tasks/*.md** → 任务具体干什么
 - **PROGRESS.md** → 目前做到哪（项目快照） ｜ **DECISIONS.md** → 为什么这样设计 ｜ **docs/** → 长期文档
 - 启动流程：每次任务先读 AGENTS.md、TASKS.md 和当前任务对应的 tasks/*.md；PROGRESS.md、DECISIONS.md、docs/ 及源码按当前任务的 Dependencies / Scope 按需读取，不要求全量加载
-- 程序化资产生产任务：按任务书头部 `workflow: <name>` 声明加载 asset-production 技能（`.zcode/skills/asset-production`——入口路由 → workflows/<name>.md 生产方法正文，D36；任务书只描述本资产差异，不复制稳定生产流程）
+- 程序化资产生产任务：按任务书头部 `workflow: <name>` 声明加载 asset-production 技能（`.zcode/skills/asset-production`——入口路由 → workflows/<name>.md 生产方法正文，D36；任务书只描述本资产差异，不复制稳定生产流程）；用户明确指定的新资产可直接立项（候选池是发现 / 分流参考，非立项前置），立项后仍须 Workflow 路由 + Family 判定 + Research Gate（D37）
 - 文档规则优先级（D31）：AGENTS.md > DECISIONS.md 最新有效裁定 > Epic 任务书 > 子任务书 > TASKS.md / PROGRESS.md；子任务可具体化或收紧上级要求，但不得直接冲突，冲突以上级为准；TASKS.md 仅导航、PROGRESS.md 仅状态快照，完成记录不产生新的当前约束
 - 任务粒度 = 会话粒度（D16）：子任务 `0XX.N-*.md` 一个会话一个，完成必写文件内「完成记录」；视觉验收分层（D30，细化 D23.7）：**单资产子任务做增量视觉验证**（身份判定 + 统一基线帧 + 契约缺口三必做、余按疑点触发；新 family 首例例外走完整 SOP 口径），**族级集体验收在 epic 末验收门执行**（横向一致性/混植/性能/契约收口/回归，不重跑单资产已完成项）；任务明确标注人工锚点/形态筛选门时例外（如 008.3 锚点门、009.3 逐槽裁定），可在子任务阶段做用户裁定，结果作为后续验收基线；epic 文件维护子任务勾选表
 - 资产族 Epic 成员集合口径（D33）：Epic 规则面向「本 Epic 纳入的成员」表述、不写死数量；当前成员清单在 epic 内单独维护；新成员 = 新增一个子任务 + 族级验收门编号顺延为最后一环，Epic 规则文本零改动（顺延规则限族门未收官——收官后追加由后续增补子任务承接、不改已完成编号，需要时做一次增补后族级复核）；仅当形态域超出既有家族契约需新家族契约时才另立 Epic（各资产类型同理）
