@@ -11,7 +11,7 @@
 | 2 | Goal 流程链句（Research Gate → Spec → 契约实例化 → 几何/材质/8槽/LOD/Shadow → D30 增量视觉验证） | 流程复述 | → 废弃（workflow §2 生产脊柱承载） | D36 第 4 条：不复制稳定生产流程 |
 | 3 | Goal 身份句（常绿第二例/革质/花果/长江以南） | 本树差异 | → lean Task §Goal | 保留；先例口径引用改指 precedent index |
 | 4 | Research Gate 判定（命中情形①②⑤） | 本树法定留痕 | → lean Task §Research Gate | 逐树独立判定是任务书事实状态，非方法论（grilling Q7 裁定） |
-| 5 | Research Gate 执行细则（asset-research 技能/硬数值抽查 ≥12 条/照片双问 008.6 规程/分歧取中庸/Spec Version 校验） | 流程复述 | → Workflow §Step 0 + asset-research/references/photo-verification.md | photo-verification.md 为本轮新增落点（D36 第 7 条） |
+| 5 | Research Gate 执行细则（asset-research 技能/硬数值抽查 ≥12 条/照片双问 008.6 规程/Spec Version 校验） | 流程复述 | → Workflow §Step 0 + asset-research/references/photo-verification.md | photo-verification.md 为本轮新增落点（D36 第 7 条） |
 | 6 | Step 0 骨架要求（八节骨架/plant 域扩展/两轴标注/来源路由） | 流程复述 | → workflow §Step 0（指针到 asset-research spec-template/plant-schema） | 数值（抽查条数下限）随流程正文迁入 workflow，不再逐书复制 |
 | 7 | Step 0 重点调研面（女贞九条：种定名/常绿性/革质叶/花/核果/冠形体量/树皮/枝姿/叶色 + FRPS 61:153/FOC Vol.15 卷页锚） | 本树特有调研检查单 | → lean Task §重点调研面 | 全量保留——真正树种特有的信息 |
 | 8 | Step 1 结构分析（先例基线对照/可继承/改写/Unknown + 革质路径判定 + 花果路径判定） | 流程 + 本树裁决位 | 流程 → workflow §Step 1；本树裁决项 → lean Task §待裁决位 + §先例基线 | 先例检索入口改指 precedent index（camphor 行） |
@@ -31,6 +31,7 @@
 ## 废弃项汇总（均注明依据）
 
 - Goal 流程链句、Research Gate 执行细则、Step 0–4 全部流程形状、派遣路由、测试组织流程、验收基线数值复述、通用 Constraints——依据：D36 第 4 条（不复制稳定生产流程）+ 第 2 条（workflow 为流程正文唯一落点）。
+- 「分歧取中庸」终审处置规则——依据：与 photo-verification.md「双问不一致 → 该照片不承重处置并记档」直接冲突，2026-09-22 文档清理轮证伪删除（Workflow §Step 0 已同步移除，不迁移不保留）。
 - 旧书无「历史废止规则复活」情形（011.11 为 D35.1 还原版，无 X4000 预期条、无异系统交叉条——该两项仅存在于 011.8–011.10 done 书，属历史不回改范围）。
 
 ## 数值修正项

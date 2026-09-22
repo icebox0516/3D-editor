@@ -61,15 +61,14 @@ src/runtime/procedural/
 5. **消费语义必须记档**：字段「实际驱动什么」与直觉不符时（先例：T009.3 发现——crownCenterRatio/crownHeightRatio/crownTopBias 不动几何只进密度场参考系，冠垂直摆放由挂高段+横展角+upturn+领导枝链驱动，弱领导枝翻转树顶决定因素），写入契约字段注释，防止后来者按字段名望文生义调参。
 6. **结构计数类纪律**：多形态槽资产的结构计数字段（radial/segs/childPlan/簇位数/每簇叶量/voidCount/scaffoldCount）跨槽恒定——维持皮面数恒等与 rng 消费次数恒等；槽差异全部落在连续形态参数上。契约字段注释逐字段标注计数类/连续。
 
-## 4. 新增一个程序化资产（路径速查）
+## 4. 新增一个程序化资产（组织层速查）
 
-1. Reference Research 前置（D26：每树种独立参考，结论落 `docs/research/<asset>-reference.md`，不沿用他树）。
-2. 选结构：简单 → 单文件 `assets/<name>.asset.ts`；复杂 → 四文件（§2.1）。
-3. 家族已有契约（如阔叶）→ 实例化契约字段填自己的数值（数值依据引自自己的 Spec）；家族无契约 → 单资产先行，**不主动建家族层**（等真实第二消费者，D20.3）。
-4. LOD 声明、Shadow 通道、视觉验收按姊妹规范（010.3 / 010.4）执行。
-5. 回归门槛：`npm test` / `npm run check:layers` / `npm run typecheck` 全绿。
+生产流程（Research Gate → 结构分析 → 参数化 → 实现 → 视觉验证 → 三门槛）归 asset-production 对应 Workflow；LOD / Shadow / 视觉验收的工程规范归姊妹规范（lod-spec.md / shadow-visual-sop.md）。本节只回答**文件怎么拆、放哪、叫什么**：
 
-## 5. 先例索引
+1. **选结构**：简单 → 单文件 `assets/<name>.asset.ts`；复杂（判据见 §2.1）→ 四文件。
+2. **家族判定**：家族已有契约 → 实例化契约字段填自己的数值（数值依据引自本资产 Reference Spec，D26 不沿用他树）；家族无契约 → 单资产先行，**不主动建家族层**（等真实第二消费者，D20.3）。
+3. **目录与命名**：按 §2.2（家族前缀专属契约层 / 资产前缀强约束 / 入口文件名不变式）。
 
-- **夏栎（asset_tree_3a）= 家族契约第一实例**（T008/T009 验收资产）：`tree/broadleaf/broadleafShapeProfile.ts`（契约）+ `tree/tree3a/` 四文件 + `assets/asset_tree_3a.asset.ts`（入口）。8 槽形态向量、LOD 三档、SDF 叶影、风动全链路已验收，T011 树种以它为可复制「方法」参考（复制代码时改数值与算法细节，契约字段语义不变）。
-- **简单资产单文件先例**：`assets/hydrant.asset.ts`（设施，共享 facilityMaterials 配方）、`assets/asset_oak.asset.ts`（旧版植物，T003.4 冻结）。
+## 5. 先例导航
+
+先例索引统一走 [`precedents/`](precedents/)（按家族分文件、真实消费者触发建库；只导航不承重，D36 第 8 条）——阔叶乔木族见 [`precedents/broadleaf.md`](precedents/broadleaf.md)。本文件不另维护先例清单；夏栎四文件结构示例见 §2.1。

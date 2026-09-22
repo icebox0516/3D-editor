@@ -3,6 +3,7 @@
 > 定位（DECISIONS D36 第 8 条）：**生产导航索引，不是事实源**——只回答「先去看谁」；一切数值与方法细节回原任务书 / 原 Reference Spec。与 TASKS.md「导航而非事实源」同构。
 > 维度说明：当前为 broadleaf 初版**建议维度**（非永久 schema），可随真实先例自然增维（如嫁接 / 根系 / 季相）；不预建其他家族文件（真实消费者触发）。
 > 维护：每资产完成时同步（workflow §6——至少一条资产入口，新先例补项，不灌水）。
+> 收录边界：只收「资产怎么做出来」的导航（形态 / 材质 / 结构 / 组织先例）；工程事故与流程纪律经 workflow §6 四问分流归完成记录 / DECISIONS，不入本索引。
 
 ## 资产总表
 
@@ -93,11 +94,9 @@
 - LOD 三档派生 + 档间不变量 + 预算锁定流程 → tree3a（009.6）+ lod-spec §5.3
 - 8 槽形态向量 + 计数恒等纪律 → tree3a（009.3）
 - 测试五件分件组织（Structure / Lod / ShapeSlots / Materials / Stage + 入口）→ celtis 起族内沿用
-- 测试超时机械加固先例（全量满核并行饿超显式 timeout）→ fraxinus（011.10）
 
 ## 家族契约与流程先例（导航）
 
 - BroadleafShapeProfile 实例化零修改链（第一至第十一实例化）→ 011.1–011.10 各完成记录；契约缺口清单归族级验收门（011.13）汇总
-- Spec 终审通道发现（iplant FRPS 按现用名索引）→ sophora（011.9）；照片双问不承重处置 → sophora / bischofia
+- Spec 终审通道发现（iplant FRPS 按现用名索引）→ sophora（011.9）
 - X4000 FXC 误报终裁与复叶系边界数据点 → koelreuteria（终裁）/ bischofia / sophora / fraxinus（未复现数据点）——处置口径在 DECISIONS 与原任务书，不默认适用于新树
-- 跨会话「中断即未验证」恢复重验 → sophora / fraxinus 正用例（流程纪律已升格 workflow §3）

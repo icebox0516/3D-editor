@@ -107,7 +107,7 @@ describe('可复现基准（morphSeed 语义）', () => {
     const b = buildTracked(9);
     expect(b.geometry).not.toBe(a.geometry);
     for (const material of materialsOf(b)) expect(materialsOf(a).includes(material)).toBe(false);
-  }, 30000);
+  }, 60000); // 2026-09-22：全量 241 文件满核并行下 30s 饿超（隔离运行秒级全绿——负载敏感非回归，011.10 机械加固先例同型），提至 60s
 });
 
 describe('叶卡属性契约（冻结：008.3 只消费）', () => {

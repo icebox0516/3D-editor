@@ -82,7 +82,7 @@ GLB 端（AssetLoader）= 类型兼容零行为变化：GLB 源不设新字段 �
 | T26 | 树干近景 | 2.6m / 35° 与 110° 双方位 / −15° | 树皮沟脊/微起伏轮廓（双方位看浮雕） | 009.4 |
 | P42 | 8 槽全景 | 42m / 35° / 16°（4×2 网格 spacing 11m） | 形态差异批量裁定 | 009.3 |
 
-附加取证惯例：LOD 档间连续性 = 三档同点 32m 全景 + 60m 远距对照（009.6/009.7 口径，细则归 lod-spec.md）；风动双帧对照 = 同机位 uTime 运转/frozen 各一帧（008.3）；A/B 对照 = 改码前后同机位各拍 + 左右拼图（009.4 基线对照法）。
+附加取证惯例：LOD 档间连续性 = 三档同点 32m 全景 + 60m 远距对照（009.6/009.7 口径，细则归 lod-spec.md）；风动双帧对照 = 同机位 uTime 运转/frozen 各一帧（008.3）；A/B 对照 = 改码前后同机位各拍 + 左右拼图（009.4 基线对照法）；统一基线帧 = M25 + day 预设固定灯光 + freezeTime 一张，命名 `baseline.png` 落该资产验收目录（D30 单资产三必做之一——全族同参数复用，兼作族级门横向比较同源基线；消费方 = asset-production Workflow Step 4）。
 
 取证纪律：
 
@@ -145,7 +145,9 @@ max 尖峰（数百 ms 级）为偶发 GC/提交颠簸，以 p50/p95 健康度�
 
 `docs/acceptance/tXXX/<子任务>/`：README（环境 + 测量口径 + 阈值表 + 判定）+ perf-measurement.json（env/baseline/tiers/shadowAB/afterClear/cycles10 全量）+ tools/ 复现脚本。进程用完即清（dev server/浏览器/临时目录不留跨会话残留）。
 
-## 5. 新增植物资产 SOP
+## 5. 新增植物资产 SOP【Legacy】
+
+> **Legacy（D36 文档清理轮 2026-09-22）**：完整生产流程的执行真相源 = asset-production Workflow（`.zcode/skills/asset-production/workflows/tree.md`，路由键 `workflow: tree`）。本节是被其取代的旧版流程正文，仅作历史参考与旧任务书对照保留，**正式生产不得以本节为流程入口**；011.11 试点迁移完成后正式删除（基线帧参数已并入 §3）。本文件现行有效职责 = §1–§4 工程规范（Shadow 契约 / 十项检查单 / 机位取证 / 性能验收）。
 
 六步流程（T011 第一批阔叶乔木按此开工；文件组织/三级职责/命名先看 `organization.md`，LOD 声明先看 `lod-spec.md`）。
 

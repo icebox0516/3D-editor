@@ -381,7 +381,7 @@ D26.2 六情形末条「spec 关键事实含 Unknown」收窄为：**关键事�
 **背景**：T011 十树生产验证技术链路稳定，真正的臃肿在生产流程文本的复制——每份任务书约六成为逐树重复的流程骨架（Research Gate 执行段 / Step 0–4 形状 / Acceptance·Constraints 模板），epic Requirements 再复述一遍；流程口径变更须批量同步预立任务书（D35.1 时手工同步六份，成本随资产数线性增长）；且**复述层与决策层已实际漂移**（epic D35.1 进度行仍列「异系统交叉」为现行教训，而本文件 D35.1 第 4 条追加裁定已取消——只读 epic 的会话会执行废规则，本次改造的直接动因）。核心验收句：**消灭生产流程在任务书中的复制，而非单纯让任务书变短**。防回流原则（用户终审）：真正要防的不是大方向错误，而是把旧体系的东西偷偷塞回新层。分层架构：项目约束层（AGENTS → DECISIONS → docs/procedural-assets）／执行方法层（asset-research + asset-production → workflows）／实例层（tasks）／状态导航层（TASKS·PROGRESS）／知识导航层（precedents）——职责分层，非权威链。裁定：
 
 1. **asset-production 是程序化资产生产方法入口**；SKILL.md 只含启动判定、workflow 路由、read-set 指引与验收条款，不含资产知识。
-2. **Workflow 文件是完整生产流程编排的唯一规范落点**；docs/procedural-assets/ 仅保留各自领域的稳定工程规范与局部操作要求（含领域速查），不再定义独立完整的资产生产流程。〔遗留清理记档：shadow-visual-sop §5 六步 SOP 于后续 docs 清理轮改为对 workflow 的引用，本轮零改动〕
+2. **Workflow 文件是完整生产流程编排的唯一规范落点**；docs/procedural-assets/ 仅保留各自领域的稳定工程规范与局部操作要求（含领域速查），不再定义独立完整的资产生产流程。〔遗留清理记档：shadow-visual-sop §5 六步 SOP 于后续 docs 清理轮改为对 workflow 的引用，本轮零改动。执行记档 2026-09-22 清理轮：§5 已标 Legacy（执行真相源 = asset-production Workflow，正式生产不得以该节为流程入口；基线帧参数已并入 §3），正式删除待 011.11 试点迁移完成〕
 3. Workflow 不承载 taxonomy、不替代 docs 工程契约；路由按生产方法，不按资产分类。
 4. Task 只描述本次实例的前置、workflow 声明、Spec 锚点、现实身份与差异、Research Gate 判定留痕、重点调研面、特殊参数与裁决位、Scope、特殊验收、取证路径与完成记录，不复制稳定生产流程；任务书头部 `workflow:` 声明为会话确定性加载锚。
 5. **Workflow 分裂与创建规则**：仅当 Step 集合 / Agent 派遣职责面 / 验收结构无法通过参数位或局部扩展解决时才新建 Workflow；新 Workflow 必须由真实消费者触发，不预建（D20.3 同构）。
