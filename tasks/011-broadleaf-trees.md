@@ -1,6 +1,6 @@
 # T011 阔叶乔木族生产任务集合
 
-> 立项 2026-09-19（初版「第一批四树种」）；2026-09-20 D33 口径改版为开放式集合——规则面向「本 Epic 纳入的树种」表述、不写死数量。前置：T010 5/5 收官（启动条件确认见 010.5）、T006 5/5 收官（Runtime LOD 调度就绪）。**状态：进行中——成员 12 树种：10 done / 2 排产（下一树 011.11 女贞 → 011.12 垂柳），标准模式逐树推进（D16 / D35.1），族级验收门 011.13 未启动。**
+> 立项 2026-09-19（初版「第一批四树种」）；2026-09-20 D33 口径改版为开放式集合——规则面向「本 Epic 纳入的树种」表述、不写死数量。前置：T010 5/5 收官（启动条件确认见 010.5）、T006 5/5 收官（Runtime LOD 调度就绪）。**状态：进行中——成员 12 树种：11 done / 1 排产（下一树 011.12 垂柳），标准模式逐树推进（D16 / D35.1），族级验收门 011.13 未启动。**
 >
 > 本文件口径（D24 / D36 瘦身 2026-09-22）：只维护族级规则、成员清单、勾选表与族门口径——生产流程正文归 asset-production `workflows/tree.md`，LOD 预算归 `docs/procedural-assets/lod-spec.md` §5.2，完成详情归各子任务书完成记录；**进度流水与 done 长摘要不落本文件**（每树 done 同步 = 勾选一行 + TASKS 行 + PROGRESS 快照 + 先例索引）。
 
@@ -24,7 +24,7 @@
 | 8 | 重阳木 bischofia | 011.8 | `asset_tree_bischofia` | `docs/research/bischofia-reference.md` | done 2026-09-21 |
 | 9 | 国槐 sophora | 011.9 | `asset_tree_sophora` | `docs/research/sophora-reference.md` | done 2026-09-22 |
 | 10 | 白蜡树 fraxinus | 011.10 | `asset_tree_fraxinus` | `docs/research/fraxinus-reference.md` | done 2026-09-22 |
-| 11 | 女贞 ligustrum | 011.11 | `asset_tree_ligustrum`（规划） | 未产出（随 011.11 Research Gate） | 排产（D34，证据中档注记） |
+| 11 | 女贞 ligustrum | 011.11 | `asset_tree_ligustrum` | `docs/research/ligustrum-reference.md` | done 2026-09-22 |
 | 12 | 垂柳 salix | 011.12 | `asset_tree_salix`（规划） | 未产出（随 011.12 Research Gate） | 排产（D34，垂枝冠契约应力位） |
 
 - **夏栎（`asset_tree_3a`，`tree3a-reference.md`）非本 Epic 成员**：家族首例与基线对照（T008/T009 交付），族级验收以基线身份参与（混植同场、性能同量级对照、契约修订零回退锁）。
@@ -73,7 +73,7 @@
 - [x] T011.8 重阳木全链（done 2026-09-21）→ [011.8-bischofia.md](011.8-bischofia.md)
 - [x] T011.9 国槐全链（done 2026-09-22）→ [011.9-sophora.md](011.9-sophora.md)
 - [x] T011.10 白蜡树全链（done 2026-09-22）→ [011.10-fraxinus.md](011.10-fraxinus.md)
-- [ ] T011.11 女贞全链（asset_tree_ligustrum；Ligustrum lucidum；常绿第二例（香樟后）+ 革质叶；长江以南；**证据中档**（行道明文、无「广泛栽培」级语句））→ [011.11-ligustrum.md](011.11-ligustrum.md)
+- [x] T011.11 女贞全链（done 2026-09-22：常绿第二例 + 对生单叶挂点首例 + 肾形核果满冠账目 + 树皮第 12 语言；零校准轮〔光泽樟 A/B 基线一致/密度探针闭合/树皮 targetY 复拍〕）→ [011.11-ligustrum.md](011.11-ligustrum.md)
 - [ ] T011.12 垂柳全链（asset_tree_salix；Salix babylonica；垂枝冠——**契约应力位**（枝角下垂形态域，预期缺口按 D31.2 阻塞例外 + 族门收口）+ 水边场景；全国；强证据 FRPS 20(2):138）→ [011.12-salix.md](011.12-salix.md)
 - [ ] T011.13 T011 族级验收门（D30 族级集体验收：全部纳入成员横向一致性 + 树种差异成立 + 混植 + 预算/LOD + 性能 + 契约修订 + 回归；**编号随成员增补顺延为最后一环（D33）**）→ 011.13-acceptance.md
 

@@ -20,6 +20,7 @@
 | 重阳木 bischofia | `asset_tree_bischofia` | 011.8 | `bischofia-reference.md` | 三出复叶「三叶场并集法」+ 两段 scaffold + 果花判定不做先例 |
 | 国槐 sophora | `asset_tree_sophora` | 011.9 | `sophora-reference.md` | 一回奇数羽状窗列单级化 + 念珠荚果账目（moniliform）+ zigzag 弱表达 |
 | 白蜡树 fraxinus | `asset_tree_fraxinus` | 011.10 | `fraxinus-reference.md` | 一回羽状对生严格变体 + decussate 对生挂点 + 匙形翅果帘幕账目 |
+| 女贞 ligustrum | `asset_tree_ligustrum` | 011.11 | `ligustrum-reference.md` | 常绿第二例（沿樟口径）；对生单叶挂点首例 + 肾形核果满冠下垂账目 + 树皮第 12 语言 |
 
 ## 叶形 SDF 谱系（单叶系）
 
@@ -30,6 +31,7 @@
 - 扇形 + 波状缺刻 / 2 裂（半周期包络 + 顶边半平面 + min 合成）→ ginkgo
 - 掌状 3–5 裂（叶基放射角窗 dip 族新路径）→ platanus
 - 菱状卵形（sin 包络 × 指数直边收窄 + 尾尖 ramp + 心形凹口弱表达）→ triadica
+- 卵形-卵状披针全缘零载波 · 近零脉（樟全缘路径简化版：无腺窝无离基三出、先端变指数域放宽）→ ligustrum
 
 ## 复叶谱系（1 卡承载整枚复叶）
 
@@ -44,6 +46,7 @@
 - 大叶疏簇（一节一叶节间合并、粗质通透冠）→ platanus
 - 长短枝双挂点（莲座卡 + 散生卡）→ ginkgo
 - **decussate 对生对**（对内共享节位）→ fraxinus（对生系首例核心分化位；vs sophora 互生螺旋对照轴）
+- **decussate 对生单叶**（复叶机制单叶卡替换——「对生」位叶层面/复叶层面共享；近读弱表达记档：可读性随挂点单元尺寸分化）→ ligustrum
 
 ## 冠形 / 枝姿
 
@@ -66,6 +69,7 @@
 - 褐基宽脊深沟 + 强扭转 + 网状次级 → bischofia（第 9 语言）
 - 板状厚脊 + 散在暗色瘤突（最粗犷档）→ sophora（第 10 语言）
 - 灰褐浅-中纵裂 + 幼干近光滑 + 皮孔小不明显 → fraxinus（第 11 语言）
+- 灰褐基 + 细窄纵脊浅沟**低浮雕** + 干面细纹亮线 → ligustrum（第 12 语言）
 
 ## 花果器官（零 rng 确定性账目法）
 
@@ -74,11 +78,16 @@
 - 绿闭蒴果散点（外冠判据 + position-hash）→ triadica
 - 念珠荚果串（moniliform；资格 = L5 ∧ q 阈值 → posHash → STRIDE）→ sophora
 - 匙形翅果帘幕簇（满冠带判据；正反双 quad）→ fraxinus
+- 肾形核果满冠下垂密簇（fraxinus 帘幕带判据同型改写：q 阈值 + posHash → STRIDE + 每簇多果；果域 v 轴第 4 实例）→ ligustrum
 - **果 / 花判定不做**（幼果低于显著性一个量级 vs 属相内强信号对照口径）→ bischofia
+- **花不做 · 时窗错位判据**（盛花信号强但花期不覆盖 9–10 月主语境即不做——vs 栾 7–9 月覆盖而做）→ ligustrum
 
 ## 材质语言
 
 - 革质光泽（specular 档位校准 + envMap 缺口记档）→ camphor
+- 革质光泽 **A/B 判读口径**（同机位同问题对照基线树 + 像素高光探针——「哑光」读向若与樟 011.2 校准基线同档 = 缺口 B 结构上限非树级回退）→ ligustrum
+- 「单面镜」两面分化（上面强光泽 + 背面无 glaucous 深绿——vs 樟「亮面+粉背」对照画面验证）→ ligustrum
+- 小枝两档（当年生黄褐-红铜 vs 老枝灰褐 + 皮孔带）→ fraxinus 首例（ligustrum 沿用）
 - 两面色差档位谱（灰白重档 sophora ↔ 弱档 fraxinus）→ sophora / fraxinus
 - 背光透射家族值域链 → 各任务书材质段（透射值以原任务书为准）
 - 缘齿载波单频法（「整齐」= 零抖动）→ zelkova（fraxinus 回归同法）
@@ -97,6 +106,7 @@
 
 ## 家族契约与流程先例（导航）
 
-- BroadleafShapeProfile 实例化零修改链（第一至第十一实例化）→ 011.1–011.10 各完成记录；契约缺口清单归族级验收门（011.13）汇总
+- BroadleafShapeProfile 实例化零修改链（第一至第十二实例化）→ 011.1–011.11 各完成记录；契约缺口清单归族级验收门（011.13）汇总
 - Spec 终审通道发现（iplant FRPS 按现用名索引）→ sophora（011.9）
-- X4000 FXC 误报终裁与复叶系边界数据点 → koelreuteria（终裁）/ bischofia / sophora / fraxinus（未复现数据点）——处置口径在 DECISIONS 与原任务书，不默认适用于新树
+- Spec 照片终审否证处置（form 级构图主张双问证伪→降级备用锚）→ ligustrum（form-cn 否证、form-d 升唯一整树锚）
+- X4000 FXC 误报终裁与复叶系边界数据点 → koelreuteria（终裁）/ bischofia / sophora / fraxinus（未复现数据点）——处置口径在 DECISIONS 与原任务书，不默认适用于新树；单叶系未触发第五数据点 → ligustrum
