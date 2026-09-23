@@ -4,9 +4,11 @@
 
 ## Current
 
-- [~] T018 真实程序化天空与环境光照（in-progress 2026-09-23：018.0 前置基线 + 018.1 Sky+Sun+Cloud + 018.2 PMREM/IBL + 018.3 预设+fallback + **018.4 DEV 调参面 done〔单会话〕**——__sky 守卫〔live getter/legacy 显式抛错〕+ skyRebake debounce〔200ms/调度器注入/cancel〕+ skyTuning 端口〔八键白名单/太阳角三一致内聚/ibl 借道重烘刷新〕+ sunLight 字段提升；20 连写恰一次重烘实测/display 压暗零重烘跨窗实证〔显示域压缩工具面可用〕/ibl immediate-settled 差分/太阳角双 run 视觉〔sunlow 异常帧两轮复核定案取证层作废〕；4033/601/零错——**018.5 进行中（checkpoint 2026-09-23）**：过曝处置走显示域压缩〔tone mapping 重审弃选——D29.3 修订须用户裁定不触发，ACES 证据留 T019 素材〕day display 0.22/ibl 0.15 落表〔tech/dusk/night 维持〕+ 预设面 displayIntensity 键接线〔runtime-agent 交付 4034/601/零错〕+ 取证主体完成〔24 帧新侧/同实例 IBL 增量 +0.1~0.2ms/资源账 6 轮零增长/冻结云双帧一致/warm rebake <1ms〕；余新旧判读收口/README/三门槛复验/DECISIONS 记档 → [tasks/018-real-sky-environment.md](tasks/018-real-sky-environment.md)）
+（无——T018 收官后待用户指定下一任务；已排路线见 Next）
 
 ## Done（近）
+
+- [x] T018 真实程序化天空与环境光照（**5/5 epic 收官 2026-09-23**——Sky+Sun+r186 内建 Cloud〔cloudSpeed=0 静态〕+ PMREM IBL + 事务式 fallback + __sky DEV 调参面全链交付；018.5 验收：终值 day 0.22/0.15、tech 0.2/0.15 显示域压缩〔**D39**——tone mapping 重审弃选，ACES 证据留 T019 素材〕、dusk/night 反打定案维持；epic 十二条逐条收口全过〔24 对新旧全终值态对照 / 三一致零漂移 / 同实例 IBL 增量 +0.1~0.2ms 双判据 / 资源账 6 轮恒定 owned=1 / 冻结云静态 / 4034/601/零错〕；legacy 预设切换泄漏面消解）→ [tasks/018-real-sky-environment.md](tasks/018-real-sky-environment.md)
 
 - [x] T011 阔叶乔木族生产任务集合（**13/13 epic 收官 2026-09-23**——D33 开放式集合：12 树种全链〔朴/樟/榉/银杏/悬铃木/栾/乌桕/重阳木/国槐/白蜡/女贞/垂柳〕+ 族级验收门 011.13 七项全过〔横向一致性/真实差异/混植/预算全表/性能 13×5/契约零修订——10 主题裁定 + envMap 缺口 B 转 T018/回归 3918〕；垂枝域应力位①档实证；族门方法首跑升格提案待用户确认）→ [tasks/011-broadleaf-trees.md](tasks/011-broadleaf-trees.md)
 

@@ -254,85 +254,85 @@
   "tech-tree3a": {
     "skyTop": {
       "oldLuma": 19.4,
-      "newLuma": 242.5,
-      "meanAbsDiff": 223.09,
-      "diffFrac": 0.9927
+      "newLuma": 186.3,
+      "meanAbsDiff": 166.95,
+      "diffFrac": 0.9923
     },
     "groundBottom": {
       "oldLuma": 17.1,
-      "newLuma": 73.1,
-      "meanAbsDiff": 56,
-      "diffFrac": 0.9972
+      "newLuma": 38.3,
+      "meanAbsDiff": 21.18,
+      "diffFrac": 0.9964
     }
   },
   "tech-celtis": {
     "skyTop": {
       "oldLuma": 19.4,
-      "newLuma": 242.5,
-      "meanAbsDiff": 223.09,
-      "diffFrac": 0.9927
+      "newLuma": 186.3,
+      "meanAbsDiff": 166.95,
+      "diffFrac": 0.9923
     },
     "groundBottom": {
       "oldLuma": 17.1,
-      "newLuma": 73.1,
-      "meanAbsDiff": 56,
-      "diffFrac": 0.9972
+      "newLuma": 38.3,
+      "meanAbsDiff": 21.18,
+      "diffFrac": 0.9964
     }
   },
   "tech-camphor": {
     "skyTop": {
       "oldLuma": 19.4,
-      "newLuma": 242.5,
-      "meanAbsDiff": 223.09,
-      "diffFrac": 0.9927
+      "newLuma": 186.3,
+      "meanAbsDiff": 166.95,
+      "diffFrac": 0.9923
     },
     "groundBottom": {
       "oldLuma": 17.1,
-      "newLuma": 73.1,
-      "meanAbsDiff": 56,
-      "diffFrac": 0.9972
+      "newLuma": 38.3,
+      "meanAbsDiff": 21.18,
+      "diffFrac": 0.9964
     }
   },
   "tech-streetlamp": {
     "skyTop": {
       "oldLuma": 19.4,
-      "newLuma": 241.5,
-      "meanAbsDiff": 222.14,
-      "diffFrac": 0.9927
+      "newLuma": 178.7,
+      "meanAbsDiff": 159.31,
+      "diffFrac": 0.9923
     },
     "groundBottom": {
       "oldLuma": 17.2,
-      "newLuma": 74.3,
-      "meanAbsDiff": 57.1,
-      "diffFrac": 0.9972
+      "newLuma": 38.9,
+      "meanAbsDiff": 21.65,
+      "diffFrac": 0.9966
     }
   },
   "tech-glb": {
     "skyTop": {
       "oldLuma": 19.4,
-      "newLuma": 242,
-      "meanAbsDiff": 222.64,
-      "diffFrac": 0.9927
+      "newLuma": 182.4,
+      "meanAbsDiff": 163.07,
+      "diffFrac": 0.9923
     },
     "groundBottom": {
       "oldLuma": 17,
-      "newLuma": 74.5,
-      "meanAbsDiff": 57.49,
-      "diffFrac": 0.9973
+      "newLuma": 38.8,
+      "meanAbsDiff": 21.82,
+      "diffFrac": 0.9966
     }
   },
   "tech-metal": {
     "skyTop": {
       "oldLuma": 19.4,
-      "newLuma": 242.8,
-      "meanAbsDiff": 223.42,
-      "diffFrac": 0.9927
+      "newLuma": 191.3,
+      "meanAbsDiff": 171.93,
+      "diffFrac": 0.9925
     },
     "groundBottom": {
       "oldLuma": 17.3,
-      "newLuma": 75.3,
-      "meanAbsDiff": 58.02,
-      "diffFrac": 0.9973
+      "newLuma": 39.4,
+      "meanAbsDiff": 22.08,
+      "diffFrac": 0.9966
     }
   },
   "__console": []

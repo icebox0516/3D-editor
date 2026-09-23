@@ -1,0 +1,46 @@
+{
+  "probe": {
+    "envProbe": true,
+    "tree3aPerf": true,
+    "tree3a": true,
+    "sky": true
+  },
+  "techParams": {
+    "displayIntensity": 0.2,
+    "iblIntensity": 0.15,
+    "sun": [
+      59.99999999999999,
+      70
+    ],
+    "mode": "sky"
+  },
+  "shots": [
+    "tech-tree3a.png",
+    "tech-celtis.png",
+    "tech-camphor.png",
+    "tech-streetlamp.png",
+    "tech-glb.png",
+    "tech-metal.png"
+  ],
+  "glb": {
+    "sourceSize": [
+      0.3199999928474426,
+      2.380000114440918,
+      0.3400000035762787
+    ],
+    "scale": 0.5042016564280251
+  },
+  "metal": {
+    "spheres": 3
+  },
+  "finalProbe": {
+    "mode": "sky",
+    "pmrem": {
+      "baked": 1,
+      "retired": 0,
+      "owned": 1,
+      "live": 1
+    }
+  },
+  "__console": []
+}
