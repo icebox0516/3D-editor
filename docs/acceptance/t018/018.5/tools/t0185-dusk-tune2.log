@@ -1,0 +1,95 @@
+[E] done
+[F] done
+[G] done
+{
+  "candidates": [
+    {
+      "id": "E",
+      "turbidity": 4,
+      "rayleigh": 1.5,
+      "mie": 0.002,
+      "g": 0.75,
+      "elev": 8,
+      "display": 0.7,
+      "metrics": {
+        "upper": {
+          "rgb": [
+            235,
+            248,
+            249
+          ],
+          "white": 0.682,
+          "sat": 0.06
+        },
+        "horizon": {
+          "rgb": [
+            177,
+            169,
+            163
+          ],
+          "white": 0.228,
+          "sat": 0.08
+        }
+      }
+    },
+    {
+      "id": "F",
+      "turbidity": 6,
+      "rayleigh": 1.8,
+      "mie": 0.003,
+      "g": 0.78,
+      "elev": 10,
+      "display": 0.6,
+      "metrics": {
+        "upper": {
+          "rgb": [
+            246,
+            249,
+            249
+          ],
+          "white": 0.874,
+          "sat": 0.017
+        },
+        "horizon": {
+          "rgb": [
+            178,
+            173,
+            170
+          ],
+          "white": 0.342,
+          "sat": 0.059
+        }
+      }
+    },
+    {
+      "id": "G",
+      "turbidity": 3,
+      "rayleigh": 1.2,
+      "mie": 0.002,
+      "g": 0.72,
+      "elev": 6,
+      "display": 0.8,
+      "metrics": {
+        "upper": {
+          "rgb": [
+            215,
+            240,
+            248
+          ],
+          "white": 0.436,
+          "sat": 0.14
+        },
+        "horizon": {
+          "rgb": [
+            175,
+            166,
+            153
+          ],
+          "white": 0.1,
+          "sat": 0.122
+        }
+      }
+    }
+  ],
+  "__console": []
+}

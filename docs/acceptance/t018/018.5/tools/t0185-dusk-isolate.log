@@ -1,0 +1,79 @@
+[clouds0] done
+[clouds0-d05] done
+{
+  "variants": [
+    {
+      "id": "clouds0",
+      "patch": {
+        "cloudCoverage": 0
+      },
+      "display": 1,
+      "metrics": {
+        "upper": {
+          "rgb": [
+            245,
+            249,
+            246
+          ],
+          "white": 0.842,
+          "sat": 0.023
+        },
+        "mid": {
+          "rgb": [
+            254,
+            250,
+            239
+          ],
+          "white": 0.709,
+          "sat": 0.06
+        },
+        "horizon": {
+          "rgb": [
+            178,
+            166,
+            159
+          ],
+          "white": 0.219,
+          "sat": 0.119
+        }
+      }
+    },
+    {
+      "id": "clouds0-d05",
+      "patch": {
+        "cloudCoverage": 0
+      },
+      "display": 0.5,
+      "metrics": {
+        "upper": {
+          "rgb": [
+            232,
+            239,
+            230
+          ],
+          "white": 0.645,
+          "sat": 0.057
+        },
+        "mid": {
+          "rgb": [
+            245,
+            235,
+            213
+          ],
+          "white": 0.508,
+          "sat": 0.135
+        },
+        "horizon": {
+          "rgb": [
+            173,
+            156,
+            147
+          ],
+          "white": 0.15,
+          "sat": 0.147
+        }
+      }
+    }
+  ],
+  "__console": []
+}

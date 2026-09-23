@@ -1,0 +1,157 @@
+[A] done
+[B] done
+[C] done
+[D] done
+{
+  "candidates": [
+    {
+      "id": "A",
+      "turbidity": 5,
+      "rayleigh": 2,
+      "mie": 0.004,
+      "g": 0.8,
+      "display": 0.5,
+      "metrics": {
+        "upper": {
+          "rgb": [
+            215,
+            231,
+            224
+          ],
+          "white": 0.487,
+          "sat": 0.097
+        },
+        "mid": {
+          "rgb": [
+            240,
+            231,
+            201
+          ],
+          "white": 0.353,
+          "sat": 0.175
+        },
+        "horizon": {
+          "rgb": [
+            168,
+            149,
+            139
+          ],
+          "white": 0.077,
+          "sat": 0.157
+        }
+      }
+    },
+    {
+      "id": "B",
+      "turbidity": 4,
+      "rayleigh": 1.8,
+      "mie": 0.003,
+      "g": 0.78,
+      "display": 0.6,
+      "metrics": {
+        "upper": {
+          "rgb": [
+            212,
+            232,
+            230
+          ],
+          "white": 0.457,
+          "sat": 0.113
+        },
+        "mid": {
+          "rgb": [
+            242,
+            236,
+            206
+          ],
+          "white": 0.332,
+          "sat": 0.162
+        },
+        "horizon": {
+          "rgb": [
+            170,
+            151,
+            139
+          ],
+          "white": 0.051,
+          "sat": 0.162
+        }
+      }
+    },
+    {
+      "id": "C",
+      "turbidity": 8,
+      "rayleigh": 2.2,
+      "mie": 0.004,
+      "g": 0.8,
+      "display": 0.3,
+      "metrics": {
+        "upper": {
+          "rgb": [
+            206,
+            218,
+            204
+          ],
+          "white": 0.415,
+          "sat": 0.108
+        },
+        "mid": {
+          "rgb": [
+            229,
+            213,
+            180
+          ],
+          "white": 0.286,
+          "sat": 0.227
+        },
+        "horizon": {
+          "rgb": [
+            163,
+            142,
+            132
+          ],
+          "white": 0.06,
+          "sat": 0.171
+        }
+      }
+    },
+    {
+      "id": "D",
+      "turbidity": 6,
+      "rayleigh": 2.4,
+      "mie": 0.005,
+      "g": 0.82,
+      "display": 0.4,
+      "metrics": {
+        "upper": {
+          "rgb": [
+            215,
+            226,
+            212
+          ],
+          "white": 0.452,
+          "sat": 0.1
+        },
+        "mid": {
+          "rgb": [
+            235,
+            219,
+            189
+          ],
+          "white": 0.324,
+          "sat": 0.206
+        },
+        "horizon": {
+          "rgb": [
+            164,
+            145,
+            137
+          ],
+          "white": 0.081,
+          "sat": 0.155
+        }
+      }
+    }
+  ],
+  "__console": []
+}

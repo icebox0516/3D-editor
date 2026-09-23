@@ -1,0 +1,93 @@
+{
+  "day-tree3a.png": {
+    "meanRGB": [
+      128,
+      182,
+      234
+    ],
+    "whiteFrac": 0,
+    "meanSat": 0.453
+  },
+  "dusk-tree3a.png": {
+    "meanRGB": [
+      243,
+      247,
+      243
+    ],
+    "whiteFrac": 0.78,
+    "meanSat": 0.038
+  },
+  "night-tree3a.png": {
+    "meanRGB": [
+      86,
+      121,
+      174
+    ],
+    "whiteFrac": 0.0044,
+    "meanSat": 0.54
+  },
+  "tech-tree3a.png": {
+    "meanRGB": [
+      247,
+      249,
+      249
+    ],
+    "whiteFrac": 0.9278,
+    "meanSat": 0.01
+  },
+  "dt-tech-d02.png": {
+    "meanRGB": [
+      154,
+      220,
+      249
+    ],
+    "whiteFrac": 0,
+    "meanSat": 0.38
+  },
+  "dt-tech-d015.png": {
+    "meanRGB": [
+      135,
+      196,
+      241
+    ],
+    "whiteFrac": 0,
+    "meanSat": 0.44
+  },
+  "dt-dusk-d07.png": {
+    "meanRGB": [
+      236,
+      242,
+      235
+    ],
+    "whiteFrac": 0.6785,
+    "meanSat": 0.061
+  },
+  "dt-dusk-d05.png": {
+    "meanRGB": [
+      229,
+      235,
+      225
+    ],
+    "whiteFrac": 0.5884,
+    "meanSat": 0.083
+  },
+  "dt-dusk-d035.png": {
+    "meanRGB": [
+      219,
+      225,
+      212
+    ],
+    "whiteFrac": 0.5123,
+    "meanSat": 0.105
+  },
+  "dt-dusk-d025.png": {
+    "meanRGB": [
+      208,
+      215,
+      199
+    ],
+    "whiteFrac": 0.449,
+    "meanSat": 0.123
+  },
+  "__console": []
+}

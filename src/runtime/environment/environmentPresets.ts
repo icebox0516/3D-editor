@@ -11,13 +11,18 @@
  * 边界：`SceneEnvironment.preset: string` 只存 id（持久化零改动）；UI 的 id/label 表在
  * app/bootstrap（不入本面）；cloudSpeed 恒 0 **不进预设**（D29.11 静态云——结构上无该键，
  * skyCore 构造期一次写 0，此后无写入路径）。数值口径（T018.5 终调定案）：day 太阳角/
- * 大气/云仍零漂移锚逐位锁定；day iblIntensity 1.0→0.15 与 displayIntensity 0.22 为
- * 018.5 终调**重锚**——重锚依据 = day/tech 过曝走显示域压缩处置（D29.13 机制，不走
- * tone mapping）+ Chrome 153 CDP 视口分带实测与 018.0 legacy 基线对齐（day 天空带
- * luma/rB 与 legacy day 渐变逐位对齐零通道裁剪、地面带通道饱和占比归零脱离 Preetham
- * HDR × NoToneMapping clamp 饱和平台）；dusk/night/tech displayIntensity 1、ibl 维持
- * 018.3 差异化表值（018.3 时代「tech 也过曝」判断被预设差异化终值 elevation 60°/ibl
- * 0.7 消解）。测试锁 day 锚（含重锚值）+ 结构 + 三预设终值绝对锚。
+ * 大气/云仍零漂移锚逐位锁定；day iblIntensity 1.0→0.15 与 displayIntensity 0.22、
+ * tech iblIntensity 0.7→0.15 与 displayIntensity 1→0.2 为 018.5 终调**重锚**——day 与
+ * tech 同为显示域压缩预设（D29.13 机制，不走 tone mapping），依据 = Chrome 153 CDP
+ * 视口分带实测与 018.0 legacy 基线对齐：day 天空带 luma/rB 与 legacy day 渐变逐位对齐
+ * 零通道裁剪、地面带通道饱和占比归零脱离 Preetham HDR × NoToneMapping clamp 饱和平台；
+ * tech 与 day 同源（天空带 24×12 白占比 1.0 / min 通道 ≥240 占比 0.93 → display 0.2 下
+ * 冷蓝渐变 + 白占比 0（目视冷蓝渐变 + 云带 + 地面阴影可辨）、metalness=1 三球粗糙度阶梯
+ * 在 ibl 0.15 下恢复可辨（纯白占比 0.63/0.78/0.91→0.23/0.20/0.08）、地面 luma 75→39
+ * 回归 legacy tech 暗蓝语义——018.3 时代「tech 过曝被判差异化终值消解」的定论经复测推翻，
+ * 两者同为压缩对）。dusk/night displayIntensity 1、ibl 维持 018.3 差异化表值（其白是低
+ * 太阳正对机位的自然眩光，背太阳机位实测白占比 0 饱和度 0.279——非显示域过曝，不压缩）。
+ * 测试锁 day 锚（含重锚值）+ 结构 + 四预设终值绝对锚。
  */
 import type { SkyAtmosphereParams } from './skyCore';
 import { DAY_SUN_AZIMUTH_DEG, DAY_SUN_ELEVATION_DEG } from './sunDirection';
@@ -84,9 +89,11 @@ export interface EnvironmentPreset {
  *    长影方向差异化首次生效（此前四预设同用 day 角）；
  *  - night：低角低强度冷色太阳（月光语义）+ 低 rayleigh 压暗 + ibl 0.35（Preetham
  *    无夜晚语义为已知近似 D29.6——参数只给方向正确初值）；
- *  - tech：冷色深蓝（偏高 rayleigh）低云量 + ibl 0.7（elevation 60°/ibl 0.7 的差异化
- *    终值消解了 018.3 时代的过曝判断）。
- * dusk/night/tech displayIntensity 恒 1（018.5 实测无过曝，day 独走显示域压缩）。
+ *  - tech：冷色深蓝（偏高 rayleigh）低云量 + displayIntensity 0.2 / ibl 0.15——与 day
+ *    同为 018.5 显示域压缩对（天空整体过亮满白裁剪 + 金属反射过曝，同 0.15 压缩口径
+ *    修复；elevation 60°/azimuth 70° 差异化角与大气/云值不动）。
+ * dusk/night displayIntensity 恒 1（018.5 实测无过曝：白为低太阳正对机位的自然眩光，
+ * 背太阳机位白占比 0 饱和度 0.279——day/tech 为唯二显示域压缩预设）。
  */
 export const ENVIRONMENT_PRESET_TABLE: Readonly<Record<string, EnvironmentPreset>> = {
   day: {
@@ -143,8 +150,8 @@ export const ENVIRONMENT_PRESET_TABLE: Readonly<Record<string, EnvironmentPreset
     atmosphere: { turbidity: 2.5, rayleigh: 1.6, mieCoefficient: 0.004, mieDirectionalG: 0.8 },
     cloud: { cloudCoverage: 0.2, cloudDensity: 0.35, cloudElevation: 0.6, cloudScale: 0.0002 },
     sun: { elevationDeg: 60, azimuthDeg: 70, intensity: 1.2, color: 0x9fd8ff },
-    iblIntensity: 0.7,
-    displayIntensity: 1,
+    iblIntensity: 0.15,
+    displayIntensity: 0.2,
     groundColor: '#0b1c2a',
     gridMajor: 0x1e5f74,
     gridMinor: 0x123244,

@@ -12,9 +12,10 @@
  *   （50.2°/53.1°）+ 大气/云与 018.1 day 值逐位一致（硬编码期望——改表须过本测试
  *   即显式重锚）+ ibl 0.15 / displayIntensity 0.22（018.5 显示域压缩终调重锚）+
  *   一期直射光强度/色沿用；
- * - dusk/night/tech 终值绝对锚定（018.5 定案）：day ibl 压缩重排后原「< day」相对
- *   断言失效，改绝对值逐位锁（ibl 0.85 / 0.35 / 0.7 + displayIntensity 均 1——
- *   绝对锚是加严不是放松）+ day 为最低 ibl 预设的重排语义 + 四预设太阳仰角互异；
+ * - dusk/night/tech 终值绝对锚定（018.5 定案）：day/tech ibl 压缩重排后原「< day」相对
+ *   断言失效，改绝对值逐位锁（ibl 0.85 / 0.35 / 0.15 + displayIntensity 1 / 1 / 0.2
+ *   ——绝对锚是加严不是放松）+ day/tech 为最低 ibl 压缩对的重排语义 + 四预设太阳仰角
+ *   互异；
  * - ground/grid/fallback 键沿用一期值（迁移防丢值——硬编码全预设对照）；
  * - skyAtmosphereOfPreset：两子面合回 SkyCore 八参数入参形态（键集恰 8）。
  */
@@ -144,9 +145,10 @@ describe('环境预设面 · day 零漂移锚回归锁（018.1 现值逐位一�
 });
 
 describe('环境预设面 · dusk/night/tech 差异化（T018.5 终值绝对锚定）', () => {
-  // 018.5 重排说明：day ibl 压至 0.15 后 day 成为最低 ibl 预设，原「dusk/night/tech
-  // < day」相对断言随之失效——改为绝对值锚定（逐位锁死而非只锁方向，加严不是放松）；
-  // displayIntensity 三预设均 1（实测无过曝，day 独走显示域压缩）。
+  // 018.5 重排说明：day/tech ibl 压至 0.15 后二者同为最低 ibl 预设（压缩对），原
+  // 「dusk/night/tech < day」相对断言随之失效——改为绝对值锚定（逐位锁死而非只锁方向，
+  // 加严不是放松）；displayIntensity：day 0.22 / tech 0.2（压缩对）/ dusk·night 1
+  // （低太阳正对机位的自然眩光，非显示域过曝）。
   const day = ENVIRONMENT_PRESET_TABLE.day;
   const dusk = ENVIRONMENT_PRESET_TABLE.dusk;
   const night = ENVIRONMENT_PRESET_TABLE.night;
@@ -167,17 +169,26 @@ describe('环境预设面 · dusk/night/tech 差异化（T018.5 终值绝对锚�
     expect(night.displayIntensity).toBe(1);
   });
 
-  it('tech：冷色偏高 rayleigh + 低云量 + ibl 0.7 / display 1（终值绝对锚）', () => {
+  it('tech：冷色偏高 rayleigh + 低云量 + ibl 0.15 / display 0.2（压缩对终值绝对锚）', () => {
     expect(tech.atmosphere.rayleigh).toBeGreaterThan(day.atmosphere.rayleigh); // 偏高 rayleigh 深蓝
     expect(tech.cloud.cloudCoverage).toBeLessThan(day.cloud.cloudCoverage); // 低云量
-    expect(tech.iblIntensity).toBe(0.7); // 018.5 终值定案（原「< day」随 day 压缩失效）
-    expect(tech.displayIntensity).toBe(1);
+    // 018.5 终调重锚（原表值 ibl 0.7 / display 1 经复测推翻）：tech 与 day 同为显示域
+    // 压缩预设、同 0.15 压缩口径——ibl 0.15 下 metalness=1 三球粗糙度阶梯纯白占比
+    // 0.63/0.78/0.91→0.23/0.20/0.08 阶梯可辨、地面 luma 75→39 回归 legacy 暗蓝语义；
+    // display 0.2 消天空满白裁剪（白占比 1.0→0，冷蓝渐变 + 云带 + 地面阴影可见）。
+    expect(tech.iblIntensity).toBe(0.15);
+    expect(tech.displayIntensity).toBe(0.2);
   });
 
-  it('day ibl 压缩重排：day 成为最低 ibl 预设（0.15 < night 0.35 < tech 0.7 < dusk 0.85）', () => {
-    for (const id of ['dusk', 'night', 'tech'] as const) {
-      expect(day.iblIntensity).toBeLessThan(ENVIRONMENT_PRESET_TABLE[id].iblIntensity);
-    }
+  it('ibl 压缩重排：day/tech 压缩对为最低 ibl（两者 0.15，严格低于 night 0.35 与 dusk 0.85）', () => {
+    // 018.5 终调重锚：day 与 tech 同为 0.15——day 侧保持严格大小断言（对 night/dusk），
+    // tech 侧由原 toBeLessThan(day) 改为 0.15 相等锁（相等锁强于大小方向断言，非放松）。
+    expect(day.iblIntensity).toBe(0.15);
+    expect(tech.iblIntensity).toBe(0.15);
+    expect(day.iblIntensity).toBeLessThan(night.iblIntensity); // 0.15 < 0.35
+    expect(tech.iblIntensity).toBeLessThan(night.iblIntensity);
+    expect(day.iblIntensity).toBeLessThan(dusk.iblIntensity); // 0.15 < 0.85
+    expect(tech.iblIntensity).toBeLessThan(dusk.iblIntensity);
   });
 
   it('四预设太阳仰角互异（预设差异化首次生效：此前四预设同用 day 角）', () => {

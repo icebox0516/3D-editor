@@ -10,7 +10,7 @@
  * - 成功路径：mode 'sky'——displaySky 挂 envGroup、scene.environment = 初烘 RT、
  *   background null、无 Hemi、environmentIntensity = 预设 ibl（差异化接线：dusk 0.85）、
  *   displaySky uDisplayIntensity = 预设 displayIntensity（T018.5 显示域压缩接线：
- *   day 0.22 / 三预设 1）；
+ *   day 0.22 / tech 0.2【压缩对】/ dusk·night 1）；
  *   SkyCore 预设接线（大气八参 + 预设太阳角——非 day 角亦贯通）；
  * - **单一开关不变式**（共享断言，两分支同口径）：sky ⇔ environment 非空 ⇔ 无 Hemi ⇔
  *   background null；legacy ⇔ Hemi 存在 + background 渐变 + environment null + 无 sky
@@ -197,10 +197,11 @@ describe('setupSkyEnvironment · 成功路径（新路径 + 预设接线）', ()
     expect(u.sunPosition.value.x).toBeCloseTo(expected.x, 12);
     expect(u.sunPosition.value.y).toBeCloseTo(expected.y, 12);
     expect(u.sunPosition.value.z).toBeCloseTo(expected.z, 12);
-    // IBL 强度预设差异化接线（day 0.15 / dusk 0.85——018.5 重锚后 day 为最低）
+    // IBL 强度预设差异化接线（day 0.15 / dusk 0.85——018.5 重锚后 day/tech 为最低 ibl 压缩对）
     expect(scene.environmentIntensity).toBe(preset.iblIntensity);
     expect(preset.iblIntensity).not.toBe(1);
-    // displayIntensity 预设接线（dusk 1：三预设无过曝不压缩，018.5 终值）
+    // displayIntensity 预设接线（dusk 1：低太阳正对机位的自然眩光非过曝，018.5 终值；
+    // day/tech 为唯二走显示域压缩的预设）
     expect(displaySkyUniformsOf(outcome.sky.displaySky).uDisplayIntensity.value).toBe(preset.displayIntensity);
     expect(preset.displayIntensity).toBe(1);
     outcome.pmrem.dispose();
