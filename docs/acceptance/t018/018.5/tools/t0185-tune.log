@@ -1,0 +1,632 @@
+{
+  "probe": {
+    "sky": true,
+    "envProbe": true,
+    "tree3aPerf": true,
+    "tree3a": true,
+    "mode": "sky"
+  },
+  "sweeps": {
+    "day-tree": {
+      "baseline": {
+        "params": {
+          "atmosphere": {
+            "turbidity": 3,
+            "rayleigh": 1.2,
+            "mieCoefficient": 0.005,
+            "mieDirectionalG": 0.8,
+            "cloudCoverage": 0.35,
+            "cloudDensity": 0.4,
+            "cloudElevation": 0.5,
+            "cloudScale": 0.0002
+          },
+          "sun": {
+            "elevationDeg": 50.2,
+            "azimuthDeg": 53.10000000000002
+          },
+          "displayIntensity": 1,
+          "iblIntensity": 1,
+          "preset": "day"
+        },
+        "stats": {
+          "sky": {
+            "satFrac": 0.3589,
+            "meanLuma": 111.1,
+            "lumaStd": 103.6
+          },
+          "ground": {
+            "satFrac": 0.4085,
+            "meanLuma": 124.6,
+            "lumaStd": 110.9
+          },
+          "full": {
+            "satFrac": 0.4954,
+            "meanLuma": 153.3,
+            "lumaStd": 110.1
+          }
+        }
+      },
+      "display": [
+        {
+          "display": 0.6,
+          "metrics": {
+            "sky": {
+              "satFrac": 0.3589,
+              "meanLuma": 106.5,
+              "lumaStd": 98.2
+            },
+            "ground": {
+              "satFrac": 0.4085,
+              "meanLuma": 124.6,
+              "lumaStd": 110.9
+            },
+            "full": {
+              "satFrac": 0.4954,
+              "meanLuma": 152,
+              "lumaStd": 109.1
+            }
+          }
+        },
+        {
+          "display": 0.45,
+          "metrics": {
+            "sky": {
+              "satFrac": 0.3589,
+              "meanLuma": 99.8,
+              "lumaStd": 90.3
+            },
+            "ground": {
+              "satFrac": 0.4085,
+              "meanLuma": 124.6,
+              "lumaStd": 110.9
+            },
+            "full": {
+              "satFrac": 0.4954,
+              "meanLuma": 150.1,
+              "lumaStd": 107.9
+            }
+          }
+        },
+        {
+          "display": 0.35,
+          "metrics": {
+            "sky": {
+              "satFrac": 0.3589,
+              "meanLuma": 92.3,
+              "lumaStd": 80.9
+            },
+            "ground": {
+              "satFrac": 0.4085,
+              "meanLuma": 124.6,
+              "lumaStd": 110.9
+            },
+            "full": {
+              "satFrac": 0.4954,
+              "meanLuma": 147.6,
+              "lumaStd": 106.3
+            }
+          }
+        },
+        {
+          "display": 0.28,
+          "metrics": {
+            "sky": {
+              "satFrac": 0.1817,
+              "meanLuma": 86,
+              "lumaStd": 73.1
+            },
+            "ground": {
+              "satFrac": 0.4085,
+              "meanLuma": 124.6,
+              "lumaStd": 110.9
+            },
+            "full": {
+              "satFrac": 0.4688,
+              "meanLuma": 144.8,
+              "lumaStd": 104.7
+            }
+          }
+        }
+      ],
+      "ibl": [
+        {
+          "ibl": 0.5,
+          "metrics": {
+            "sky": {
+              "satFrac": 0.3589,
+              "meanLuma": 111.1,
+              "lumaStd": 103.6
+            },
+            "ground": {
+              "satFrac": 0.4085,
+              "meanLuma": 124.6,
+              "lumaStd": 110.9
+            },
+            "full": {
+              "satFrac": 0.4911,
+              "meanLuma": 152.9,
+              "lumaStd": 110
+            }
+          }
+        },
+        {
+          "ibl": 0.4,
+          "metrics": {
+            "sky": {
+              "satFrac": 0.3589,
+              "meanLuma": 111.1,
+              "lumaStd": 103.6
+            },
+            "ground": {
+              "satFrac": 0.4085,
+              "meanLuma": 123.5,
+              "lumaStd": 109.6
+            },
+            "full": {
+              "satFrac": 0.4911,
+              "meanLuma": 151.9,
+              "lumaStd": 109.2
+            }
+          }
+        },
+        {
+          "ibl": 0.3,
+          "metrics": {
+            "sky": {
+              "satFrac": 0.3589,
+              "meanLuma": 111.1,
+              "lumaStd": 103.6
+            },
+            "ground": {
+              "satFrac": 0.4085,
+              "meanLuma": 122,
+              "lumaStd": 107.9
+            },
+            "full": {
+              "satFrac": 0.4903,
+              "meanLuma": 150.6,
+              "lumaStd": 108.2
+            }
+          }
+        },
+        {
+          "ibl": 0.25,
+          "metrics": {
+            "sky": {
+              "satFrac": 0.3589,
+              "meanLuma": 111.1,
+              "lumaStd": 103.6
+            },
+            "ground": {
+              "satFrac": 0.4085,
+              "meanLuma": 118,
+              "lumaStd": 103.4
+            },
+            "full": {
+              "satFrac": 0.489,
+              "meanLuma": 147.6,
+              "lumaStd": 105.7
+            }
+          }
+        }
+      ],
+      "final": null
+    },
+    "tech-tree": {
+      "baseline": {
+        "params": {
+          "atmosphere": {
+            "turbidity": 2.5,
+            "rayleigh": 1.6,
+            "mieCoefficient": 0.004,
+            "mieDirectionalG": 0.8,
+            "cloudCoverage": 0.2,
+            "cloudDensity": 0.35,
+            "cloudElevation": 0.6,
+            "cloudScale": 0.0002
+          },
+          "sun": {
+            "elevationDeg": 59.99999999999999,
+            "azimuthDeg": 70
+          },
+          "displayIntensity": 1,
+          "iblIntensity": 0.7,
+          "preset": "tech"
+        },
+        "stats": {
+          "sky": {
+            "satFrac": 0.3589,
+            "meanLuma": 114.3,
+            "lumaStd": 107.6
+          },
+          "ground": {
+            "satFrac": 0,
+            "meanLuma": 48.5,
+            "lumaStd": 26.8
+          },
+          "full": {
+            "satFrac": 0.2016,
+            "meanLuma": 94.7,
+            "lumaStd": 85.9
+          }
+        }
+      },
+      "display": [
+        {
+          "display": 0.7,
+          "metrics": {
+            "sky": {
+              "satFrac": 0.3589,
+              "meanLuma": 112.1,
+              "lumaStd": 104.8
+            },
+            "ground": {
+              "satFrac": 0,
+              "meanLuma": 48.5,
+              "lumaStd": 26.8
+            },
+            "full": {
+              "satFrac": 0.2016,
+              "meanLuma": 94.3,
+              "lumaStd": 85.2
+            }
+          }
+        },
+        {
+          "display": 0.5,
+          "metrics": {
+            "sky": {
+              "satFrac": 0.3589,
+              "meanLuma": 109.7,
+              "lumaStd": 101.8
+            },
+            "ground": {
+              "satFrac": 0,
+              "meanLuma": 48.5,
+              "lumaStd": 26.8
+            },
+            "full": {
+              "satFrac": 0.2016,
+              "meanLuma": 93.7,
+              "lumaStd": 84.1
+            }
+          }
+        },
+        {
+          "display": 0.35,
+          "metrics": {
+            "sky": {
+              "satFrac": 0.3589,
+              "meanLuma": 106.4,
+              "lumaStd": 97.7
+            },
+            "ground": {
+              "satFrac": 0,
+              "meanLuma": 48.5,
+              "lumaStd": 26.8
+            },
+            "full": {
+              "satFrac": 0.2016,
+              "meanLuma": 92.7,
+              "lumaStd": 82.5
+            }
+          }
+        }
+      ],
+      "ibl": [
+        {
+          "ibl": 0.5,
+          "metrics": {
+            "sky": {
+              "satFrac": 0.3589,
+              "meanLuma": 114.3,
+              "lumaStd": 107.6
+            },
+            "ground": {
+              "satFrac": 0,
+              "meanLuma": 43.8,
+              "lumaStd": 22
+            },
+            "full": {
+              "satFrac": 0.1996,
+              "meanLuma": 90.5,
+              "lumaStd": 86.2
+            }
+          }
+        },
+        {
+          "ibl": 0.4,
+          "metrics": {
+            "sky": {
+              "satFrac": 0.3589,
+              "meanLuma": 114.3,
+              "lumaStd": 107.6
+            },
+            "ground": {
+              "satFrac": 0,
+              "meanLuma": 41.1,
+              "lumaStd": 19.4
+            },
+            "full": {
+              "satFrac": 0.1996,
+              "meanLuma": 88,
+              "lumaStd": 86.6
+            }
+          }
+        },
+        {
+          "ibl": 0.3,
+          "metrics": {
+            "sky": {
+              "satFrac": 0.3589,
+              "meanLuma": 114.3,
+              "lumaStd": 107.6
+            },
+            "ground": {
+              "satFrac": 0,
+              "meanLuma": 38,
+              "lumaStd": 16.7
+            },
+            "full": {
+              "satFrac": 0.1996,
+              "meanLuma": 85.2,
+              "lumaStd": 87.2
+            }
+          }
+        },
+        {
+          "ibl": 0.25,
+          "metrics": {
+            "sky": {
+              "satFrac": 0.3589,
+              "meanLuma": 114.3,
+              "lumaStd": 107.6
+            },
+            "ground": {
+              "satFrac": 0,
+              "meanLuma": 36.3,
+              "lumaStd": 15.3
+            },
+            "full": {
+              "satFrac": 0.1996,
+              "meanLuma": 83.7,
+              "lumaStd": 87.7
+            }
+          }
+        }
+      ],
+      "final": null
+    },
+    "dusk-tree": {
+      "baseline": {
+        "params": {
+          "atmosphere": {
+            "turbidity": 8,
+            "rayleigh": 2.2,
+            "mieCoefficient": 0.008,
+            "mieDirectionalG": 0.85,
+            "cloudCoverage": 0.5,
+            "cloudDensity": 0.5,
+            "cloudElevation": 0.4,
+            "cloudScale": 0.0002
+          },
+          "sun": {
+            "elevationDeg": 5,
+            "azimuthDeg": 239.99999999999994
+          },
+          "displayIntensity": 1,
+          "iblIntensity": 0.85,
+          "preset": "dusk"
+        },
+        "metrics": {
+          "sky": {
+            "satFrac": 0.3292,
+            "meanLuma": 113,
+            "lumaStd": 106.3
+          },
+          "ground": {
+            "satFrac": 0,
+            "meanLuma": 57.6,
+            "lumaStd": 36.4
+          },
+          "full": {
+            "satFrac": 0.1857,
+            "meanLuma": 101.2,
+            "lumaStd": 83.7
+          }
+        }
+      }
+    },
+    "night-tree": {
+      "baseline": {
+        "params": {
+          "atmosphere": {
+            "turbidity": 2,
+            "rayleigh": 0.2,
+            "mieCoefficient": 0.003,
+            "mieDirectionalG": 0.8,
+            "cloudCoverage": 0.25,
+            "cloudDensity": 0.3,
+            "cloudElevation": 0.5,
+            "cloudScale": 0.0002
+          },
+          "sun": {
+            "elevationDeg": 14.999999999999998,
+            "azimuthDeg": 315
+          },
+          "displayIntensity": 1,
+          "iblIntensity": 0.35,
+          "preset": "night"
+        },
+        "metrics": {
+          "sky": {
+            "satFrac": 0.0024,
+            "meanLuma": 60.7,
+            "lumaStd": 55.3
+          },
+          "ground": {
+            "satFrac": 0,
+            "meanLuma": 24.8,
+            "lumaStd": 11.3
+          },
+          "full": {
+            "satFrac": 0.0356,
+            "meanLuma": 49.1,
+            "lumaStd": 51
+          }
+        }
+      }
+    },
+    "day-metal": {
+      "baseline": {
+        "params": {
+          "atmosphere": {
+            "turbidity": 3,
+            "rayleigh": 1.2,
+            "mieCoefficient": 0.005,
+            "mieDirectionalG": 0.8,
+            "cloudCoverage": 0.35,
+            "cloudDensity": 0.4,
+            "cloudElevation": 0.5,
+            "cloudScale": 0.0002
+          },
+          "sun": {
+            "elevationDeg": 50.2,
+            "azimuthDeg": 53.10000000000002
+          },
+          "displayIntensity": 1,
+          "iblIntensity": 1,
+          "preset": "day"
+        },
+        "metrics": {
+          "sky": {
+            "satFrac": 0.3589,
+            "meanLuma": 112.3,
+            "lumaStd": 105.2
+          },
+          "ground": {
+            "satFrac": 0.4135,
+            "meanLuma": 124.7,
+            "lumaStd": 110.9
+          },
+          "full": {
+            "satFrac": 0.5384,
+            "meanLuma": 154.9,
+            "lumaStd": 111.2
+          }
+        }
+      },
+      "compressed": {
+        "display": 0.35,
+        "ibl": 0.3,
+        "metrics": {
+          "sky": {
+            "satFrac": 0.3589,
+            "meanLuma": 96.6,
+            "lumaStd": 86.7
+          },
+          "ground": {
+            "satFrac": 0.4135,
+            "meanLuma": 122,
+            "lumaStd": 107.9
+          },
+          "full": {
+            "satFrac": 0.5322,
+            "meanLuma": 146.6,
+            "lumaStd": 105.1
+          }
+        }
+      }
+    },
+    "tech-metal": {
+      "baseline": {
+        "params": {
+          "atmosphere": {
+            "turbidity": 2.5,
+            "rayleigh": 1.6,
+            "mieCoefficient": 0.004,
+            "mieDirectionalG": 0.8,
+            "cloudCoverage": 0.2,
+            "cloudDensity": 0.35,
+            "cloudElevation": 0.6,
+            "cloudScale": 0.0002
+          },
+          "sun": {
+            "elevationDeg": 59.99999999999999,
+            "azimuthDeg": 70
+          },
+          "displayIntensity": 1,
+          "iblIntensity": 0.7,
+          "preset": "tech"
+        },
+        "metrics": {
+          "sky": {
+            "satFrac": 0.3589,
+            "meanLuma": 114.5,
+            "lumaStd": 107.9
+          },
+          "ground": {
+            "satFrac": 0,
+            "meanLuma": 49.6,
+            "lumaStd": 27.9
+          },
+          "full": {
+            "satFrac": 0.2607,
+            "meanLuma": 105.5,
+            "lumaStd": 93.2
+          }
+        }
+      },
+      "compressed": {
+        "display": 0.5,
+        "ibl": 0.4,
+        "metrics": {
+          "sky": {
+            "satFrac": 0.3589,
+            "meanLuma": 110.5,
+            "lumaStd": 102.8
+          },
+          "ground": {
+            "satFrac": 0,
+            "meanLuma": 41.9,
+            "lumaStd": 20.2
+          },
+          "full": {
+            "satFrac": 0.2607,
+            "meanLuma": 98.6,
+            "lumaStd": 92.9
+          }
+        }
+      }
+    }
+  },
+  "finalProbe": {
+    "mode": "sky",
+    "params": {
+      "atmosphere": {
+        "turbidity": 3,
+        "rayleigh": 1.2,
+        "mieCoefficient": 0.005,
+        "mieDirectionalG": 0.8,
+        "cloudCoverage": 0.35,
+        "cloudDensity": 0.4,
+        "cloudElevation": 0.5,
+        "cloudScale": 0.0002
+      },
+      "sun": {
+        "elevationDeg": 50.2,
+        "azimuthDeg": 53.10000000000002
+      },
+      "displayIntensity": 1,
+      "iblIntensity": 1,
+      "preset": "day"
+    },
+    "pmrem": {
+      "baked": 1,
+      "retired": 0,
+      "owned": 1,
+      "live": 1
+    }
+  },
+  "__console": []
+}

@@ -29,17 +29,24 @@ import { coerceRenderMode } from '../../src/scene/SceneData';
 import type { SceneObject } from '../../src/scene/SceneObject';
 import type { Command } from '../../src/editor/commands/Command';
 import { SceneSerializer } from '../../src/io/SceneSerializer';
+// bootstrap 源码原文（vite ?raw）——T018.4 __sky window 装配/卸载守卫的结构断言口径
+import bootstrapSource from '../../src/app/bootstrap.ts?raw';
+import type { SkyAtmosphereParams } from '../../src/runtime/environment/skyCore';
+import type { PmremStats } from '../../src/runtime/environment/pmremEnvironment';
+import type { SkyTuningParams, SkyTuningPort } from '../../src/runtime/environment/skyTuning';
 import {
   DEFAULT_ENVIRONMENT_PRESET,
   DEFAULT_LAYER_NAMES,
   ENVIRONMENT_PRESETS,
   createDefaultSceneData,
   createEditor,
+  createSkyDevHandle,
   defaultLayerIdFor,
   importElements,
   registerAssets,
   resolveLayerFor,
 } from '../../src/app/bootstrap';
+import type { SkyDevHandle } from '../../src/app/bootstrap';
 
 const treeAsset: ModelAsset = {
   id: 'asset_tree',
@@ -405,7 +412,8 @@ describe('registerAssets', () => {
     // asset_tree_triadica——tree_platanus < tree_triadica < tree_zelkova 字典序；T011.8 增
     // asset_tree_bischofia——tree_3a < tree_bischofia < tree_camphor 字典序；T011.10 增
     // asset_tree_fraxinus——tree_celtis < tree_fraxinus < tree_ginkgo 字典序；T011.11 增
-    // asset_tree_ligustrum——tree_koelreuteria < tree_ligustrum < tree_platanus 字典序），追加注册在后
+    // asset_tree_ligustrum——tree_koelreuteria < tree_ligustrum < tree_platanus 字典序；T011.12 增
+    // asset_tree_salix——tree_platanus < tree_salix < tree_sophora 字典序），追加注册在后
     expect(facade.registries.assets.list().map((d) => d.asset.id)).toEqual([
       'asset_tree',
       'asset_flower',
@@ -422,6 +430,7 @@ describe('registerAssets', () => {
       'asset_tree_koelreuteria',
       'asset_tree_ligustrum',
       'asset_tree_platanus',
+      'asset_tree_salix',
       'asset_tree_sophora',
       'asset_tree_triadica',
       'asset_tree_zelkova',
@@ -643,6 +652,141 @@ describe('无头 setMinimapVisible 空桩（T7.7：EditorHandle 超集小地图�
     expect(typeof facade.setMinimapVisible).toBe('function');
     expect(() => facade.setMinimapVisible(false)).not.toThrow();
     expect(() => facade.setMinimapVisible(true)).not.toThrow();
+    facade.dispose();
+  });
+});
+
+// ── T018.4 __sky DEV 调参守卫 ──────────────────────────────
+
+/** 调用记录型端口桩（结构代理测试：__sky 逻辑只做委托/守卫，不含渲染逻辑） */
+function makeStubPort(): SkyTuningPort & { calls: string[] } {
+  const calls: string[] = [];
+  const atmosphere: SkyAtmosphereParams = {
+    turbidity: 3,
+    rayleigh: 1.2,
+    mieCoefficient: 0.005,
+    mieDirectionalG: 0.8,
+    cloudCoverage: 0.35,
+    cloudDensity: 0.4,
+    cloudElevation: 0.5,
+    cloudScale: 0.0002,
+  };
+  const params: SkyTuningParams = {
+    atmosphere,
+    sun: { elevationDeg: 50.2, azimuthDeg: 53.1 },
+    displayIntensity: 1,
+    iblIntensity: 1,
+    preset: 'day',
+  };
+  const stats: PmremStats = { baked: 1, retired: 0, owned: 1, live: 1 };
+  return {
+    calls,
+    patchAtmosphere: (patch) => {
+      calls.push(`patch:${Object.keys(patch).join(',')}`);
+    },
+    setSunAngles: (elevationDeg, azimuthDeg) => {
+      calls.push(`sun:${elevationDeg},${azimuthDeg}`);
+    },
+    setIblIntensity: (value) => {
+      calls.push(`ibl:${value}`);
+    },
+    setDisplayIntensity: (value) => {
+      calls.push(`display:${value}`);
+    },
+    rebake: () => {
+      calls.push('rebake');
+    },
+    params: () => params,
+    pmremStats: () => stats,
+  };
+}
+
+describe('__sky DEV 调参守卫（T018.4：createSkyDevHandle 结构代理）', () => {
+  it('sky 模式：mode 读数 sky + 全方法委托端口（读写转发零逻辑）', () => {
+    const stub = makeStubPort();
+    let current: SkyTuningPort | null = stub;
+    const handle = createSkyDevHandle(() => current);
+    expect(handle.mode).toBe('sky');
+    handle.patchAtmosphere({ turbidity: 5, cloudCoverage: 0.6 });
+    handle.setSunAngles(30, 200);
+    handle.setIblIntensity(0.7);
+    handle.setDisplayIntensity(0.4);
+    handle.rebake();
+    expect(stub.calls).toEqual(['patch:turbidity,cloudCoverage', 'sun:30,200', 'ibl:0.7', 'display:0.4', 'rebake']);
+    expect(handle.params()).toBe(stub.params()); // 委托同端口（引用透传）
+    expect(handle.pmremStats()).toEqual({ baked: 1, retired: 0, owned: 1, live: 1 });
+  });
+
+  it('legacy 模式（端口 null）：mode 读数 legacy + 写入口显式抛错（D29.5）+ 读口径返回 null', () => {
+    const handle = createSkyDevHandle(() => null);
+    expect(handle.mode).toBe('legacy'); // 如实报（fallback 态无 DEV 调参）
+    expect(handle.params()).toBeNull();
+    expect(handle.pmremStats()).toBeNull();
+    for (const write of [
+      () => handle.patchAtmosphere({ turbidity: 1 }),
+      () => handle.setSunAngles(1, 1),
+      () => handle.setIblIntensity(1),
+      () => handle.setDisplayIntensity(1),
+      () => handle.rebake(),
+    ]) {
+      expect(write).toThrow(/legacy\/fallback 环境无 DEV 调参端口/);
+    }
+  });
+
+  it('mode live 读：端口随预设切换/事务降级换届时读数如实切换', () => {
+    const stub = makeStubPort();
+    let current: SkyTuningPort | null = stub;
+    const handle = createSkyDevHandle(() => current);
+    expect(handle.mode).toBe('sky');
+    current = null; // 模拟 clearEnvironment / legacy 降级（Renderer.skyTuning 置 null）
+    expect(handle.mode).toBe('legacy');
+    current = makeStubPort(); // 模拟下次 applyEnvironment sky 模式（fallback 不粘死）
+    expect(handle.mode).toBe('sky');
+  });
+
+  it('接口结构断言：键集恰为约定读后面且无 cloudSpeed（D29.11 动态云入口不暴露）', () => {
+    const handle: SkyDevHandle = createSkyDevHandle(() => makeStubPort());
+    const keys = Object.keys(handle);
+    expect(keys).toEqual([
+      'mode',
+      'params',
+      'pmremStats',
+      'patchAtmosphere',
+      'setSunAngles',
+      'setIblIntensity',
+      'setDisplayIntensity',
+      'rebake',
+    ]);
+    expect(keys).not.toContain('cloudSpeed');
+    expect('cloudSpeed' in handle).toBe(false);
+  });
+});
+
+describe('__sky window 装配/卸载守卫（源码结构断言——无头测试无 Renderer 不挂）', () => {
+  // 源码归一化（仓库文件为 CRLF——多行精确匹配前统一换行符）
+  const source = bootstrapSource.replace(/\r\n/g, '\n');
+
+  it('装配：import.meta.env.DEV + renderer 双守卫内挂 window.__sky（生产零痕迹）', () => {
+    expect(source).toContain(
+      'if (import.meta.env.DEV && renderer && typeof window !== \'undefined\') {\n' +
+        '    skyDev = createSkyDevHandle(() => renderer.skyTuning);\n' +
+        '    window.__sky = skyDev;\n' +
+        '  }',
+    );
+  });
+
+  it('卸载：dispose 成对 delete window.__sky（StrictMode 双挂载先卸不拆后挂）', () => {
+    expect(source).toContain('window.__sky === skyDev');
+    expect(source).toContain('delete window.__sky');
+  });
+
+  it('Window 槽类型声明 + 无头 createEditor 零 __sky 副作用', () => {
+    expect(source).toContain('__sky?: SkyDevHandle;');
+    const facade = createEditor(null); // 无 Renderer：守卫不挂（无头口径）
+    expect(facade).toBeDefined();
+    if (typeof window !== 'undefined') {
+      expect(window.__sky).toBeUndefined(); // node 环境本断言 vacuous，浏览器/env 环境生效
+    }
     facade.dispose();
   });
 });

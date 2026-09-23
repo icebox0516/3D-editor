@@ -1,0 +1,149 @@
+{
+  "combos": [
+    {
+      "display": 0.28,
+      "ibl": 0.3,
+      "metrics": {
+        "skyTop": {
+          "satFrac": 0.6268,
+          "meanLuma": 171.1,
+          "lumaStd": 33.5,
+          "rOverB": 0.518
+        },
+        "groundBottom": {
+          "satFrac": 0.8713,
+          "meanLuma": 229.8,
+          "lumaStd": 51.9,
+          "rOverB": 0.898
+        }
+      }
+    },
+    {
+      "display": 0.28,
+      "ibl": 0.25,
+      "metrics": {
+        "skyTop": {
+          "satFrac": 0.6268,
+          "meanLuma": 171.1,
+          "lumaStd": 33.5,
+          "rOverB": 0.518
+        },
+        "groundBottom": {
+          "satFrac": 0.8713,
+          "meanLuma": 221.3,
+          "lumaStd": 49.7,
+          "rOverB": 0.871
+        }
+      }
+    },
+    {
+      "display": 0.28,
+      "ibl": 0.2,
+      "metrics": {
+        "skyTop": {
+          "satFrac": 0.6268,
+          "meanLuma": 171.1,
+          "lumaStd": 33.5,
+          "rOverB": 0.518
+        },
+        "groundBottom": {
+          "satFrac": 0.8713,
+          "meanLuma": 212.6,
+          "lumaStd": 47.4,
+          "rOverB": 0.84
+        }
+      }
+    },
+    {
+      "display": 0.28,
+      "ibl": 0.15,
+      "metrics": {
+        "skyTop": {
+          "satFrac": 0.6268,
+          "meanLuma": 171.1,
+          "lumaStd": 33.5,
+          "rOverB": 0.518
+        },
+        "groundBottom": {
+          "satFrac": 0,
+          "meanLuma": 202.3,
+          "lumaStd": 44.9,
+          "rOverB": 0.855
+        }
+      }
+    },
+    {
+      "display": 0.22,
+      "ibl": 0.3,
+      "metrics": {
+        "skyTop": {
+          "satFrac": 0.0003,
+          "meanLuma": 154,
+          "lumaStd": 29.6,
+          "rOverB": 0.508
+        },
+        "groundBottom": {
+          "satFrac": 0.8713,
+          "meanLuma": 229.8,
+          "lumaStd": 51.9,
+          "rOverB": 0.898
+        }
+      }
+    },
+    {
+      "display": 0.22,
+      "ibl": 0.25,
+      "metrics": {
+        "skyTop": {
+          "satFrac": 0.0003,
+          "meanLuma": 154,
+          "lumaStd": 29.6,
+          "rOverB": 0.508
+        },
+        "groundBottom": {
+          "satFrac": 0.8713,
+          "meanLuma": 221.3,
+          "lumaStd": 49.7,
+          "rOverB": 0.871
+        }
+      }
+    },
+    {
+      "display": 0.22,
+      "ibl": 0.2,
+      "metrics": {
+        "skyTop": {
+          "satFrac": 0.0003,
+          "meanLuma": 154,
+          "lumaStd": 29.6,
+          "rOverB": 0.508
+        },
+        "groundBottom": {
+          "satFrac": 0.8713,
+          "meanLuma": 212.6,
+          "lumaStd": 47.4,
+          "rOverB": 0.84
+        }
+      }
+    },
+    {
+      "display": 0.22,
+      "ibl": 0.15,
+      "metrics": {
+        "skyTop": {
+          "satFrac": 0.0003,
+          "meanLuma": 154,
+          "lumaStd": 29.6,
+          "rOverB": 0.508
+        },
+        "groundBottom": {
+          "satFrac": 0,
+          "meanLuma": 202.3,
+          "lumaStd": 44.9,
+          "rOverB": 0.855
+        }
+      }
+    }
+  ],
+  "__console": []
+}

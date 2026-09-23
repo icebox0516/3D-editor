@@ -22,7 +22,9 @@
  *  - 模式切换只改状态（连续渲染下一帧生效），不遍历改写业务材质——
  *    旧「材质快照 / 还原」机制整体删除（applyTo / restoreAll 不复存在）。
  * 分遍渲染深坑对策（Renderer.renderFrame 消费 composeRenderPasses）：
- *  - scene.background 每遍全屏重绘 → 内容/辅助遍临时置 null（Renderer 处理）；
+ *  - scene.background 每遍全屏重绘 → 内容/辅助遍临时置 null（Renderer 处理）；T018.1
+ *    起 Sky 为 ENV_LAYER 网格、正常路径 background 恒 null——环境遍的天空由网格随
+ *    cameraMask 绘制，useBackground 口径保留（legacy fallback 018.3 复用）；
  *  - shadowMap.autoUpdate 各遍防重算 → 环境遍 true、其余 false；
  *  - override 用无光照依赖材质（内容遍相机掩码不收集环境组的灯）；
  *  - xray 透明度 XRAY_OPACITY_FACTOR 统一值（全局材质覆盖语义，不按对象折减）；
@@ -65,7 +67,11 @@ export type OverrideToken = 'none' | 'primary' | 'dim' | 'highlight';
 export interface RenderPassPlan {
   /** 本遍相机 layer 掩码（camera.layers.mask 直接赋值） */
   cameraMask: number;
-  /** 本遍是否绘制 scene.background（背景全屏重绘，仅环境遍 true） */
+  /**
+   * 本遍是否绘制 scene.background（全屏重绘，仅环境遍 true）。T018.1 起天空 =
+   * ENV_LAYER 的 Sky 网格（随 cameraMask 绘制，环境遍独占），正常路径 scene.background
+   * 恒 null——本字段为 legacy fallback（018.3）与未来背景复用保留口径，各遍取值不变。
+   */
   useBackground: boolean;
   /** 本遍 override 令牌（经 RenderModeState.resolveOverrideMaterial 解析为材质） */
   overrideMaterial: OverrideToken;
@@ -76,9 +82,9 @@ export interface RenderPassPlan {
 /**
  * 按模式产出分遍计划（纯函数，测试锁定）：
  *  - shaded：单遍全 layer（现状语义：背景照常、无 override、阴影照常）；
- *  - wireframe / xray / clay / normals：三遍——环境（背景=天空 + 阴影更新）→
- *    内容（overrideMaterial='primary' + 背景置 null + 阴影停更）→ 辅助（背景 null +
- *    阴影停更）；
+ *  - wireframe / xray / clay / normals：三遍——环境（天空=ENV_LAYER Sky 网格 +
+ *    scene.background（若存在）+ 阴影更新）→ 内容（overrideMaterial='primary' +
+ *    背景置 null + 阴影停更）→ 辅助（背景 null + 阴影停更）；
  *  - islands：四遍——环境 → 暗遍（layer 0，'dim'，已归类对象）→ 亮遍（DIAG_LAYER，
  *    'highlight'，未归类对象）→ 辅助；
  *  遍间共享深度缓冲（Renderer 侧 autoClear=false + 帧首 clear 一次）。

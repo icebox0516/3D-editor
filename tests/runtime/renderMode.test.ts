@@ -19,7 +19,9 @@
  * - 材质身份稳定：模式切换不重建 override 材质（切换只改状态，下一帧生效）；
  * - composeRenderPasses 分遍计划（overrideMaterial 为令牌 'none'|'primary'|'dim'|'highlight'）：
  *   · shaded → 单遍全 layer（背景照常、无 override、阴影照常）；
- *   · wireframe/xray/clay/normals → 三遍：P1 环境（ENV_LAYER、背景=天空、阴影更新）→
+ *   · wireframe/xray/clay/normals → 三遍：P1 环境（ENV_LAYER=天空 Sky 网格随 cameraMask
+ *     绘制 + scene.background 口径照常、阴影更新；T018.1 起正常路径 background 恒 null，
+ *     useBackground 语义保留给 018.3 legacy fallback）→
  *     P2 内容（layer 0、override='primary'、背景 null、阴影停更）→
  *     P3 辅助（AUX_LAYER、背景 null、无 override、阴影停更）；
  *   · islands → 四遍：P1 环境 → P2 暗遍（layer 0、override='dim'，已归类对象）→
@@ -209,12 +211,13 @@ describe('composeRenderPasses：分遍计划', () => {
   });
 
   it.each(['wireframe', 'xray', 'clay', 'normals'] as const)(
-    '%s → 三遍：环境(带背景+阴影) → 内容(primary override) → 辅助',
+    '%s → 三遍：环境(ENV_LAYER 天空网格+背景口径+阴影) → 内容(primary override) → 辅助',
     (mode) => {
       const passes = composeRenderPasses(mode);
       expect(passes).toHaveLength(3);
 
-      // P1 环境：ENV_LAYER、背景=天空、无 override、阴影更新
+      // P1 环境：ENV_LAYER（T018.1 起 Sky 网格在其中绘制——诊断模式环境遍天空照常）、
+      // 背景口径照常（正常路径 background 恒 null，语义保留给 018.3 fallback）、无 override、阴影更新
       const env = passes[0]!;
       expect(env.cameraMask).toBe(1 << ENV_LAYER);
       expect(env.useBackground).toBe(true);
@@ -241,7 +244,7 @@ describe('composeRenderPasses：分遍计划', () => {
     const passes = composeRenderPasses('islands');
     expect(passes).toHaveLength(4);
 
-    // P1 环境
+    // P1 环境（同上：ENV_LAYER 含 Sky 网格）
     const env = passes[0]!;
     expect(env.cameraMask).toBe(1 << ENV_LAYER);
     expect(env.useBackground).toBe(true);

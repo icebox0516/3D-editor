@@ -93,6 +93,9 @@ import { createVertexSnapPipeline } from '../editor/tools/vertexSnapPipeline';
 import { createSnapTiersConfig } from '../editor/services/snapTiersConfig';
 import type { SnapTiersConfig } from '../editor/services/snapTiersConfig';
 import { Renderer } from '../runtime/Renderer';
+import type { SkyAtmosphereParams } from '../runtime/environment/skyCore';
+import type { PmremStats } from '../runtime/environment/pmremEnvironment';
+import type { SkyTuningParams, SkyTuningPort } from '../runtime/environment/skyTuning';
 import type { ScatterParams } from '../domain/scatter';
 import { collectPresetPluginMetas } from '../runtime/styles/routes';
 import { collectProceduralAssetMetas } from '../runtime/procedural/routes';
@@ -120,6 +123,8 @@ import { createFraxinusHandle } from '../runtime/procedural/tree/fraxinus/fraxin
 import type { FraxinusHandle } from '../runtime/procedural/tree/fraxinus/fraxinusStage';
 import { createLigustrumHandle } from '../runtime/procedural/tree/ligustrum/ligustrumStage';
 import type { LigustrumHandle } from '../runtime/procedural/tree/ligustrum/ligustrumStage';
+import { createSalixHandle } from '../runtime/procedural/tree/salix/salixStage';
+import type { SalixHandle } from '../runtime/procedural/tree/salix/salixStage';
 import { clearStyleNotifier, setStyleNotifier } from '../runtime/styles/engine';
 import type { StyleNotice } from '../runtime/styles/engine';
 import { SceneSerializer } from '../io/SceneSerializer';
@@ -398,9 +403,114 @@ export interface ScatterSmokeHandle {
   };
 }
 
+/**
+ * T018 环境取证探针（window.__envProbe；DEV-only，装配见 createEditor 末段）。
+ * 018.0 legacy 改前基线与 018.1/018.5 新旧对比 / 三一致取证的**共用注入面**——新旧两侧
+ * 同款注入保证对比对称：scene/camera/controls/WebGLRenderer 结构引用（GLB/金属参照物
+ * 运行时注入、自定义固定机位、太阳灯遍历）+ setPreset 走组合根 facade 同一产品路径
+ * （UI 下拉等价）+ info() = renderer.info 原始账目快照。只读取证工具，零环境渲染逻辑
+ * （three 经 runtime 间接——结构类型口径同 Tree3aPerfDeps）。
+ */
+export interface EnvProbeHandle {
+  /** 渲染场景（参照物注入 add / 灯位遍历 traverse 取证） */
+  scene: {
+    add(obj: unknown): unknown;
+    traverse(callback: (node: unknown) => void): void;
+  };
+  /** 主相机（自定义固定机位写入；fov 只读参考用于取景换算） */
+  camera: {
+    position: { set(x: number, y: number, z: number): unknown };
+    fov: number;
+    updateProjectionMatrix(): void;
+  };
+  /** 轨道控制（机位 target 对齐 + update 生效） */
+  controls: {
+    target: { set(x: number, y: number, z: number): unknown };
+    update(): unknown;
+  };
+  /** 原始 WebGLRenderer（renderer.info 账目读取——info() 的数据源） */
+  webgl: {
+    info: {
+      render: { calls: number; triangles: number; points: number; lines: number; frame: number };
+      memory: { geometries: number; textures: number };
+      programs: unknown[] | null;
+    };
+  };
+  /** 切环境预设（组合根 facade.setEnvironment 同一产品路径——环境状态/scene:changed 事件全走正道）；
+   *  renderMode 可选 = 诊断模式取证通道（ViewportHUD 同款键，整组替换语义同 setPreset） */
+  setPreset(preset: string, opts?: { renderMode?: string }): void;
+  /** renderer.info 快照（render 计数 / memory 计数 / programs 数——跨版本字段口径差异最小面） */
+  info(): {
+    render: { calls: number; triangles: number; points: number; lines: number; frame: number };
+    memory: { geometries: number; textures: number };
+    programs: number;
+  };
+}
+
+/**
+ * T018.4 DEV 调参面（window.__sky；DEV-only，装配见 createEditor 末段——__envProbe
+ * 装配/卸载同构前例）。018.5 终调工作台：Sky 四大气参数 / Cloud 四参数（**接口无
+ * cloudSpeed 键**——静态云语义锁定 D29.11，结构断言防暴露动态云入口）/ 太阳角三一致 /
+ * IBL 强度（刷新路径）/ 显示侧旋钮实时调 + rebake() 强制重烘；PMREM debounce 合并
+ * 连续调参（D29 Q6）。实现全在 runtime（environment/skyTuning——组合根只装配结构
+ * 代理，three 经 runtime 间接）；**会话态工具**：不进产品状态流 / SceneData / undo-redo
+ * （预设切换整组重建即重置调参——预期语义）。
+ */
+export interface SkyDevHandle {
+  /** 当前环境模式（live 读——预设切换/事务降级后如实报；端口 null ⇔ legacy） */
+  readonly mode: 'sky' | 'legacy';
+  /** 当前参数只读快照（atmosphere 八参 + 太阳角 + displayIntensity + iblIntensity + preset 名）；legacy 模式 null */
+  params(): SkyTuningParams | null;
+  /** PMREM counter 只读快照（owned/live/baked/retired——epic 验收第 4 条口径）；legacy 模式 null */
+  pmremStats(): PmremStats | null;
+  /** 大气/云参数分量写入（八键白名单；双实例即时同步 + debounced 重烘） */
+  patchAtmosphere(patch: Partial<SkyAtmosphereParams>): void;
+  /** 太阳角三一致写入（SkyCore 双实例 sunPosition + 太阳灯位 + debounced 重烘） */
+  setSunAngles(elevationDeg: number, azimuthDeg: number): void;
+  /** IBL 强度写入（直写 + 借道 debounced 重烘刷新材质 uniform——three 0.186 已知限制） */
+  setIblIntensity(value: number): void;
+  /** 显示强度写入（display-only 单侧即时生效零重烘 D29.13；非法值 RangeError 透传） */
+  setDisplayIntensity(value: number): void;
+  /** 强制立即重烘（flush 语义——018.5 终调工具） */
+  rebake(): void;
+}
+
+/**
+ * __sky DEV 守卫句柄工厂（无头可测：端口经参数注入，装配/卸载守卫归 createEditor）。
+ * 端口访问经 getter 函数 live 取（renderer.skyTuning 随 applyEnvironment 重建 /
+ * clearEnvironment 置空——预设切换与事务降级后 mode 读数如实切换）；legacy 模式
+ * （端口 null）读口径返回 null、**写入口显式抛错**（单一开关不变式 D29.5——静默吞错
+ * 会让控制台拿到「看似生效实则未写」的旋钮）。
+ */
+export function createSkyDevHandle(getTuning: () => SkyTuningPort | null): SkyDevHandle {
+  const requirePort = (): SkyTuningPort => {
+    const port = getTuning();
+    if (port === null) {
+      throw new Error(
+        '[__sky] legacy/fallback 环境无 DEV 调参端口（单一开关不变式 D29.5）——切预设后重试（每次切换重新尝试新路径）',
+      );
+    }
+    return port;
+  };
+  return {
+    get mode(): 'sky' | 'legacy' {
+      return getTuning() !== null ? 'sky' : 'legacy';
+    },
+    params: () => getTuning()?.params() ?? null,
+    pmremStats: () => getTuning()?.pmremStats() ?? null,
+    patchAtmosphere: (patch) => requirePort().patchAtmosphere(patch),
+    setSunAngles: (elevationDeg, azimuthDeg) => requirePort().setSunAngles(elevationDeg, azimuthDeg),
+    setIblIntensity: (value) => requirePort().setIblIntensity(value),
+    setDisplayIntensity: (value) => requirePort().setDisplayIntensity(value),
+    rebake: () => requirePort().rebake(),
+  };
+}
+
 declare global {
   interface Window {
     __scatterSmoke?: ScatterSmokeHandle;
+    __envProbe?: EnvProbeHandle;
+    __sky?: SkyDevHandle;
     __tree3a?: Tree3aHandle;
     __celtis?: CeltisHandle;
     __camphor?: CamphorHandle;
@@ -413,6 +523,7 @@ declare global {
     __sophora?: SophoraHandle;
     __fraxinus?: FraxinusHandle;
     __ligustrum?: LigustrumHandle;
+    __salix?: SalixHandle;
     __tree3aPerf?: Tree3aPerfHandle;
   }
 }
@@ -446,10 +557,16 @@ function defaultSmokeScatterParams(): ScatterParams {
  * place(1)→sample→place(20)→sample→… 无需手动 clear，场景棵数恒等于最近一次 count。
  * 确定性：count/seedBase/spacing/jitter 同参 → 对象 seed 与 transform 逐位一致
  * （id 除外——createId 每次新掷）；seed = seedBase + i 经槽路由自然铺开 8 形态槽。
+ * T011.13 泛化：place 增 assetId 可选参数（族级验收门 12 阔叶树种共用本驱动面），
+ * 缺省夏栎逐位不变（009.7 复现脚本兼容性保持）；未注册 id 抛错带资产名——验收循环防错。
  */
 
 /** place 参数（批量确定性放置） */
 export interface Tree3aPerfPlaceOptions {
+  /** 资产 id（T011.13 泛化：缺省 'asset_tree_3a'——缺省调用行为逐位不变；按注册表 id
+   *  查找，未注册/非程序化 id 抛错带资产名——族级验收循环防错；seed/spacing/jitter 语义
+   *  对各阔叶树同契约——seed = seedBase + i 经槽路由自然铺开形态槽） */
+  assetId?: string;
   /** 棵数（缺省 100；验收档 1/20/100/500/1000） */
   count?: number;
   /** seed 基（缺省 1；对象 i 的 seed = seedBase + i） */
@@ -500,7 +617,8 @@ export interface Tree3aPerfStats {
 
 /** window.__tree3aPerf 句柄（DEV-only；装配见 createEditor，工厂可无头注桩测试） */
 export interface Tree3aPerfHandle {
-  /** 批量放置（幂等：先自动 clear 上次的）；false = 资产缺失或命令批失败（场景不变） */
+  /** 批量放置（幂等：先自动 clear 上次的）；false = 资产缺失或命令批失败（场景不变）；
+   *  显式传入的 assetId 未注册/非程序化时抛错带资产名（T011.13 验收循环防错） */
   place(opts?: Tree3aPerfPlaceOptions): boolean;
   /** 经真实命令移除本句柄放置的全部存活对象（不碰用户手放的）；false = 无可删对象 */
   clear(): boolean;
@@ -522,7 +640,7 @@ export interface Tree3aPerfDeps {
   history: { execute(command: Command): boolean };
   /** 场景只读面（对象存活对账 + 归「模型」默认层） */
   sceneManager: Pick<SceneManager, 'getObject' | 'getObjects' | 'getLayers'>;
-  /** 资产注册表（asset_tree_3a meta：默认姿态 + variants 声明） */
+  /** 资产注册表（按 id 查 meta：默认姿态 + variants 声明；缺省 asset_tree_3a，T011.13 起 place 可传任意注册 id） */
   assets: { get(id: ID): AssetDescriptor | undefined };
   /** 视口侧依赖（可选：stats 数据源 / 机位写入 / 太阳遍历；缺省即无头退化零值/no-op） */
   view?: {
@@ -537,7 +655,7 @@ export interface Tree3aPerfDeps {
   };
 }
 
-/** 目标资产 id（夏栎——T009 性能验收对象） */
+/** 目标资产 id（夏栎——T009 性能验收对象；T011.13 起为 place 的 assetId 缺省值） */
 const TREE3A_PERF_ASSET_ID: ID = 'asset_tree_3a';
 /** 缺省网格间距（米）：展开冠幅 ≈8.9m，11m 留 ≈2m 防交叠（沿 tree3aStage slots 间距口径） */
 const TREE3A_PERF_SPACING = 11;
@@ -580,9 +698,17 @@ export function createTree3aPerfHandle(deps: Tree3aPerfDeps): Tree3aPerfHandle {
 
   return {
     place(opts = {}) {
-      const descriptor = deps.assets.get(TREE3A_PERF_ASSET_ID);
+      // T011.13 泛化：assetId 可选（缺省夏栎逐位不变）；对象创建/归层/变体全从该
+      // descriptor 派生（createModelObjectAt 以 meta.id 落 asset.assetId），下游零特判
+      const assetId = opts.assetId ?? TREE3A_PERF_ASSET_ID;
+      const descriptor = deps.assets.get(assetId);
       if (!descriptor || descriptor.kind !== 'procedural') {
-        console.warn(`[tree3aPerf] 资产未注册或非程序化: ${TREE3A_PERF_ASSET_ID}——place no-op`);
+        // 显式传入的 assetId 未注册/非程序化 → 抛错带资产名（族级验收循环防错——
+        // 拼错 id 硬失败而非静默 no-op）；缺省路径（未传 assetId）保持 009.7 行为不变
+        if (opts.assetId !== undefined) {
+          throw new Error(`[tree3aPerf] 资产未注册或非程序化: ${assetId}——place 拒绝（T011.13 验收循环防错）`);
+        }
+        console.warn(`[tree3aPerf] 资产未注册或非程序化: ${assetId}——place no-op`);
         return false;
       }
       const asset = descriptor.asset;
@@ -1029,6 +1155,23 @@ export function createEditor(canvas: HTMLCanvasElement | null, opts: CreateEdito
     });
     window.__ligustrum = ligustrum;
   }
+  // T011.12 DEV 出图面：window.__salix（垂柳 slot-0 锚点树直挂渲染场景——夏栎
+  // __tree3a / 朴树 __celtis / 香樟 __camphor / 榉树 __zelkova / 银杏 __ginkgo / 悬铃木
+  // __platanus / 栾树 __koelreuteria / 乌桕 __triadica / 重阳木 __bischofia / 国槐
+  // __sophora / 白蜡 __fraxinus / 女贞 __ligustrum 同构装配：独立 group 挂 scene 兄弟组
+  // 不参与拾取；mount/mountSlots 8 槽批量 / mountLevels 三档对照 / 风动 / freezeTime /
+  // 固定机位 view 系供视觉取证与档位生成验证。实现全在
+  // runtime/procedural/tree/salix/salixStage——组合根只装配，dispose 只摘自己的实例）。
+  let salix: SalixHandle | null = null;
+  if (import.meta.env.DEV && renderer && typeof window !== 'undefined') {
+    salix = createSalixHandle({
+      scene: renderer.scene,
+      camera: renderer.camera,
+      controls: renderer.controls,
+      time: renderer.uTime,
+    });
+    window.__salix = salix;
+  }
   // T009.7 性能验收 DEV 驱动面：window.__tree3aPerf（import.meta.env.DEV 守卫，生产零痕迹；
   // 无 Renderer（无头）不挂）。经产品放置路径（真实命令管线 → SceneSync → 实例化池）批量
   // 放置/清除夏栎 + 帧采样/资源计数/太阳阴影 A/B/固定机位——句柄只给数据，阈值/环境归
@@ -1049,6 +1192,14 @@ export function createEditor(canvas: HTMLCanvasElement | null, opts: CreateEdito
     });
     window.__tree3aPerf = tree3aPerf;
   }
+  // T018 环境取证探针：window.__envProbe（import.meta.env.DEV 守卫，生产零痕迹；无
+  // Renderer 不挂）。018.0 legacy 改前基线与 018.1/018.5 取证共用——装配在 facade
+  // 定义后（setPreset 接 facade.setEnvironment 产品路径，见 createEditor 末段）；
+  // dispose 只摘自己的 window 槽（只读工具无自建资源）。
+  let envProbe: EnvProbeHandle | null = null;
+  // T018.4 DEV 调参面：window.__sky（装配见 createEditor 末段 envProbe 同构前例）。
+  // 句柄零自建资源（端口实现全在 Renderer 环境链内）；dispose 只摘自己的 window 槽。
+  let skyDev: SkyDevHandle | null = null;
   const ports: EditorPorts = {
     viewport: opts.ports?.viewport ?? renderer?.viewport ?? NOOP_PORTS.viewport,
     camera: opts.ports?.camera ?? renderer?.cameraController ?? NOOP_PORTS.camera,
@@ -1333,10 +1484,24 @@ export function createEditor(canvas: HTMLCanvasElement | null, opts: CreateEdito
         ligustrum.dispose();
         delete window.__ligustrum;
       }
+      // T011.12 DEV 出图面成对拆除（同上：仅摘自己的树与 window 槽）
+      if (salix && typeof window !== 'undefined' && window.__salix === salix) {
+        salix.dispose();
+        delete window.__salix;
+      }
       // T009.7 性能验收驱动面成对拆除（clear 自己的对象——经命令；仅摘自己的 window 槽）
       if (tree3aPerf && typeof window !== 'undefined' && window.__tree3aPerf === tree3aPerf) {
         tree3aPerf.dispose();
         delete window.__tree3aPerf;
+      }
+      // T018 环境取证探针成对拆除（只读工具无自建资源；仅摘自己的 window 槽）
+      if (envProbe && typeof window !== 'undefined' && window.__envProbe === envProbe) {
+        delete window.__envProbe;
+      }
+      // T018.4 DEV 调参面成对拆除（句柄零自建资源——端口随 Renderer.clearEnvironment
+      // 释放；仅摘自己的 window 槽——StrictMode 双挂载下先卸载者不拆后挂载者的钩子）
+      if (skyDev && typeof window !== 'undefined' && window.__sky === skyDev) {
+        delete window.__sky;
       }
       tools.deactivate();
       input?.dispose();
@@ -1344,6 +1509,43 @@ export function createEditor(canvas: HTMLCanvasElement | null, opts: CreateEdito
       renderer?.dispose();
     },
   };
+
+  // T018 环境取证探针装配（句柄声明见 DEV 驱面区；setPreset 接 facade.setEnvironment
+  // 同一产品路径——UI 下拉等价，环境状态与 scene:changed 事件全走正道）。
+  if (import.meta.env.DEV && renderer && typeof window !== 'undefined') {
+    envProbe = {
+      scene: renderer.scene,
+      camera: renderer.camera,
+      controls: renderer.controls,
+      webgl: renderer.renderer,
+      setPreset: (preset, opts) =>
+        facade.setEnvironment(opts?.renderMode === undefined ? { preset } : { preset, renderMode: opts.renderMode }),
+      info: () => {
+        const i = renderer.renderer.info;
+        return {
+          render: {
+            calls: i.render.calls,
+            triangles: i.render.triangles,
+            points: i.render.points,
+            lines: i.render.lines,
+            frame: i.render.frame,
+          },
+          memory: { geometries: i.memory.geometries, textures: i.memory.textures },
+          programs: i.programs?.length ?? 0,
+        };
+      },
+    };
+    window.__envProbe = envProbe;
+  }
+
+  // T018.4 DEV 调参面装配：window.__sky（import.meta.env.DEV 守卫，生产零痕迹；无
+  // Renderer 不挂——__envProbe 同构前例）。经 renderer.skyTuning getter 结构代理
+  // （实现全在 runtime/environment/skyTuning）；端口访问 live 取——预设切换/事务降级
+  // 后 mode 如实报、legacy 写入口显式抛错（工厂内）。
+  if (import.meta.env.DEV && renderer && typeof window !== 'undefined') {
+    skyDev = createSkyDevHandle(() => renderer.skyTuning);
+    window.__sky = skyDev;
+  }
 
   return facade;
 }

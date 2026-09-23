@@ -4,9 +4,13 @@
 
 ## Current
 
-- [~] T011 阔叶乔木族生产任务集合（D33 开放式集合；成员 12 树种：11 done〔朴/樟/榉/银杏/悬铃木/栾/乌桕/重阳木/国槐/白蜡/女贞，2026-09-20~22，每树完成详情见各任务书完成记录〕/ 1 排产〔011.12 垂柳〕，族门 011.13 未启动；标准模式逐树推进 D35.1；测试基线 3803 / 576 / typecheck 零错）→ [tasks/011-broadleaf-trees.md](tasks/011-broadleaf-trees.md)
+- [~] T018 真实程序化天空与环境光照（in-progress 2026-09-23：018.0 前置基线 + 018.1 Sky+Sun+Cloud + 018.2 PMREM/IBL + 018.3 预设+fallback + **018.4 DEV 调参面 done〔单会话〕**——__sky 守卫〔live getter/legacy 显式抛错〕+ skyRebake debounce〔200ms/调度器注入/cancel〕+ skyTuning 端口〔八键白名单/太阳角三一致内聚/ibl 借道重烘刷新〕+ sunLight 字段提升；20 连写恰一次重烘实测/display 压暗零重烘跨窗实证〔显示域压缩工具面可用〕/ibl immediate-settled 差分/太阳角双 run 视觉〔sunlow 异常帧两轮复核定案取证层作废〕；4033/601/零错——**018.5 进行中（checkpoint 2026-09-23）**：过曝处置走显示域压缩〔tone mapping 重审弃选——D29.3 修订须用户裁定不触发，ACES 证据留 T019 素材〕day display 0.22/ibl 0.15 落表〔tech/dusk/night 维持〕+ 预设面 displayIntensity 键接线〔runtime-agent 交付 4034/601/零错〕+ 取证主体完成〔24 帧新侧/同实例 IBL 增量 +0.1~0.2ms/资源账 6 轮零增长/冻结云双帧一致/warm rebake <1ms〕；余新旧判读收口/README/三门槛复验/DECISIONS 记档 → [tasks/018-real-sky-environment.md](tasks/018-real-sky-environment.md)）
 
 ## Done（近）
+
+- [x] T011 阔叶乔木族生产任务集合（**13/13 epic 收官 2026-09-23**——D33 开放式集合：12 树种全链〔朴/樟/榉/银杏/悬铃木/栾/乌桕/重阳木/国槐/白蜡/女贞/垂柳〕+ 族级验收门 011.13 七项全过〔横向一致性/真实差异/混植/预算全表/性能 13×5/契约零修订——10 主题裁定 + envMap 缺口 B 转 T018/回归 3918〕；垂枝域应力位①档实证；族门方法首跑升格提案待用户确认）→ [tasks/011-broadleaf-trees.md](tasks/011-broadleaf-trees.md)
+
+（T006/T010 以下为此前 Done 条目）
 
 - [x] T006 Asset Runtime LOD（**5/5 epic 收官 2026-09-19**；通用 Runtime LOD 调度完整交付，策略常量实测锁定；收官后 D28 追加演进任务 006.6 见 Next）→ [tasks/006-lod-chunking.md](tasks/006-lod-chunking.md)
   - [x] T006.5 T006 验收门（done 2026-09-19：双档达标——城市 10 万路灯 175-190fps/531≤650、园区 2 万树 206-229fps@1080p（核显 BIOS 禁用→2080 Ti 实测+临界外推+遗留核显复验）；范围门三项全绿 Impostor 不立项；树 A/B 207↔17fps；换档序列无震荡+diff 不超运动基线；LOD_THRESHOLDS/BATCH_POLICY 候选→锁定；2657 零回归）→ [tasks/006.5-acceptance.md](tasks/006.5-acceptance.md)
@@ -53,7 +57,7 @@
 
 > Next 仅表示已排入路线图的后续任务，不代表执行顺序；实际启动顺序由任务文件中的依赖、当前项目状态及有效架构裁定决定（D31.8）。
 
-- [ ] T006.6 LOD 选档稳定基准（D28 收官后追加；Step 1 测试先行 + Step 2 稳定基准实装 done 2026-09-20——Step 2 经用户指令提前于 T011；余 Step 3 A/B 实测 + 阈值重锁判定）→ [tasks/006.6-lod-reference-bounds.md](tasks/006.6-lod-reference-bounds.md)
+- [ ] T006.6 LOD 选档稳定基准（D28 收官后追加；Step 1 测试先行 + Step 2 稳定基准实装 done 2026-09-20——Step 2 经用户指令提前于 T011；余 Step 3 A/B 实测 + 阈值重锁判定——2026-09-23 起不再阻塞 T018，可并行/其后执行）→ [tasks/006.6-lod-reference-bounds.md](tasks/006.6-lod-reference-bounds.md)
 - [ ] T003 收官路径（冻结 2026-09-17；剩余 003.3 验收续走 / 003.5 / 003.6 / 设施返工）→ [tasks/003-scatter-styles.md](tasks/003-scatter-styles.md)
 - [ ] T004 Style Gallery（0/3）→ [tasks/004-style-gallery.md](tasks/004-style-gallery.md)
 - [ ] T005 Animation Pathway（0/3）→ [tasks/005-animation-pathway.md](tasks/005-animation-pathway.md)
@@ -64,7 +68,6 @@
 - [ ] T015 地被/草本族【占位；候选池（D34 摘要，§6）：强 4——狗牙根（暖季草坪）/草地早熟禾（冷季草坪）/鸢尾/萱草，中 1（麦冬——园林地被用途无志书明文），弱 3（结缕草/高羊茅——学名口径立项须钉死/二月兰）】
 - [ ] T016 资产管理器重构（大类→小类、GLB+程序化统一入口；启动前独立拷问门 D21）【占位】
 - [ ] T017 多边形区域生成重构 · Feature Generator 体系（启动前独立拷问门 D21）【占位】
-- [ ] T018 真实程序化天空与环境光照（D29 立项 2026-09-20 + 同日修订 D29.11-14：Sky + 统一 Sun + r186 内建 Cloud（cloudSpeed=0 静态，displaySky/bakeSky 双实例）+ PMREM IBL 替换渐变天空 + Hemi，零资产改动自动获得环境光；启动排 **T011 族级验收门（当前编号 011.13——D34 扩充后，随成员增补顺延——D33）+ T006.6 Step 3 之后**——不打断榉树/银杏生产与 LOD 阈值收口）→ [tasks/018-real-sky-environment.md](tasks/018-real-sky-environment.md)
 
 ## Done
 

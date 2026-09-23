@@ -1,0 +1,93 @@
+{
+  "probe": {
+    "envProbe": true,
+    "tree3aPerf": true,
+    "tree3a": true,
+    "sky": true
+  },
+  "presetParams": {
+    "day": {
+      "displayIntensity": 0.22,
+      "iblIntensity": 0.15,
+      "sun": [
+        50.2,
+        53.1
+      ],
+      "mode": "sky"
+    },
+    "dusk": {
+      "displayIntensity": 1,
+      "iblIntensity": 0.85,
+      "sun": [
+        5,
+        240
+      ],
+      "mode": "sky"
+    },
+    "night": {
+      "displayIntensity": 1,
+      "iblIntensity": 0.35,
+      "sun": [
+        14.999999999999998,
+        315
+      ],
+      "mode": "sky"
+    },
+    "tech": {
+      "displayIntensity": 1,
+      "iblIntensity": 0.7,
+      "sun": [
+        59.99999999999999,
+        70
+      ],
+      "mode": "sky"
+    }
+  },
+  "shots": [
+    "day-tree3a.png",
+    "dusk-tree3a.png",
+    "night-tree3a.png",
+    "tech-tree3a.png",
+    "day-celtis.png",
+    "dusk-celtis.png",
+    "night-celtis.png",
+    "tech-celtis.png",
+    "day-camphor.png",
+    "dusk-camphor.png",
+    "night-camphor.png",
+    "tech-camphor.png",
+    "day-streetlamp.png",
+    "dusk-streetlamp.png",
+    "night-streetlamp.png",
+    "tech-streetlamp.png",
+    "day-glb.png",
+    "dusk-glb.png",
+    "night-glb.png",
+    "tech-glb.png",
+    "day-metal.png",
+    "dusk-metal.png",
+    "night-metal.png",
+    "tech-metal.png"
+  ],
+  "glb": {
+    "sourceSize": [
+      0.3199999928474426,
+      2.380000114440918,
+      0.3400000035762787
+    ],
+    "scale": 0.5042016564280251
+  },
+  "metal": {
+    "spheres": 3
+  },
+  "finalProbe": {
+    "mode": "sky",
+    "pmrem": {
+      "baked": 1,
+      "retired": 0,
+      "owned": 1,
+      "live": 1
+    }
+  },
+  "__console": []
+}

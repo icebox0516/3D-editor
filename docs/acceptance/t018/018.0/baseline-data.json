@@ -1,0 +1,370 @@
+{
+  "env": {
+    "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 2080 Ti (0x00001E07) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "viewport": [
+      1920,
+      1080
+    ],
+    "dpr": 1,
+    "fov": 50,
+    "initialPreset": "day (default scene)"
+  },
+  "lights": {
+    "day": {
+      "directional": {
+        "position": [
+          80,
+          120,
+          60
+        ],
+        "color": "#ffffff",
+        "intensity": 2.4,
+        "castShadow": true,
+        "mapSize": [
+          2048,
+          2048
+        ],
+        "bias": -0.0004
+      },
+      "hemisphere": {
+        "sky": "#bfd6ea",
+        "ground": "#8a8f96",
+        "intensity": 0.9
+      }
+    },
+    "dusk": {
+      "directional": {
+        "position": [
+          80,
+          120,
+          60
+        ],
+        "color": "#ffb27a",
+        "intensity": 1.6,
+        "castShadow": true,
+        "mapSize": [
+          2048,
+          2048
+        ],
+        "bias": -0.0004
+      },
+      "hemisphere": {
+        "sky": "#6a6f96",
+        "ground": "#4a4442",
+        "intensity": 0.6
+      }
+    },
+    "night": {
+      "directional": {
+        "position": [
+          80,
+          120,
+          60
+        ],
+        "color": "#8a9cff",
+        "intensity": 0.5,
+        "castShadow": true,
+        "mapSize": [
+          2048,
+          2048
+        ],
+        "bias": -0.0004
+      },
+      "hemisphere": {
+        "sky": "#2a3350",
+        "ground": "#1a1e2c",
+        "intensity": 0.35
+      }
+    },
+    "tech": {
+      "directional": {
+        "position": [
+          80,
+          120,
+          60
+        ],
+        "color": "#9fd8ff",
+        "intensity": 1.2,
+        "castShadow": true,
+        "mapSize": [
+          2048,
+          2048
+        ],
+        "bias": -0.0004
+      },
+      "hemisphere": {
+        "sky": "#14364a",
+        "ground": "#0a1a26",
+        "intensity": 0.55
+      }
+    }
+  },
+  "info": {
+    "day": {
+      "render": {
+        "calls": 3,
+        "triangles": 4,
+        "points": 0,
+        "lines": 802,
+        "frame": 8280
+      },
+      "memory": {
+        "geometries": 4,
+        "textures": 6
+      },
+      "programs": 3
+    },
+    "dusk": {
+      "render": {
+        "calls": 3,
+        "triangles": 4,
+        "points": 0,
+        "lines": 802,
+        "frame": 10247
+      },
+      "memory": {
+        "geometries": 5,
+        "textures": 8
+      },
+      "programs": 3
+    },
+    "night": {
+      "render": {
+        "calls": 3,
+        "triangles": 4,
+        "points": 0,
+        "lines": 802,
+        "frame": 12236
+      },
+      "memory": {
+        "geometries": 6,
+        "textures": 10
+      },
+      "programs": 3
+    },
+    "tech": {
+      "render": {
+        "calls": 3,
+        "triangles": 4,
+        "points": 0,
+        "lines": 802,
+        "frame": 14316
+      },
+      "memory": {
+        "geometries": 7,
+        "textures": 12
+      },
+      "programs": 3
+    }
+  },
+  "glb": {
+    "sourceSize": [
+      0.3199999928474426,
+      2.380000114440918,
+      0.3400000035762787
+    ],
+    "scale": 0.5042016564280251,
+    "meshes": 5
+  },
+  "metal": {
+    "spheres": 3,
+    "roughness": [
+      0.15,
+      0.45,
+      0.75
+    ],
+    "metalness": 1
+  },
+  "perf": {
+    "day": {
+      "empty": {
+        "fps": 2743.580513558915,
+        "mean": 0.36448720752241426,
+        "p50": 0.39999999999417923,
+        "p95": 0.5999999999985448,
+        "max": 4.599999999998545,
+        "frames": 13719
+      },
+      "trees100": {
+        "fps": 1192.7045836333089,
+        "mean": 0.8384305835010063,
+        "p50": 0.7000000000043656,
+        "p95": 1.5999999999985448,
+        "max": 7.5,
+        "frames": 5964
+      },
+      "stats100": {
+        "drawCalls": 67,
+        "triangles": 1906064,
+        "geometries": 63,
+        "textures": 62,
+        "programs": 28,
+        "objects": 100
+      }
+    },
+    "dusk": {
+      "empty": {
+        "fps": 1137.2180451127813,
+        "mean": 0.8793388429752071,
+        "p50": 0.7999999999956344,
+        "p95": 1.6000000000058208,
+        "max": 4.400000000001455,
+        "frames": 5687
+      },
+      "trees100": {
+        "fps": 1150.7309561426323,
+        "mean": 0.8690128606186993,
+        "p50": 0.7000000000043656,
+        "p95": 1.5999999999985448,
+        "max": 5,
+        "frames": 5754
+      },
+      "stats100": {
+        "drawCalls": 67,
+        "triangles": 1906064,
+        "geometries": 64,
+        "textures": 64,
+        "programs": 28,
+        "objects": 100
+      }
+    },
+    "night": {
+      "empty": {
+        "fps": 1133.3320000799945,
+        "mean": 0.882353979177696,
+        "p50": 0.7000000000116415,
+        "p95": 1.6999999999970896,
+        "max": 10.80000000000291,
+        "frames": 5667
+      },
+      "trees100": {
+        "fps": 1149.4850514948505,
+        "mean": 0.8699547668754349,
+        "p50": 0.7000000000116415,
+        "p95": 1.6000000000058208,
+        "max": 4.900000000008731,
+        "frames": 5748
+      },
+      "stats100": {
+        "drawCalls": 67,
+        "triangles": 1906064,
+        "geometries": 65,
+        "textures": 66,
+        "programs": 28,
+        "objects": 100
+      }
+    },
+    "tech": {
+      "empty": {
+        "fps": 1133.618621020636,
+        "mean": 0.8821308872817081,
+        "p50": 0.7000000000116415,
+        "p95": 1.6999999999970896,
+        "max": 5.400000000008731,
+        "frames": 5669
+      },
+      "trees100": {
+        "fps": 1151.6618005839284,
+        "mean": 0.868310470567808,
+        "p50": 0.7000000000116415,
+        "p95": 1.6000000000058208,
+        "max": 4.2000000000116415,
+        "frames": 5759
+      },
+      "stats100": {
+        "drawCalls": 67,
+        "triangles": 1906064,
+        "geometries": 66,
+        "textures": 68,
+        "programs": 28,
+        "objects": 100
+      }
+    }
+  },
+  "perf1000": {
+    "day": {
+      "fps": 511.3693178409295,
+      "mean": 1.9555338287055144,
+      "p50": 1,
+      "p95": 4.400000000001455,
+      "max": 13.100000000000364,
+      "frames": 2557
+    },
+    "dusk": {
+      "fps": 507.97968081276747,
+      "mean": 1.9685826771653545,
+      "p50": 1,
+      "p95": 4.5,
+      "max": 12.600000000000364,
+      "frames": 2540
+    },
+    "night": {
+      "fps": 506.2076410963832,
+      "mean": 1.9754739336492897,
+      "p50": 1,
+      "p95": 4.5,
+      "max": 12.30000000000291,
+      "frames": 2532
+    },
+    "tech": {
+      "fps": 506.5973610555778,
+      "mean": 1.9739542225730071,
+      "p50": 1,
+      "p95": 4.5,
+      "max": 11.900000000001455,
+      "frames": 2534
+    }
+  },
+  "growth10": [
+    {
+      "geo": 4,
+      "tex": 6,
+      "prog": 3
+    },
+    {
+      "geo": 5,
+      "tex": 8,
+      "prog": 3
+    },
+    {
+      "geo": 6,
+      "tex": 10,
+      "prog": 3
+    },
+    {
+      "geo": 7,
+      "tex": 12,
+      "prog": 3
+    },
+    {
+      "geo": 8,
+      "tex": 14,
+      "prog": 3
+    },
+    {
+      "geo": 9,
+      "tex": 16,
+      "prog": 3
+    },
+    {
+      "geo": 10,
+      "tex": 18,
+      "prog": 3
+    },
+    {
+      "geo": 11,
+      "tex": 20,
+      "prog": 3
+    },
+    {
+      "geo": 12,
+      "tex": 22,
+      "prog": 3
+    },
+    {
+      "geo": 13,
+      "tex": 24,
+      "prog": 3
+    }
+  ]
+}

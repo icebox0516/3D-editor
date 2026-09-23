@@ -1,0 +1,742 @@
+[perf] day done
+[perf] dusk done
+[perf] night done
+[perf] tech done
+[perf1000] day done
+[perf1000] dusk done
+[perf1000] night done
+[perf1000] tech done
+[iblOnOff] done
+[cycles] round 1 done
+[cycles] round 2 done
+[cycles] round 3 done
+[cycles] round 4 done
+[cycles] round 5 done
+[cycles] round 6 done
+{
+  "probe": {
+    "perf": true,
+    "env": true,
+    "sky": true
+  },
+  "perf": {
+    "day": {
+      "empty": {
+        "fps": 4310,
+        "mean": 0.23201856148491878,
+        "p50": 0.2000000000007276,
+        "p95": 0.4000000000014552,
+        "max": 5.399999999999636,
+        "frames": 21550
+      },
+      "trees100": {
+        "fps": 916.3266938644906,
+        "mean": 1.0913138367525101,
+        "p50": 0.7000000000007276,
+        "p95": 2.5,
+        "max": 10.800000000001091,
+        "frames": 4582
+      }
+    },
+    "dusk": {
+      "empty": {
+        "fps": 4350.112997740043,
+        "mean": 0.2298790860190337,
+        "p50": 0.2000000000007276,
+        "p95": 0.4000000000014552,
+        "max": 3.599999999998545,
+        "frames": 21751
+      },
+      "trees100": {
+        "fps": 568.6066737309318,
+        "mean": 1.7586849507735574,
+        "p50": 1.7999999999992724,
+        "p95": 3.400000000001455,
+        "max": 11,
+        "frames": 2844
+      }
+    },
+    "night": {
+      "empty": {
+        "fps": 1077.0492131101653,
+        "mean": 0.9284626810248787,
+        "p50": 0.9000000000014552,
+        "p95": 1.3999999999978172,
+        "max": 4.200000000004366,
+        "frames": 5386
+      },
+      "trees100": {
+        "fps": 440.650178939161,
+        "mean": 2.269373865698728,
+        "p50": 2.2000000000043656,
+        "p95": 3.099999999998545,
+        "max": 6.299999999995634,
+        "frames": 2204
+      }
+    },
+    "tech": {
+      "empty": {
+        "fps": 1070.6929307069292,
+        "mean": 0.9339745984310796,
+        "p50": 0.9000000000014552,
+        "p95": 1.4000000000014552,
+        "max": 3.1000000000058208,
+        "frames": 5354
+      },
+      "trees100": {
+        "fps": 394.6658136233683,
+        "mean": 2.5337892603850034,
+        "p50": 2.5,
+        "p95": 3.400000000001455,
+        "max": 7.69999999999709,
+        "frames": 1974
+      }
+    }
+  },
+  "perf1000": {
+    "day": {
+      "fps": 344.6414649261343,
+      "mean": 2.9015661252900204,
+      "p50": 2.8000000000029104,
+      "p95": 3.7999999999956344,
+      "max": 7.400000000001455,
+      "frames": 1724
+    },
+    "dusk": {
+      "fps": 342.93141371725653,
+      "mean": 2.9160349854227405,
+      "p50": 2.8999999999941792,
+      "p95": 3.8000000000029104,
+      "max": 7.399999999994179,
+      "frames": 1715
+    },
+    "night": {
+      "fps": 350.3159241781974,
+      "mean": 2.8545662100456606,
+      "p50": 2.8000000000029104,
+      "p95": 3.8000000000029104,
+      "max": 5.5,
+      "frames": 1752
+    },
+    "tech": {
+      "fps": 338.5526026356302,
+      "mean": 2.9537507383343247,
+      "p50": 2.8999999999941792,
+      "p95": 3.8999999999941792,
+      "max": 7.100000000005821,
+      "frames": 1693
+    }
+  },
+  "iblOnOff": {
+    "on": {
+      "fps": 333.32666813301034,
+      "mean": 3.000059988002403,
+      "p50": 2.900000000008731,
+      "p95": 4.099999999991269,
+      "max": 9.099999999991269,
+      "frames": 1667
+    },
+    "off": {
+      "fps": 338.9389909816237,
+      "mean": 2.9503834808259555,
+      "p50": 2.8999999999941792,
+      "p95": 4,
+      "max": 7.30000000000291,
+      "frames": 1695
+    },
+    "on2": {
+      "fps": 458.6055991847009,
+      "mean": 2.1805228758169948,
+      "p50": 1,
+      "p95": 5.80000000000291,
+      "max": 23.69999999999709,
+      "frames": 2295
+    }
+  },
+  "cycles": [
+    {
+      "round": 1,
+      "perPreset": {
+        "day": {
+          "pmrem": {
+            "baked": 1,
+            "retired": 0,
+            "owned": 1,
+            "live": 1
+          },
+          "info": {
+            "render": {
+              "calls": 3,
+              "triangles": 14,
+              "points": 0,
+              "lines": 802,
+              "frame": 110125
+            },
+            "memory": {
+              "geometries": 38,
+              "textures": 5
+            },
+            "programs": 21
+          }
+        },
+        "dusk": {
+          "pmrem": {
+            "baked": 1,
+            "retired": 0,
+            "owned": 1,
+            "live": 1
+          },
+          "info": {
+            "render": {
+              "calls": 3,
+              "triangles": 14,
+              "points": 0,
+              "lines": 802,
+              "frame": 111432
+            },
+            "memory": {
+              "geometries": 38,
+              "textures": 5
+            },
+            "programs": 21
+          }
+        },
+        "night": {
+          "pmrem": {
+            "baked": 1,
+            "retired": 0,
+            "owned": 1,
+            "live": 1
+          },
+          "info": {
+            "render": {
+              "calls": 3,
+              "triangles": 14,
+              "points": 0,
+              "lines": 802,
+              "frame": 112703
+            },
+            "memory": {
+              "geometries": 38,
+              "textures": 5
+            },
+            "programs": 21
+          }
+        },
+        "tech": {
+          "pmrem": {
+            "baked": 1,
+            "retired": 0,
+            "owned": 1,
+            "live": 1
+          },
+          "info": {
+            "render": {
+              "calls": 3,
+              "triangles": 14,
+              "points": 0,
+              "lines": 802,
+              "frame": 113983
+            },
+            "memory": {
+              "geometries": 38,
+              "textures": 5
+            },
+            "programs": 21
+          }
+        }
+      }
+    },
+    {
+      "round": 2,
+      "perPreset": {
+        "day": {
+          "pmrem": {
+            "baked": 1,
+            "retired": 0,
+            "owned": 1,
+            "live": 1
+          },
+          "info": {
+            "render": {
+              "calls": 3,
+              "triangles": 14,
+              "points": 0,
+              "lines": 802,
+              "frame": 115232
+            },
+            "memory": {
+              "geometries": 38,
+              "textures": 5
+            },
+            "programs": 21
+          }
+        },
+        "dusk": {
+          "pmrem": {
+            "baked": 1,
+            "retired": 0,
+            "owned": 1,
+            "live": 1
+          },
+          "info": {
+            "render": {
+              "calls": 3,
+              "triangles": 14,
+              "points": 0,
+              "lines": 802,
+              "frame": 116512
+            },
+            "memory": {
+              "geometries": 38,
+              "textures": 5
+            },
+            "programs": 21
+          }
+        },
+        "night": {
+          "pmrem": {
+            "baked": 1,
+            "retired": 0,
+            "owned": 1,
+            "live": 1
+          },
+          "info": {
+            "render": {
+              "calls": 3,
+              "triangles": 14,
+              "points": 0,
+              "lines": 802,
+              "frame": 117760
+            },
+            "memory": {
+              "geometries": 38,
+              "textures": 5
+            },
+            "programs": 21
+          }
+        },
+        "tech": {
+          "pmrem": {
+            "baked": 1,
+            "retired": 0,
+            "owned": 1,
+            "live": 1
+          },
+          "info": {
+            "render": {
+              "calls": 3,
+              "triangles": 14,
+              "points": 0,
+              "lines": 802,
+              "frame": 119053
+            },
+            "memory": {
+              "geometries": 38,
+              "textures": 5
+            },
+            "programs": 21
+          }
+        }
+      }
+    },
+    {
+      "round": 3,
+      "perPreset": {
+        "day": {
+          "pmrem": {
+            "baked": 1,
+            "retired": 0,
+            "owned": 1,
+            "live": 1
+          },
+          "info": {
+            "render": {
+              "calls": 3,
+              "triangles": 14,
+              "points": 0,
+              "lines": 802,
+              "frame": 120266
+            },
+            "memory": {
+              "geometries": 38,
+              "textures": 5
+            },
+            "programs": 21
+          }
+        },
+        "dusk": {
+          "pmrem": {
+            "baked": 1,
+            "retired": 0,
+            "owned": 1,
+            "live": 1
+          },
+          "info": {
+            "render": {
+              "calls": 3,
+              "triangles": 14,
+              "points": 0,
+              "lines": 802,
+              "frame": 121371
+            },
+            "memory": {
+              "geometries": 38,
+              "textures": 5
+            },
+            "programs": 21
+          }
+        },
+        "night": {
+          "pmrem": {
+            "baked": 1,
+            "retired": 0,
+            "owned": 1,
+            "live": 1
+          },
+          "info": {
+            "render": {
+              "calls": 3,
+              "triangles": 14,
+              "points": 0,
+              "lines": 802,
+              "frame": 122150
+            },
+            "memory": {
+              "geometries": 38,
+              "textures": 5
+            },
+            "programs": 21
+          }
+        },
+        "tech": {
+          "pmrem": {
+            "baked": 1,
+            "retired": 0,
+            "owned": 1,
+            "live": 1
+          },
+          "info": {
+            "render": {
+              "calls": 3,
+              "triangles": 14,
+              "points": 0,
+              "lines": 802,
+              "frame": 122940
+            },
+            "memory": {
+              "geometries": 38,
+              "textures": 5
+            },
+            "programs": 21
+          }
+        }
+      }
+    },
+    {
+      "round": 4,
+      "perPreset": {
+        "day": {
+          "pmrem": {
+            "baked": 1,
+            "retired": 0,
+            "owned": 1,
+            "live": 1
+          },
+          "info": {
+            "render": {
+              "calls": 3,
+              "triangles": 14,
+              "points": 0,
+              "lines": 802,
+              "frame": 123719
+            },
+            "memory": {
+              "geometries": 38,
+              "textures": 5
+            },
+            "programs": 21
+          }
+        },
+        "dusk": {
+          "pmrem": {
+            "baked": 1,
+            "retired": 0,
+            "owned": 1,
+            "live": 1
+          },
+          "info": {
+            "render": {
+              "calls": 3,
+              "triangles": 14,
+              "points": 0,
+              "lines": 802,
+              "frame": 124551
+            },
+            "memory": {
+              "geometries": 38,
+              "textures": 5
+            },
+            "programs": 21
+          }
+        },
+        "night": {
+          "pmrem": {
+            "baked": 1,
+            "retired": 0,
+            "owned": 1,
+            "live": 1
+          },
+          "info": {
+            "render": {
+              "calls": 3,
+              "triangles": 14,
+              "points": 0,
+              "lines": 802,
+              "frame": 125323
+            },
+            "memory": {
+              "geometries": 38,
+              "textures": 5
+            },
+            "programs": 21
+          }
+        },
+        "tech": {
+          "pmrem": {
+            "baked": 1,
+            "retired": 0,
+            "owned": 1,
+            "live": 1
+          },
+          "info": {
+            "render": {
+              "calls": 3,
+              "triangles": 14,
+              "points": 0,
+              "lines": 802,
+              "frame": 126142
+            },
+            "memory": {
+              "geometries": 38,
+              "textures": 5
+            },
+            "programs": 21
+          }
+        }
+      }
+    },
+    {
+      "round": 5,
+      "perPreset": {
+        "day": {
+          "pmrem": {
+            "baked": 1,
+            "retired": 0,
+            "owned": 1,
+            "live": 1
+          },
+          "info": {
+            "render": {
+              "calls": 3,
+              "triangles": 14,
+              "points": 0,
+              "lines": 802,
+              "frame": 126924
+            },
+            "memory": {
+              "geometries": 38,
+              "textures": 5
+            },
+            "programs": 21
+          }
+        },
+        "dusk": {
+          "pmrem": {
+            "baked": 1,
+            "retired": 0,
+            "owned": 1,
+            "live": 1
+          },
+          "info": {
+            "render": {
+              "calls": 3,
+              "triangles": 14,
+              "points": 0,
+              "lines": 802,
+              "frame": 127811
+            },
+            "memory": {
+              "geometries": 38,
+              "textures": 5
+            },
+            "programs": 21
+          }
+        },
+        "night": {
+          "pmrem": {
+            "baked": 1,
+            "retired": 0,
+            "owned": 1,
+            "live": 1
+          },
+          "info": {
+            "render": {
+              "calls": 3,
+              "triangles": 14,
+              "points": 0,
+              "lines": 802,
+              "frame": 128595
+            },
+            "memory": {
+              "geometries": 38,
+              "textures": 5
+            },
+            "programs": 21
+          }
+        },
+        "tech": {
+          "pmrem": {
+            "baked": 1,
+            "retired": 0,
+            "owned": 1,
+            "live": 1
+          },
+          "info": {
+            "render": {
+              "calls": 3,
+              "triangles": 14,
+              "points": 0,
+              "lines": 802,
+              "frame": 129401
+            },
+            "memory": {
+              "geometries": 38,
+              "textures": 5
+            },
+            "programs": 21
+          }
+        }
+      }
+    },
+    {
+      "round": 6,
+      "perPreset": {
+        "day": {
+          "pmrem": {
+            "baked": 1,
+            "retired": 0,
+            "owned": 1,
+            "live": 1
+          },
+          "info": {
+            "render": {
+              "calls": 3,
+              "triangles": 14,
+              "points": 0,
+              "lines": 802,
+              "frame": 130291
+            },
+            "memory": {
+              "geometries": 38,
+              "textures": 5
+            },
+            "programs": 21
+          }
+        },
+        "dusk": {
+          "pmrem": {
+            "baked": 1,
+            "retired": 0,
+            "owned": 1,
+            "live": 1
+          },
+          "info": {
+            "render": {
+              "calls": 3,
+              "triangles": 14,
+              "points": 0,
+              "lines": 802,
+              "frame": 131092
+            },
+            "memory": {
+              "geometries": 38,
+              "textures": 5
+            },
+            "programs": 21
+          }
+        },
+        "night": {
+          "pmrem": {
+            "baked": 1,
+            "retired": 0,
+            "owned": 1,
+            "live": 1
+          },
+          "info": {
+            "render": {
+              "calls": 3,
+              "triangles": 14,
+              "points": 0,
+              "lines": 802,
+              "frame": 131990
+            },
+            "memory": {
+              "geometries": 38,
+              "textures": 5
+            },
+            "programs": 21
+          }
+        },
+        "tech": {
+          "pmrem": {
+            "baked": 1,
+            "retired": 0,
+            "owned": 1,
+            "live": 1
+          },
+          "info": {
+            "render": {
+              "calls": 3,
+              "triangles": 14,
+              "points": 0,
+              "lines": 802,
+              "frame": 132757
+            },
+            "memory": {
+              "geometries": 38,
+              "textures": 5
+            },
+            "programs": 21
+          }
+        }
+      }
+    }
+  ],
+  "rebakeMs": [
+    0.6,
+    0.4,
+    0.4
+  ],
+  "finalInfo": {
+    "render": {
+      "calls": 3,
+      "triangles": 14,
+      "points": 0,
+      "lines": 802,
+      "frame": 132857
+    },
+    "memory": {
+      "geometries": 38,
+      "textures": 5
+    },
+    "programs": 21
+  },
+  "finalPmrem": {
+    "baked": 4,
+    "retired": 3,
+    "owned": 1,
+    "live": 1
+  },
+  "__console": []
+}

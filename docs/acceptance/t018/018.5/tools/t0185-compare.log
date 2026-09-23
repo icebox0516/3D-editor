@@ -1,0 +1,339 @@
+{
+  "day-tree3a": {
+    "skyTop": {
+      "oldLuma": 154.7,
+      "newLuma": 154,
+      "meanAbsDiff": 12.32,
+      "diffFrac": 0.8815
+    },
+    "groundBottom": {
+      "oldLuma": 186.6,
+      "newLuma": 202.3,
+      "meanAbsDiff": 15.73,
+      "diffFrac": 0.996
+    }
+  },
+  "day-celtis": {
+    "skyTop": {
+      "oldLuma": 154.7,
+      "newLuma": 154,
+      "meanAbsDiff": 12.32,
+      "diffFrac": 0.8815
+    },
+    "groundBottom": {
+      "oldLuma": 186.6,
+      "newLuma": 202.3,
+      "meanAbsDiff": 15.73,
+      "diffFrac": 0.996
+    }
+  },
+  "day-camphor": {
+    "skyTop": {
+      "oldLuma": 154.7,
+      "newLuma": 154,
+      "meanAbsDiff": 12.32,
+      "diffFrac": 0.8815
+    },
+    "groundBottom": {
+      "oldLuma": 186.6,
+      "newLuma": 202.3,
+      "meanAbsDiff": 15.73,
+      "diffFrac": 0.996
+    }
+  },
+  "day-streetlamp": {
+    "skyTop": {
+      "oldLuma": 154.7,
+      "newLuma": 153.8,
+      "meanAbsDiff": 17.31,
+      "diffFrac": 0.9552
+    },
+    "groundBottom": {
+      "oldLuma": 186.3,
+      "newLuma": 202.2,
+      "meanAbsDiff": 15.9,
+      "diffFrac": 0.9963
+    }
+  },
+  "day-glb": {
+    "skyTop": {
+      "oldLuma": 154.7,
+      "newLuma": 155.5,
+      "meanAbsDiff": 17.67,
+      "diffFrac": 0.9551
+    },
+    "groundBottom": {
+      "oldLuma": 186.5,
+      "newLuma": 202.5,
+      "meanAbsDiff": 15.99,
+      "diffFrac": 0.9964
+    }
+  },
+  "day-metal": {
+    "skyTop": {
+      "oldLuma": 154.7,
+      "newLuma": 161.8,
+      "meanAbsDiff": 16.82,
+      "diffFrac": 0.9399
+    },
+    "groundBottom": {
+      "oldLuma": 186.5,
+      "newLuma": 202.7,
+      "meanAbsDiff": 16.2,
+      "diffFrac": 0.9963
+    }
+  },
+  "dusk-tree3a": {
+    "skyTop": {
+      "oldLuma": 65,
+      "newLuma": 239.8,
+      "meanAbsDiff": 174.76,
+      "diffFrac": 0.9922
+    },
+    "groundBottom": {
+      "oldLuma": 56.6,
+      "newLuma": 92.5,
+      "meanAbsDiff": 35.91,
+      "diffFrac": 0.9972
+    }
+  },
+  "dusk-celtis": {
+    "skyTop": {
+      "oldLuma": 65,
+      "newLuma": 239.8,
+      "meanAbsDiff": 174.76,
+      "diffFrac": 0.9922
+    },
+    "groundBottom": {
+      "oldLuma": 56.6,
+      "newLuma": 92.5,
+      "meanAbsDiff": 35.94,
+      "diffFrac": 0.9972
+    }
+  },
+  "dusk-camphor": {
+    "skyTop": {
+      "oldLuma": 65,
+      "newLuma": 239.8,
+      "meanAbsDiff": 174.76,
+      "diffFrac": 0.9922
+    },
+    "groundBottom": {
+      "oldLuma": 56.6,
+      "newLuma": 92.5,
+      "meanAbsDiff": 35.93,
+      "diffFrac": 0.9972
+    }
+  },
+  "dusk-streetlamp": {
+    "skyTop": {
+      "oldLuma": 65,
+      "newLuma": 238,
+      "meanAbsDiff": 172.96,
+      "diffFrac": 0.9922
+    },
+    "groundBottom": {
+      "oldLuma": 56.4,
+      "newLuma": 93,
+      "meanAbsDiff": 36.59,
+      "diffFrac": 0.997
+    }
+  },
+  "dusk-glb": {
+    "skyTop": {
+      "oldLuma": 65,
+      "newLuma": 223.2,
+      "meanAbsDiff": 158.17,
+      "diffFrac": 0.9921
+    },
+    "groundBottom": {
+      "oldLuma": 56.2,
+      "newLuma": 92.9,
+      "meanAbsDiff": 36.61,
+      "diffFrac": 0.9969
+    }
+  },
+  "dusk-metal": {
+    "skyTop": {
+      "oldLuma": 65,
+      "newLuma": 154.5,
+      "meanAbsDiff": 89.49,
+      "diffFrac": 0.9913
+    },
+    "groundBottom": {
+      "oldLuma": 56.4,
+      "newLuma": 90.9,
+      "meanAbsDiff": 34.47,
+      "diffFrac": 0.9971
+    }
+  },
+  "night-tree3a": {
+    "skyTop": {
+      "oldLuma": 18.4,
+      "newLuma": 97.8,
+      "meanAbsDiff": 79.36,
+      "diffFrac": 0.9919
+    },
+    "groundBottom": {
+      "oldLuma": 9.5,
+      "newLuma": 22.6,
+      "meanAbsDiff": 13.08,
+      "diffFrac": 0.9954
+    }
+  },
+  "night-celtis": {
+    "skyTop": {
+      "oldLuma": 18.4,
+      "newLuma": 97.8,
+      "meanAbsDiff": 79.36,
+      "diffFrac": 0.9919
+    },
+    "groundBottom": {
+      "oldLuma": 9.5,
+      "newLuma": 22.6,
+      "meanAbsDiff": 13.08,
+      "diffFrac": 0.9954
+    }
+  },
+  "night-camphor": {
+    "skyTop": {
+      "oldLuma": 18.4,
+      "newLuma": 97.8,
+      "meanAbsDiff": 79.36,
+      "diffFrac": 0.9919
+    },
+    "groundBottom": {
+      "oldLuma": 9.5,
+      "newLuma": 22.6,
+      "meanAbsDiff": 13.08,
+      "diffFrac": 0.9954
+    }
+  },
+  "night-streetlamp": {
+    "skyTop": {
+      "oldLuma": 18.4,
+      "newLuma": 110.5,
+      "meanAbsDiff": 92.13,
+      "diffFrac": 0.9922
+    },
+    "groundBottom": {
+      "oldLuma": 9.5,
+      "newLuma": 22.9,
+      "meanAbsDiff": 13.41,
+      "diffFrac": 0.9958
+    }
+  },
+  "night-glb": {
+    "skyTop": {
+      "oldLuma": 18.4,
+      "newLuma": 113.7,
+      "meanAbsDiff": 95.3,
+      "diffFrac": 0.99
+    },
+    "groundBottom": {
+      "oldLuma": 9.2,
+      "newLuma": 22.4,
+      "meanAbsDiff": 13.12,
+      "diffFrac": 0.9961
+    }
+  },
+  "night-metal": {
+    "skyTop": {
+      "oldLuma": 18.4,
+      "newLuma": 86.1,
+      "meanAbsDiff": 67.75,
+      "diffFrac": 0.9911
+    },
+    "groundBottom": {
+      "oldLuma": 9.4,
+      "newLuma": 21.5,
+      "meanAbsDiff": 12.17,
+      "diffFrac": 0.9959
+    }
+  },
+  "tech-tree3a": {
+    "skyTop": {
+      "oldLuma": 19.4,
+      "newLuma": 242.5,
+      "meanAbsDiff": 223.09,
+      "diffFrac": 0.9927
+    },
+    "groundBottom": {
+      "oldLuma": 17.1,
+      "newLuma": 73.1,
+      "meanAbsDiff": 56,
+      "diffFrac": 0.9972
+    }
+  },
+  "tech-celtis": {
+    "skyTop": {
+      "oldLuma": 19.4,
+      "newLuma": 242.5,
+      "meanAbsDiff": 223.09,
+      "diffFrac": 0.9927
+    },
+    "groundBottom": {
+      "oldLuma": 17.1,
+      "newLuma": 73.1,
+      "meanAbsDiff": 56,
+      "diffFrac": 0.9972
+    }
+  },
+  "tech-camphor": {
+    "skyTop": {
+      "oldLuma": 19.4,
+      "newLuma": 242.5,
+      "meanAbsDiff": 223.09,
+      "diffFrac": 0.9927
+    },
+    "groundBottom": {
+      "oldLuma": 17.1,
+      "newLuma": 73.1,
+      "meanAbsDiff": 56,
+      "diffFrac": 0.9972
+    }
+  },
+  "tech-streetlamp": {
+    "skyTop": {
+      "oldLuma": 19.4,
+      "newLuma": 241.5,
+      "meanAbsDiff": 222.14,
+      "diffFrac": 0.9927
+    },
+    "groundBottom": {
+      "oldLuma": 17.2,
+      "newLuma": 74.3,
+      "meanAbsDiff": 57.1,
+      "diffFrac": 0.9972
+    }
+  },
+  "tech-glb": {
+    "skyTop": {
+      "oldLuma": 19.4,
+      "newLuma": 242,
+      "meanAbsDiff": 222.64,
+      "diffFrac": 0.9927
+    },
+    "groundBottom": {
+      "oldLuma": 17,
+      "newLuma": 74.5,
+      "meanAbsDiff": 57.49,
+      "diffFrac": 0.9973
+    }
+  },
+  "tech-metal": {
+    "skyTop": {
+      "oldLuma": 19.4,
+      "newLuma": 242.8,
+      "meanAbsDiff": 223.42,
+      "diffFrac": 0.9927
+    },
+    "groundBottom": {
+      "oldLuma": 17.3,
+      "newLuma": 75.3,
+      "meanAbsDiff": 58.02,
+      "diffFrac": 0.9973
+    }
+  },
+  "__console": []
+}

@@ -1,0 +1,133 @@
+{
+  "probes": [
+    {
+      "preset": "day",
+      "environmentNonNull": true,
+      "environmentIntensity": 1,
+      "backgroundNull": true,
+      "hemiCount": 0,
+      "skyMeshCount": 1
+    },
+    {
+      "preset": "dusk",
+      "environmentNonNull": true,
+      "environmentIntensity": 0.85,
+      "backgroundNull": true,
+      "hemiCount": 0,
+      "skyMeshCount": 1
+    },
+    {
+      "preset": "night",
+      "environmentNonNull": true,
+      "environmentIntensity": 0.35,
+      "backgroundNull": true,
+      "hemiCount": 0,
+      "skyMeshCount": 1
+    },
+    {
+      "preset": "tech",
+      "environmentNonNull": true,
+      "environmentIntensity": 0.7,
+      "backgroundNull": true,
+      "hemiCount": 0,
+      "skyMeshCount": 1
+    }
+  ],
+  "fallbackProbe": {
+    "environmentNull": true,
+    "backgroundIsTexture": true,
+    "backgroundIsCanvas": true,
+    "hemiCount": 1,
+    "skyMeshCount": 0
+  },
+  "recoveryProbe": {
+    "environmentNonNull": true,
+    "backgroundNull": true,
+    "hemiCount": 0,
+    "skyMeshCount": 1
+  },
+  "growth10Alternating": [
+    {
+      "geo": 19,
+      "tex": 5,
+      "prog": 11
+    },
+    {
+      "geo": 7,
+      "tex": 4,
+      "prog": 9
+    },
+    {
+      "geo": 19,
+      "tex": 5,
+      "prog": 11
+    },
+    {
+      "geo": 7,
+      "tex": 4,
+      "prog": 9
+    },
+    {
+      "geo": 19,
+      "tex": 5,
+      "prog": 11
+    },
+    {
+      "geo": 7,
+      "tex": 4,
+      "prog": 9
+    },
+    {
+      "geo": 19,
+      "tex": 5,
+      "prog": 11
+    },
+    {
+      "geo": 7,
+      "tex": 4,
+      "prog": 9
+    },
+    {
+      "geo": 19,
+      "tex": 5,
+      "prog": 11
+    },
+    {
+      "geo": 7,
+      "tex": 4,
+      "prog": 9
+    }
+  ],
+  "__console": [
+    {
+      "src": "console",
+      "level": "error",
+      "text": "[Renderer] Sky/PMREM 环境初始化失败：事务降级 legacy 环境（渐变背景 + HemisphereLight） Error: T018.3 取证注入：初烘失败\n    at THREE.PMREMGenerator.fromScene (<anonymous>:4:68)\n    at LazyPmremBackend.bake (http://localhost:5173/src/runtime/environment/pmremEnvironment.ts?t=1790129522839:71:25)\n    at PmremEnvironment.bake (ht"
+    },
+    {
+      "src": "console",
+      "level": "error",
+      "text": "[Renderer] Sky/PMREM 环境初始化失败：事务降级 legacy 环境（渐变背景 + HemisphereLight） Error: growth 注入\n    at THREE.PMREMGenerator.fromScene (<anonymous>:5:72)\n    at LazyPmremBackend.bake (http://localhost:5173/src/runtime/environment/pmremEnvironment.ts?t=1790129522839:71:25)\n    at PmremEnvironment.bake (http://lo"
+    },
+    {
+      "src": "console",
+      "level": "error",
+      "text": "[Renderer] Sky/PMREM 环境初始化失败：事务降级 legacy 环境（渐变背景 + HemisphereLight） Error: growth 注入\n    at THREE.PMREMGenerator.fromScene (<anonymous>:5:72)\n    at LazyPmremBackend.bake (http://localhost:5173/src/runtime/environment/pmremEnvironment.ts?t=1790129522839:71:25)\n    at PmremEnvironment.bake (http://lo"
+    },
+    {
+      "src": "console",
+      "level": "error",
+      "text": "[Renderer] Sky/PMREM 环境初始化失败：事务降级 legacy 环境（渐变背景 + HemisphereLight） Error: growth 注入\n    at THREE.PMREMGenerator.fromScene (<anonymous>:5:72)\n    at LazyPmremBackend.bake (http://localhost:5173/src/runtime/environment/pmremEnvironment.ts?t=1790129522839:71:25)\n    at PmremEnvironment.bake (http://lo"
+    },
+    {
+      "src": "console",
+      "level": "error",
+      "text": "[Renderer] Sky/PMREM 环境初始化失败：事务降级 legacy 环境（渐变背景 + HemisphereLight） Error: growth 注入\n    at THREE.PMREMGenerator.fromScene (<anonymous>:5:72)\n    at LazyPmremBackend.bake (http://localhost:5173/src/runtime/environment/pmremEnvironment.ts?t=1790129522839:71:25)\n    at PmremEnvironment.bake (http://lo"
+    },
+    {
+      "src": "console",
+      "level": "error",
+      "text": "[Renderer] Sky/PMREM 环境初始化失败：事务降级 legacy 环境（渐变背景 + HemisphereLight） Error: growth 注入\n    at THREE.PMREMGenerator.fromScene (<anonymous>:5:72)\n    at LazyPmremBackend.bake (http://localhost:5173/src/runtime/environment/pmremEnvironment.ts?t=1790129522839:71:25)\n    at PmremEnvironment.bake (http://lo"
+    }
+  ]
+}

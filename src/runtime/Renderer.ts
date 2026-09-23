@@ -3,7 +3,8 @@
  *
  * 职责：
  *  1. 初始化 WebGL 上下文、场景、相机（OrbitControls）、默认环境
- *     （天空渐变 + 无限地面大平面 + 网格辅助线 + 平行光带阴影 + 环境光）；
+ *     （Sky 天空网格（T018.1）+ PMREM 环境光照 IBL（T018.2）+ 无限地面大平面 + 网格
+ *     辅助线 + 平行光带阴影；初始化失败事务降级 legacy 渐变背景 + Hemi（T018.3））；
  *  2. 经 SceneSync 订阅 EventBus 的 object:* / layer:updated / scene:changed(clear)
  *     事件，驱动 attach / update / detach / 全量重建（事件→操作翻译在 SceneSync，纯逻辑可测）；
  *  3. 对象分派：region 经 RendererRegistry 取 ObjectAdapter（RegionRenderer，样式引擎
@@ -87,6 +88,19 @@ import { TimeUniformService } from './services/TimeUniformService';
 import { VertexEditImpl } from './services/VertexEditImpl';
 import type { VertexSnapPipeline } from './services/VertexEditImpl';
 import { RegionRenderer } from './renderers/RegionRenderer';
+import type { SkyCore } from './environment/skyCore';
+import type { PmremEnvironment } from './environment/pmremEnvironment';
+import { environmentPresetOf } from './environment/environmentPresets';
+import { createRendererPmremFactory, defaultSkyCoreFactory, setupSkyEnvironment } from './environment/environmentSetup';
+import type { SkyRebakePort } from './environment/skyRebake';
+import { SkyTuning } from './environment/skyTuning';
+import type { SkyTuningPort } from './environment/skyTuning';
+import {
+  DAY_SUN_AZIMUTH_DEG,
+  DAY_SUN_ELEVATION_DEG,
+  LEGACY_SUN_DISTANCE,
+  sunDirectionOf,
+} from './environment/sunDirection';
 
 /** Renderer 装配依赖（app 组合根注入；事件驱动同步与模型资产加载所需） */
 export interface RendererDeps {
@@ -121,70 +135,11 @@ export interface RendererDeps {
   snapTiers?: SnapTiersSource;
 }
 
-/** 环境预设参数（天空/地面/网格/光照配色；需求 §场景与基础环境：白天/傍晚/夜景/科技） */
-interface EnvironmentPreset {
-  skyTop: string;
-  skyBottom: string;
-  groundColor: string;
-  gridMajor: number;
-  gridMinor: number;
-  sunColor: number;
-  sunIntensity: number;
-  ambientSky: number;
-  ambientGround: number;
-  ambientIntensity: number;
-}
-
-const ENVIRONMENT_PRESETS: Record<string, EnvironmentPreset> = {
-  day: {
-    skyTop: '#6ba3e0',
-    skyBottom: '#d8e8f4',
-    groundColor: '#e6e4de',
-    gridMajor: 0x9aa4ae,
-    gridMinor: 0xc9cfd6,
-    sunColor: 0xffffff,
-    sunIntensity: 2.4,
-    ambientSky: 0xbfd6ea,
-    ambientGround: 0x8a8f96,
-    ambientIntensity: 0.9,
-  },
-  dusk: {
-    skyTop: '#2e3a5c',
-    skyBottom: '#e8927c',
-    groundColor: '#7a746e',
-    gridMajor: 0x5a5668,
-    gridMinor: 0x847c7a,
-    sunColor: 0xffb27a,
-    sunIntensity: 1.6,
-    ambientSky: 0x6a6f96,
-    ambientGround: 0x4a4442,
-    ambientIntensity: 0.6,
-  },
-  night: {
-    skyTop: '#0a0f1e',
-    skyBottom: '#1a2338',
-    groundColor: '#2c3242',
-    gridMajor: 0x3a4560,
-    gridMinor: 0x272f42,
-    sunColor: 0x8a9cff,
-    sunIntensity: 0.5,
-    ambientSky: 0x2a3350,
-    ambientGround: 0x1a1e2c,
-    ambientIntensity: 0.35,
-  },
-  tech: {
-    skyTop: '#04121f',
-    skyBottom: '#0a2a3f',
-    groundColor: '#0b1c2a',
-    gridMajor: 0x1e5f74,
-    gridMinor: 0x123244,
-    sunColor: 0x9fd8ff,
-    sunIntensity: 1.2,
-    ambientSky: 0x14364a,
-    ambientGround: 0x0a1a26,
-    ambientIntensity: 0.55,
-  },
-};
+/**
+ * 环境预设参数面：T018.3 起收口至 environment/environmentPresets（大气/云/太阳/IBL
+ * 预设差异化 + ground/grid + legacy fallback 专用键，单一真相源）——本文件零预设数值，
+ * 经 environmentPresetOf(env.preset) 查表（未知预设回退 day）。
+ */
 
 /** 地面规模（米）：大平面 + 网格（“无限”观感，一期望远裁剪内） */
 const GROUND_SIZE = 2000;
@@ -314,6 +269,44 @@ export class Renderer {
   private readonly sync: SceneSync;
   /** 环境对象组（切换预设时整组重建） */
   private readonly envGroup = new THREE.Group();
+  /**
+   * 天空核心（T018.1，D29.12）：displaySky/bakeSky 双实例 + 共享参数状态——displaySky
+   * 挂 envGroup 随 ENV_LAYER 分遍显示（相机中心跟随见 renderFrame）；bakeSky 仅存
+   * bakeScene（PMREM 烘焙由下方 pmrem 消费，T018.2）。T018.3 起随 setupSkyEnvironment
+   * 事务构建创建（新路径失败时本字段保持 null——legacy 分支无 sky），clearEnvironment 释放。
+   */
+  private sky: SkyCore | null = null;
+  /**
+   * PMREM / IBL 环境贴图（T018.2）：bakeScene → PMREMGenerator.fromScene →
+   * scene.environment 的事务管理者（新 RT 就绪 → 替换 → 旧 RT 释放 + owned/retired
+   * 记账，见 environment/pmremEnvironment）。setupSkyEnvironment 构建并初烘一次、
+   * SkyCore 三写入口回调重烘（失败保留旧环境，T018.3 catch 在构建单元内）、
+   * clearEnvironment 释放 RT + 惰性 PMREMGenerator + scene.environment 摘除。
+   * **严禁进帧路径**（结构断言锁定 renderFrame 零 PMREM 调用）；legacy 分支本字段 null。
+   */
+  private pmrem: PmremEnvironment | null = null;
+  /**
+   * 重烘 debounce 句柄（T018.4，D29 Q6）：setupSkyEnvironment sky 模式结果带出——
+   * 三写入口回调（environmentSetup 内包 debounce）与 setIblIntensity 借道的触发面、
+   * rebake() flush 强制入口；clearEnvironment **显式取消 pending**（不跨环境触发——
+   * 旧 pmrem 已 dispose 时 bake 短路技术上安全，显式取消是确定性记档口径）后置空。
+   */
+  private skyRebake: SkyRebakePort | null = null;
+  /**
+   * 环境调参端口（T018.4，environment/skyTuning）：sky 模式经 applyEnvironment 装配
+   * （SkyCore 写入口代理 + 太阳角三一致封装 + IBL 强度刷新路径 + 强制重烘 + 只读
+   * params/pmremStats）；**legacy/fallback 模式恒 null**（单一开关不变式 D29.5——
+   * fallback 态无 DEV 调参）。消费面：app 组合根 __sky DEV 守卫（018.5 终调工作台，
+   * 经 skyTuning getter 结构代理）；会话态不进任何持久化（预设切换整组重建即重置）。
+   */
+  private skyTuningPort: SkyTuning | null = null;
+  /**
+   * 太阳直射灯（T018.4 从 applyEnvironment 局部变量提升为字段）：调参端口 setSunAngles
+   * 三一致封装的灯位侧（sunDirection × LEGACY_SUN_DISTANCE——封装内聚在 Renderer 侧
+   * 端口，不散到 DEV 守卫）。释放链不变：灯仍挂 envGroup 经 disposeEnvironmentObjectTree
+   * 释放，本字段在 clearEnvironment 只去引用；sky/legacy 两分支均存在。
+   */
+  private sunLight: THREE.DirectionalLight | null = null;
   /** id → 该对象当前使用的要素适配器（dispose 分派）；模型对象不入此表 */
   private readonly attachedAdapters = new Map<ID, ObjectAdapter>();
   /** 模型对象 id 集合（克隆共享模板资源，detach 时只移除不 dispose） */
@@ -826,6 +819,9 @@ export class Renderer {
     }
     this.syncCanvasSize();
     this.controls.update();
+    // T018.1 天空相机中心跟随（一次 position 拷贝级轻量维护，非 Scene 数据；shaded 与
+    // 分遍两路径共用——bakeSky 不跟随，见 SkyCore.followCamera）
+    this.sky?.followCamera(this.camera);
     // D19.7 全局 uTime 时钟：controls 后、render 前——材质 uniforms 声明 uTime 即自动驱动
     //（一期 shader_test 预设为既有消费者；minimap/axes 独立小场景不喂）
     this.uTime.frame(performance.now(), this.scene);
@@ -984,30 +980,54 @@ export class Renderer {
 
   // ── 环境预设 ────────────────────────────────────────────
 
-  /** 应用环境预设（整组重建：天空渐变 + 地面 + 网格 + 平行光 + 环境光；renderMode/axes 键消费） */
+  /**
+   * 应用环境预设（整组重建：Sky 天空网格（T018.1）+ PMREM IBL（T018.2）+ 地面 + 网格 +
+   * 平行光；T018.3 预设面收口——大气/云/太阳角/IBL 预设差异化首次全生效 + 事务式 fallback
+   * 单一开关（Sky/PMREM 初始化失败 → legacy 渐变背景 + Hemi 完整路径，D29.5）；renderMode/
+   * axes 键消费）。正常路径零 HemisphereLight（D29.4：环境漫射光全部由 IBL 承担）。
+   */
   applyEnvironment(env: SceneEnvironment): void {
     this.clearEnvironment();
-    const preset = ENVIRONMENT_PRESETS[env.preset] ?? ENVIRONMENT_PRESETS.day;
+    const preset = environmentPresetOf(env.preset);
 
     // 渲染模式（environment.renderMode，T5.7）：仅变更时一次材质遍历，不进每帧路径
     this.applyRenderModeChange(coerceRenderMode(env.renderMode));
     // 坐标轴指示器开关（environment.axes.visible，T5.7）
     this.axesIndicator.setVisible(coerceSceneAxes(env.axes).visible);
 
-    // 天空渐变背景（CanvasTexture；无 DOM 环境回退纯色）
-    this.scene.background = createSkyTexture(preset.skyTop, preset.skyBottom);
+    // T018.3 事务式环境天空段构建（D29.5 单一开关，裁定在 environment/environmentSetup）：
+    // 新路径（SkyCore 构造 → displaySky 挂 envGroup → PmremEnvironment 构造 → 初烘）任一步
+    // 失败 → 事务清理已建部分 → 完整 legacy 路径（渐变 background + Hemi + day 方向太阳口径）；
+    // 每次调用重新尝试新路径（fallback 不粘死，恢复机会留给下次切换）；运行中重烘失败在构建
+    // 单元内 catch（保留旧环境不降级，与初烘失败整组降级语义分界）
+    const skyEnv = setupSkyEnvironment({
+      scene: this.scene,
+      envGroup: this.envGroup,
+      preset,
+      createSky: defaultSkyCoreFactory,
+      createPmrem: createRendererPmremFactory(this.renderer),
+    });
+    if (skyEnv.mode === 'sky') {
+      this.sky = skyEnv.sky;
+      this.pmrem = skyEnv.pmrem;
+      this.skyRebake = skyEnv.rebake; // T018.4：debounce 句柄带出（clearEnvironment cancel）
+    }
 
-    // 环境光（半球：天空色/地面色）
-    const ambient = new THREE.HemisphereLight(
-      preset.ambientSky,
-      preset.ambientGround,
-      preset.ambientIntensity,
+    // 平行光（太阳，带阴影；两分支共用，仅方向源不同）。sky 模式 = SkyCore 状态源（预设角
+    // 经 sunDirectionOf——三一致「天空太阳位 = 光向 = 影向」D29.1，直读 × LEGACY_SUN_DISTANCE
+    // ≈ 156.205）；legacy 模式 = 现行太阳常量口径（(80,120,60) 同向同模长，D29.5 降级语义）。
+    // shadow camera 2048 / ±160 / near 1 / far 400 / bias 全不动（D29.1 冻结）
+    this.sunLight = new THREE.DirectionalLight(preset.sun.color, preset.sun.intensity); // T018.4 字段提升（调参端口灯位侧）
+    const sun = this.sunLight; // 本分支块局部别名（挂载/阴影配置/层例外沿用原名）
+    const sunDir =
+      skyEnv.mode === 'sky'
+        ? skyEnv.sky.sunDirection
+        : sunDirectionOf(DAY_SUN_ELEVATION_DEG, DAY_SUN_AZIMUTH_DEG);
+    sun.position.set(
+      sunDir.x * LEGACY_SUN_DISTANCE,
+      sunDir.y * LEGACY_SUN_DISTANCE,
+      sunDir.z * LEGACY_SUN_DISTANCE,
     );
-    this.envGroup.add(ambient);
-
-    // 平行光（太阳，带阴影）
-    const sun = new THREE.DirectionalLight(preset.sunColor, preset.sunIntensity);
-    sun.position.set(80, 120, 60);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
     sun.shadow.camera.left = -160;
@@ -1044,18 +1064,63 @@ export class Renderer {
     // 环境组整体划入 ENV_LAYER（T6.4 R7 分遍：非 shaded 环境遍独占、内容/辅助遍豁免）；
     // 灯光例外开全 layer——内容遍（相机掩码仅 layer 0）仍需收集灯光供 MeshStandardMaterial
     // 内容对象使用，且阴影 pass 的 object.layers.test(light.layers) 不因灯被挪层而漏投影。
+    // legacy 分支的 Hemi 同为灯光例外（构建结果带回引用；正常路径无 Hemi，D29.4）
     this.envGroup.traverse((node) => {
       node.layers.set(ENV_LAYER);
     });
-    ambient.layers.enableAll();
     sun.layers.enableAll();
+    if (skyEnv.mode === 'legacy') skyEnv.hemi.layers.enableAll();
+    // T018.4 调参端口装配（sky 模式专属——legacy 分支保持 null，D29.5 单一开关不变式：
+    // fallback 态无 DEV 调参）：持有本环境 sky/pmrem/sunLight/rebake 四句柄 + 预设名，
+    // 随 clearEnvironment 整组置空、applyEnvironment 重建（预设切换即重置——会话态语义）
+    if (skyEnv.mode === 'sky') {
+      this.skyTuningPort = new SkyTuning({
+        scene: this.scene,
+        sky: skyEnv.sky,
+        pmrem: skyEnv.pmrem,
+        sunLight: sun,
+        rebake: skyEnv.rebake,
+        preset: env.preset,
+      });
+    }
   }
 
-  /** 清空并释放当前环境资源 */
+  /**
+   * 环境调参端口（T018.4 只读访问面）：sky 模式非 null；legacy/fallback null——
+   * app 组合根 __sky DEV 守卫经本 getter 结构代理（mode live 读、legacy 写入口
+   * 显式抛错在守卫层）。实现契约见 environment/skyTuning。
+   */
+  get skyTuning(): SkyTuningPort | null {
+    return this.skyTuningPort;
+  }
+
+  /**
+   * 清空并释放当前环境资源（Renderer.dispose 经本链覆盖环境全量）。
+   * T018.1：sky（displaySky 摘离 envGroup + bakeSky/bakeScene 全量释放）+ 环境树改走
+   * disposeEnvironmentObjectTree（Line 几何与灯光 shadow map 纳入释放——legacy 预设
+   * 切换线性泄漏 +1 geo/+2 tex 每次的最小修复，改前事实见 docs/acceptance/t018/018.0
+   * README ③）。T018.2：PMREM 先于 sky 释放（消费者先撤）——owned RT（含事务替换残留，
+   * 事务路径已逐次 retire）+ 惰性 PMREMGenerator + scene.environment 摘除；幂等。
+   * T018.3：legacy fallback 分支的 Hemi（envGroup 子节点，无 shadow map 零特殊处理）
+   * 与渐变 background（Texture dispose 既有）同样经本链释放——两分支统一出口。
+   * T018.4：pending 重烘 debounce 显式取消（不跨环境触发）+ 调参端口/sunLight 字段
+   * 置空（sunLight 本体经 envGroup 释放链不变）。
+   */
   private clearEnvironment(): void {
+    // T018.4：pending 重烘显式取消（不跨环境触发——确定性记档口径）+ 调参端口/
+    // sunLight 字段去引用（端口随 applyEnvironment 整组重建；灯本体仍经下方 envGroup
+    // 释放链，本字段只去引用不重复释放）
+    this.skyRebake?.cancel();
+    this.skyRebake = null;
+    this.skyTuningPort = null;
+    this.sunLight = null;
+    this.pmrem?.dispose();
+    this.pmrem = null;
+    this.sky?.dispose();
+    this.sky = null;
     for (const child of [...this.envGroup.children]) {
       child.removeFromParent();
-      disposeObjectTree(child);
+      disposeEnvironmentObjectTree(child);
     }
     const background = this.scene.background;
     if (background instanceof THREE.Texture) background.dispose();
@@ -1251,23 +1316,36 @@ function disposeObjectTree(root: THREE.Object3D): void {
   });
 }
 
-/** 天空渐变纹理（上下双色线性渐变；无 DOM 环境回退顶部色） */
-function createSkyTexture(topColor: string, bottomColor: string): THREE.Texture | THREE.Color {
-  try {
-    const canvas = document.createElement('canvas');
-    canvas.width = 16;
-    canvas.height = 512;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return new THREE.Color(topColor);
-    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, topColor);
-    gradient.addColorStop(1, bottomColor);
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.colorSpace = THREE.SRGBColorSpace;
-    return texture;
-  } catch {
-    return new THREE.Color(topColor);
-  }
+/**
+ * 递归释放环境对象树的 GPU 资源（T018.1 环境链路专用，导出供 node 单测）。
+ * 与 disposeObjectTree 的差异 = 只补环境链路的两个盲区（**不重构其全局语义**——
+ * detach 兜底路径仍走原函数）：
+ *  - Line / LineSegments（GridHelper 为 LineSegments）：geometry + material——
+ *    legacy clearEnvironment 只判 isMesh，网格几何每切换 +1 泄漏（018.0 ③ 实测）；
+ *  - 灯光 shadow map 渲染目标（shadow.map / mapPass）：RT 归灯对象私有、材质遍历
+ *    天然不可见，WebGLShadowMap 每灯重建不复旧——每切换 +2 纹理泄漏的主力。
+ * 环境树全为 applyEnvironment 专属新建（无共享克隆），专属释放语义安全；幂等
+ * （three dispose 事件重复派发无 GL 副作用）。
+ */
+export function disposeEnvironmentObjectTree(root: THREE.Object3D): void {
+  root.traverse((node) => {
+    // 单一结构断言（沿上方 disposeObjectTree 的 node-as-Mesh 先例）：Mesh 判 isMesh、
+    // Line/LineSegments（含 GridHelper）判 isLine，几何/材质字段两者结构同形
+    const renderable = node as THREE.Mesh & { isLine?: boolean };
+    if (renderable.isMesh || renderable.isLine === true) {
+      renderable.geometry?.dispose();
+      const material = renderable.material;
+      if (Array.isArray(material)) {
+        for (const m of material) m.dispose();
+      } else if (material) {
+        material.dispose();
+      }
+    }
+    const light = node as THREE.DirectionalLight;
+    if (light.isLight) {
+      // HemisphereLight 无 shadow（undefined 链安全）；mapPass 为部分阴影类型第二 RT
+      light.shadow?.map?.dispose();
+      light.shadow?.mapPass?.dispose();
+    }
+  });
 }

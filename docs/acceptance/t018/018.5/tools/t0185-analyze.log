@@ -1,0 +1,555 @@
+{
+  "tune-day-metal-base.png": {
+    "skySides": {
+      "left": {
+        "satFrac": 0.8466,
+        "meanLuma": 225.3,
+        "lumaStd": 60.6
+      },
+      "right": {
+        "satFrac": 0.9248,
+        "meanLuma": 236.9,
+        "lumaStd": 49.1
+      }
+    },
+    "skyFull": {
+      "satFrac": 0.9429,
+      "meanLuma": 238.8,
+      "lumaStd": 40.3
+    },
+    "ground": {
+      "satFrac": 0.8819,
+      "meanLuma": 235.6,
+      "lumaStd": 53.5
+    }
+  },
+  "tune-day-metal-d035-i030.png": {
+    "skySides": {
+      "left": {
+        "satFrac": 0.8466,
+        "meanLuma": 191.9,
+        "lumaStd": 51.3
+      },
+      "right": {
+        "satFrac": 0.9248,
+        "meanLuma": 206.2,
+        "lumaStd": 45.5
+      }
+    },
+    "skyFull": {
+      "satFrac": 0.9429,
+      "meanLuma": 198.4,
+      "lumaStd": 37.9
+    },
+    "ground": {
+      "satFrac": 0.8819,
+      "meanLuma": 229.9,
+      "lumaStd": 52
+    }
+  },
+  "tune-day-tree-base.png": {
+    "skySides": {
+      "left": {
+        "satFrac": 0.8466,
+        "meanLuma": 222.8,
+        "lumaStd": 60
+      },
+      "right": {
+        "satFrac": 0.9248,
+        "meanLuma": 237.5,
+        "lumaStd": 49
+      }
+    },
+    "skyFull": {
+      "satFrac": 0.9429,
+      "meanLuma": 237.1,
+      "lumaStd": 39.9
+    },
+    "ground": {
+      "satFrac": 0.8713,
+      "meanLuma": 235.5,
+      "lumaStd": 53.4
+    }
+  },
+  "tune-day-tree-disp-028.png": {
+    "skySides": {
+      "left": {
+        "satFrac": 0.7269,
+        "meanLuma": 167.2,
+        "lumaStd": 43.4
+      },
+      "right": {
+        "satFrac": 0.8609,
+        "meanLuma": 188,
+        "lumaStd": 39.7
+      }
+    },
+    "skyFull": {
+      "satFrac": 0.689,
+      "meanLuma": 176,
+      "lumaStd": 32.9
+    },
+    "ground": {
+      "satFrac": 0.8713,
+      "meanLuma": 235.5,
+      "lumaStd": 53.4
+    }
+  },
+  "tune-day-tree-disp-035.png": {
+    "skySides": {
+      "left": {
+        "satFrac": 0.8466,
+        "meanLuma": 182.5,
+        "lumaStd": 48.4
+      },
+      "right": {
+        "satFrac": 0.9248,
+        "meanLuma": 205.7,
+        "lumaStd": 44.2
+      }
+    },
+    "skyFull": {
+      "satFrac": 0.9429,
+      "meanLuma": 192.7,
+      "lumaStd": 36.4
+    },
+    "ground": {
+      "satFrac": 0.8713,
+      "meanLuma": 235.5,
+      "lumaStd": 53.4
+    }
+  },
+  "tune-day-tree-disp-045.png": {
+    "skySides": {
+      "left": {
+        "satFrac": 0.8466,
+        "meanLuma": 200.8,
+        "lumaStd": 54.3
+      },
+      "right": {
+        "satFrac": 0.9248,
+        "meanLuma": 224.6,
+        "lumaStd": 47.9
+      }
+    },
+    "skyFull": {
+      "satFrac": 0.9429,
+      "meanLuma": 212.1,
+      "lumaStd": 39.9
+    },
+    "ground": {
+      "satFrac": 0.8713,
+      "meanLuma": 235.5,
+      "lumaStd": 53.4
+    }
+  },
+  "tune-day-tree-disp-06.png": {
+    "skySides": {
+      "left": {
+        "satFrac": 0.8466,
+        "meanLuma": 214.5,
+        "lumaStd": 57.5
+      },
+      "right": {
+        "satFrac": 0.9248,
+        "meanLuma": 233.6,
+        "lumaStd": 48.5
+      }
+    },
+    "skyFull": {
+      "satFrac": 0.9429,
+      "meanLuma": 227.1,
+      "lumaStd": 39.6
+    },
+    "ground": {
+      "satFrac": 0.8713,
+      "meanLuma": 235.5,
+      "lumaStd": 53.4
+    }
+  },
+  "tune-day-tree-ibl-025.png": {
+    "skySides": {
+      "left": {
+        "satFrac": 0.8466,
+        "meanLuma": 222.8,
+        "lumaStd": 60
+      },
+      "right": {
+        "satFrac": 0.9248,
+        "meanLuma": 237.5,
+        "lumaStd": 49
+      }
+    },
+    "skyFull": {
+      "satFrac": 0.9429,
+      "meanLuma": 237.1,
+      "lumaStd": 39.9
+    },
+    "ground": {
+      "satFrac": 0.8713,
+      "meanLuma": 221.3,
+      "lumaStd": 49.7
+    }
+  },
+  "tune-day-tree-ibl-03.png": {
+    "skySides": {
+      "left": {
+        "satFrac": 0.8466,
+        "meanLuma": 222.8,
+        "lumaStd": 60
+      },
+      "right": {
+        "satFrac": 0.9248,
+        "meanLuma": 237.5,
+        "lumaStd": 49
+      }
+    },
+    "skyFull": {
+      "satFrac": 0.9429,
+      "meanLuma": 237.1,
+      "lumaStd": 39.9
+    },
+    "ground": {
+      "satFrac": 0.8713,
+      "meanLuma": 229.8,
+      "lumaStd": 51.9
+    }
+  },
+  "tune-day-tree-ibl-04.png": {
+    "skySides": {
+      "left": {
+        "satFrac": 0.8466,
+        "meanLuma": 222.8,
+        "lumaStd": 60
+      },
+      "right": {
+        "satFrac": 0.9248,
+        "meanLuma": 237.5,
+        "lumaStd": 49
+      }
+    },
+    "skyFull": {
+      "satFrac": 0.9429,
+      "meanLuma": 237.1,
+      "lumaStd": 39.9
+    },
+    "ground": {
+      "satFrac": 0.8713,
+      "meanLuma": 233.1,
+      "lumaStd": 52.7
+    }
+  },
+  "tune-day-tree-ibl-05.png": {
+    "skySides": {
+      "left": {
+        "satFrac": 0.8466,
+        "meanLuma": 222.8,
+        "lumaStd": 60
+      },
+      "right": {
+        "satFrac": 0.9248,
+        "meanLuma": 237.5,
+        "lumaStd": 49
+      }
+    },
+    "skyFull": {
+      "satFrac": 0.9429,
+      "meanLuma": 237.1,
+      "lumaStd": 39.9
+    },
+    "ground": {
+      "satFrac": 0.8713,
+      "meanLuma": 235.5,
+      "lumaStd": 53.4
+    }
+  },
+  "tune-dusk-tree-base.png": {
+    "skySides": {
+      "left": {
+        "satFrac": 0.8466,
+        "meanLuma": 229,
+        "lumaStd": 62
+      },
+      "right": {
+        "satFrac": 0.6836,
+        "meanLuma": 229.5,
+        "lumaStd": 49.4
+      }
+    },
+    "skyFull": {
+      "satFrac": 0.8826,
+      "meanLuma": 242.1,
+      "lumaStd": 41.7
+    },
+    "ground": {
+      "satFrac": 0,
+      "meanLuma": 92.5,
+      "lumaStd": 17.2
+    }
+  },
+  "tune-night-tree-base.png": {
+    "skySides": {
+      "left": {
+        "satFrac": 0.0138,
+        "meanLuma": 101,
+        "lumaStd": 33.3
+      },
+      "right": {
+        "satFrac": 0,
+        "meanLuma": 136.9,
+        "lumaStd": 74.5
+      }
+    },
+    "skyFull": {
+      "satFrac": 0.0035,
+      "meanLuma": 103.3,
+      "lumaStd": 52.4
+    },
+    "ground": {
+      "satFrac": 0,
+      "meanLuma": 22.6,
+      "lumaStd": 4.8
+    }
+  },
+  "tune-tech-metal-base.png": {
+    "skySides": {
+      "left": {
+        "satFrac": 0.8466,
+        "meanLuma": 229.1,
+        "lumaStd": 62
+      },
+      "right": {
+        "satFrac": 0.9248,
+        "meanLuma": 241,
+        "lumaStd": 49.8
+      }
+    },
+    "skyFull": {
+      "satFrac": 0.9429,
+      "meanLuma": 244.8,
+      "lumaStd": 41.2
+    },
+    "ground": {
+      "satFrac": 0,
+      "meanLuma": 75.3,
+      "lumaStd": 13
+    }
+  },
+  "tune-tech-metal-d050-i040.png": {
+    "skySides": {
+      "left": {
+        "satFrac": 0.8466,
+        "meanLuma": 222,
+        "lumaStd": 59.8
+      },
+      "right": {
+        "satFrac": 0.9248,
+        "meanLuma": 235,
+        "lumaStd": 48.6
+      }
+    },
+    "skyFull": {
+      "satFrac": 0.9429,
+      "meanLuma": 236.2,
+      "lumaStd": 39.6
+    },
+    "ground": {
+      "satFrac": 0,
+      "meanLuma": 59,
+      "lumaStd": 9.2
+    }
+  },
+  "tune-tech-tree-base.png": {
+    "skySides": {
+      "left": {
+        "satFrac": 0.8466,
+        "meanLuma": 228.9,
+        "lumaStd": 61.9
+      },
+      "right": {
+        "satFrac": 0.9248,
+        "meanLuma": 241,
+        "lumaStd": 49.8
+      }
+    },
+    "skyFull": {
+      "satFrac": 0.9429,
+      "meanLuma": 244.6,
+      "lumaStd": 41.1
+    },
+    "ground": {
+      "satFrac": 0,
+      "meanLuma": 73.1,
+      "lumaStd": 12.4
+    }
+  },
+  "tune-tech-tree-disp-035.png": {
+    "skySides": {
+      "left": {
+        "satFrac": 0.8466,
+        "meanLuma": 213.8,
+        "lumaStd": 57.4
+      },
+      "right": {
+        "satFrac": 0.9248,
+        "meanLuma": 230.5,
+        "lumaStd": 48.1
+      }
+    },
+    "skyFull": {
+      "satFrac": 0.9429,
+      "meanLuma": 228.4,
+      "lumaStd": 38.8
+    },
+    "ground": {
+      "satFrac": 0,
+      "meanLuma": 73.1,
+      "lumaStd": 12.4
+    }
+  },
+  "tune-tech-tree-disp-05.png": {
+    "skySides": {
+      "left": {
+        "satFrac": 0.8466,
+        "meanLuma": 220.5,
+        "lumaStd": 59.5
+      },
+      "right": {
+        "satFrac": 0.9248,
+        "meanLuma": 235,
+        "lumaStd": 48.9
+      }
+    },
+    "skyFull": {
+      "satFrac": 0.9429,
+      "meanLuma": 235.6,
+      "lumaStd": 39.8
+    },
+    "ground": {
+      "satFrac": 0,
+      "meanLuma": 73.1,
+      "lumaStd": 12.4
+    }
+  },
+  "tune-tech-tree-disp-07.png": {
+    "skySides": {
+      "left": {
+        "satFrac": 0.8466,
+        "meanLuma": 225.9,
+        "lumaStd": 61.3
+      },
+      "right": {
+        "satFrac": 0.9248,
+        "meanLuma": 238.7,
+        "lumaStd": 49.5
+      }
+    },
+    "skyFull": {
+      "satFrac": 0.9429,
+      "meanLuma": 241,
+      "lumaStd": 40.7
+    },
+    "ground": {
+      "satFrac": 0,
+      "meanLuma": 73.1,
+      "lumaStd": 12.4
+    }
+  },
+  "tune-tech-tree-ibl-025.png": {
+    "skySides": {
+      "left": {
+        "satFrac": 0.8466,
+        "meanLuma": 228.9,
+        "lumaStd": 61.9
+      },
+      "right": {
+        "satFrac": 0.9248,
+        "meanLuma": 241,
+        "lumaStd": 49.8
+      }
+    },
+    "skyFull": {
+      "satFrac": 0.9429,
+      "meanLuma": 244.6,
+      "lumaStd": 41.1
+    },
+    "ground": {
+      "satFrac": 0,
+      "meanLuma": 46.9,
+      "lumaStd": 6.6
+    }
+  },
+  "tune-tech-tree-ibl-03.png": {
+    "skySides": {
+      "left": {
+        "satFrac": 0.8466,
+        "meanLuma": 228.9,
+        "lumaStd": 61.9
+      },
+      "right": {
+        "satFrac": 0.9248,
+        "meanLuma": 241,
+        "lumaStd": 49.8
+      }
+    },
+    "skyFull": {
+      "satFrac": 0.9429,
+      "meanLuma": 244.6,
+      "lumaStd": 41.1
+    },
+    "ground": {
+      "satFrac": 0,
+      "meanLuma": 50.7,
+      "lumaStd": 7.3
+    }
+  },
+  "tune-tech-tree-ibl-04.png": {
+    "skySides": {
+      "left": {
+        "satFrac": 0.8466,
+        "meanLuma": 228.9,
+        "lumaStd": 61.9
+      },
+      "right": {
+        "satFrac": 0.9248,
+        "meanLuma": 241,
+        "lumaStd": 49.8
+      }
+    },
+    "skyFull": {
+      "satFrac": 0.9429,
+      "meanLuma": 244.6,
+      "lumaStd": 41.1
+    },
+    "ground": {
+      "satFrac": 0,
+      "meanLuma": 57.3,
+      "lumaStd": 8.7
+    }
+  },
+  "tune-tech-tree-ibl-05.png": {
+    "skySides": {
+      "left": {
+        "satFrac": 0.8466,
+        "meanLuma": 228.9,
+        "lumaStd": 61.9
+      },
+      "right": {
+        "satFrac": 0.9248,
+        "meanLuma": 241,
+        "lumaStd": 49.8
+      }
+    },
+    "skyFull": {
+      "satFrac": 0.9429,
+      "meanLuma": 244.6,
+      "lumaStd": 41.1
+    },
+    "ground": {
+      "satFrac": 0,
+      "meanLuma": 63.1,
+      "lumaStd": 10
+    }
+  },
+  "__console": []
+}
