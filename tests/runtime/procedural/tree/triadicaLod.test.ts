@@ -35,6 +35,7 @@ import type { ProceduralLevel } from '../../../../src/domain/assets';
 import { buildTriadicaGeometry } from '../../../../src/runtime/procedural/tree/triadica/triadicaGeometry';
 import type { TriadicaGeometryResult } from '../../../../src/runtime/procedural/tree/triadica/triadicaGeometry';
 import { TRIADICA_SHAPE_PROFILES } from '../../../../src/runtime/procedural/tree/triadica/triadicaShapeProfile';
+import { createGeometryTracker, leafCardXZ, spanOf } from '../../../support/procedural-tree/geometryHarness';
 
 const LEVELS: ProceduralLevel[] = ['high', 'mid', 'low'];
 const SEED0 = morphSeedOf('asset_tree_triadica', 0);
@@ -46,12 +47,7 @@ const BARK_TRIS_LOCK = 24178;
 /** 档间 bbox 容差（LOW_SHELL_MARGIN 0.10 中卡口径——见 triadicaGeometry 常量注释） */
 const SPAN_TOLERANCE = 0.5;
 
-const built: TriadicaGeometryResult[] = [];
-
-function track(result: TriadicaGeometryResult): TriadicaGeometryResult {
-  built.push(result);
-  return result;
-}
+const { track, disposeAll } = createGeometryTracker<TriadicaGeometryResult>();
 
 /** 槽位构建（seed + 槽 profile + 档位——与资产路径 profileForSeed 同路由口径） */
 function buildSlot(slot: number, level: ProceduralLevel = 'high'): TriadicaGeometryResult {
@@ -65,39 +61,8 @@ function buildSlot(slot: number, level: ProceduralLevel = 'high'): TriadicaGeome
 }
 
 afterEach(() => {
-  for (const { geometry } of built.splice(0)) geometry.dispose();
+  disposeAll();
 });
-
-/** bbox 跨度账目（XZ 最大水平跨 / 总高 / minY） */
-function spanOf(result: TriadicaGeometryResult): { xz: number; y: number; minY: number } {
-  result.geometry.computeBoundingBox();
-  const b = result.geometry.boundingBox!;
-  return {
-    xz: Math.max(b.max.x - b.min.x, b.max.z - b.min.z),
-    y: b.max.y - b.min.y,
-    minY: b.min.y,
-  };
-}
-
-/** 叶组逐卡 XZ 位置块键（6 顶点 × x,z 共 12 分量 join）+ 首顶点 Y——Mid ⊂ High 匹配口径：
- *  几何尾部 minY 贴地平移只改 Y 分量，Mid 皮面采样不同 → 全局 Y 偏移档间不同，raw Y
- *  不可逐位比；X/Z 不受平移影响逐位可比，公共卡 Y 差 = 单一常量偏移（贴地平移差）。
- *  组 1 纯卡（果序入皮组组 0，无 24 顶点块）——逐 6 顶点直扫 */
-function leafCardXZ(result: TriadicaGeometryResult): { keys: string[]; y0: number[] } {
-  const leaf = result.geometry.groups[1]!;
-  const pos = result.geometry.getAttribute('position');
-  const keys: string[] = [];
-  const y0: number[] = [];
-  for (let base = leaf.start; base < leaf.start + leaf.count; base += 6) {
-    const nums: number[] = [];
-    for (let v = 0; v < 6; v++) {
-      nums.push(pos.array[(base + v) * 3]!, pos.array[(base + v) * 3 + 2]!);
-    }
-    keys.push(nums.join(','));
-    y0.push(pos.array[base * 3 + 1]!);
-  }
-  return { keys, y0 };
-}
 
 describe('High 逐位不动（缺省档回归锁）', () => {
   it('缺省调用（profile + level 双缺省）= 显式 high：position/aBend 数组与 stats 逐位全等', () => {

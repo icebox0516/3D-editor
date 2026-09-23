@@ -38,67 +38,7 @@ import { createGinkgoHandle } from '../../../../src/runtime/procedural/tree/gink
 import { meta } from '../../../../src/runtime/procedural/assets/asset_tree_ginkgo.asset';
 import { morphSeedOf } from '../../../../src/domain/assets';
 import type { ProceduralLevel } from '../../../../src/domain/assets';
-import type { ProceduralBuildParams } from '../../../../src/runtime/procedural/types';
-import type { InstanceSource } from '../../../../src/runtime/instancing/InstancedAssetPool';
-
-/** 结构桩控制目标（对 OrbitControls 的 target/update 结构依赖） */
-function makeControlsStub() {
-  const stub = {
-    target: new THREE.Vector3(),
-    updates: 0,
-    update() {
-      stub.updates += 1;
-    },
-  };
-  return stub;
-}
-
-/** fake build 记录（透传断言）+ 产出引用（dispose 断言） */
-interface FakeBuildLog {
-  params: (ProceduralBuildParams | undefined)[];
-  sources: InstanceSource[];
-}
-
-/** fake build（deps.build seam 注入）：记录调用参数；产出带双材质组的合法 InstanceSource
- *  ——皮组 30 索引 = 10 三角、叶组 60 索引 = 20 三角 = 10 卡（任意合法值，不锁真实档位面数） */
-function makeFakeBuild(log: FakeBuildLog): (params?: ProceduralBuildParams) => InstanceSource {
-  return (params) => {
-    log.params.push(params);
-    const geometry = new THREE.BoxGeometry(1, 1, 1);
-    geometry.clearGroups();
-    geometry.addGroup(0, 30, 0);
-    geometry.addGroup(30, 60, 1);
-    const source: InstanceSource = {
-      geometry,
-      material: [new THREE.MeshStandardMaterial(), new THREE.MeshStandardMaterial()],
-    };
-    log.sources.push(source);
-    return source;
-  };
-}
-
-/** fake build 变体：产出带 customDepthMaterial 的 InstanceSource——模拟正式 build 契约
- *  （银杏 build 自 T011.4 起返回深度材质；不带字段的 makeFakeBuild 即回退路径） */
-function makeFakeBuildWithDepth(log: FakeBuildLog): (params?: ProceduralBuildParams) => InstanceSource {
-  return (params) => {
-    log.params.push(params);
-    const geometry = new THREE.BoxGeometry(1, 1, 1);
-    geometry.clearGroups();
-    geometry.addGroup(0, 30, 0);
-    geometry.addGroup(30, 60, 1);
-    const source: InstanceSource = {
-      geometry,
-      material: [new THREE.MeshStandardMaterial(), new THREE.MeshStandardMaterial()],
-      customDepthMaterial: new THREE.MeshDepthMaterial(),
-    };
-    log.sources.push(source);
-    return source;
-  };
-}
-
-function makeLog(): FakeBuildLog {
-  return { params: [], sources: [] };
-}
+import { makeControlsStub, makeFakeBuild, makeFakeBuildWithDepth, makeLog } from '../../../support/procedural-tree/stageFixture';
 
 describe('mount / unmount / stats', () => {
   it('mount：group 挂 scene + stats 账目 = slot-0 锚点实数（皮 20782 / 叶 9676 / 4838 卡，T011.4 探针实测 = 预算锁定账目 slot-0 High）', () => {

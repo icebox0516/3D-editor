@@ -35,6 +35,7 @@ import type { ProceduralLevel } from '../../../../src/domain/assets';
 import { buildPlatanusGeometry } from '../../../../src/runtime/procedural/tree/platanus/platanusGeometry';
 import type { PlatanusGeometryResult } from '../../../../src/runtime/procedural/tree/platanus/platanusGeometry';
 import { PLATANUS_SHAPE_PROFILES } from '../../../../src/runtime/procedural/tree/platanus/platanusShapeProfile';
+import { createGeometryTracker, spanOf } from '../../../support/procedural-tree/geometryHarness';
 
 const LEVELS: ProceduralLevel[] = ['high', 'mid', 'low'];
 const SEED0 = morphSeedOf('asset_tree_platanus', 0);
@@ -46,12 +47,7 @@ const BARK_TRIS_LOCK = 24178;
 /** 档间 bbox 容差（LOW_SHELL_MARGIN 0.16 大卡口径——见 platanusGeometry 常量注释） */
 const SPAN_TOLERANCE = 0.5;
 
-const built: PlatanusGeometryResult[] = [];
-
-function track(result: PlatanusGeometryResult): PlatanusGeometryResult {
-  built.push(result);
-  return result;
-}
+const { track, disposeAll } = createGeometryTracker<PlatanusGeometryResult>();
 
 /** 槽位构建（seed + 槽 profile + 档位——与资产路径 profileForSeed 同路由口径） */
 function buildSlot(slot: number, level: ProceduralLevel = 'high'): PlatanusGeometryResult {
@@ -65,19 +61,8 @@ function buildSlot(slot: number, level: ProceduralLevel = 'high'): PlatanusGeome
 }
 
 afterEach(() => {
-  for (const { geometry } of built.splice(0)) geometry.dispose();
+  disposeAll();
 });
-
-/** bbox 跨度账目（XZ 最大水平跨 / 总高 / minY） */
-function spanOf(result: PlatanusGeometryResult): { xz: number; y: number; minY: number } {
-  result.geometry.computeBoundingBox();
-  const b = result.geometry.boundingBox!;
-  return {
-    xz: Math.max(b.max.x - b.min.x, b.max.z - b.min.z),
-    y: b.max.y - b.min.y,
-    minY: b.min.y,
-  };
-}
 
 /** 叶组逐卡 XZ 位置块键（6 顶点 × x,z 共 12 分量 join）+ 首顶点 Y——Mid ⊂ High 匹配口径：
  *  几何尾部 minY 贴地平移只改 Y 分量，Mid 皮面采样不同 → 全局 Y 偏移档间不同，raw Y

@@ -30,7 +30,7 @@
  *   干上部弱化门控（幅度小于朴树）+ 微提亮 1.04/苔藓沟底门控（香樟特有通道）+ 强度 0.50；
  * - 深度材质零噪声库注入（全缘 SDF 零 facVnoise 引用 → 影 pass 不吃噪声纪律的更优满足）；
  * - 分档实装（level 参数，缺省 'high'）：三工厂缺省 ≡ 显式 'high'（属性 + 键 + GLSL 全文
- *   逐位相等）；3 工厂 × 3 档 = 9 键互异 + 与 celtis 9 键零碰撞（camphor 前缀不混缓存）；
+ *   逐位相等）；3 工厂 × 3 档 = 9 键互异（跨资产键零碰撞归 assetTaxonomy 全注册资产收容断言）；
  *   叶 Mid 去叶脉三件/腺窝/叶团（SDF 全形/透光/叶背/hue·luma/shade 保留）、Low 再去透光；
  *   皮 Mid 去苔藓、Low 去块斑采样/横断/上部提亮（均值化常量乘子）；深度三档 SDF 档位坍缩
  *   （High 本已零噪声全形——同一字符串平凡成立，表面/影档内一致）；风动三档顶点 GLSL
@@ -55,66 +55,16 @@ import {
   createCamphorLeafDepthMaterial,
   createCamphorLeafMaterial,
 } from '../../../../src/runtime/procedural/tree/camphor/camphorMaterials';
-import {
-  createCeltisBarkMaterial,
-  createCeltisLeafDepthMaterial,
-  createCeltisLeafMaterial,
-} from '../../../../src/runtime/procedural/tree/celtis/celtisMaterials';
+import { assemble, braceDelta, count, createMaterialTracker, expandIncludes, materialUniformsOf, propsOf, sdfOf as extractSdf } from '../../../support/procedural-tree/materialHarness';
 
-/** afterEach 统一 dispose 的材质登记 */
-const created: THREE.Material[] = [];
-
-function track<T extends THREE.Material>(material: T): T {
-  created.push(material);
-  return material;
-}
-
-/** 用真实 ShaderLib 源组装（onBeforeCompile 运行于 include 解析前的真实环境形态） */
-function assemble(
-  material: THREE.Material,
-  lib: { vertexShader: string; fragmentShader: string },
-): { vertexShader: string; fragmentShader: string; uniforms: Record<string, { value: unknown }> } {
-  const shader = {
-    vertexShader: lib.vertexShader,
-    fragmentShader: lib.fragmentShader,
-    uniforms: {} as Record<string, { value: unknown }>,
-  };
-  material.onBeforeCompile(
-    shader as unknown as WebGLProgramParametersWithUniforms,
-    {} as unknown as THREE.WebGLRenderer,
-  );
-  return shader;
-}
-
-/** 递归展开 #include（模拟 WebGLProgram 的 resolveIncludes） */
-function expandIncludes(source: string): string {
-  let out = source;
-  for (let guard = 0; out.includes('#include <') && guard < 10; guard++) {
-    out = out.replace(/#include <([\w\d_]+)>/g, (_match, name: string) => {
-      const chunk = (THREE.ShaderChunk as unknown as Record<string, string>)[name];
-      if (chunk === undefined) throw new Error(`未知 chunk: ${name}`);
-      return chunk;
-    });
-  }
-  return out;
-}
-
-const count = (source: string, target: string): number => source.split(target).length - 1;
-const braceDelta = (source: string): number => count(source, '{') - count(source, '}');
-/** 材质级 uTime 桥接面（TimeUniformService 扫描面） */
-const materialUniformsOf = (material: THREE.Material): Record<string, { value: unknown }> =>
-  (material as unknown as { uniforms: Record<string, { value: unknown }> }).uniforms;
+const { track, disposeAll } = createMaterialTracker();
 
 /** 提取注入后的 cmpLeafAlpha 函数全文（SDF 单一来源比对用；首个 \n} 即函数闭合） */
-const sdfOf = (fragmentShader: string): string => {
-  const start = fragmentShader.indexOf('float cmpLeafAlpha(vec2 cmpUv, float cmpRand)');
-  expect(start).toBeGreaterThanOrEqual(0);
-  const end = fragmentShader.indexOf('\n}', start);
-  return fragmentShader.slice(start, end + 2);
-};
+const sdfOf = (fragmentShader: string): string =>
+  extractSdf(fragmentShader, 'float cmpLeafAlpha(vec2 cmpUv, float cmpRand)');
 
 afterEach(() => {
-  for (const material of created.splice(0)) material.dispose();
+  disposeAll();
 });
 
 describe('uTime 接线（TimeUniformService 消费协议）', () => {
@@ -332,23 +282,6 @@ describe('物种配方锚定（Spec camphor-reference 1.0 §2/§4/§5/§7）', (
 });
 
 describe('分档实装（level 参数；缺省 high = 显式 high）', () => {
-  /** 材质关键属性快照（缺省 vs 显式 high 逐位一致的比较面） */
-  const propsOf = (material: THREE.Material): Record<string, unknown> => {
-    const base: Record<string, unknown> = {
-      type: material.type,
-      side: material.side,
-      alphaTest: material.alphaTest,
-      alphaToCoverage: material.alphaToCoverage,
-      transparent: material.transparent,
-      defines: material.defines,
-    };
-    if (material instanceof THREE.MeshStandardMaterial) {
-      base.color = material.color.getHex();
-      base.roughness = material.roughness;
-      base.metalness = material.metalness;
-    }
-    return base;
-  };
 
   it('三工厂缺省与显式 high 逐位一致（属性 + 键 + GLSL 全文）', () => {
     const pairs: Array<[THREE.Material, THREE.Material, { vertexShader: string; fragmentShader: string }]> = [
@@ -383,28 +316,6 @@ describe('分档实装（level 参数；缺省 high = 显式 high）', () => {
     expectKey(track(createCamphorLeafDepthMaterial('mid')), 'camphor:leaf-depth:mid');
     expectKey(track(createCamphorLeafDepthMaterial('low')), 'camphor:leaf-depth:low');
     expect(keys.size).toBe(9);
-  });
-
-  it('与 celtis 9 键零碰撞（camphor 前缀不与 celtis 混缓存）', () => {
-    const celtisKeys = new Set(
-      [
-        track(createCeltisLeafMaterial()),
-        track(createCeltisLeafMaterial('mid')),
-        track(createCeltisLeafMaterial('low')),
-        track(createCeltisBarkMaterial()),
-        track(createCeltisBarkMaterial('mid')),
-        track(createCeltisBarkMaterial('low')),
-        track(createCeltisLeafDepthMaterial()),
-        track(createCeltisLeafDepthMaterial('mid')),
-        track(createCeltisLeafDepthMaterial('low')),
-      ].map((material) => material.customProgramCacheKey()),
-    );
-    expect(celtisKeys.size).toBe(9);
-    for (const make of [createCamphorLeafMaterial, createCamphorBarkMaterial, createCamphorLeafDepthMaterial]) {
-      for (const level of ['high', 'mid', 'low'] as const) {
-        expect(celtisKeys.has(track(make(level)).customProgramCacheKey())).toBe(false);
-      }
-    }
   });
 
   it('叶 Mid：去叶脉三件（中脉带/离基三出脉影/弱二级脉）+ 腺窝 + 叶团斑块；SDF 全形/透光/叶背/hue·luma/shade 保留', () => {

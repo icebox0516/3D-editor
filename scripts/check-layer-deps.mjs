@@ -48,6 +48,8 @@ function threeAllowed(relPosixPath) {
   if (relPosixPath.startsWith('src/app/')) return true
   // tests/**：不受 DAG 限制，但 three 仅限 runtime 单测（按路径含 runtime 段判定）
   if (relPosixPath.startsWith('tests/') && relPosixPath.split('/').includes('runtime')) return true
+  // support = 测试共享支撑设施，与 runtime 单测同待遇（T020 阶段二）
+  if (relPosixPath.startsWith('tests/support/')) return true
   return false
 }
 

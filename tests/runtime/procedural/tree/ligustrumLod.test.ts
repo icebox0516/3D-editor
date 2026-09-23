@@ -9,7 +9,7 @@
  *   皮面 24236 / rng 消费 85055 快照延续（快照口径 = 槽内跨档恒等；跨槽/跨 seed 消费数
  *   随保留簇数变化——先例同机制；核果挂点零 rng 无消费口径问题）；
  *   **meta.triangleCount = slot-0 High 实数（皮 + 单叶卡 + 核果簇三账合计——写死 meta
- *   前用 build 实测核对的锁；资产入口未就绪（ligustrumMaterials 并行交付）时优雅跳过）**；
+ *   前用 build 实测核对的锁；资产入口静态 import，T020 软跳过清除）**；
  * - rng 三档恒等：同 seed 三档 rng 消费次数全等 85055（「发射省略不省略消费」纪律
  *   ——Low 壳卡不烘焙簇内叶卡与核果簇但簇位/候选/果簇决策照常）；
  * - 档间同源账目：mid/low 的 stats.clusters / clustersCulled / channels /
@@ -41,9 +41,11 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { mulberry32 } from '../../../../src/core/random';
 import { morphSeedOf } from '../../../../src/domain/assets';
 import type { ProceduralLevel } from '../../../../src/domain/assets';
+import { meta } from '../../../../src/runtime/procedural/assets/asset_tree_ligustrum.asset';
 import { buildLigustrumGeometry } from '../../../../src/runtime/procedural/tree/ligustrum/ligustrumGeometry';
 import type { LigustrumGeometryResult } from '../../../../src/runtime/procedural/tree/ligustrum/ligustrumGeometry';
 import { LIGUSTRUM_SHAPE_PROFILES } from '../../../../src/runtime/procedural/tree/ligustrum/ligustrumShapeProfile';
+import { createGeometryTracker, leafCardXZ, spanOf } from '../../../support/procedural-tree/geometryHarness';
 
 const LEVELS: ProceduralLevel[] = ['high', 'mid', 'low'];
 const SEED0 = morphSeedOf('asset_tree_ligustrum', 0);
@@ -65,12 +67,7 @@ const SPAN_TOLERANCE_Y = 1.0;
 /** Low 壳卡宽轴比（单叶卡中位长宽比 1/2.25 ≈ 0.44——变比例域的档间剪影中位比例） */
 const LOW_SHELL_WIDTH_RATIO = 0.44;
 
-const built: LigustrumGeometryResult[] = [];
-
-function track(result: LigustrumGeometryResult): LigustrumGeometryResult {
-  built.push(result);
-  return result;
-}
+const { track, disposeAll } = createGeometryTracker<LigustrumGeometryResult>();
 
 /** 槽位构建（seed + 槽 profile + 档位——与资产路径 profileForSeed 同路由口径） */
 function buildSlot(slot: number, level: ProceduralLevel = 'high'): LigustrumGeometryResult {
@@ -84,39 +81,8 @@ function buildSlot(slot: number, level: ProceduralLevel = 'high'): LigustrumGeom
 }
 
 afterEach(() => {
-  for (const { geometry } of built.splice(0)) geometry.dispose();
+  disposeAll();
 });
-
-/** bbox 跨度账目（XZ 最大水平跨 / 总高 / minY） */
-function spanOf(result: LigustrumGeometryResult): { xz: number; y: number; minY: number } {
-  result.geometry.computeBoundingBox();
-  const b = result.geometry.boundingBox!;
-  return {
-    xz: Math.max(b.max.x - b.min.x, b.max.z - b.min.z),
-    y: b.max.y - b.min.y,
-    minY: b.min.y,
-  };
-}
-
-/** 叶组逐卡 XZ 位置块键（6 顶点 × x,z 共 12 分量 join）+ 首顶点 Y——Mid ⊂ High 匹配口径：
- *  几何尾部 minY 贴地平移只改 Y 分量，Mid 皮面采样不同 → 全局 Y 偏移档间不同，raw Y
- *  不可逐位比；X/Z 不受平移影响逐位可比，公共卡 Y 差 = 单一常量偏移（贴地平移差）。
- *  组 1 纯单叶卡（无花资产——无附加块直扫） */
-function leafCardXZ(result: LigustrumGeometryResult): { keys: string[]; y0: number[] } {
-  const leaf = result.geometry.groups[1]!;
-  const pos = result.geometry.getAttribute('position');
-  const keys: string[] = [];
-  const y0: number[] = [];
-  for (let base = leaf.start; base < leaf.start + leaf.count; base += 6) {
-    const nums: number[] = [];
-    for (let v = 0; v < 6; v++) {
-      nums.push(pos.array[(base + v) * 3]!, pos.array[(base + v) * 3 + 2]!);
-    }
-    keys.push(nums.join(','));
-    y0.push(pos.array[base * 3 + 1]!);
-  }
-  return { keys, y0 };
-}
 
 describe('High 逐位不动（缺省档回归锁）', () => {
   it('缺省调用（profile + level 双缺省）= 显式 high：position/aBend 数组与 stats 逐位全等', () => {
@@ -144,20 +110,10 @@ describe('High 逐位不动（缺省档回归锁）', () => {
     expect(calls).toBe(RNG_CALLS_LOCK);
   }, 120000);
 
-  it('meta.triangleCount = slot-0 High 实数（皮 24236 + 单叶卡 ×2 + 核果果卡 ×4 三账合计——写死 meta 前用 build 实测核对的锁；资产入口未就绪（ligustrumMaterials 并行交付）时优雅跳过，同 ligustrumShapeSlots 路由锁口径）', async () => {
-    const assetModule = await import('../../../../src/runtime/procedural/assets/asset_tree_ligustrum.asset').catch(
-      () => null,
-    );
-    if (!assetModule) {
-      // asset_tree_ligustrum.asset 入口暂不可导入（ligustrumMaterials 并行交付未就绪）——
-      // 实数锁延后到合并后自动生效（主代理合并验证面）；本测试不判失败
-      console.warn('[ligustrumLod] asset_tree_ligustrum 入口暂不可导入（ligustrumMaterials 并行交付未就绪）——triangleCount 实数锁延后');
-      expect(true).toBe(true);
-      return;
-    }
+  it('meta.triangleCount = slot-0 High 实数（皮 24236 + 单叶卡 ×2 + 核果果卡 ×4 三账合计——写死 meta 前用 build 实测核对的锁，同 ligustrumShapeSlots 路由锁口径）', () => {
     const { stats } = buildSlot(0, 'high');
     expect(
-      assetModule.meta.triangleCount,
+      meta.triangleCount,
       'meta.triangleCount 应 = slot-0 High 实测总面（皮拓扑 + 单叶卡 ×2 + 核果果卡 ×4）',
     ).toBe(stats.barkTriangles + stats.leafTriangles + stats.drupeTriangles);
   }, 60000);

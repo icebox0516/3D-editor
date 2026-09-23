@@ -53,8 +53,8 @@
  * - 深度材质零噪声库注入（包络/凹口全 ALU → SDF 零 facVnoise 引用 → 影 pass 不吃
  *   噪声纪律——樟全缘先例）；
  * - 分档实装（level 参数，缺省 'high'）：三工厂缺省 ≡ 显式 'high'（属性 + 键 +
- *   GLSL 全文逐位相等）；3 工厂 × 3 档 = 9 键互异 + 与 camphor/ginkgo/zelkova/
- *   platanus/koelreuteria 45 键零碰撞；叶 Mid 去叶脉三件/腺点/叶团/糙度叶团项
+ *   GLSL 全文逐位相等）；3 工厂 × 3 档 = 9 键互异（跨资产键零碰撞归 assetTaxonomy
+ *   全注册资产收容断言）；叶 Mid 去叶脉三件/腺点/叶团/糙度叶团项
  *   （**SDF 全形含心形凹口保留——档间剪影一致**）、Low 换 SDF_LOW（去心形凹口——
  *   近景基形变奏细化；包络/骤尖收口逐字同源）再去透光，flush 三档同体；皮 Mid 去
  *   条界翘缝暗（脊沟/翘条亮面/干基暗化/果域保留）、Low 再去翘皮碎斑/干基暗化；
@@ -88,83 +88,13 @@ import {
   createTriadicaLeafDepthMaterial,
   createTriadicaLeafMaterial,
 } from '../../../../src/runtime/procedural/tree/triadica/triadicaMaterials';
-import {
-  createCamphorBarkMaterial,
-  createCamphorLeafDepthMaterial,
-  createCamphorLeafMaterial,
-} from '../../../../src/runtime/procedural/tree/camphor/camphorMaterials';
-import {
-  createGinkgoBarkMaterial,
-  createGinkgoLeafDepthMaterial,
-  createGinkgoLeafMaterial,
-} from '../../../../src/runtime/procedural/tree/ginkgo/ginkgoMaterials';
-import {
-  createZelkovaBarkMaterial,
-  createZelkovaLeafDepthMaterial,
-  createZelkovaLeafMaterial,
-} from '../../../../src/runtime/procedural/tree/zelkova/zelkovaMaterials';
-import {
-  createPlatanusBarkMaterial,
-  createPlatanusLeafDepthMaterial,
-  createPlatanusLeafMaterial,
-} from '../../../../src/runtime/procedural/tree/platanus/platanusMaterials';
-import {
-  createKoelreuteriaBarkMaterial,
-  createKoelreuteriaLeafDepthMaterial,
-  createKoelreuteriaLeafMaterial,
-} from '../../../../src/runtime/procedural/tree/koelreuteria/koelreuteriaMaterials';
+import { assemble, braceDelta, count, createMaterialTracker, expandIncludes, materialUniformsOf, propsOf, sdfOf as extractSdf } from '../../../support/procedural-tree/materialHarness';
 
-/** afterEach 统一 dispose 的材质登记 */
-const created: THREE.Material[] = [];
-
-function track<T extends THREE.Material>(material: T): T {
-  created.push(material);
-  return material;
-}
-
-/** 用真实 ShaderLib 源组装（onBeforeCompile 运行于 include 解析前的真实环境形态） */
-function assemble(
-  material: THREE.Material,
-  lib: { vertexShader: string; fragmentShader: string },
-): { vertexShader: string; fragmentShader: string; uniforms: Record<string, { value: unknown }> } {
-  const shader = {
-    vertexShader: lib.vertexShader,
-    fragmentShader: lib.fragmentShader,
-    uniforms: {} as Record<string, { value: unknown }>,
-  };
-  material.onBeforeCompile(
-    shader as unknown as WebGLProgramParametersWithUniforms,
-    {} as unknown as THREE.WebGLRenderer,
-  );
-  return shader;
-}
-
-/** 递归展开 #include（模拟 WebGLProgram 的 resolveIncludes） */
-function expandIncludes(source: string): string {
-  let out = source;
-  for (let guard = 0; out.includes('#include <') && guard < 10; guard++) {
-    out = out.replace(/#include <([\w\d_]+)>/g, (_match, name: string) => {
-      const chunk = (THREE.ShaderChunk as unknown as Record<string, string>)[name];
-      if (chunk === undefined) throw new Error(`未知 chunk: ${name}`);
-      return chunk;
-    });
-  }
-  return out;
-}
-
-const count = (source: string, target: string): number => source.split(target).length - 1;
-const braceDelta = (source: string): number => count(source, '{') - count(source, '}');
-/** 材质级 uTime 桥接面（TimeUniformService 扫描面） */
-const materialUniformsOf = (material: THREE.Material): Record<string, { value: unknown }> =>
-  (material as unknown as { uniforms: Record<string, { value: unknown }> }).uniforms;
+const { track, disposeAll } = createMaterialTracker();
 
 /** 提取注入后的 triLeafAlpha 函数全文（SDF 单一来源比对用；首个 \n} 即函数闭合） */
-const sdfOf = (fragmentShader: string): string => {
-  const start = fragmentShader.indexOf('float triLeafAlpha(vec2 triUv, float triRand)');
-  expect(start).toBeGreaterThanOrEqual(0);
-  const end = fragmentShader.indexOf('\n}', start);
-  return fragmentShader.slice(start, end + 2);
-};
+const sdfOf = (fragmentShader: string): string =>
+  extractSdf(fragmentShader, 'float triLeafAlpha(vec2 triUv, float triRand)');
 
 // ── SDF JS 数值锚镜像（菱形指数充满度法——与 GLSL 逐式对应）────────────────────────
 
@@ -223,7 +153,7 @@ const triGlandJS = (u: number, v: number): number =>
   1 - smoothstepJS(0.012, 0.030, Math.hypot(Math.abs(u - 0.5) - 0.028, (v - 0.055) * 1.15));
 
 afterEach(() => {
-  for (const material of created.splice(0)) material.dispose();
+  disposeAll();
 });
 
 describe('uTime 接线（TimeUniformService 消费协议）', () => {
@@ -557,23 +487,6 @@ describe('物种配方锚定（Spec triadica-reference 1.0；生产口径 = 终�
 });
 
 describe('分档实装（level 参数；缺省 high = 显式 high）', () => {
-  /** 材质关键属性快照（缺省 vs 显式 high 逐位一致的比较面） */
-  const propsOf = (material: THREE.Material): Record<string, unknown> => {
-    const base: Record<string, unknown> = {
-      type: material.type,
-      side: material.side,
-      alphaTest: material.alphaTest,
-      alphaToCoverage: material.alphaToCoverage,
-      transparent: material.transparent,
-      defines: material.defines,
-    };
-    if (material instanceof THREE.MeshStandardMaterial) {
-      base.color = material.color.getHex();
-      base.roughness = material.roughness;
-      base.metalness = material.metalness;
-    }
-    return base;
-  };
 
   it('三工厂缺省与显式 high 逐位一致（属性 + 键 + GLSL 全文）', () => {
     const pairs: Array<[THREE.Material, THREE.Material, { vertexShader: string; fragmentShader: string }]> = [
@@ -608,25 +521,6 @@ describe('分档实装（level 参数；缺省 high = 显式 high）', () => {
     expectKey(track(createTriadicaLeafDepthMaterial('mid')), 'triadica:leaf-depth:mid');
     expectKey(track(createTriadicaLeafDepthMaterial('low')), 'triadica:leaf-depth:low');
     expect(keys.size).toBe(9);
-  });
-
-  it('与 camphor/ginkgo/zelkova/platanus/koelreuteria 45 键零碰撞（triadica 前缀不与先例混缓存）', () => {
-    const foreignKeys = new Set<string>();
-    for (const make of [createZelkovaLeafMaterial, createZelkovaBarkMaterial, createZelkovaLeafDepthMaterial,
-      createCamphorLeafMaterial, createCamphorBarkMaterial, createCamphorLeafDepthMaterial,
-      createGinkgoLeafMaterial, createGinkgoBarkMaterial, createGinkgoLeafDepthMaterial,
-      createPlatanusLeafMaterial, createPlatanusBarkMaterial, createPlatanusLeafDepthMaterial,
-      createKoelreuteriaLeafMaterial, createKoelreuteriaBarkMaterial, createKoelreuteriaLeafDepthMaterial]) {
-      for (const level of ['high', 'mid', 'low'] as const) {
-        foreignKeys.add(track(make(level)).customProgramCacheKey());
-      }
-    }
-    expect(foreignKeys.size).toBe(45);
-    for (const make of [createTriadicaLeafMaterial, createTriadicaBarkMaterial, createTriadicaLeafDepthMaterial]) {
-      for (const level of ['high', 'mid', 'low'] as const) {
-        expect(foreignKeys.has(track(make(level)).customProgramCacheKey())).toBe(false);
-      }
-    }
   });
 
   it('叶 Mid：SDF 与 High 同源全形（含心形凹口——档间剪影一致）+ 去叶脉三件/腺点/叶团/糙度叶团项；透光/hue·luma/shade/叶背/flush 保留；片元零噪声', () => {

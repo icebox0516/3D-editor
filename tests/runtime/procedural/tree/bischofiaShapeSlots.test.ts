@@ -15,9 +15,8 @@
  *   间接覆盖）；
  * - 路由一致（D19 契约锁）：build({seed: morphSeedOf(id, slot)})（资产路径，
  *   profileForSeed 查表）与 buildBischofiaGeometry(mulberry32(seed),
- *   BISCHOFIA_SHAPE_PROFILES[slot])（几何直调）逐位一致——slot-0/3/6/7 代表位；
- *   材质（bischofiaMaterials 并行交付）未就绪时动态 import 失败 → 优雅跳过
- *   （榉树/银杏/栾树/乌桕先例，合并后自动生效）；
+ *   BISCHOFIA_SHAPE_PROFILES[slot])（几何直调）逐位一致——slot-0/3/6/7 代表位
+ *   （资产入口静态 import——import 失败即测试红，T020 软跳过清除）；
  * - 槽间真实差异（方向性断言）：**伞形两段角的叶幕绝对宽度种子方差大（面板 ±20%，
  *   2026-09-21 探针记档）——速生窄端（slot-1）与幼龄开张宽端（slot-2）的方向断言采
  *   双口径：①同种子面板高度差（全 10 种子 slot-1 高于 slot-2 +1.4–2.0m——速生上探
@@ -44,6 +43,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { mulberry32 } from '../../../../src/core/random';
 import { morphSeedOf } from '../../../../src/domain/assets';
+import { build } from '../../../../src/runtime/procedural/assets/asset_tree_bischofia.asset';
 import { buildBischofiaGeometry } from '../../../../src/runtime/procedural/tree/bischofia/bischofiaGeometry';
 import type { BischofiaGeometryResult } from '../../../../src/runtime/procedural/tree/bischofia/bischofiaGeometry';
 import { BISCHOFIA_SHAPE_PROFILES } from '../../../../src/runtime/procedural/tree/bischofia/bischofiaShapeProfile';
@@ -199,19 +199,7 @@ describe('确定性（同 seed 同槽逐位复现）', () => {
 });
 
 describe('路由一致（8 组向量即 config 雏形：资产路径 = 几何直调）', () => {
-  it('build({seed: morphSeedOf(id, slot)}) 与 buildBischofiaGeometry(mulberry32(seed), PROFILES[slot]) 逐位一致（slot-0/3/6/7——首/中/尾代表位 + 锚点；bischofiaMaterials 未就绪时优雅跳过；profileForSeed 为 O(8) 纯查表无槽位特判，记档）', async () => {
-    const assetModule = await import('../../../../src/runtime/procedural/assets/asset_tree_bischofia.asset').catch(
-      () => null,
-    );
-    if (!assetModule) {
-      // asset_tree_bischofia.asset 入口未合并（材质工厂 bischofiaMaterials
-      // park-shader-agent 并行交付未就绪——入口文件按主代理协调延后落位）——资产模块
-      // 动态 import 失败，路由锁延后到合并后自动生效（主代理合并验证面）；本测试不判失败
-      console.warn('[bischofiaShapeSlots] asset_tree_bischofia 入口暂不可导入（bischofiaMaterials 并行交付未就绪）——路由一致锁延后');
-      expect(true).toBe(true);
-      return;
-    }
-    const { build } = assetModule;
+  it('build({seed: morphSeedOf(id, slot)}) 与 buildBischofiaGeometry(mulberry32(seed), PROFILES[slot]) 逐位一致（slot-0/3/6/7——首/中/尾代表位 + 锚点；profileForSeed 为 O(8) 纯查表无槽位特判，记档）', () => {
     for (const slot of [0, 3, 6, 7]) {
       const seed = SEEDS[slot]!;
       const asset = build({ seed });

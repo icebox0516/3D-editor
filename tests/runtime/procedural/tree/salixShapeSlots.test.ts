@@ -17,9 +17,8 @@
  *   间接覆盖）；
  * - 路由一致（D19 契约锁）：build({seed: morphSeedOf(id, slot)})（资产路径，
  *   profileForSeed 查表）与 buildSalixGeometry(mulberry32(seed),
- *   SALIX_SHAPE_PROFILES[slot])（几何直调）逐位一致——slot-0/3/6/7 代表位；
- *   材质（salixMaterials 并行交付）未就绪时动态 import 失败 → 优雅跳过
- *   （先例，合并后自动生效）；
+ *   SALIX_SHAPE_PROFILES[slot])（几何直调）逐位一致——slot-0/3/6/7 代表位
+ *   （资产入口静态 import——import 失败即测试红，T020 软跳过清除）；
  * - 槽间真实差异（方向性断言，垂柳四轴——垂幕长度 / 冠幅比 / 干形三型 / 垂坠度）：
  *   深垂帘 vs 浅垂帘（**双口径**——帘幕绝对读数种子方差（面板 ±20%，先例同款记档）：
  *   ①同种子面板帘缘差（全 6 种子 slot-1 帘缘低于 slot-2 ≥ 0.4m——垂幕长度主轴的
@@ -49,6 +48,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { mulberry32 } from '../../../../src/core/random';
 import { morphSeedOf } from '../../../../src/domain/assets';
+import { build } from '../../../../src/runtime/procedural/assets/asset_tree_salix.asset';
 import { buildSalixGeometry } from '../../../../src/runtime/procedural/tree/salix/salixGeometry';
 import type { SalixGeometryResult } from '../../../../src/runtime/procedural/tree/salix/salixGeometry';
 import { SALIX_SHAPE_PROFILES } from '../../../../src/runtime/procedural/tree/salix/salixShapeProfile';
@@ -225,19 +225,7 @@ describe('确定性（同 seed 同槽逐位复现）', () => {
 });
 
 describe('路由一致（8 组向量即 config 雏形：资产路径 = 几何直调）', () => {
-  it('build({seed: morphSeedOf(id, slot)}) 与 buildSalixGeometry(mulberry32(seed), PROFILES[slot]) 逐位一致（slot-0/3/6/7——首/中/尾代表位 + 锚点；salixMaterials 未就绪时优雅跳过；profileForSeed 为 O(8) 纯查表无槽位特判，记档）', async () => {
-    const assetModule = await import('../../../../src/runtime/procedural/assets/asset_tree_salix.asset').catch(
-      () => null,
-    );
-    if (!assetModule) {
-      // asset_tree_salix.asset 入口未合并（材质工厂 salixMaterials
-      // park-shader-agent 并行交付未就绪——入口文件按主代理协调延后落位）——资产模块
-      // 动态 import 失败，路由锁延后到合并后自动生效（主代理合并验证面）；本测试不判失败
-      console.warn('[salixShapeSlots] asset_tree_salix 入口暂不可导入（salixMaterials 并行交付未就绪）——路由一致锁延后');
-      expect(true).toBe(true);
-      return;
-    }
-    const { build } = assetModule;
+  it('build({seed: morphSeedOf(id, slot)}) 与 buildSalixGeometry(mulberry32(seed), PROFILES[slot]) 逐位一致（slot-0/3/6/7——首/中/尾代表位 + 锚点；profileForSeed 为 O(8) 纯查表无槽位特判，记档）', () => {
     for (const slot of [0, 3, 6, 7]) {
       const seed = SEEDS[slot]!;
       const asset = build({ seed });

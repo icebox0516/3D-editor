@@ -4,9 +4,12 @@
 
 ## Current
 
-- [ ] T020 任务执行体系收敛（第二批：执行协议整体切换；阶段一 rule 层原子切换 done 2026-09-23，阶段二 code 面待独立会话）→ [tasks/020-task-system-reform.md](tasks/020-task-system-reform.md)
+（空——候选启动见 Next；实际启动顺序由任务文件依赖与有效架构裁定决定）
 
 ## Done（近）
+
+- [x] T020 任务执行体系收敛（第二批：执行协议整体切换；两阶段均 done 2026-09-23——阶段一 rule 层原子切换 / 阶段二 code 面独立提交）→ [tasks/020-task-system-reform.md](tasks/020-task-system-reform.md)
+  - [x] 阶段二 code 面（done 2026-09-23：共享 harness 三模块 + 39 文件去重 / O(n²) 碰撞断言收容 assetTaxonomy / 16 软跳过清除；三门槛 4023 全绿）→ [tasks/020-task-system-reform.md](tasks/020-task-system-reform.md)
 
 - [x] T018 真实程序化天空与环境光照（5/5 epic 收官 2026-09-23）→ [tasks/018-real-sky-environment.md](tasks/018-real-sky-environment.md)
   - [x] T018.5 验收门（done 2026-09-23）→ [tasks/018.5-acceptance.md](tasks/018.5-acceptance.md)
@@ -77,7 +80,6 @@
 
 > Next 仅表示已排入路线图的后续任务，不代表执行顺序；实际启动顺序由任务文件中的依赖、当前项目状态及有效架构裁定决定（D31.8）。
 
-- [ ] T020 阶段二 code 面（共享 harness / O(n²) 集中化 / 16 软跳过清除——独立会话独立提交，见任务书）→ [tasks/020-task-system-reform.md](tasks/020-task-system-reform.md)
 - [ ] T006.6 LOD 选档稳定基准（余 Step 3 A/B 实测 + 阈值重锁判定——不阻塞，可并行/其后执行）→ [tasks/006.6-lod-reference-bounds.md](tasks/006.6-lod-reference-bounds.md)
 - [ ] T003 收官路径（冻结 2026-09-17；剩余 003.3 验收续走 / 003.5 / 003.6 / 设施返工）→ [tasks/003-scatter-styles.md](tasks/003-scatter-styles.md)
 - [ ] T004 Style Gallery（0/3）→ [tasks/004-style-gallery.md](tasks/004-style-gallery.md)

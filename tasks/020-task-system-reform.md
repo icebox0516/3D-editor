@@ -1,6 +1,6 @@
 # T020 任务执行体系收敛（第二批：执行协议整体切换）
 
-> 状态：**阶段一 done（2026-09-23）；阶段二 code 面待独立会话** ｜ 前置：T018 收官（✅ `91c9a31`）+ 第一批历史卫生（✅ `5aa70e1` / `bcd7f04` / `0bc08ae`）｜ 非程序化资产任务——治理任务，无 `workflow:` 声明（生产流程类规则不适用；本任务书即 Lean Task 首例：只装本次差异与裁定记档，不复述稳定流程）｜ **编号说明：T019 为颜色管线语义保留**（D29「独立立 T019 颜色管线任务 / Tone Mapping 应急出口」与 D39「ACES 证据留 T019 素材指针」已引用，TASKS/PROGRESS 同步），本任务顺延 T020
+> 状态：**done（阶段一 + 阶段二均 2026-09-23）** ｜ 前置：T018 收官（✅ `91c9a31`）+ 第一批历史卫生（✅ `5aa70e1` / `bcd7f04` / `0bc08ae`）｜ 非程序化资产任务——治理任务，无 `workflow:` 声明（生产流程类规则不适用；本任务书即 Lean Task 首例：只装本次差异与裁定记档，不复述稳定流程）｜ **编号说明：T019 为颜色管线语义保留**（D29「独立立 T019 颜色管线任务 / Tone Mapping 应急出口」与 D39「ACES 证据留 T019 素材指针」已引用，TASKS/PROGRESS 同步），本任务顺延 T020
 
 ## Goal
 
@@ -70,6 +70,12 @@
 8. **三门槛**：package.json 变更 → 按新判据 npm test 必跑（判据式口径首次实测）——`npm test` 259 文件 **4034 全绿**（118s）/ `check:layers` **601 通过** / `typecheck` **零错**，零回归。
 9. **遗留**：阶段二 code 面（9–12 项）待独立会话独立提交；`tasks/011.9-sophora.md` 头部状态行残留「排产」（完成记录 done 2026-09-22，头部未回写——T011 已收官 epic 内历史冻结，按 D31.1 不回改，记档备查）。
 
-### 阶段二：code 面
+### 阶段二：code 面（done 2026-09-23，单会话，独立提交）
 
-（待执行会话填写）
+主代理按 Step 拆分派遣两个通用子代理**顺序**执行（测试组织重构，非渲染实质修改，不适用三专业路由；两 Step 触及文件重叠故不并行），主代理 diff 审查 + 三门槛收口。
+
+1. **第 9 项 共享 harness**：`tests/support/procedural-tree/` 三模块落成——`stageFixture.ts`（makeControlsStub / FakeBuildLog / makeLog / makeFakeBuild / makeFakeBuildWithDepth 五件套）、`materialHarness.ts`（createMaterialTracker 工厂化 + assemble / expandIncludes / count / braceDelta / materialUniformsOf / propsOf / sdfOf 参数化签名）、`geometryHarness.ts`（createGeometryTracker 工厂化 + spanOf / leafCardXZ）。13 资产 × Lod/Materials/Stage = 39 文件删本地副本改 import（+136 / −2182 行），断言语义零变化（tree/ 66 文件 1345 测试改动前后逐数一致）。tracker 一律工厂化（严禁模块级共享数组，D17 口径）。**例外记档**：platanusLod 的 leafCardXZ 保留本地（组 1 含果序块、组语义异于其余 12 资产）；buildSlot 13 文件全部留本地（资产粘合代码，包装收益 ~2 行/文件）；tree3aMaterials 保留 build 产物登记数组（资产换装测试专属）。配套 `scripts/check-layer-deps.mjs` threeAllowed 新增 `tests/support/` 分支——任务书钉死路径不含 runtime 段、原白名单必拦 three import，裁定规则跟上目录形态（support = 测试共享支撑设施，与 runtime 单测同待遇）。
+2. **第 10 项 O(n²) 碰撞断言集中化**：11 个 Materials「零碰撞」逐对 it 删除（连先例工厂 import 清理；各资产「9 键互异」独立 it 逐字未动），收容进 `assetTaxonomy.test.ts`「实测落带」it——既有全注册资产 × 逐槽 × high 档遍历内顺路收集全部 customProgramCacheKey（数组/单值两形态 + customDepthMaterial），跨资产唯一性断言，O(n²) 逐对收窄为 O(n) 单遍零额外构建。实现中发现并经源码证据记档三口径（零覆盖弱化）：①逐资产 Set 去重（键不含 seed，同资产跨槽重开材质 = 同配方重实例）②继承默认键材质不收集（streetlamp 发光板 / trashbin 参数化底座无注入，共享 THREE 默认 program 属正确行为——收容断言首跑即抓到该"碰撞"，核实为设计内后收窄）③`plant:`/`facility:` 共享配方注册表键不参与唯一性（recipe↔key 单射，`facility:metal-brush-pole` 见 signpost+streetlamp = 设计内 program 去重）；物种自键系须全局唯一，实际覆盖面**大于**原 11 块（原仅 12 树两两，现含 oak/pine/shrub/flower 全注册资产对）。mid/low 跨资产碰撞由「键 = 前缀+档位后缀保序拼接 ⟹ 带后缀碰撞 ⟺ 前缀碰撞 ⟹ high 档已暴露」+ 各 Materials 9 键互异测试等价覆盖（测试内注释记档）。
+3. **第 11 项 16 软跳过清除**：12 ShapeSlots + 4 Lod（fraxinus/ligustrum/salix/sophora）的「动态 import + catch null + console.warn + expect(true).toBe(true)」并行交付期防御分支全部改为文件头静态 import 直接断言（import 失败即测试红——真缺陷摘除）；it 由 async 改同步、标题与头注释「未合并时优雅跳过」口径同步修正。收口 grep：tests/ 下 `expect(true).toBe(true)` / `await import` / assetModule 全归零；11 Materials 残留「零碰撞」字样均为头注释去向记档句（指向 assetTaxonomy 收容断言）。
+4. **第 12 项**：66 个树测试文件中断言层未动（Structure ×13 / ShapeSlots ×12 / BarkRelief ×1 仅软跳过项触及 ShapeSlots/Lod 的 it 内防御分支；等价重构 33.9k 行另行立项）。**三门槛全绿**：`npm test` 259 文件 **4023 全绿**（115s；4034−11 = 恰删 11 个碰撞 it，算术自洽）/ `check:layers` **604**（+3 = harness 文件）/ `typecheck` **零错**。
+5. **遗留**：无（`lod升级.md` 为用户工作区未跟踪文件，非本任务产物未触碰）。

@@ -8,7 +8,12 @@
  *   约束，双闸——忘声明过不了 typecheck，声明了不登表过不了本测试）；
  * - family ↔ 大类配对约束（broadleaf/conifer/shrub → plant；三个设施细分 → facility）；
  * - proceduralProfile 数值纪律：min ≤ max、正数、有限；实测包围盒落带（细模档、
- *   跨形态槽，ε=0.01 容纳两位小数舍入差）——防几何演化后声明带静默失真。
+ *   跨形态槽，ε=0.01 容纳两位小数舍入差）——防几何演化后声明带静默失真；
+ * - 跨资产程序键全局唯一（T020 阶段二收容断言）：全部声明 proceduralProfile 的注册
+ *   资产 × 全部槽位 × high 档的 customProgramCacheKey（含 customDepthMaterial）逐资产
+ *   去重后物种自键系零碰撞——替代原各树 Materials 测试的逐对碰撞 it（继承默认键与
+ *   plant:/facility: 共享配方键 = 设计内 program 去重不参与；mid/low 收窄论证见
+ *   「实测落带」it 内记档）。
  * 边界：分类为浏览语义，本文件只锁值域与映射，不测行为（D22：渲染/放置禁止按
  *      taxonomy 值 if-else）；与 meta.category（现行 UI 分组键）正交，本文件不断言 category。
  * 隔离：collectProceduralAssetMetas 只含插件文件收割清单（seam 注入不进清单，
@@ -24,6 +29,7 @@ import {
 } from '../../../../src/domain/assets';
 import { collectProceduralAssetMetas, getProceduralBuild } from '../../../../src/runtime/procedural/routes';
 import type { InstanceSource } from '../../../../src/runtime/instancing/InstancedAssetPool';
+import * as THREE from 'three';
 
 /** 23 资产归类映射表（整表锁——值域依据与 GLB 侧映射见 docs/procedural-assets/metadata-taxonomy.md；计数注释 011.12 随本资产登记校正） */
 const EXPECTED_TAXONOMY: Record<string, { category: AssetTaxonomyCategory; family?: AssetTaxonomyFamily }> = {
@@ -122,17 +128,43 @@ describe('proceduralProfile 尺寸声明（数值纪律 + 实测落带）', () =
     }
   });
 
-  it('实测落带：细模档包围盒落在声明带内（跨形态槽全枚举； minY = 0 贴地前提）', () => {
+  it('实测落带 + 跨资产程序键全局唯一：细模档包围盒落在声明带内（跨形态槽全枚举； minY = 0 贴地前提）；全部程序键零碰撞', () => {
+    // 跨资产程序键收容断言（T020 阶段二第 10 条，替代原 11 个 Materials 测试的逐对「零碰撞」it）：
+    // 一次遍历收集全部声明 proceduralProfile 的注册资产 × 全部槽位 × high 档的全部
+    // customProgramCacheKey（materialsOf 数组/单值两形态逐材质 + customDepthMaterial 若有），
+    // 逐资产 Set 去重后跨资产比对——任一物种键系资产对碰撞在此一次暴露（O(n²) 逐对收窄
+    // 为 O(n) 单遍）。口径记档：
+    // - 槽位维度先逐资产去重（键不含 seed——同资产跨槽重开材质 = 同配方重实例，非碰撞）；
+    // - 继承默认键的材质不收集（无注入标准材质，键 = onBeforeCompile 源码自证身份，
+    //   同键 ⟺ 同码——如 streetlamp 发光板 / trashbin 参数化底座共享默认 program 属正确行为）；
+    // - plant:/facility: 前缀 = 共享配方注册表键（recipe ↔ key 单射，「配方 key 不变则共享
+    //   program」——跨资产共享是设计内去重，如 facility:metal-brush-pole 见 signpost 与
+    //   streetlamp），不参与唯一性断言；物种自键系（<species>:* / tree3a:*）须全局唯一；
+    // - 档位口径：键 = 前缀 + ':mid'/':low' 后缀保序拼接 ⟹ 带后缀碰撞 ⟺ 前缀碰撞 ⟹
+    //   high 档已暴露；各资产 Materials 测试内「3 工厂 × 3 档 = 9 键互异」继续覆盖档间
+    //   互异——mid/low 跨资产碰撞由二者共同等价覆盖，零覆盖损失。
+    const hasCustomKey = (material: THREE.Material): boolean =>
+      material.customProgramCacheKey !== THREE.Material.prototype.customProgramCacheKey;
+    const programKeysByAsset = new Map<string, Set<string>>();
     for (const meta of collectProceduralAssetMetas()) {
       const profile = meta.proceduralProfile;
       if (profile === undefined) continue; // 可选字段：无声明不校验（seedstack 等无浏览语义需求）
       const build = getProceduralBuild(meta.id)!;
       expect(build, `${meta.id} 路由缺失`).toBeDefined();
       const slots = meta.shapeFamily?.size ?? 1;
+      const keys = programKeysByAsset.get(meta.id) ?? new Set<string>();
+      programKeysByAsset.set(meta.id, keys);
       for (let slot = 0; slot < slots; slot++) {
         // 有形态族 → 逐槽 morphSeed（声明带 = 跨槽实测带）；无 → 无参缺省路径
         const source = meta.shapeFamily ? build({ seed: morphSeedOf(meta.id, slot), level: 'high' }) : build();
         try {
+          // 程序键收集在 dispose 前完成（字符串取出后不受 finally 释放影响）
+          for (const material of Array.isArray(source.material) ? source.material : [source.material]) {
+            if (hasCustomKey(material)) keys.add(material.customProgramCacheKey());
+          }
+          if (source.customDepthMaterial !== undefined && hasCustomKey(source.customDepthMaterial)) {
+            keys.add(source.customDepthMaterial.customProgramCacheKey());
+          }
           source.geometry.computeBoundingBox();
           const bb = source.geometry.boundingBox!;
           // 高度定义前提：原点 = 底面中心（minY = 0）
@@ -154,5 +186,18 @@ describe('proceduralProfile 尺寸声明（数值纪律 + 实测落带）', () =
         }
       }
     }
+    // 跨资产唯一性：物种自键系键全局零碰撞（plant:/facility: 共享配方键除外——键 = 配方
+    // 身份，同键必然同注入 GLSL，跨资产共享是设计内 program 去重而非混缓存）
+    const ownerOfKey = new Map<string, string>();
+    const collisions: string[] = [];
+    for (const [assetId, keys] of programKeysByAsset) {
+      for (const key of keys) {
+        if (key.startsWith('plant:') || key.startsWith('facility:')) continue;
+        const owner = ownerOfKey.get(key);
+        if (owner !== undefined) collisions.push(`${key}（${owner} ↔ ${assetId}）`);
+        else ownerOfKey.set(key, assetId);
+      }
+    }
+    expect(collisions, '跨资产程序键应全局唯一（碰撞 = 混缓存风险；plant:/facility: 共享配方键设计内共享除外）').toEqual([]);
   }, 60000); // T011.2：香樟加入（8 槽 × High 实测构建）后越 5s 默认超时，提至 30s——断言语义零变化（celtis 测试同款先例）；2026-09-22：十树后全量满核并行下 30s 再饿超（隔离 12s 全绿——负载敏感非回归，011.10 机械加固先例同型），提至 60s
 });

@@ -17,9 +17,8 @@
  *   覆盖）；
  * - 路由一致（D19 契约锁）：build({seed: morphSeedOf(id, slot)})（资产路径，
  *   profileForSeed 查表）与 buildTriadicaGeometry(mulberry32(seed),
- *   TRIADICA_SHAPE_PROFILES[slot])（几何直调）逐位一致——slot-0/3/6/7 代表位；材质
- *   （triadicaMaterials 并行交付）未合并时动态 import 失败 → 优雅跳过（榉树/银杏/
- *   悬铃木先例，合并后自动生效）；
+ *   TRIADICA_SHAPE_PROFILES[slot])（几何直调）逐位一致——slot-0/3/6/7 代表位（资产
+ *   入口静态 import——import 失败即测试红，T020 软跳过清除）；
  * - 槽间真实差异（方向性断言，同 seed = SEED0 下跨槽对比——隔离 profile 效应与
  *   morphSeed 随机流，差异只能来自向量本身，杜绝「seed 运气冒充形态差异」）：幼相
  *   vs 老龄开展 叶幕 XZ 宽度比 ≥ 1.25（终测 ≈1.38——幼相窄密端 vs 老龄开展圆头端，
@@ -43,6 +42,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { mulberry32 } from '../../../../src/core/random';
 import { morphSeedOf } from '../../../../src/domain/assets';
+import { build } from '../../../../src/runtime/procedural/assets/asset_tree_triadica.asset';
 import { buildTriadicaGeometry } from '../../../../src/runtime/procedural/tree/triadica/triadicaGeometry';
 import type { TriadicaGeometryResult } from '../../../../src/runtime/procedural/tree/triadica/triadicaGeometry';
 import { TRIADICA_SHAPE_PROFILES } from '../../../../src/runtime/procedural/tree/triadica/triadicaShapeProfile';
@@ -193,18 +193,7 @@ describe('确定性（同 seed 同槽逐位复现）', () => {
 });
 
 describe('路由一致（8 组向量即 config 雏形：资产路径 = 几何直调）', () => {
-  it('build({seed: morphSeedOf(id, slot)}) 与 buildTriadicaGeometry(mulberry32(seed), PROFILES[slot]) 逐位一致（slot-0/3/6/7——首/中/尾代表位 + 锚点；triadicaMaterials 未合并时优雅跳过；profileForSeed 为 O(8) 纯查表无槽位特判，记档）', async () => {
-    const assetModule = await import('../../../../src/runtime/procedural/assets/asset_tree_triadica.asset').catch(
-      () => null,
-    );
-    if (!assetModule) {
-      // triadicaMaterials.ts（park-shader-agent 并行交付）未合并——资产模块动态 import
-      // 失败，路由锁延后到合并后自动生效（主代理合并验证面）；本测试不判失败
-      console.warn('[triadicaShapeSlots] asset_tree_triadica 入口暂不可导入（triadicaMaterials 并行交付未合并）——路由一致锁延后');
-      expect(true).toBe(true);
-      return;
-    }
-    const { build } = assetModule;
+  it('build({seed: morphSeedOf(id, slot)}) 与 buildTriadicaGeometry(mulberry32(seed), PROFILES[slot]) 逐位一致（slot-0/3/6/7——首/中/尾代表位 + 锚点；profileForSeed 为 O(8) 纯查表无槽位特判，记档）', () => {
     for (const slot of [0, 3, 6, 7]) {
       const seed = SEEDS[slot]!;
       const asset = build({ seed });
