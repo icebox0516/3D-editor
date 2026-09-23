@@ -9,7 +9,7 @@
 ## Done（近）
 
 - [x] T020 任务执行体系收敛（第二批：执行协议整体切换；两阶段均 done 2026-09-23——阶段一 rule 层原子切换 / 阶段二 code 面独立提交）→ [tasks/020-task-system-reform.md](tasks/020-task-system-reform.md)
-  - [x] 阶段二 code 面（done 2026-09-23：共享 harness 三模块 + 39 文件去重 / O(n²) 碰撞断言收容 assetTaxonomy / 16 软跳过清除；三门槛 4023 全绿）→ [tasks/020-task-system-reform.md](tasks/020-task-system-reform.md)
+  - [x] 阶段二 code 面（done 2026-09-23：共享 harness 三模块 + 39 文件去重 / O(n²) 碰撞断言收容 assetTaxonomy / 16 软跳过清除——宽读法经审核追认记档任务书）→ [tasks/020-task-system-reform.md](tasks/020-task-system-reform.md)
 
 - [x] T018 真实程序化天空与环境光照（5/5 epic 收官 2026-09-23）→ [tasks/018-real-sky-environment.md](tasks/018-real-sky-environment.md)
   - [x] T018.5 验收门（done 2026-09-23）→ [tasks/018.5-acceptance.md](tasks/018.5-acceptance.md)

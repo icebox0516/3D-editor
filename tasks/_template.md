@@ -1,6 +1,6 @@
 # T0XX.N-<slug>
 
-> 状态：**pending（YYYY-MM-DD 立项）** ｜ 前置：… ｜ workflow: <name>（程序化资产任务声明，其他任务省略）｜ spec: `<asset>-reference.md` @Version（有 Spec 消费的任务必填）
+> 状态：**pending（YYYY-MM-DD 立项）** ｜ Epic：[0XX-<slug>](0XX-<slug>.md)（无 epic 的独立任务省略）｜ 前置：… ｜ workflow: <name>（程序化资产任务声明，其他任务省略）｜ spec: `<asset>-reference.md` @Version（有 Spec 消费的任务必填）
 
 ## Goal
 

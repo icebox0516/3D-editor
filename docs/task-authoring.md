@@ -7,6 +7,7 @@
 | 字段 | 语义 |
 |---|---|
 | 头部状态行 | 状态（pending / in-progress / done）+ 立项日期 + 编号说明 / workflow 声明 / spec 锚点 |
+| Epic | 所属 epic 任务书链接（`tasks/0XX-<slug>.md`）；无 epic 的独立任务省略 |
 | `workflow: <name>` | 生产方法路由键（程序化资产任务声明；其他任务省略） |
 | `spec:`@版本 | Reference Spec 版本锚点（有 Spec 消费的任务必填，D26） |
 | 前置 | 依赖任务 / 决策 |
