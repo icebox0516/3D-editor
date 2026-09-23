@@ -162,4 +162,4 @@ npm run check:layers # 分层 DAG + three 导入白名单检查
 
 ## 当前进度
 
-以 [`PROGRESS.md`](PROGRESS.md) 为准 —— **一期已于 2026-09-15 收官**：绘制（七形状三步流）/ 样式引擎（24 套预设）/ 资产库（13 GLB + 实例化池）/ 编辑能力（Gizmo/顶点/阵列/图层/分组）/ 测量（四类工具）全部交付，1989 测试全绿（**当次基线**；当前基线见 [`PROGRESS.md`](PROGRESS.md)）；阶段明细与截图归档于 [`docs/archive/plan-phase1/`](docs/archive/plan-phase1/)。**二期「Feature / Style / Asset 三层程序化内容体系」**于 2026-09-16 完成设计共识（15 条决策，见 [`DECISIONS.md`](DECISIONS.md)）并切换文档体系；任务板见 [`TASKS.md`](TASKS.md)。
+以 [`PROGRESS.md`](PROGRESS.md) 为准 —— **一期已于 2026-09-15 收官**：绘制（七形状三步流）/ 样式引擎（24 套预设）/ 资产库（13 GLB + 实例化池）/ 编辑能力（Gizmo/顶点/阵列/图层/分组）/ 测量（四类工具）全部交付，测试全绿（当次基线不在此维护，当前基线见 [`PROGRESS.md`](PROGRESS.md)）；阶段明细与截图归档于 [`docs/archive/plan-phase1/`](docs/archive/plan-phase1/)。**二期「Feature / Style / Asset 三层程序化内容体系」**于 2026-09-16 完成设计共识（15 条决策，见 [`DECISIONS.md`](DECISIONS.md)）并切换文档体系；任务板见 [`TASKS.md`](TASKS.md)。
