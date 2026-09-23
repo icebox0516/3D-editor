@@ -38,10 +38,13 @@
  *  - 桶维度 = 块 × 资产 × 档：MeshEntry 携带 level，(块×资产) 同时只有一个当档桶在
  *    渲染；**不做「桶内换 Source」**——换档 = 确定性重撒重建（同 seed 同结果，scatterChunk
  *    纯函数保证实例集合逐位一致，只换当档 InstanceSource 成套的 geometry/material）。
- *  - 选档 = 块粒度（§4.3 候选保守策略）：代表点 = 块 AABB 最近点（box.clampPoint）、
- *    代表 scale = 块内实例 max（保守偏高档）、半径 = High 档派生稳定基准（T006.6
- *    assetId 级冻结缓存，与当档解耦——换档不换选档输入）；统一走 006.1
- *    评估器（domain 纯函数，不复制选档逻辑），LodSubject 在本管组装（评估器不感知 chunk）。
+ *  - 选档 = region × chunk × asset 四维粒度（D41 §4.4 正式定义；T006.3 起结构性即如此
+ *    ——source 即 region 维，T021.2 核实记档）：代表点 = 块 AABB 最近点（box.clampPoint）、
+ *    代表 scale = 桶内最大实例 scale（保守偏高档，**全集口径**——抽稀前撒点集，T021.2
+ *    收紧：选档输入与密度抽稀解耦）、半径 = High 档派生稳定基准（T006.6
+ *    assetId 级冻结缓存，与当档解耦——换档不换选档输入）；统一走 domain 评估器
+ *    （T021.2 起为表示链选档：输入 = effectiveRepresentationChain 有效链，representations
+ *    声明优先 / levels 派生），LodSubject 在本管组装（评估器不感知 chunk）。
  *  - 帧内时序（D27.6）：frame(camera, lodEnabled) 在块视锥剔除之后逐 (块×资产) 评估——
  *    档位每帧派生态，不进 Scene / Command / 持久状态；迟滞参考 current 由本管持有
  *    （ChunkLodState.current，逐帧传入评估器）。
@@ -75,7 +78,12 @@ import { applyAssetVariants } from '../../domain/assets';
 import type { ProceduralLevel } from '../../domain/assets';
 import { keepThinnedInstance } from '../../domain/lod/batchPolicy';
 import { BATCH_POLICY } from '../../domain/lod/batchPolicy';
-import type { LodSelectionOutcome } from '../../domain/lod/representation';
+import type {
+  LodSelectionOutcome,
+  RepresentationCapability,
+  RuntimeRepresentation,
+} from '../../domain/lod/representation';
+import { effectiveRepresentationChain } from '../../domain/lod/representation';
 import { evaluateLodRepresentation } from '../../domain/lod/lodEvaluation';
 import type { ScatterChunk, ScatterInstance, ScatterParams } from '../../domain/scatter';
 import { scatterChunk, scatterInfluenceRadius } from '../../domain/scatter';
@@ -102,10 +110,13 @@ export interface ScatterChunkManagerOptions {
   /** assetId → 程序化 meta 的变体声明（hueJitter>0 时逐实例色相微差；缺省无色） */
   getAssetVariants?: (assetId: string) => ProceduralVariants | undefined;
   /**
-   * assetId → 已声明档位列表（T006.3 选档输入，levels meta 的 id 集）；缺省/空 =
-   * 单档语义（评估器按 ['high'] 处理）。Renderer 注入注册表查询；每资产缓存一次。
+   * assetId → 资产表示能力投影（T021.2 选档输入，表示能力驱动）：AssetDescriptor meta
+   * 的 representations / levels 两字段（RepresentationCapability）；选档消费
+   * effectiveRepresentationChain（representations 声明优先、levels 派生回退——021.1
+   * 契约）。缺省/均未声明 = 单档语义（链 ['high']）。Renderer 注入注册表查询；每资产
+   * 缓存一次。旧 getAssetLevels（levels 直查）由本字段取代（T021.2）。
    */
-  getAssetLevels?: (assetId: string) => ProceduralLevel[] | undefined;
+  getRepresentationCapability?: (assetId: string) => RepresentationCapability | undefined;
   /**
    * 块自适应合并策略（T006.4）：粗档（mid/low）下 (块×资产) 实例数 ≤ maxInstancesPerChunk
    * 的块并入 groupFactor×groupFactor 超块合并桶（相邻同资产块共享一个 InstancedMesh）。
@@ -157,13 +168,17 @@ interface MergedBucket {
  * (块×资产) 的 LOD 运行态（T006.3）：每帧派生评估的全部帧间状态都在此——
  * current = 迟滞参考（本管持有、逐帧传入评估器；LodSelectionOutcome = 表示或
  * 'culled' 提交终态，T021.1 类型迁移）；level = 当前期望桶档（源就绪的
- * 已渲染档；culled 期间保持最后档）；maxScale = 块内实例 max scale（§4.3 保守偏高档，
- * 重撒时更新）；pending = 在途换档目标（源未就绪时登记，到达回调重建）。
+ * 已渲染档；culled 期间保持最后档）；maxScale = 桶内最大实例 scale（保守偏高档，
+ * **全集口径**：抽稀前确定性撒点集，T021.2 收紧——抽稀不改变选档输入，重撒时更新）；
+ * pending = 在途换档目标（源未就绪时登记，到达回调重建）。
  * T006.4 增补：box = 该 (块×资产) 全部实例（抽稀后当档集）的紧致世界 AABB（自有桶/
  * 合并桶同源维护，块盒与选档代表的稳定基）；instanceCount = 当档抽稀后实例数（分布
  * 与 stats 口径）；mergedBucket = 合并组成员态（undefined = 自有细块）；memberCulled =
  * 合并成员被 culled 排除中（实例退出合并桶当帧写入，回视重入——自有桶 culled 的
  * mesh.visible 等价物）。
+ * 选档粒度注（T021.2 核实）：本态按 SourceState(=region) → ChunkState → assetId 三级
+ * 挂载 = **region × chunk × asset 四维**（D41 §4.4 正式定义；T006.3 的 source 即
+ * region 维——结构性等价，无需接线改造）。
  */
 interface ChunkLodState {
   current: LodSelectionOutcome | undefined;
@@ -227,6 +242,21 @@ function capacityFor(count: number): number {
   let capacity = MIN_CAPACITY;
   while (capacity < count) capacity *= 2;
   return capacity;
+}
+
+/**
+ * 桶代表 scale（T021.2 口径收紧，D41 §4.4）：region × chunk × asset 桶内最大实例
+ * scale——保守偏高档（大树更晚降档）。**全集口径 = 抽稀前的确定性撒点集**：密度抽稀
+ * （T006.4 levelInstanceKeep）不改变选档输入——同一桶任意档位/密度下代表 scale 恒定
+ * （与 T006.6 稳定基准球同护栏：选档读数不随渲染表示平移）。空集回退占位 1（建桶
+ * 路径列表恒非空——防御面）。
+ */
+function maxScaleOf(list: readonly ScatterInstance[]): number {
+  let max = 0;
+  for (const inst of list) {
+    if (inst.scale > max) max = inst.scale;
+  }
+  return max > 0 ? max : 1;
 }
 
 function chunkKeyString(key: ScatterChunkKey): string {
@@ -390,8 +420,9 @@ export class ScatterChunkManager {
   private readonly meshOwners = new Map<THREE.InstancedMesh<THREE.BufferGeometry, THREE.Material | THREE.Material[]>, string>();
   private readonly provideSource: (assetId: string, level?: ProceduralLevel) => Promise<InstanceSource>;
   private readonly getAssetVariants: (assetId: string) => ProceduralVariants | undefined;
-  private readonly getAssetLevels: (assetId: string) => ProceduralLevel[] | undefined;
-  private readonly declaredLevelsCache = new Map<string, ProceduralLevel[]>();
+  private readonly getRepresentationCapability: (assetId: string) => RepresentationCapability | undefined;
+  /** 有效表示链缓存（assetId → effectiveRepresentationChain 产物，T021.2；帧路径零重复归一） */
+  private readonly representationChains = new Map<string, readonly RuntimeRepresentation[]>();
   /**
    * LOD 选档稳定基准（T006.6，D28.2）：assetId → High 档派生冻结基准球——选档
    * 半径恒取此（与 (块×资产) 当前期望档解耦，见 frame）；high 源到达时派生
@@ -407,7 +438,7 @@ export class ScatterChunkManager {
   constructor(options: ScatterChunkManagerOptions) {
     this.provideSource = options.provideSource;
     this.getAssetVariants = options.getAssetVariants ?? (() => undefined);
-    this.getAssetLevels = options.getAssetLevels ?? (() => undefined);
+    this.getRepresentationCapability = options.getRepresentationCapability ?? (() => undefined);
     this.chunkSize = options.chunkSizeM && options.chunkSizeM > 0 ? options.chunkSizeM : CHUNK_SIZE_M;
     const merge = options.sparseMerge;
     this.mergeMaxInstances =
@@ -513,9 +544,10 @@ export class ScatterChunkManager {
    *  - 剔除：Frustum = projectionMatrix × matrixWorldInverse 逐块 Box3 判交 → 块 Group
    *    visible 开关（three 对 visible=false 整子树零提交——主渲染与阴影 pass 同口径）；
    *  - LOD：lodEnabled（Renderer 持有的总开关，逐帧传入；缺省 false = 管线独立使用时
-   *    的既有行为）时逐 (块×资产) 走 006.1 评估器——subject = { 块 AABB 最近点,
-   *    High 档派生稳定基准半径（T006.6——与当前档位解耦）, 块内 max scale }
-   *    （§4.3 候选保守策略），迟滞参考 current
+   *    的既有行为）时逐 (块×资产)（region × chunk × asset 粒度，D41 §4.4）走 domain
+   *    评估器（T021.2 起为表示链选档）——subject = { 块 AABB 最近点, High 档派生稳定
+   *    基准半径（T006.6——与当前档位解耦）, 桶内最大实例 scale（全集口径，§4.4 保守
+   *    偏高档） }，迟滞参考 current
    *    由 ChunkLodState 持有；目标档 ≠ 当档桶 → 确定性重撒重建（源就绪即重建，冷源
    *    到达后回调）；'culled' → 网格 visible=false（桶保留，回视即时恢复）；
    *    lodEnabled=false → 评估器语义恒 High + culled 旁路（回退对比与兜底）。
@@ -549,7 +581,7 @@ export class ScatterChunkManager {
               radius,
               scale: lod.maxScale,
             },
-            declaredLevels: this.declaredLevelsOf(assetId),
+            representations: this.representationChainOf(assetId),
             current: lod.current,
             lodEnabled,
           });
@@ -568,9 +600,12 @@ export class ScatterChunkManager {
             }
             continue;
           }
-          // T021.1 类型完备防御（运行时不可达）：canopy 自 021.2 选档重写起才有名义
-          // 区间——现阶段评估器产出域 ⊆ {high, mid, low, culled}；此分支仅收窄类型
-          // （canopy 换档接线归 021.7），行为零影响。
+          // canopy 产出持有（T021.2）：选档自本任务起可产出 'canopy'（声明 canopy 能力的
+          // 资产，名义区间 (midToCanopy, canopyToCulled]）——lod.current 已记录 canopy
+          // （迟滞参考正确），但 canopy 源/桶接线（provideSource 档位维度、散布桶键
+          // region × chunk × asset × representation）归 021.7；此前 canopy 产出持有现状
+          // （不重建、当档桶持续渲染——真实资产未声明 canopy 故不可达，假想声明资产
+          // 测试锁定本持有语义）。
           if (target === 'canopy') continue;
           if (entry) entry.mesh.visible = true;
           if (lod.mergedBucket && lod.memberCulled) {
@@ -593,13 +628,17 @@ export class ScatterChunkManager {
     }
   }
 
-  /** 资产声明档位（缓存首次查询；空数组 = 单档语义，评估器自处理） */
-  private declaredLevelsOf(assetId: string): ProceduralLevel[] {
-    const cached = this.declaredLevelsCache.get(assetId);
+  /**
+   * 资产有效表示链（T021.2 表示能力驱动，缓存首次查询）：effectiveRepresentationChain
+   * 产物——representations 声明优先、levels 派生回退、均未声明单档 ['high']（021.1
+   * 契约；评估器对空链另有缺省单档防御）。
+   */
+  private representationChainOf(assetId: string): readonly RuntimeRepresentation[] {
+    const cached = this.representationChains.get(assetId);
     if (cached) return cached;
-    const declared = this.getAssetLevels(assetId) ?? [];
-    this.declaredLevelsCache.set(assetId, declared);
-    return declared;
+    const chain = effectiveRepresentationChain(this.getRepresentationCapability(assetId) ?? {});
+    this.representationChains.set(assetId, chain);
+    return chain;
   }
 
   /**
@@ -911,6 +950,7 @@ export class ScatterChunkManager {
     }
     const list = this.thinForLevel(rawList, level);
     lod.instanceCount = list.length;
+    lod.maxScale = maxScaleOf(rawList); // T021.2 代表 scale 全集口径（抽稀前——选档输入与档位/密度解耦）
     if (this.shouldMergeBucket(level, list.length)) {
       const superKey = this.superKeyOf(chunk.key);
       const target = this.mergedBucketFor(state, superKey, assetId, level);
@@ -1014,8 +1054,10 @@ export class ScatterChunkManager {
         bucket.members.delete(memberKey); // 陈旧成员自愈摘除（防御——正常路径经 leaveMergedBucket）
         continue;
       }
-      const list = this.memberInstances(state, chunk, bucket.assetId, bucket.level);
+      const raw = this.memberInstances(state, chunk, bucket.assetId);
+      const list = this.thinForLevel(raw, bucket.level);
       lod.instanceCount = list.length;
+      lod.maxScale = maxScaleOf(raw); // T021.2 代表 scale 全集口径（抽稀前）
       if (!lod.memberCulled) total += list.length;
       parts.push({ chunk, lod, list });
     }
@@ -1054,7 +1096,6 @@ export class ScatterChunkManager {
     if (tint && total > 0) this.ensureColorBuffer(mesh, bucket.capacity);
     let offset = 0;
     for (const { chunk, lod, list } of parts) {
-      lod.maxScale = 1; // 重撒后随写槽循环重累积（§4.3 代表 scale = 块内 max）
       lod.box.makeEmpty();
       this.writeInstanceRange(
         lod.memberCulled ? null : mesh,
@@ -1085,17 +1126,15 @@ export class ScatterChunkManager {
     return keys.map((k) => k.str);
   }
 
-  /** 成员块当档实例（重撒 + 资产过滤 + 抽稀；同 seed 确定性——与自有桶路径同规则） */
+  /** 成员块实例（重撒 + 资产过滤——抽稀前全集；同 seed 确定性，与自有桶路径同规则） */
   private memberInstances(
     state: SourceState,
     chunk: ChunkState,
     assetId: string,
-    level: ProceduralLevel,
   ): readonly ScatterInstance[] {
-    const raw = scatterChunk(state.params, chunkRectOf(chunk.key, this.chunkSize)).filter(
+    return scatterChunk(state.params, chunkRectOf(chunk.key, this.chunkSize)).filter(
       (inst) => inst.assetId === assetId,
     );
-    return this.thinForLevel(raw, level);
   }
 
   /**
@@ -1150,7 +1189,6 @@ export class ScatterChunkManager {
     const mesh = entry.mesh;
     mesh.count = count;
     const geoExtent = geometryAbsExtentOf(asset.source.geometry);
-    lod.maxScale = 1; // 重撒后随写槽循环重累积
     lod.box.makeEmpty();
     const variants = this.getAssetVariants(assetId);
     const tint = variants && (variants.hueJitter ?? 0) > 0 ? variants : null;
@@ -1164,8 +1202,9 @@ export class ScatterChunkManager {
   /**
    * 实例区间写入（自有桶 offset=0 / 合并桶逐成员续写共用）：矩阵 = (x, baseY, z) +
    * rotationY + uniform scale；mesh 为 null = 只累积运行态不写矩阵（合并成员 culled
-   * 排除——lod.box/maxScale 按全集累积，选档输入稳定）。顺带累积实例紧致世界 AABB
-   * （逐轴最大绝对角偏移对任意 Y 旋转恒为有效包围）与块内 max scale（§4.3）。
+   * 排除——lod.box 按当档集累积）。顺带累积实例紧致世界 AABB（逐轴最大绝对角偏移对
+   * 任意 Y 旋转恒为有效包围）。代表 scale（lod.maxScale）不在此累积——T021.2 起按
+   * 抽稀前全集口径由写入路径统一计算（maxScaleOf，选档输入与密度解耦）。
    */
   private writeInstanceRange(
     mesh: THREE.InstancedMesh<THREE.BufferGeometry, THREE.Material | THREE.Material[]> | null,
@@ -1178,7 +1217,6 @@ export class ScatterChunkManager {
   ): void {
     for (let slot = 0; slot < list.length; slot++) {
       const inst = list[slot]!;
-      if (inst.scale > lod.maxScale) lod.maxScale = inst.scale; // §4.3 代表 scale = 块内 max
       _euler.set(0, inst.rotationY, 0);
       _quaternion.setFromEuler(_euler);
       _position.set(inst.position.x, baseY, inst.position.y);

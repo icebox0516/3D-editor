@@ -27,9 +27,12 @@
  * 机位口径（fov 90° → m = 最近点距离 / R_high；块盒 Y = [−1,1]、XZ = 块矩形闭盒）：
  *      超块中心正上方 (32, 1+m·R_high, 32) → 四块最近点同距 → 全块同档（均匀档位机位）；
  *      超块角点 (0, h, 0) → 四块最近点分距 → 跨档/culled 分离机位（§4.3 解析构造）。
- *      升档迟滞方向已计入（回 low 用带内 m=38 < lowToCulled·(1−band) 保证回档）；
+ *      升档迟滞方向已计入（回 low 用带内 m=38 < canopyToCulled·(1−band) 保证回档）；
  *      T006.6 起选档基准 = High 档派生稳定半径——机位与 mOfChunk 折算统一按 High
  *      半径（与块当前档位无关；稳定基准不变量由 ScatterChunkManager.lod 测试锁定）。
+ * T021.2 改写记档：getAssetLevels 直查 → getRepresentationCapability levels 投影（派生链
+ *      等价）；midToLow/lowToCulled → midToCanopy/canopyToCulled（候选初值同值直承 16/60，
+ *      全部数值断言不变——canopy 名义带跳档承接 low）。
  */
 import { describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
@@ -55,8 +58,8 @@ const SOURCE_RADIUS = LEVEL_RADIUS.high;
 const GEO_HALF = 1;
 /** 注入的合并策略（测试常量——与 BATCH_POLICY 数值解耦） */
 const MERGE = { maxInstancesPerChunk: 32, groupFactor: 2 };
-/** 全部四块同 low 带的均匀档位 m（带内中点——升档回视也安全：m < lowToCulled·(1−band)） */
-const LOW_BAND_M = LOD_THRESHOLDS.midToLow + (LOD_THRESHOLDS.lowToCulled - LOD_THRESHOLDS.midToLow) / 2;
+/** 全部四块同 low 带的均匀档位 m（带内中点——升档回视也安全：m < canopyToCulled·(1−band)） */
+const LOW_BAND_M = LOD_THRESHOLDS.midToCanopy + (LOD_THRESHOLDS.canopyToCulled - LOD_THRESHOLDS.midToCanopy) / 2;
 /** 全部四块同 high 带的均匀档位 m（< highToMid·(1−band)——升档迟滞安全） */
 const HIGH_BAND_M = LOD_THRESHOLDS.highToMid * 0.5;
 
@@ -126,7 +129,7 @@ function makeManager(
 ): ScatterChunkManager {
   return new ScatterChunkManager({
     provideSource: provider,
-    getAssetLevels: () => ['high', 'mid', 'low'],
+    getRepresentationCapability: () => ({ levels: ['high', 'mid', 'low'] }),
     ...options,
   });
 }
@@ -362,11 +365,11 @@ describe('ScatterChunkManager 批次控制：档位升降', () => {
     await flush();
     const t = LOD_THRESHOLDS;
     // 角点机位：块 (0,0) 落 mid 带、其余三块落 low 带（§4.3 最近点解析构造）
-    const h = 1 + t.midToLow * 0.95 * SOURCE_RADIUS; // m(0,0) = 0.95·midToLow ∈ mid 带
+    const h = 1 + t.midToCanopy * 0.95 * SOURCE_RADIUS; // m(0,0) = 0.95·midToCanopy ∈ mid 带
     expect(mOfChunk(0, 0, h)).toBeGreaterThan(t.highToMid);
-    expect(mOfChunk(0, 0, h)).toBeLessThanOrEqual(t.midToLow);
-    expect(mOfChunk(0, 1, h)).toBeGreaterThan(t.midToLow);
-    expect(mOfChunk(1, 1, h)).toBeLessThanOrEqual(t.lowToCulled);
+    expect(mOfChunk(0, 0, h)).toBeLessThanOrEqual(t.midToCanopy);
+    expect(mOfChunk(0, 1, h)).toBeGreaterThan(t.midToCanopy);
+    expect(mOfChunk(1, 1, h)).toBeLessThanOrEqual(t.canopyToCulled);
     await settle(m, cameraAboveCorner(h));
 
     const merged = mergedMeshes(m);
@@ -411,9 +414,9 @@ describe('ScatterChunkManager 批次控制：合并成员 culled', () => {
 
     // 角点机位抬升：块 (0,0) 仍 low 带、块 (1,1) 超 culled 线（其余两块带内）——选档
     // 稳定基准恒按 High 半径折算（mOfChunk 缺省口径，与四块当前 low 档无关）
-    let h = 1 + t.lowToCulled * 0.9 * SOURCE_RADIUS;
-    while (mOfChunk(1, 1, h) <= t.lowToCulled * 1.001) h += 2;
-    expect(mOfChunk(0, 0, h)).toBeLessThanOrEqual(t.lowToCulled); // (0,0) 未超线
+    let h = 1 + t.canopyToCulled * 0.9 * SOURCE_RADIUS;
+    while (mOfChunk(1, 1, h) <= t.canopyToCulled * 1.001) h += 2;
+    expect(mOfChunk(0, 0, h)).toBeLessThanOrEqual(t.canopyToCulled); // (0,0) 未超线
     await settle(m, cameraAboveCorner(h));
     const partiallyCulled = mergedMeshes(m)[0]!;
     const expectedRemaining = expectedMerged(params, [
@@ -446,8 +449,8 @@ describe('ScatterChunkManager 批次控制：合并成员 culled', () => {
     await flush();
     await settle(m, cameraAboveCenter(LOW_BAND_M));
     expect(mergedMeshes(m)).toHaveLength(1);
-    // 全部块超 culled 线（均匀机位 m = 1.2·lowToCulled）
-    await settle(m, cameraAboveCenter(LOD_THRESHOLDS.lowToCulled * 1.2));
+    // 全部块超 culled 线（均匀机位 m = 1.2·canopyToCulled）
+    await settle(m, cameraAboveCenter(LOD_THRESHOLDS.canopyToCulled * 1.2));
     const all = mergedMeshes(m);
     expect(all).toHaveLength(1); // 桶保留（调度结果非拆除）
     expect(all[0]!.count).toBe(0);
@@ -542,7 +545,7 @@ describe('ScatterChunkManager 批次控制：LOD 分布双口径', () => {
     expect(dist.instances.low).toBe(expectedMerged(params, [...ALL_MEMBERS], 'low').length);
 
     // 全组 culled：桶计 culled（零提交口径）、实例计 culled
-    await settle(m, cameraAboveCenter(LOD_THRESHOLDS.lowToCulled * 1.2));
+    await settle(m, cameraAboveCenter(LOD_THRESHOLDS.canopyToCulled * 1.2));
     dist = m.getLodDistribution();
     expect(dist.buckets.culled).toBe(1);
     expect(dist.instances.culled).toBe(expectedMerged(params, [...ALL_MEMBERS], 'low').length);

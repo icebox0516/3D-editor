@@ -8,7 +8,9 @@
  *    ——无距离概念，不消费相机位姿）。
  * 散布链（ScatterChunkManager.frame）与放置链（InstancedAssetPool.frameLod）共用本翻译，
  * 两链共享同一选档语义（D27.5）；评估器零 THREE（check:layers），本文件是唯一的
- * THREE→domain 口径边界。
+ * THREE→domain 口径边界。屏占比解释口径（T021.2，D41 §4.1）：screenFraction（资产
+ * 直径 / 视口高度）= 1 / m（m 为本翻译产出视图算得的统一度量，见 lodEvaluation 头注）
+ * ——调试与验收读数统一按 1/m 折算，不作选档输入。
  * 边界：调用方须先 camera.updateMatrixWorld()（世界位经 getWorldPosition 取，相机被
  * 挂父节点也正确）；既非透视也非正交的裸 Camera 抛 Error（防御——项目内不存在该形态，
  * 早暴露优于静默错算）。

@@ -81,7 +81,9 @@
 
 > Next 仅表示已排入路线图的后续任务，不代表执行顺序；实际启动顺序由任务文件中的依赖、当前项目状态及有效架构裁定决定（D31.8）。
 
-- [ ] T021 LOD → Representation 运行体系重构（021.0 / 021.1 done 2026-09-23；021.2 起待启动——D41，运行面真相源 docs/procedural-assets/representation-runtime.md）→ [tasks/021-lod-representation.md](tasks/021-lod-representation.md)
+- [ ] T021 LOD → Representation 运行体系重构（021.0 / 021.1 / 021.2 / 021.6 done 2026-09-23；下一步 021.3——D41，运行面真相源 docs/procedural-assets/representation-runtime.md）→ [tasks/021-lod-representation.md](tasks/021-lod-representation.md)
+  - [x] T021.6 Broadleaf Canopy Proxy（done 2026-09-23：共享冠层场契约收编 / 统一工厂 487 面 / 材质与深度材质 drift-lock / 13 树种基线帧取证，与 021.2 并行）→ [tasks/021.6-canopy-proxy.md](tasks/021.6-canopy-proxy.md)
+  - [x] T021.2 Selection Runtime（done 2026-09-23：新链候选阈值 / canopy 名义区间落位 / 散布四维粒度 + 代表 scale 全集口径，4073 全绿）→ [tasks/021.2-selection-runtime.md](tasks/021.2-selection-runtime.md)
   - [x] T021.1 Representation 契约层（done 2026-09-23：表示联合四值 / culled 转提交终态 / representations 声明 / bounds 契约，4041 全绿）→ [tasks/021.1-representation-contract.md](tasks/021.1-representation-contract.md)
 - [ ] T019 颜色管线（Tone Mapping 应急出口 / ACES 素材指针——D29.3 / D39 语义保留；占位行 2026-09-23 补登，D41 会话核实此前未同步）【占位】
 - [ ] T003 收官路径（冻结 2026-09-17；剩余 003.3 验收续走 / 003.5 / 003.6 / 设施返工）→ [tasks/003-scatter-styles.md](tasks/003-scatter-styles.md)

@@ -19,11 +19,21 @@
  * - 选档稳定基准（T006.6，D28.2）：三档真实差异化包围球下选档度量恒按 High 档派生
  *   基准——同一 (块×资产) 经不同换档历史到达任意当前档后，同机位选档结果一致（读数
  *   不随档位平移）；换档后同机位零二次重建；临界推拉零 churn。
+ * - 选档粒度与代表口径（T021.2，D41 §4.4）：粒度 = region × chunk × asset 四维——
+ *   同块键同资产跨 region 独立选档（maxScale 维度驱动分裂）、同块跨资产独立选档；
+ *   代表 scale = 桶内最大实例 scale **全集口径**（抽稀前撒点集）——low 档抽稀剔除
+ *   最大实例后选档读数不漂移（误用抽稀后集合会跨 canopyToCulled 线误裁）。
+ *
+ * T021.2 改写记档（原断言 → 新断言 → 为何等价）：
+ * - getAssetLevels 直查 → getRepresentationCapability levels 投影（派生链
+ *   [high,mid,low] 等价；representations 声明优先分支归 domain 组合测试覆盖）；
+ * - T.midToLow → T.midToCanopy、T.lowToCulled → T.canopyToCulled（候选初值同值直承
+ *   16/60——全部数值断言与档位断言不变；canopy 名义带经跳档承接 low，逐位等价）。
  * 边界：fake 源提供者按 (assetId × level) 分源（几何身份即档位标签）；几何包围
  *      手工钉死（半径按档差异化 High 5 / Mid 4.8 / Low 4.9——真实档间轮廓差 2~5%
  *      量级，High ≥ Mid/Low；Y 顶 1）——选档输入确定性：T006.6 稳定基准下机位一律
- *      按 High 半径定标（cameraAtM），读数与块当前档位无关；评估器语义本身由 006.1
- *      测试锁定。
+ *      按 High 半径定标（cameraAtM），读数与块当前档位无关；评估器语义本身由 domain
+ *      lod 测试锁定。
  */
 import { describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
@@ -177,7 +187,7 @@ describe('ScatterChunkManager LOD：选档带与换档', () => {
     const { provider, sources } = makeLeveledProvider();
     const m = new ScatterChunkManager({
       provideSource: provider,
-      getAssetLevels: () => ['high', 'mid', 'low'],
+      getRepresentationCapability: () => ({ levels: ['high', 'mid', 'low'] }),
     });
     m.setSource('s', baseParams());
     await flush();
@@ -189,12 +199,12 @@ describe('ScatterChunkManager LOD：选档带与换档', () => {
     await settleAt(m, cameraAtM(t.highToMid * 1.1));
     expect(activeMeshOf(m, sources, 'asset_tree')?.level).toBe('mid');
 
-    const farM = t.midToLow + (t.lowToCulled - t.midToLow) / 2; // low 带内
+    const farM = t.midToCanopy + (t.canopyToCulled - t.midToCanopy) / 2; // low 带内
     await settleAt(m, cameraAtM(farM));
     expect(activeMeshOf(m, sources, 'asset_tree')?.level).toBe('low');
 
     // 超远：culled = 网格 visible=false（块组与桶保留——回视即时恢复）
-    await settleAt(m, cameraAtM(t.lowToCulled * 1.1));
+    await settleAt(m, cameraAtM(t.canopyToCulled * 1.1));
     const culled = activeMeshOf(m, sources, 'asset_tree');
     expect(culled?.level).toBe('low'); // 桶保留在最后档
     expect(culled?.mesh.visible).toBe(false);
@@ -211,15 +221,15 @@ describe('ScatterChunkManager LOD：选档带与换档', () => {
     const { provider } = makeLeveledProvider();
     const m = new ScatterChunkManager({
       provideSource: provider,
-      getAssetLevels: () => ['high', 'mid', 'low'],
+      getRepresentationCapability: () => ({ levels: ['high', 'mid', 'low'] }),
     });
     m.setSource('s', baseParams());
     await flush();
     const t = LOD_THRESHOLDS;
     await settleAt(m, cameraAtM(t.highToMid * 1.1));
-    await settleAt(m, cameraAtM(t.midToLow * 1.1));
+    await settleAt(m, cameraAtM(t.midToCanopy * 1.1));
     await settleAt(m, cameraAtM(t.highToMid * 0.5)); // 回 high
-    await settleAt(m, cameraAtM(t.midToLow * 1.1)); // 再 low
+    await settleAt(m, cameraAtM(t.midToCanopy * 1.1)); // 再 low
     expect(provider).toHaveBeenCalledTimes(3); // high/mid/low 各一次
     m.dispose();
   });
@@ -232,7 +242,7 @@ describe('ScatterChunkManager LOD：迟滞防抖', () => {
     const { provider, sources } = makeLeveledProvider();
     const m = new ScatterChunkManager({
       provideSource: provider,
-      getAssetLevels: () => ['high', 'mid', 'low'],
+      getRepresentationCapability: () => ({ levels: ['high', 'mid', 'low'] }),
     });
     m.setSource('s', baseParams());
     await flush();
@@ -263,7 +273,7 @@ describe('ScatterChunkManager LOD：迟滞防抖', () => {
     const { provider, sources } = makeLeveledProvider();
     const m = new ScatterChunkManager({
       provideSource: provider,
-      getAssetLevels: () => ['high', 'mid', 'low'],
+      getRepresentationCapability: () => ({ levels: ['high', 'mid', 'low'] }),
     });
     m.setSource('s', baseParams());
     await flush();
@@ -288,7 +298,7 @@ describe('ScatterChunkManager LOD：选档稳定基准（High 档派生）', () 
     const { provider, sources } = makeLeveledProvider();
     const m = new ScatterChunkManager({
       provideSource: provider,
-      getAssetLevels: () => ['high', 'mid', 'low'],
+      getRepresentationCapability: () => ({ levels: ['high', 'mid', 'low'] }),
     });
     m.setSource('s', baseParams());
     await flush();
@@ -324,7 +334,7 @@ describe('ScatterChunkManager LOD：选档稳定基准（High 档派生）', () 
     const { provider, sources } = makeLeveledProvider();
     const m = new ScatterChunkManager({
       provideSource: provider,
-      getAssetLevels: () => ['high', 'mid', 'low'],
+      getRepresentationCapability: () => ({ levels: ['high', 'mid', 'low'] }),
     });
     m.setSource('s', baseParams());
     await flush();
@@ -346,7 +356,7 @@ describe('ScatterChunkManager LOD：选档稳定基准（High 档派生）', () 
     const { provider, sources } = makeLeveledProvider();
     const m = new ScatterChunkManager({
       provideSource: provider,
-      getAssetLevels: () => ['high', 'mid', 'low'],
+      getRepresentationCapability: () => ({ levels: ['high', 'mid', 'low'] }),
     });
     m.setSource('s', baseParams());
     await flush();
@@ -354,19 +364,19 @@ describe('ScatterChunkManager LOD：选档稳定基准（High 档派生）', () 
 
     // 读数 6.2 → mid；读数 16.05 → low（均 High 口径）
     await settleAt(m, cameraAtM(t.highToMid + 0.2));
-    await settleAt(m, cameraAtM(t.midToLow + 0.05));
+    await settleAt(m, cameraAtM(t.midToCanopy + 0.05));
     expect(activeMeshOf(m, sources, 'asset_tree')?.level).toBe('low');
     const callsAfterDowngrade = provider.mock.calls.length;
 
     // 同机位下一帧：读数仍 16.05（稳定基准——旧语义此处按 low 半径回缩 ≈ 15.72 落回
     // mid 名义带）→ 名义仍 low 带，零二次重建、零源请求（「无回缩」的可观测面）
-    await settleAt(m, cameraAtM(t.midToLow + 0.05));
+    await settleAt(m, cameraAtM(t.midToCanopy + 0.05));
     expect(activeMeshOf(m, sources, 'asset_tree')?.level).toBe('low');
     expect(provider.mock.calls.length).toBe(callsAfterDowngrade);
 
     // low 档基准泄漏判别：High 口径读数 13.55 < low→mid 升档线 13.6 → 即时回 mid；
     // 若误按 low 半径（4.9）评估，读数 = 13.55 × 5/4.9 ≈ 13.83 > 13.6 会停留 low
-    await settleAt(m, cameraAtM(t.midToLow * (1 - t.hysteresisBand) - 0.05));
+    await settleAt(m, cameraAtM(t.midToCanopy * (1 - t.hysteresisBand) - 0.05));
     expect(activeMeshOf(m, sources, 'asset_tree')?.level).toBe('mid');
     m.dispose();
   });
@@ -375,7 +385,7 @@ describe('ScatterChunkManager LOD：选档稳定基准（High 档派生）', () 
     const { provider, sources } = makeLeveledProvider();
     const m = new ScatterChunkManager({
       provideSource: provider,
-      getAssetLevels: () => ['high', 'mid', 'low'],
+      getRepresentationCapability: () => ({ levels: ['high', 'mid', 'low'] }),
     });
     m.setSource('s', baseParams());
     await flush();
@@ -387,7 +397,7 @@ describe('ScatterChunkManager LOD：选档稳定基准（High 档派生）', () 
       const cameraOf: Record<ProceduralLevel, THREE.PerspectiveCamera> = {
         high: cameraAtM(t.highToMid * 0.5),
         mid: cameraAtM(t.highToMid * 1.5),
-        low: cameraAtM(t.midToLow * 1.25),
+        low: cameraAtM(t.midToCanopy * 1.25),
       };
       await settleAt(m, cameraOf[tier]);
     };
@@ -397,8 +407,8 @@ describe('ScatterChunkManager LOD：选档稳定基准（High 档派生）', () 
     const stations: { m: number; tier: ProceduralLevel }[] = [
       { m: t.highToMid * 0.5, tier: 'high' },
       { m: t.highToMid + 0.5, tier: 'mid' },
-      { m: t.midToLow * (1 - t.hysteresisBand) - 0.05, tier: 'mid' },
-      { m: t.midToLow * 1.25, tier: 'low' },
+      { m: t.midToCanopy * (1 - t.hysteresisBand) - 0.05, tier: 'mid' },
+      { m: t.midToCanopy * 1.25, tier: 'low' },
     ];
     for (const station of stations) {
       for (const start of ['high', 'mid', 'low'] as const) {
@@ -418,7 +428,7 @@ describe('ScatterChunkManager LOD：换档重建实例完整（确定性重撒 +
     const { provider, sources } = makeLeveledProvider();
     const m = new ScatterChunkManager({
       provideSource: provider,
-      getAssetLevels: () => ['high', 'mid', 'low'],
+      getRepresentationCapability: () => ({ levels: ['high', 'mid', 'low'] }),
       getAssetVariants: () => ({ hueJitter: 8 }),
     });
     m.setSource('s', baseParams());
@@ -446,7 +456,7 @@ describe('ScatterChunkManager LOD：换档重建实例完整（确定性重撒 +
     expect(colorSnapshot(mid.mesh)).toEqual(colors);
 
     // mid → low：远档抽稀（T006.4 语义——密度降级只作用于降档方向）
-    await settleAt(m, cameraAtM(t.midToLow * 1.1));
+    await settleAt(m, cameraAtM(t.midToCanopy * 1.1));
     const low = activeMeshOf(m, sources, 'asset_tree')!;
     expect(low.level).toBe('low');
     expect(low.mesh.geometry).toBe(sourceOf(sources, 'asset_tree', 'low').geometry);
@@ -469,7 +479,7 @@ describe('ScatterChunkManager LOD：换档重建实例完整（确定性重撒 +
 
     // 同档确定性：low → mid → low 双跑，抽稀结果逐位一致
     await settleAt(m, cameraAtM(t.highToMid * 1.1));
-    await settleAt(m, cameraAtM(t.midToLow * 1.1));
+    await settleAt(m, cameraAtM(t.midToCanopy * 1.1));
     const lowAgain = activeMeshOf(m, sources, 'asset_tree')!;
     expect(lowAgain.level).toBe('low');
     expect(matrixSnapshot(lowAgain.mesh)).toEqual(keptMatrices);
@@ -481,7 +491,7 @@ describe('ScatterChunkManager LOD：换档重建实例完整（确定性重撒 +
     const { provider, sources } = makeLeveledProvider();
     const m = new ScatterChunkManager({
       provideSource: provider,
-      getAssetLevels: () => ['high', 'mid', 'low'],
+      getRepresentationCapability: () => ({ levels: ['high', 'mid', 'low'] }),
     });
     m.setSource('s', baseParams());
     await flush();
@@ -508,7 +518,7 @@ describe('ScatterChunkManager LOD：拾取跨档一致', () => {
     const { provider, sources } = makeLeveledProvider();
     const m = new ScatterChunkManager({
       provideSource: provider,
-      getAssetLevels: () => ['high', 'mid', 'low'],
+      getRepresentationCapability: () => ({ levels: ['high', 'mid', 'low'] }),
     });
     m.setSource('region_a', baseParams());
     await flush();
@@ -517,11 +527,11 @@ describe('ScatterChunkManager LOD：拾取跨档一致', () => {
     expect(m.resolvePick(hitOf(activeMeshOf(m, sources, 'asset_tree')!.mesh))).toBe('region_a');
     await settleAt(m, cameraAtM(t.highToMid * 1.1));
     expect(m.resolvePick(hitOf(activeMeshOf(m, sources, 'asset_tree')!.mesh))).toBe('region_a');
-    await settleAt(m, cameraAtM(t.midToLow * 1.1));
+    await settleAt(m, cameraAtM(t.midToCanopy * 1.1));
     expect(m.resolvePick(hitOf(activeMeshOf(m, sources, 'asset_tree')!.mesh))).toBe('region_a');
 
     // culled：网格 visible=false → 挡板拦截（r186 raycaster 不跳 visible=false）
-    await settleAt(m, cameraAtM(t.lowToCulled * 1.1));
+    await settleAt(m, cameraAtM(t.canopyToCulled * 1.1));
     expect(m.resolvePick(hitOf(activeMeshOf(m, sources, 'asset_tree')!.mesh))).toBeNull();
     m.dispose();
   });
@@ -534,24 +544,24 @@ describe('ScatterChunkManager LOD：总开关（off = 全 High + culled 旁路�
     const { provider, sources } = makeLeveledProvider();
     const m = new ScatterChunkManager({
       provideSource: provider,
-      getAssetLevels: () => ['high', 'mid', 'low'],
+      getRepresentationCapability: () => ({ levels: ['high', 'mid', 'low'] }),
     });
     m.setSource('s', baseParams());
     await flush();
     const t = LOD_THRESHOLDS;
 
     // 推到 low
-    await settleAt(m, cameraAtM(t.midToLow * 1.1));
+    await settleAt(m, cameraAtM(t.midToCanopy * 1.1));
     expect(activeMeshOf(m, sources, 'asset_tree')?.level).toBe('low');
 
     // 超远 + 开关关：恒 high 且可见
-    await settleAt(m, cameraAtM(t.lowToCulled * 1.5), false);
+    await settleAt(m, cameraAtM(t.canopyToCulled * 1.5), false);
     const mesh = activeMeshOf(m, sources, 'asset_tree')!;
     expect(mesh.level).toBe('high');
     expect(mesh.mesh.visible).toBe(true);
 
     // 再开（同机位超远）：重新 culled——开旁路可逆
-    await settleAt(m, cameraAtM(t.lowToCulled * 1.5), true);
+    await settleAt(m, cameraAtM(t.canopyToCulled * 1.5), true);
     expect(activeMeshOf(m, sources, 'asset_tree')?.mesh.visible).toBe(false);
     m.dispose();
   });
@@ -560,11 +570,11 @@ describe('ScatterChunkManager LOD：总开关（off = 全 High + culled 旁路�
     const { provider, sources } = makeLeveledProvider();
     const m = new ScatterChunkManager({
       provideSource: provider,
-      getAssetLevels: () => ['high', 'mid', 'low'],
+      getRepresentationCapability: () => ({ levels: ['high', 'mid', 'low'] }),
     });
     m.setSource('s', baseParams());
     await flush();
-    const camera = cameraAtM(LOD_THRESHOLDS.lowToCulled * 2);
+    const camera = cameraAtM(LOD_THRESHOLDS.canopyToCulled * 2);
     m.frame(camera); // 缺省 lodEnabled=false
     await flush();
     const mesh = activeMeshOf(m, sources, 'asset_tree')!;
@@ -581,7 +591,7 @@ describe('ScatterChunkManager LOD：块生命周期', () => {
     const { provider, sources } = makeLeveledProvider();
     const m = new ScatterChunkManager({
       provideSource: provider,
-      getAssetLevels: () => ['high', 'mid', 'low'],
+      getRepresentationCapability: () => ({ levels: ['high', 'mid', 'low'] }),
     });
     const params = baseParams();
     m.setSource('s', params);
@@ -604,7 +614,7 @@ describe('ScatterChunkManager LOD：块生命周期', () => {
     const { provider, sources } = makeLeveledProvider();
     const m = new ScatterChunkManager({
       provideSource: provider,
-      getAssetLevels: () => ['high', 'mid', 'low'],
+      getRepresentationCapability: () => ({ levels: ['high', 'mid', 'low'] }),
     });
     m.setSource('s', baseParams({ polygon: rect(0, 0, 20, 20) }));
     await flush();
@@ -632,7 +642,7 @@ describe('ScatterChunkManager LOD：块生命周期', () => {
     const { provider, sources } = makeLeveledProvider();
     const m = new ScatterChunkManager({
       provideSource: provider,
-      getAssetLevels: () => ['high', 'mid', 'low'],
+      getRepresentationCapability: () => ({ levels: ['high', 'mid', 'low'] }),
     });
     const params = baseParams();
     m.setSource('s', params);
@@ -660,17 +670,194 @@ describe('ScatterChunkManager LOD：块生命周期', () => {
 describe('ScatterChunkManager LOD：单档资产', () => {
   it('无 levels 声明：恒 high（无 mid/low 请求）、超远仍 culled', async () => {
     const { provider, sources } = makeLeveledProvider();
-    const m = new ScatterChunkManager({ provideSource: provider }); // 无 getAssetLevels
+    const m = new ScatterChunkManager({ provideSource: provider }); // 无 getRepresentationCapability
     m.setSource('s', baseParams());
     await flush();
     const t = LOD_THRESHOLDS;
 
-    await settleAt(m, cameraAtM(t.midToLow * 1.1)); // 名义 low 带 → 单档跳档回 high
+    await settleAt(m, cameraAtM(t.midToCanopy * 1.1)); // 名义 low 带 → 单档跳档回 high
     expect(activeMeshOf(m, sources, 'asset_tree')?.level).toBe('high');
     expect(provider).toHaveBeenCalledTimes(1); // 只有 high 源
 
-    await settleAt(m, cameraAtM(t.lowToCulled * 1.1));
+    await settleAt(m, cameraAtM(t.canopyToCulled * 1.1));
     expect(activeMeshOf(m, sources, 'asset_tree')?.mesh.visible).toBe(false); // culled 非声明档位，单档也可裁
+    m.dispose();
+  });
+});
+
+// ── 选档粒度与代表口径（T021.2，D41 §4.4）──────────────────
+
+describe('ScatterChunkManager LOD：region × chunk × asset 四维粒度', () => {
+  /**
+   * 相机置于块 (0,0) 中心正上方 camY（块盒顶 = 各源桶内 max scale × geoExtent 顶 1
+   * ——scaleRange 直接决定盒顶与代表 scale），最近点距离 = camY − 盒顶。同块键同资产
+   * 跨 region 分裂由 maxScale 维度驱动（D41 §4.4 代表 scale = 桶内最大实例 scale）。
+   */
+  it('region 维度：同块键同资产两 region 独立选档（maxScale 大者偏高档）', async () => {
+    const { provider, sources } = makeLeveledProvider();
+    const m = new ScatterChunkManager({
+      provideSource: provider,
+      getRepresentationCapability: () => ({ levels: ['high', 'mid', 'low'] }),
+    });
+    const seed = 987654321;
+    // 两 region 同多边形同 seed 同资产，仅 scaleRange 不同（大尺度 region maxScale ≈ 2×）
+    m.setSource('region_a', baseParams({ seed, scaleRange: { min: 1, max: 1 } }));
+    m.setSource('region_b', baseParams({ seed, scaleRange: { min: 1.9, max: 2 } }));
+    await flush();
+    expect(m.root.children).toHaveLength(2); // 每 region 一个 chunk:0:0 块组（四维含 region 维）
+
+    // 读数折算（块中心正上方）：m_s = (camY − top_s)/(R_high × maxScale_s)，top_s = maxScale_s
+    const maxA = 1; // scaleRange [1,1]
+    const truthB = truthInstances(baseParams({ seed, scaleRange: { min: 1.9, max: 2 } }), 'asset_tree');
+    const maxB = Math.max(...truthB.map((inst) => inst.scale));
+    expect(maxB).toBeGreaterThan(maxA * 1.5); // 判别前提：两桶代表 scale 确有量级差
+    const t = LOD_THRESHOLDS;
+    const camY = 1 + (t.highToMid + 2) * SOURCE_RADIUS * maxA; // m_A = 8 ∈ mid 带；m_B = (camY−maxB)/(5·maxB) < 6 ∈ high 带
+    expect((camY - maxA) / (SOURCE_RADIUS * maxA)).toBeGreaterThan(t.highToMid);
+    expect((camY - maxA) / (SOURCE_RADIUS * maxA)).toBeLessThanOrEqual(t.midToCanopy);
+    expect((camY - maxB) / (SOURCE_RADIUS * maxB)).toBeLessThanOrEqual(t.highToMid);
+
+    const camera = new THREE.PerspectiveCamera(90, 1, 0.5, 100000);
+    camera.position.set(10, camY, 10);
+    camera.lookAt(10, 0, 10);
+    await settleAt(m, camera);
+
+    // 两块组各自独立收敛：一个持 mid 桶、另一个持 high 桶（按源几何身份区分——
+    // 同 (assetId × level) 源跨 region 共享，几何身份即档位标签）
+    const groups = m.root.children.filter((c) => c.name === 'chunk:0:0');
+    expect(groups).toHaveLength(2);
+    const levels = groups.map((group) => {
+      const mesh = group.children[0] as THREE.InstancedMesh;
+      if (mesh.geometry === sourceOf(sources, 'asset_tree', 'mid').geometry) return 'mid';
+      if (mesh.geometry === sourceOf(sources, 'asset_tree', 'high').geometry) return 'high';
+      return 'unexpected';
+    });
+    expect(levels.sort()).toEqual(['high', 'mid']); // 同块同资产跨 region 分裂——region 维独立
+
+    const dist = m.getLodDistribution();
+    expect(dist.instances.high).toBeGreaterThan(0);
+    expect(dist.instances.mid).toBeGreaterThan(0);
+    m.dispose();
+  });
+
+  it('asset 维度：同 region 同块跨资产独立选档（基准半径差异驱动）', async () => {
+    // per-asset 差异化 high 基准半径（真实资产尺寸不同——选档输入按 assetId 独立）
+    const sources = new Map<string, InstanceSource>();
+    const provider = vi.fn(async (assetId: string, level?: ProceduralLevel): Promise<InstanceSource> => {
+      const key = `${assetId}::${level ?? 'high'}`;
+      let source = sources.get(key);
+      if (!source) {
+        source = leveledSource(level ?? 'high');
+        if ((level ?? 'high') === 'high') {
+          source.geometry.boundingSphere = new THREE.Sphere(
+            new THREE.Vector3(0, 0, 0),
+            assetId === 'asset_big' ? SOURCE_RADIUS * 2 : SOURCE_RADIUS,
+          );
+        }
+        sources.set(key, source);
+      }
+      return source;
+    });
+    const m = new ScatterChunkManager({
+      provideSource: provider,
+      getRepresentationCapability: () => ({ levels: ['high', 'mid', 'low'] }),
+    });
+    m.setSource(
+      's',
+      baseParams({
+        assets: [
+          { assetId: 'asset_small', weight: 1 },
+          { assetId: 'asset_big', weight: 1 },
+        ],
+      }),
+    );
+    await flush();
+
+    // 块中心正上方 camY：m_small = (camY−1)/R ∈ mid 带；m_big = (camY−1)/(2R) ∈ high 带
+    const t = LOD_THRESHOLDS;
+    const camY = 1 + (t.highToMid + 2) * SOURCE_RADIUS; // m_small = 8、m_big = 4
+    const camera = new THREE.PerspectiveCamera(90, 1, 0.5, 100000);
+    camera.position.set(10, camY, 10);
+    camera.lookAt(10, 0, 10);
+    await settleAt(m, camera);
+
+    // 同一块组内两资产各持独立当档桶（small = mid、big = high——同点同 scale、
+    // 仅基准半径差 → 选档分裂，asset 维独立）
+    const group = m.root.children.find((c) => c.name === 'chunk:0:0')!;
+    expect(group.children).toHaveLength(2); // 每资产恰一当档桶
+    const geometries = new Set(group.children.map((c) => (c as THREE.InstancedMesh).geometry));
+    expect(geometries.has(sources.get('asset_small::mid')!.geometry)).toBe(true);
+    expect(geometries.has(sources.get('asset_big::high')!.geometry)).toBe(true);
+    expect(geometries.has(sources.get('asset_small::high')!.geometry)).toBe(false); // small 已离 high
+    expect(sources.has('asset_big::mid')).toBe(false); // big 恒 high（从未发起 mid 源请求）
+    m.dispose();
+  });
+});
+
+describe('ScatterChunkManager LOD：代表 scale 全集口径（桶内最大实例 scale，抽稀前）', () => {
+  /**
+   * 构造判别 fixture：low 档抽稀（keep=0.5）剔除桶内最大实例后，代表 scale 仍取全集
+   * 最大（D41 §4.4——选档输入与密度解耦）。机位折算：low 桶块盒顶 = 抽稀后最大
+   * thinMax（lod.box 按当档集累积），代表 scale = rawMax → 正确读数 m = (camY−thinMax)/
+   * (R·rawMax) 落 low 带内；若误用抽稀后最大（m′ = 55·rawMax/thinMax）将跨
+   * canopyToCulled 线误裁。seed 搜索保证「最大实例恰被抽稀剔除且量级差充分」。
+   */
+  function searchFixture(): { seed: number; rawMax: number; thinMax: number } | undefined {
+    for (let seed = 100000; seed < 100600; seed++) {
+      const params = baseParams({ seed, densityPerM2: 0.05, scaleRange: { min: 0.3, max: 1.6 } });
+      const truth = truthInstances(params, 'asset_tree');
+      if (truth.length < 6) continue;
+      let argmax = 0;
+      for (let i = 1; i < truth.length; i++) {
+        if (truth[i]!.scale > truth[argmax]!.scale) argmax = i;
+      }
+      const keep = BATCH_POLICY.levelInstanceKeep.low;
+      if (keepThinnedInstance(argmax, keep)) continue; // 最大实例存活于 low 档——不判别
+      const rawMax = truth[argmax]!.scale;
+      let thinMax = 0;
+      for (let i = 0; i < truth.length; i++) {
+        if (keepThinnedInstance(i, keep) && truth[i]!.scale > thinMax) thinMax = truth[i]!.scale;
+      }
+      if (thinMax > 0 && rawMax / thinMax > 1.15) return { seed, rawMax, thinMax };
+    }
+    return undefined;
+  }
+
+  it('low 档抽稀剔除最大实例：读数仍按全集最大 scale（low 可见不误裁）', async () => {
+    const fixture = searchFixture();
+    expect(fixture).toBeDefined(); // fixture 搜索失败 = 撒点分布变化，需重搜 seed（记档）
+    const { seed, rawMax, thinMax } = fixture!;
+    const t = LOD_THRESHOLDS;
+    // 判别前提自证：错误口径（抽稀后最大）读数将跨 culled 线、正确口径（全集最大）落带内
+    const mThin = 55 * (rawMax / thinMax);
+    expect(mThin).toBeGreaterThan(t.canopyToCulled); // 误用会 culled
+    expect(55).toBeLessThanOrEqual(t.canopyToCulled); // 正确读数 55 ∈ (midToCanopy, canopyToCulled]
+
+    const { provider, sources } = makeLeveledProvider();
+    const m = new ScatterChunkManager({
+      provideSource: provider,
+      getRepresentationCapability: () => ({ levels: ['high', 'mid', 'low'] }),
+    });
+    m.setSource('s', baseParams({ seed, densityPerM2: 0.05, scaleRange: { min: 0.3, max: 1.6 } }));
+    await flush();
+
+    // 机位：low 桶盒顶 thinMax、读数 (camY − thinMax)/(R·rawMax) = 55
+    const camY = thinMax + 55 * SOURCE_RADIUS * rawMax;
+    const camera = new THREE.PerspectiveCamera(90, 1, 0.5, 100000);
+    camera.position.set(10, camY, 10);
+    camera.lookAt(10, 0, 10);
+    await settleAt(m, camera);
+    const low = activeMeshOf(m, sources, 'asset_tree');
+    expect(low?.level).toBe('low'); // 全集口径：55 ∈ low 带内
+    expect(low?.mesh.visible).toBe(true); // 未误裁（误用抽稀后最大 → 读数 > 60 → culled）
+
+    // 边界 sanity：更远机位（正确口径读数 65 > canopyToCulled）→ culled
+    const farY = thinMax + 65 * SOURCE_RADIUS * rawMax;
+    const farCamera = new THREE.PerspectiveCamera(90, 1, 0.5, 100000);
+    farCamera.position.set(10, farY, 10);
+    farCamera.lookAt(10, 0, 10);
+    await settleAt(m, farCamera);
+    expect(activeMeshOf(m, sources, 'asset_tree')?.mesh.visible).toBe(false);
     m.dispose();
   });
 });

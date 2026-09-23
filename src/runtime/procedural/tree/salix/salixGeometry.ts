@@ -152,6 +152,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { SALIX_SLOT0_PROFILE } from './salixShapeProfile';
 import type { BroadleafBarkRelief, BroadleafShapeProfile } from '../broadleaf/broadleafShapeProfile';
+import type { BroadleafClusterRecord } from '../broadleaf/broadleafClusterField';
 import type { ProceduralLevel } from '../../../../domain/assets';
 
 /** 叶卡描述子：烘焙前先收集（候选 → 通透过滤 → 两段式烘焙，冠内高度权重需存活卡 Y 域） */
@@ -172,14 +173,8 @@ interface LeafCard {
 /** 叶簇记录：挂点 + 簇中心 + 簇方向（= 挂点枝切向）+ 半径（枝梢驱动叶簇——家族方法
  *  沿用；垂柳语义 = 末级垂索互生细卡簇的簇空间——簇方向近垂直向下 → 簇平面近水平 →
  *  卡沿垂索放射下倾（垂帘幕的挂点语言） */
-interface ClusterRecord {
-  /** 挂簇枝级（3 = L4 / 4 = L5） */
-  level: number;
-  attach: THREE.Vector3;
-  center: THREE.Vector3;
-  radius: number;
-  dir: THREE.Vector3;
-}
+// ——T021.6 收编家族共享契约：类型真相源 = ../broadleaf/broadleafClusterField（本地名零 churn）
+type ClusterRecord = BroadleafClusterRecord;
 
 /** 枝干发射槽：非索引三角形流（pos/normal/uv 三数组同步追加） */
 interface BarkSink {

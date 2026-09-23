@@ -11,9 +11,13 @@
  *  - 桶数按「提交口径」：会提交渲染的桶计其档位；整桶零提交（全 culled 隐藏 / count=0）
  *    计入 culled——桶数合计 ≈ 实例桶 draw call 上界口径（不含环境/UI）。
  * T021.1 类型迁移（D41）：键联合随 LodSelectionOutcome 演化补 'canopy' 键位（最小机械
- *      处理）——canopy 表示自 T021.6 起才有内容、021.2 前选档不产生 canopy，故本键恒 0
- *      直至接线；计数逻辑与数值口径逐位不变。统计口径升级（transition / target /
- *      shadowCaster 全集，D41 §十三）归后续接线任务。
+ *      处理）——canopy 表示自 T021.6 起才有内容（021.2 起选档可产出 canopy，但真实资产
+ *      均未声明 canopy 能力），故本键恒 0 直至 021.6/021.7 接线；计数逻辑与数值口径
+ *      逐位不变。统计口径升级（transition / target / shadowCaster 全集，D41 §十三）归
+ *      后续接线任务。
+ * 解释口径（T021.2，D41 §4.1）：分布报表与阈值（m 口径，lodPolicy 候选值）对照读数时
+ *      统一按 screenFraction = 1/m 折算（资产直径 / 视口高；6/16/60 ↔ 16.7%/6.25%/1.67%）
+ *      ——调试与验收解释口径，不作选档输入。
  * 边界：零 THREE / 零 DOM（纯计数；snapshot 返回冻结拷贝，外部只读）。沿 renderLoopStats
  *      先例：Renderer 会话私有持有，绝不模块级单例（D17）。
  */

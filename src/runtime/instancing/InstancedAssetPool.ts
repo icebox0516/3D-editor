@@ -60,7 +60,9 @@
  *      sourceKey::level 条目即天然成套，本池只挂引用）。换档 = 实例跨桶迁移
  *      （复用既有跨池迁移语义：entry 迁移 + 双池 reconcile + 锚点/槽位表随迁），
  *      **不做「桶内换 Source」**——每桶创建时绑定当档源，Mesh 对象跨档重建。
- *      frameLod（Renderer 块剔除后、render 前调）：逐对象评估（006.1 评估器——选档
+ *      frameLod（Renderer 块剔除后、render 前调）：逐对象评估（放置链粒度 = per-object，
+ *      D41 §4.4；评估器语义 T021.2 起为表示链选档——输入 = 资产有效表示链
+ *      （representations 声明优先 / levels 派生，effectiveRepresentationChain）+ 选档
  *      基准 = High 档源一次派生按 sourceKey 冻结的稳定基准球（T006.6，与当前桶档位
  *      解耦：同机位读数不随迁档平移）× 实例 scale，代表点 = 基准球心过实例矩阵）
  *      → 迁移 / culled。
@@ -86,7 +88,13 @@ import type { ID, Transform } from '../../core/types';
 import { aSeedValueOf } from '../../domain/assets';
 import type { ModelObject } from '../../domain/assets';
 import type { ProceduralLevel } from '../../domain/assets';
-import type { LodSelectionOutcome, RenderBounds } from '../../domain/lod/representation';
+import type {
+  LodSelectionOutcome,
+  RenderBounds,
+  RepresentationCapability,
+  RuntimeRepresentation,
+} from '../../domain/lod/representation';
+import { effectiveRepresentationChain } from '../../domain/lod/representation';
 import { evaluateLodRepresentation } from '../../domain/lod/lodEvaluation';
 import type { LodDistribution } from '../lodDistribution';
 import { LodDistributionCounter } from '../lodDistribution';
@@ -146,11 +154,14 @@ export interface InstancedAssetPoolOptions {
    */
   resolvePoolKey?: (assetId: string, seed?: number) => string;
   /**
-   * 资产已声明档位查询（T006.3 选档输入）：返回 levels meta 的 id 列表；缺省/空 =
-   * 单档语义（评估器按 ['high'] 处理，D27 不完整链跳档由评估器承担）。
-   * Renderer 注入「查注册表 procedural meta」；每资产首次查询后池内缓存。
+   * 资产表示能力查询（T021.2 选档输入，表示能力驱动）：返回 AssetDescriptor meta 的
+   * representations / levels 两字段投影（RepresentationCapability）；选档消费
+   * effectiveRepresentationChain（representations 声明优先、levels 派生回退——021.1
+   * 契约）。缺省/均未声明 = 单档语义（链 ['high']，评估器语义自处理）。Renderer 注入
+   * 「查注册表 procedural meta」；每资产首次查询后池内缓存有效链（帧路径零重复归一）。
+   * 旧 getDeclaredLevels（levels 直查）由本字段取代（T021.2）。
    */
-  getDeclaredLevels?: (assetId: string) => ProceduralLevel[] | undefined;
+  getRepresentationCapability?: (assetId: string) => RepresentationCapability | undefined;
 }
 
 /** 单实例登记项（slot = 所在池 entries 的下标） */
@@ -298,9 +309,10 @@ export class InstancedAssetPool {
   private readonly provideSource: InstanceSourceProvider;
   /** 池键解析（缺省恒 assetId——无注入时行为回退现状，GLB 池零变化） */
   private readonly resolvePoolKey: (assetId: string, seed?: number) => string;
-  /** 资产已声明档位（T006.3 选档输入；每资产缓存一次——帧路径零重复查询） */
-  private readonly getDeclaredLevels: (assetId: string) => ProceduralLevel[] | undefined;
-  private readonly declaredLevelsCache = new Map<string, ProceduralLevel[]>();
+  /** 资产表示能力（T021.2 选档输入；每资产缓存有效链一次——帧路径零重复归一） */
+  private readonly getRepresentationCapability: (assetId: string) => RepresentationCapability | undefined;
+  /** 有效表示链缓存（assetId → effectiveRepresentationChain 产物，T021.2） */
+  private readonly representationChains = new Map<string, readonly RuntimeRepresentation[]>();
   /**
    * LOD 选档稳定基准（T006.6，D28.2）：sourceKey → High 档派生冻结基准球——选档
    * 输入恒取此（与当前桶档位解耦，见 frameLod）；High 桶源到达时派生（ensurePool）。
@@ -318,7 +330,7 @@ export class InstancedAssetPool {
   constructor(options: InstancedAssetPoolOptions) {
     this.provideSource = options.provideSource;
     this.resolvePoolKey = options.resolvePoolKey ?? ((assetId) => assetId);
-    this.getDeclaredLevels = options.getDeclaredLevels ?? (() => undefined);
+    this.getRepresentationCapability = options.getRepresentationCapability ?? (() => undefined);
     this.root.name = '__instanced_assets__';
   }
 
@@ -496,7 +508,7 @@ export class InstancedAssetPool {
       // （确定性、不冻结）
       const sphere = this.referenceSpheres.get(pool.sourceKey) ?? source.geometry.boundingSphere;
       if (!sphere) continue; // 防御：无球可评（到达路径已算，见彼处），未算即跳过
-      const declared = this.declaredLevelsOf(pool.assetId);
+      const chain = this.representationChainOf(pool.assetId);
       for (const entry of [...pool.entries]) {
         if (!entry.visible) continue; // 隐藏实例：矩阵已零缩放，无选档意义
         // 代表点/scale：实例矩阵作用于 High 派生基准球（非均匀缩放下球心仿射仍正确；
@@ -512,7 +524,7 @@ export class InstancedAssetPool {
             radius: sphere.radius,
             scale,
           },
-          declaredLevels: declared,
+          representations: chain,
           current: entry.currentLod,
           lodEnabled,
         });
@@ -525,9 +537,11 @@ export class InstancedAssetPool {
           }
           continue;
         }
-        // T021.1 类型完备防御（运行时不可达）：canopy 自 021.2 选档重写起才有名义
-        // 区间——现阶段评估器产出域 ⊆ {high, mid, low, culled}；此分支仅收窄类型
-        // （canopy 换档接线归 021.7），行为零影响。
+        // canopy 产出持有（T021.2）：选档自本任务起可产出 'canopy'（声明 canopy 能力的
+        // 资产，名义区间 (midToCanopy, canopyToCulled]）——entry.currentLod 已记录 canopy
+        // （迟滞参考正确），但 canopy 源/桶接线（provideSource 档位维度、缓存键
+        // sourceKey::representation）归 021.7；此前 canopy 产出持有现状（不迁移、当档桶
+        // 持续渲染，真实资产未声明 canopy 故不可达——假想声明资产测试锁定本持有语义）。
         if (next === 'canopy') continue;
         if (entry.culled) {
           entry.culled = false;
@@ -545,13 +559,17 @@ export class InstancedAssetPool {
     }
   }
 
-  /** 资产声明档位（缓存首次查询；空数组/undefined = 单档语义，评估器自处理） */
-  private declaredLevelsOf(assetId: string): ProceduralLevel[] {
-    const cached = this.declaredLevelsCache.get(assetId);
+  /**
+   * 资产有效表示链（T021.2 表示能力驱动，缓存首次查询）：effectiveRepresentationChain
+   * 产物——representations 声明优先、levels 派生回退、均未声明单档 ['high']（021.1
+   * 契约；评估器对空链另有缺省单档防御）。
+   */
+  private representationChainOf(assetId: string): readonly RuntimeRepresentation[] {
+    const cached = this.representationChains.get(assetId);
     if (cached) return cached;
-    const declared = this.getDeclaredLevels(assetId) ?? [];
-    this.declaredLevelsCache.set(assetId, declared);
-    return declared;
+    const chain = effectiveRepresentationChain(this.getRepresentationCapability(assetId) ?? {});
+    this.representationChains.set(assetId, chain);
+    return chain;
   }
 
   /**

@@ -155,6 +155,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { TRIADICA_SLOT0_PROFILE } from './triadicaShapeProfile';
 import type { BroadleafBarkRelief, BroadleafShapeProfile } from '../broadleaf/broadleafShapeProfile';
+import type { BroadleafClusterRecord } from '../broadleaf/broadleafClusterField';
 import type { ProceduralLevel } from '../../../../domain/assets';
 
 /** 叶卡描述子：烘焙前先收集（候选 → 通透过滤 → 两段式烘焙，冠内高度权重需存活卡 Y 域） */
@@ -174,14 +175,8 @@ interface LeafCard {
 
 /** 叶簇记录：挂点 + 簇中心 + 簇方向（= 挂点枝切向）+ 半径（枝梢驱动叶簇——家族方法沿用；
  *  乌桕语义 = 末级枝互生散布中卡簇的簇空间 + 果序承载位（L5 簇位 = 顶生果序候选） */
-interface ClusterRecord {
-  /** 挂簇枝级（3 = L4 / 4 = L5） */
-  level: number;
-  attach: THREE.Vector3;
-  center: THREE.Vector3;
-  radius: number;
-  dir: THREE.Vector3;
-}
+// ——T021.6 收编家族共享契约：类型真相源 = ../broadleaf/broadleafClusterField（本地名零 churn）
+type ClusterRecord = BroadleafClusterRecord;
 
 /** 单个绿闭蒴果记录（八面体发射原料：果心 + 半径 + 熟度 u） */
 interface FruitCapsule {

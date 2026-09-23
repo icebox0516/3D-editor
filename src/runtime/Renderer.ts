@@ -35,9 +35,9 @@ import type { ID, Transform } from '../core/types';
 import type { EventBus } from '../core/events/EventBus';
 import { isModelObject } from '../domain/assets';
 import type { ModelObject } from '../domain/assets';
-import type { ProceduralLevel } from '../domain/assets';
 import { applyAssetVariants, shapeSlotOf, sourceKeyOf } from '../domain/assets';
 import { BATCH_POLICY } from '../domain/lod/batchPolicy';
+import type { RepresentationCapability } from '../domain/lod/representation';
 import type { LodDistribution } from './lodDistribution';
 import { LodDistributionCounter } from './lodDistribution';
 import { BudgetAlert } from './budgetAlert';
@@ -441,13 +441,19 @@ export class Renderer {
     // 时按对象 seed 槽路由（seed 缺省按 0，与 ProceduralSourceCache 路由同一约定），
     // 与源缓存共用 domain/assets/shapeFamily 单一真相源；GLB/未声明资产回退 assetId。
     const assetRouter = this.assetRouter;
-    // T006.3：源请求携带 level（缓存 sourceKey::level 档位维度）；已声明档位查询与池键
-    // 路由同源（注册表 meta 单一真相源——levels 声明缺省 = 单档 high 语义）
-    const declaredLevelsOf = (assetId: string): ProceduralLevel[] | undefined => {
+    // T006.3：源请求携带 level（缓存 sourceKey::level 档位维度）；已声明表示能力查询与
+    // 池键路由同源（注册表 meta 单一真相源——T021.2 起选档输入 = 表示能力驱动：
+    // representations 声明优先、levels 派生回退，effectiveRepresentationChain 在两链
+    // 消费侧按资产缓存有效链；levels 声明缺省 = 单档 high 语义）
+    const representationCapabilityOf = (assetId: string): RepresentationCapability | undefined => {
       const descriptor = assets?.get(assetId);
       if (!descriptor || descriptor.kind !== 'procedural') return undefined;
-      const levels = descriptor.asset.levels;
-      return levels && levels.length > 0 ? levels.map((item) => item.id) : undefined;
+      const meta = descriptor.asset;
+      return {
+        representations: meta.representations,
+        levels:
+          meta.levels && meta.levels.length > 0 ? meta.levels.map((item) => item.id) : undefined,
+      };
     };
     this.instancedPool = assetRouter
       ? new InstancedAssetPool({
@@ -459,7 +465,7 @@ export class Renderer {
             const family = descriptor.asset.shapeFamily;
             return family ? sourceKeyOf(assetId, shapeSlotOf(seed ?? 0, family.size)) : assetId;
           },
-          getDeclaredLevels: declaredLevelsOf,
+          getRepresentationCapability: representationCapabilityOf,
         })
       : null;
     if (this.instancedPool) this.contentGroup.add(this.instancedPool.root);
@@ -475,7 +481,7 @@ export class Renderer {
             const descriptor = assets!.get(assetId);
             return descriptor && descriptor.kind === 'procedural' ? descriptor.asset.variants : undefined;
           },
-          getAssetLevels: declaredLevelsOf,
+          getRepresentationCapability: representationCapabilityOf,
           // T006.4 块自适应合并（生产开）：粗档稀疏 (块×资产) 并入超块合并桶——防
           // 「块×资产×档」批次爆炸（006.3 记档：散布 400m drawCalls 峰值 393）
           sparseMerge: {

@@ -194,6 +194,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { LIGUSTRUM_SLOT0_PROFILE } from './ligustrumShapeProfile';
 import type { BroadleafBarkRelief, BroadleafShapeProfile } from '../broadleaf/broadleafShapeProfile';
+import type { BroadleafClusterRecord } from '../broadleaf/broadleafClusterField';
 import type { ProceduralLevel } from '../../../../domain/assets';
 
 /** 叶卡描述子：烘焙前先收集（候选 → 通透过滤 → 两段式烘焙，冠内高度权重需存活卡 Y 域） */
@@ -213,14 +214,8 @@ interface LeafCard {
 
 /** 叶簇记录：挂点 + 簇中心 + 簇方向（= 挂点枝切向）+ 半径（枝梢驱动叶簇——家族方法沿用；
  *  女贞语义 = 末级枝 decussate 对生平展单叶卡簇的簇空间 + 核果簇承载位（L5 簇位 = 果簇候选） */
-interface ClusterRecord {
-  /** 挂簇枝级（3 = L4 / 4 = L5） */
-  level: number;
-  attach: THREE.Vector3;
-  center: THREE.Vector3;
-  radius: number;
-  dir: THREE.Vector3;
-}
+// ——T021.6 收编家族共享契约：类型真相源 = ../broadleaf/broadleafClusterField（本地名零 churn）
+type ClusterRecord = BroadleafClusterRecord;
 
 /** 单枚肾形核果卡记录（双 quad 发射原料：果梗端基点 + 果长轴 + 尺寸 + 色档 u） */
 interface DrupeCard {

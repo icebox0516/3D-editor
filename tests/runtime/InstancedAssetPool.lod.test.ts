@@ -21,6 +21,16 @@
  *   基准——同一实例经不同换档历史到达任意当前档后，同机位选档结果一致（读数不随
  *   档位平移）；迁档后同机位零二次换档；临界推拉零 churn；单档资产基准 = 唯一源
  *   （行为不变，既有单档测试即回归面）。
+ * - canopy 产出持有（T021.2）：假想声明 canopy 能力资产（representations
+ *   ['high','mid','canopy']——真实 13 树种未声明、canopy 不可达是正确行为）在 canopy
+ *   名义带的调度产出 canopy——021.7 接线前持有现状（不迁移、当档桶持续渲染、
+ *   canopy 源零请求、迟滞参考已记录）。
+ *
+ * T021.2 改写记档（原断言 → 新断言 → 为何等价）：
+ * - getDeclaredLevels 直查 → getRepresentationCapability levels 投影（派生链
+ *   [high,mid,low] 等价；representations 声明优先分支归 domain 组合测试覆盖）；
+ * - T.midToLow → T.midToCanopy、T.lowToCulled → T.canopyToCulled（候选初值同值直承
+ *   16/60——全部数值断言与档位断言不变；low 环 = canopy 名义带跳档承接，逐位等价）。
  * 边界：fake 源提供者按 (assetId × 槽 × level) 分源；几何包围手工钉死——选档输入
  *      确定性（High 球心 (0,3,0) = 机位定标口径；Mid/Low 球心沿视轴（Z）偏移 ±0.5
  *      ——档间球心差的放大应力：选档若误取当档球心，读数平移 ±0.25（m 口径）≫ 迟滞
@@ -153,13 +163,14 @@ function cameraForM(m: number): THREE.PerspectiveCamera {
   return camera;
 }
 
-/** 三档距离环的目标 m（相对阈值构造；对象 z=0、scale=1 → m = (z − camZ)/R 恒定） */
+/** 三档距离环的目标 m（相对阈值构造；T021.2 新链字段名——候选值同 legacy 直承，对象
+ *  z=0、scale=1 → m = (z − camZ)/R 恒定；low 环 = canopy 名义带经跳档承接） */
 function ringM(): { high: number; mid: number; low: number } {
   const t = LOD_THRESHOLDS;
   return {
     high: t.highToMid * 0.5,
-    mid: t.highToMid + (t.midToLow - t.highToMid) * 0.5,
-    low: t.midToLow + (t.lowToCulled - t.midToLow) * 0.5,
+    mid: t.highToMid + (t.midToCanopy - t.highToMid) * 0.5,
+    low: t.midToCanopy + (t.canopyToCulled - t.midToCanopy) * 0.5,
   };
 }
 
@@ -188,7 +199,9 @@ function makeLodPool(provider: ReturnType<typeof makeLeveledProvider>['provider'
   return new InstancedAssetPool({
     provideSource: provider,
     resolvePoolKey: slotPoolKey,
-    getDeclaredLevels: () => ['high', 'mid', 'low'],
+    // T021.2 表示能力驱动：13 树种真实形态 = levels 声明（未声明 representations），
+    // 派生链 [high, mid, low] 与旧 getDeclaredLevels 直查语义等价
+    getRepresentationCapability: () => ({ levels: ['high', 'mid', 'low'] }),
   });
 }
 
@@ -393,14 +406,14 @@ describe('InstancedAssetPool LOD：选档稳定基准（High 档派生）', () =
     // 读数 6.2 → mid；读数 16.05 → low（均 High 口径）
     pool.frameLod(cameraForM(t.highToMid + 0.2), true);
     await flush();
-    pool.frameLod(cameraForM(t.midToLow + 0.05), true);
+    pool.frameLod(cameraForM(t.midToCanopy + 0.05), true);
     await flush();
     expect(meshHolding(pool, sourceOf(sources, 'asset_tree', 2, 'low').geometry)).toBeDefined();
     const callsAfterDowngrade = provider.mock.calls.length;
 
     // 同机位下一帧：读数仍 16.05（稳定基准——旧语义此处按 low 半径回缩 ≈ 15.72 落回
     // mid 名义带）→ 名义仍 low 带，零二次换档、零源请求（「无回缩」的可观测面）
-    pool.frameLod(cameraForM(t.midToLow + 0.05), true);
+    pool.frameLod(cameraForM(t.midToCanopy + 0.05), true);
     await flush();
     expect(meshHolding(pool, sourceOf(sources, 'asset_tree', 2, 'low').geometry)).toBeDefined();
     expect(meshHolding(pool, sourceOf(sources, 'asset_tree', 2, 'mid').geometry)).toBeUndefined();
@@ -408,7 +421,7 @@ describe('InstancedAssetPool LOD：选档稳定基准（High 档派生）', () =
 
     // low 档基准泄漏判别：High 口径读数 13.55 < low→mid 升档线 13.6 → 即时回 mid；
     // 若误按 low 半径（1.96）评估，读数 = 13.55 × 2/1.96 ≈ 13.83 > 13.6 会停留 low
-    pool.frameLod(cameraForM(t.midToLow * (1 - t.hysteresisBand) - 0.05), true);
+    pool.frameLod(cameraForM(t.midToCanopy * (1 - t.hysteresisBand) - 0.05), true);
     await flush();
     expect(meshHolding(pool, sourceOf(sources, 'asset_tree', 2, 'mid').geometry)).toBeDefined();
     pool.dispose();
@@ -427,7 +440,7 @@ describe('InstancedAssetPool LOD：选档稳定基准（High 档派生）', () =
       const cameraOf: Record<ProceduralLevel, THREE.PerspectiveCamera> = {
         high: cameraForM(t.highToMid * 0.5),
         mid: cameraForM(t.highToMid * 1.5),
-        low: cameraForM(t.midToLow * 1.25),
+        low: cameraForM(t.midToCanopy * 1.25),
       };
       pool.frameLod(cameraOf[tier], true);
       await flush();
@@ -445,8 +458,8 @@ describe('InstancedAssetPool LOD：选档稳定基准（High 档派生）', () =
     const stations: { m: number; tier: ProceduralLevel }[] = [
       { m: t.highToMid * 0.5, tier: 'high' },
       { m: t.highToMid + 0.5, tier: 'mid' },
-      { m: t.midToLow * (1 - t.hysteresisBand) - 0.05, tier: 'mid' },
-      { m: t.midToLow * 1.25, tier: 'low' },
+      { m: t.midToCanopy * (1 - t.hysteresisBand) - 0.05, tier: 'mid' },
+      { m: t.midToCanopy * 1.25, tier: 'low' },
     ];
     for (const station of stations) {
       for (const start of ['high', 'mid', 'low'] as const) {
@@ -472,9 +485,9 @@ describe('InstancedAssetPool LOD：culled', () => {
     const t = LOD_THRESHOLDS;
 
     // 先经 low 带（换档迁移到 low 桶），再推超远 → culled（实例留在 low 桶）
-    pool.frameLod(cameraForM(t.midToLow + (t.lowToCulled - t.midToLow) * 0.5), true);
+    pool.frameLod(cameraForM(t.midToCanopy + (t.canopyToCulled - t.midToCanopy) * 0.5), true);
     await flush();
-    pool.frameLod(cameraForM(t.lowToCulled * 1.1), true);
+    pool.frameLod(cameraForM(t.canopyToCulled * 1.1), true);
     await flush();
     // culled：实例留在 low 桶
     const lowMesh = meshHolding(pool, sourceOf(sources, 'asset_tree', 7, 'low').geometry)!;
@@ -484,7 +497,7 @@ describe('InstancedAssetPool LOD：culled', () => {
     expect(lowMesh.count).toBe(1); // 实例仍登记（真值在 entry）
 
     // 回视（越过 culled 升档线）：恢复可见且矩阵 = 真值
-    pool.frameLod(cameraForM(t.midToLow + (t.lowToCulled - t.midToLow) * 0.5), true);
+    pool.frameLod(cameraForM(t.midToCanopy + (t.canopyToCulled - t.midToCanopy) * 0.5), true);
     await flush();
     lowMesh.getMatrixAt(0, probe);
     expect(probe.equals(expectedMatrix(model.transform))).toBe(true);
@@ -497,7 +510,7 @@ describe('InstancedAssetPool LOD：culled', () => {
       (c) => (c as THREE.Mesh).isMesh && !(c as THREE.InstancedMesh).isInstancedMesh,
     ) as THREE.Mesh;
     expect(soloMesh).toBeDefined();
-    pool.frameLod(cameraForM(t.lowToCulled * 1.2), true);
+    pool.frameLod(cameraForM(t.canopyToCulled * 1.2), true);
     await flush();
     expect(soloMesh.visible).toBe(false);
     pool.frameLod(cameraForM(t.highToMid * 0.5), true);
@@ -520,19 +533,19 @@ describe('InstancedAssetPool LOD：桶级提交跳过', () => {
     await flush();
     const t = LOD_THRESHOLDS;
 
-    pool.frameLod(cameraForM(t.midToLow + (t.lowToCulled - t.midToLow) * 0.5), true);
+    pool.frameLod(cameraForM(t.midToCanopy + (t.canopyToCulled - t.midToCanopy) * 0.5), true);
     await flush();
     const lowMesh = meshHolding(pool, sourceOf(sources, 'asset_tree', 5, 'low').geometry)!;
     expect(lowMesh.count).toBe(2);
     expect(lowMesh.visible).toBe(true); // 部分渲染中（都未 culled）
 
-    pool.frameLod(cameraForM(t.lowToCulled * 1.1), true);
+    pool.frameLod(cameraForM(t.canopyToCulled * 1.1), true);
     await flush();
     expect(lowMesh.count).toBe(2); // 实例仍登记（真值在 entry）
     expect(lowMesh.visible).toBe(false); // 全 culled → 整桶零提交（T006.4）
 
     // 回视：越过 culled 升档线 → 同帧恢复提交与真值矩阵
-    pool.frameLod(cameraForM(t.midToLow + (t.lowToCulled - t.midToLow) * 0.5), true);
+    pool.frameLod(cameraForM(t.midToCanopy + (t.canopyToCulled - t.midToCanopy) * 0.5), true);
     await flush();
     expect(lowMesh.visible).toBe(true);
     const probe = new THREE.Matrix4();
@@ -578,7 +591,7 @@ describe('InstancedAssetPool LOD：桶级提交跳过', () => {
 
     pool.frameLod(cameraForM(t.highToMid * 0.5), true); // near high
     await flush();
-    pool.frameLod(cameraForM(t.lowToCulled * 1.1), true); // far 对象超远 culled（near 也超远！）
+    pool.frameLod(cameraForM(t.canopyToCulled * 1.1), true); // far 对象超远 culled（near 也超远！）
     await flush();
     // 两对象同位同机位——都 culled：桶全隐藏计 culled、实例计 culled
     let dist = pool.getLodDistribution();
@@ -619,7 +632,7 @@ describe('InstancedAssetPool LOD：总开关', () => {
     expect(meshHolding(pool, sourceOf(sources, 'asset_tree', 1, 'mid').geometry)).toBeDefined();
 
     // off + 超远机位：全部回 high、无零缩放
-    pool.frameLod(cameraForM(t.lowToCulled * 1.5), false);
+    pool.frameLod(cameraForM(t.canopyToCulled * 1.5), false);
     await flush();
     const highMesh0 = meshHolding(pool, sourceOf(sources, 'asset_tree', 0, 'high').geometry)!;
     const highMesh1 = meshHolding(pool, sourceOf(sources, 'asset_tree', 1, 'high').geometry)!;
@@ -630,7 +643,7 @@ describe('InstancedAssetPool LOD：总开关', () => {
     expect(probe.equals(expectedMatrix(near.transform))).toBe(true); // culled 旁路：非零缩放
 
     // 再开（同超远机位）：重新 culled（zero 缩放）
-    pool.frameLod(cameraForM(t.lowToCulled * 1.5), true);
+    pool.frameLod(cameraForM(t.canopyToCulled * 1.5), true);
     await flush();
     highMesh0.getMatrixAt(0, probe);
     expect(probe.equals(new THREE.Matrix4().makeScale(0, 0, 0))).toBe(true);
@@ -648,17 +661,79 @@ describe('InstancedAssetPool LOD：单档资产', () => {
     await flush();
     const t = LOD_THRESHOLDS;
 
-    pool.frameLod(cameraForM(t.midToLow * 1.1), true); // 名义 low 带 → 单档跳档回 high
+    pool.frameLod(cameraForM(t.midToCanopy * 1.1), true); // 名义 low 带 → 单档跳档回 high
     await flush();
     expect(meshHolding(pool, sourceOf(sources, 'asset_tree', 2, 'high').geometry)).toBeDefined();
     expect(provider).toHaveBeenCalledTimes(1);
 
-    pool.frameLod(cameraForM(t.lowToCulled * 1.1), true);
+    pool.frameLod(cameraForM(t.canopyToCulled * 1.1), true);
     await flush();
     const mesh = meshHolding(pool, sourceOf(sources, 'asset_tree', 2, 'high').geometry)!;
     const probe = new THREE.Matrix4();
     mesh.getMatrixAt(0, probe);
     expect(probe.equals(new THREE.Matrix4().makeScale(0, 0, 0))).toBe(true); // culled（非声明档位也可裁）
+    pool.dispose();
+  });
+});
+
+// ── canopy 产出持有（T021.2：假想声明 canopy 能力资产，021.7 接线前的现状）──
+
+describe('InstancedAssetPool LOD：canopy 产出持有', () => {
+  it('假想 canopy 链资产在 canopy 名义带：持有 mid 桶不迁移、canopy 源零请求、迟滞参考生效', async () => {
+    const { provider, sources } = makeLeveledProvider();
+    const pool = new InstancedAssetPool({
+      provideSource: provider,
+      resolvePoolKey: slotPoolKey,
+      // 假想声明：representations 声明优先（真实 13 树种未声明 canopy——domain 级
+      // 组合测试已锁「levels 派生分支 canopy 不可达」）
+      getRepresentationCapability: (assetId) =>
+        assetId === 'asset_canopy_tree'
+          ? { representations: ['high', 'mid', 'canopy'] }
+          : { levels: ['high', 'mid', 'low'] },
+    });
+    pool.attach(makeModel('hypo', 'asset_canopy_tree', transformAt(0, 0, 0), 1));
+    await flush();
+    const t = LOD_THRESHOLDS;
+
+    // mid 带 → 正常迁移 mid 桶（canopy 链的 mid 与 legacy 相同路径）
+    pool.frameLod(cameraForM(t.highToMid * 1.1), true);
+    await flush();
+    const midMesh = meshHolding(pool, sourceOf(sources, 'asset_canopy_tree', 1, 'mid').geometry)!;
+    expect(midMesh.count).toBe(1);
+
+    // canopy 名义带：调度产出 canopy → 021.7 接线前持有（不迁移、mid 桶持续渲染）
+    const canopyBand = t.midToCanopy + (t.canopyToCulled - t.midToCanopy) * 0.5;
+    pool.frameLod(cameraForM(canopyBand), true);
+    await flush();
+    expect(meshHolding(pool, sourceOf(sources, 'asset_canopy_tree', 1, 'mid').geometry)).toBeDefined();
+    // canopy 源零请求（canopy 桶接线归 021.7——provider 只收过 high/mid）
+    for (const call of provider.mock.calls) {
+      expect(call[2]).not.toBe('canopy');
+    }
+    // 持有不设 culled/零缩放：canopy 目标仍是「要渲染的表示」
+    const probe = new THREE.Matrix4();
+    midMesh.getMatrixAt(0, probe);
+    expect(probe.equals(expectedMatrix(makeModel('hypo', 'asset_canopy_tree', transformAt(0, 0, 0), 1).transform))).toBe(true);
+
+    // 迟滞参考已记录 canopy：回落带内（midToCanopy ×(1−band) ~ midToCanopy）仍持有
+    // mid 桶；越过带线回 mid 带 → 恢复正常调度（仍在 mid 桶，零迁移 churn）
+    const callsAtHold = provider.mock.calls.length;
+    pool.frameLod(cameraForM(t.midToCanopy * 0.99), true);
+    await flush();
+    expect(meshHolding(pool, sourceOf(sources, 'asset_canopy_tree', 1, 'mid').geometry)).toBeDefined();
+    pool.frameLod(cameraForM(t.midToCanopy * (1 - t.hysteresisBand) * 0.97), true);
+    await flush();
+    expect(meshHolding(pool, sourceOf(sources, 'asset_canopy_tree', 1, 'mid').geometry)).toBeDefined();
+    expect(provider.mock.calls.length).toBe(callsAtHold); // 全程零新源请求
+
+    // 对照：同机位下 legacy 链资产已迁 low 桶（canopy 名义带跳档承接）——证明假想
+    // 资产的「持有 mid」确为 canopy 产出所致（而非 canopy 带选档本身失效）
+    pool.attach(makeModel('legacy', 'asset_tree', transformAt(0, 0, 0), 1));
+    await flush();
+    pool.frameLod(cameraForM(canopyBand), true);
+    await flush();
+    expect(meshHolding(pool, sourceOf(sources, 'asset_tree', 1, 'low').geometry)).toBeDefined();
+    expect(meshHolding(pool, sourceOf(sources, 'asset_canopy_tree', 1, 'mid').geometry)).toBeDefined();
     pool.dispose();
   });
 });
