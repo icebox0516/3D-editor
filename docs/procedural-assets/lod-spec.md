@@ -20,28 +20,33 @@ sourceKey 形态身份不变口径（D19/D23.2，硬约束）：`sourceKey = ass
 
 ## 2. 档位声明契约（资产侧）
 
-### 2.1 类型枚举——三值定死（D27.7）
+### 2.1 类型枚举——三值定死（D27.7；T021.1 语义收窄）
 
 ```ts
 export type ProceduralLevel = 'high' | 'mid' | 'low';        // 类型真相源：src/domain/assets/AssetDescriptor.ts
 export interface ProceduralLevelDescriptor { id: ProceduralLevel; }  // runtime/procedural/types.ts 的 level 参数复用本类型
 ```
 
+三值语义 = **Asset Build Capability（资产可直接 Build 的几何档位，T021.1/D41 §三.1 收窄）**——不再兼任 Runtime 远景表示的统一枚举：
+
 | id | 语义 | 内容判据 |
 |---|---|---|
-| `'high'` | 细模 | 完整几何细节 + 完整 Shader 配方；近景/默认档 |
-| `'mid'` | 中模 | 几何细节与 Shader 成本同步降（夏栎先例：降枝条段数/叶簇量/叶卡量，材质去脉三线/节疤） |
-| `'low'` | 远模 | 只保轮廓 + 体量 + 颜色层次 + 整体风格，不保持内部结构 |
+| `'high'` | 细模（构建档） | 完整几何细节 + 完整 Shader 配方；近景/默认档 |
+| `'mid'` | 中模（构建档） | 几何细节与 Shader 成本同步降（夏栎先例：降枝条段数/叶簇量/叶卡量，材质去脉三线/节疤） |
+| `'low'` | 远模（构建档） | 只保轮廓 + 体量 + 颜色层次 + 整体风格，不保持内部结构 |
 
-枚举纪律：**改名 / 扩值是破坏性契约变更，必须过决策门**。proxy / impostor 只是规范语义位（§3），实装时再扩枚举（防幽灵字段）；`culled` 是调度结果不是声明档位，永不进枚举。（2026-09-23 D41 过决策门：`'canopy'` 转正进入 Runtime 表示联合——运行面类型与有效链见 `representation-runtime.md` §三；本节 `ProceduralLevel` 三值保留为 Asset Build Capability 语义，声明面新增 `representations` 字段由 T021.1 增量修订本节。）
+**Runtime 表示联合真相源在 domain/lod**（两面互指纪律：运行面正文归 `representation-runtime.md` §三，此处只锚声明面语义）：`RuntimeRepresentation = 'high' | 'mid' | 'low' | 'canopy'`（`src/domain/lod/representation.ts`）——high/mid/low 与构建档同名同值（build 出什么档即能展示什么表示），`'canopy'` 是远景冠层代理表示（内容自 T021.6 起提供）；`'impostor'` 架构预留不进联合（§3）、`'culled'` 是提交终态（submit state，非表示非声明档位）。资产声明 Runtime 表示能力走独立 `representations` 字段（§2.2），`levels` 三值语义不被污染。
 
-### 2.2 meta 声明形态——首版最小化（D27.12）
+枚举纪律：**改名 / 扩值是破坏性契约变更，必须过决策门**。（2026-09-23 D41 过决策门 + T021.1 落地：`'canopy'` 转正进入 Runtime 表示联合——运行面类型与有效链见 `representation-runtime.md` §三；本节 `ProceduralLevel` 三值保留为 Asset Build Capability 语义，声明面 `representations` 字段条款见 §2.2。）
+
+### 2.2 meta 声明形态——首版最小化（D27.12；T021.1 增 representations）
 
 ```ts
-levels?: ProceduralLevelDescriptor[]   // 夏栎实例：[{ id: 'high' }, { id: 'mid' }, { id: 'low' }]
+levels?: ProceduralLevelDescriptor[]                    // 夏栎实例：[{ id: 'high' }, { id: 'mid' }, { id: 'low' }]
+representations?: RuntimeRepresentation[]               // T021.1（D41 §三.2）：Runtime 表示能力声明，类型真相源 = domain/lod/representation
 ```
 
-首版唯一字段 `id`。以下字段**全部禁止**（无实际消费者，D27.12；出现真实消费者后再经增量决策扩入，沿 010.1 无投机字段纪律）：
+`levels` 首版唯一字段 `id`。以下字段**全部禁止**（无实际消费者，D27.12；出现真实消费者后再经增量决策扩入，沿 010.1 无投机字段纪律）：
 
 | 禁止字段 | 为什么不进 Profile |
 |---|---|
@@ -49,7 +54,9 @@ levels?: ProceduralLevelDescriptor[]   // 夏栎实例：[{ id: 'high' }, { id: 
 | `triangleBudget` | 预算归家族预算表（§5）+ 资产模块头账目，是工程记录不是声明能力 |
 | `castShadow` / `pickable` | 影走 InstanceSource 契约通道（customDepthMaterial 随档成套，§2.3）；拾取跨档一致是 Runtime 义务（§6）——均无逐档声明消费者 |
 
-缺省语义：不写 `levels` = 单档细模（与显式 `[{ id: 'high' }]` 等价）；**未声明多档（不写 `levels` 或单档声明）且未声明 shapeFamily 的资产 = 恒单档**（缓存走纯 assetId 键、build 无参调用、level 一并忽略——ProceduralSourceCache 现行为）；未声明 shapeFamily 但声明多档的资产（T006.2 路灯两档先例 `asset_streetlamp`）缓存键 = `assetId::level`、build 以 `build({ level })` 调用（level 只作缓存档位维度，不掺形态身份，D23.2）。
+缺省语义（T021.1 起三态）：不写 `representations` = 从 `levels` 派生（构建档位即表示能力；不写 `levels` = 单档细模，与显式 `[{ id: 'high' }]` 等价）；两字段均未声明 = 单档 high。`representations` 声明优先于 `levels` 派生（有效链按声明能力生成、不硬编码全链，Runtime 侧纯函数 = domain/lod effectiveRepresentationChain）。
+
+缓存口径现状（声明面快照，键收敛归 021.7）：**未声明多档（不写 `levels` 或单档声明）且未声明 shapeFamily 的资产 = 恒单档**（缓存走纯 assetId 键、build 无参调用、level 一并忽略——ProceduralSourceCache 现行为）；未声明 shapeFamily 但声明多档的资产缓存键 = `assetId::level`、build 以 `build({ level })` 调用（level 只作缓存档位维度，不掺形态身份，D23.2）。streetlamp 先例更新（T021.1）：`asset_streetlamp` 已声明 `representations: ['high', 'low']`——「未声明多档」中间态的唯一消费者由本声明**收编入第一分支**（021.7 键收敛为 `sourceKey + representation` 双维时方可删除该中间分支，收编完成前禁删，D41 §10.2；021.1 本身不改 ProceduralSourceCache 键逻辑——streetlamp 现行为逐位不变）。
 
 不完整链：资产可声明任意非空子集（路灯两档、消防栓仅 high 均合法）；选档遇到未声明档的跳档语义（取最近已声明档）归 Runtime（006.1 实装）。
 
@@ -76,18 +83,19 @@ levels?: ProceduralLevelDescriptor[]   // 夏栎实例：[{ id: 'high' }, { id: 
 
 缩略图 / Ghost / Preview 固定取 High 档。T007 烘焙「取当前档几何」语义保留原句，细化留 T007 立项拷问门。
 
-## 3. Representation 语义集（D27.3 六档全集）
+## 3. Representation 语义集（D27.3 全集；T021.1 与双轨类型对齐）
 
-| 档位 | 语义 | 内容性质 | 进类型枚举 | 进 levels 声明 | 状态 |
-|---|---|---|---|---|---|
-| High | 细模 | 完整几何 + 完整 Shader | 是 | 是 | **已实装**（夏栎 T009.6） |
-| Mid | 中模 | 降几何细节 + 降 Shader 成本 | 是 | 是 | **已实装**（夏栎） |
-| Low | 远模 | 保轮廓 / 体量 / 颜色层次 | 是 | 是 | **已实装**（夏栎） |
-| Proxy | 代理体 | 主要轮廓 + 基本体量 + 必要颜色/拾取/阴影特征（如 GLB 低模代理） | 否（预留） | 否（预留） | 规范预留——**未实装未验证** |
-| Impostor | 面片替身 | Billboard / 多视角 Atlas（Albedo / Normal / Depth），极远距 | 否（预留） | 否（预留） | 规范预留——**未实装未验证** |
-| Culled | 不渲染 | 调度结果（被裁剪 / 超远） | 否 | 否——**调度结果非声明档位** | T006 实装（裁剪既有） |
+| 档位 | 语义 | 内容性质 | 进构建枚举（ProceduralLevel） | 进运行表示联合（RuntimeRepresentation） | 进声明（levels / representations） | 状态 |
+|---|---|---|---|---|---|---|
+| High | 细模 | 完整几何 + 完整 Shader | 是 | 是 | 是 / 是 | **已实装**（夏栎 T009.6） |
+| Mid | 中模 | 降几何细节 + 降 Shader 成本 | 是 | 是 | 是 / 是 | **已实装**（夏栎） |
+| Low | 远模 | 保轮廓 / 体量 / 颜色层次 | 是 | 是 | 是 / 是 | **已实装**（夏栎） |
+| Canopy | 远景冠层代理 | 冠幅 / 轮廓 / 体量 / 绿色覆盖率（预算见运行面 §六.2） | 否（非构建档） | **是**（D41 转正，T021.1 落型） | 否 / **是** | 契约已立（T021.1）；内容 T021.6 BroadleafCanopyProxy |
+| Proxy | 代理体 | 主要轮廓 + 基本体量 + 必要颜色/拾取/阴影特征（如 GLB 低模代理） | 否（预留） | 否（预留） | 否（预留） | 规范预留——**未实装未验证** |
+| Impostor | 面片替身 | Billboard / 多视角 Atlas（Albedo / Normal / Depth），极远距 | 否（预留） | 否（预留） | 否（预留） | 架构预留不实装（扩展路径 = representation-runtime.md §十六） |
+| Culled | 不渲染 | **提交终态（submit state，D41）**：超远 / 被裁剪的最终提交状态（不渲染、不可拾取） | 否 | **否——独立提交状态类型 LodSubmitState，非表示成员**（T021.1 移出联合） | 否 | T006 实装（裁剪既有） |
 
-- **本期实装范围 = High / Mid / Low + Culled**；Proxy / Impostor 只是规范语义位：不进类型枚举、不进 levels 声明、不写任何接口占位代码（防幽灵字段，D27.7/D27.12）。（2026-09-23 D41 修订：**Canopy 转正**为第一阶段运行表示〔T021.6 BroadleafCanopyProxy〕，运行面语义全集见 `representation-runtime.md` §六；本表 Proxy 行保留为 GLB 低模代理语义位，Impostor 维持预留不实装。）
+- **运行表示联合（T021.1 落型）= High / Mid / Low / Canopy**（domain/lod/representation，类型真相源）；提交终态 Culled 独立建模（LodSubmitState）。Proxy / Impostor 仍是规范语义位：不进任何类型枚举、不进声明、不写接口占位代码（防幽灵字段，D27.7/D27.12）。Canopy 内容交付与材质契约见 `representation-runtime.md` §六（运行面），本表 Proxy 行保留为 GLB 低模代理语义位。（2026-09-23 D41 修订 + T021.1 落地：Canopy 转正为第一阶段运行表示〔T021.6 BroadleafCanopyProxy〕、Culled 改为提交状态表述并移出表示联合。）
 - **范围门（判定绑定观测指标，006.5 执行）**：十万实例压力下 triangles / draw calls / frame time p95 任一超预算 → Impostor 升级必做。
 - GLB Proxy 语义收录：GLB 资产未来可用低模 GLB 作 Proxy 档——语义方向收录，**未经验证**，不在本期任何验收面内；届时过增量决策再定接口。
 - **GLB LOD 消费硬约束（D28.5，2026-09-20 升格）**：GLB 资产未来接入多档必须**直接消费现有 Asset Runtime LOD**——扩展点 = `ModelAsset` levels 声明 + `Renderer.declaredLevelsOf` + SourceRouter file 分支 level 透传；**禁止另建 GLB 专用 LOD 体系**（D27.1 资产域专属禁令延续）。现状：GLB 已走共享链（file 分支忽略 level → 恒 High + 超远 culled），仓库零 GLB 专用 LOD 代码；Proxy/Impostor 预留位语义不变。

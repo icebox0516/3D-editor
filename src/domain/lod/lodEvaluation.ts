@@ -22,14 +22,12 @@ import type { Vec3 } from '../../core/types';
 import type { ProceduralLevel } from '../assets/AssetDescriptor';
 import { LOD_THRESHOLDS } from './lodPolicy';
 import type { LodThresholds } from './lodPolicy';
+import { REPRESENTATION_ORDER } from './representation';
+import type { LodSelectionOutcome } from './representation';
 
 /**
- * 展示档位全集（D27.3 本期实装范围 = High / Mid / Low + Culled）：
- * 'culled' 仅超远距调度结果（D27.7 不进 ProceduralLevel 枚举——调度结果非声明档位）。
+ * 透视视图口径（fovY 弧度——编辑器内部惯例，见 core/types Euler 弧度注释）
  */
-export type LodRepresentation = ProceduralLevel | 'culled';
-
-/** 透视视图口径（fovY 弧度——编辑器内部惯例，见 core/types Euler 弧度注释） */
 export interface PerspectiveLodView {
   kind: 'perspective';
   cameraPosition: Vec3;
@@ -62,7 +60,7 @@ export interface LodEvaluationInput {
   declaredLevels?: ProceduralLevel[];
   /** 当前展示档位（hysteresis 参考，由调用方持有——评估器本身无状态 D27.6）；
    *  缺省 = 无迟滞参考，按名义档起步 */
-  current?: LodRepresentation;
+  current?: LodSelectionOutcome;
   /** 缺省 LOD_THRESHOLDS */
   thresholds?: LodThresholds;
   /** LOD 总开关（本层定义、006.3 消费）：false = 目标恒 'high'（经跳档映射，见
@@ -73,9 +71,16 @@ export interface LodEvaluationInput {
 /** 声明档位序数（跳档与迟滞方向的比较基）：high=0 → low=2，向低档 / 远离方向单调递增 */
 const LEVEL_ORDINAL: Record<ProceduralLevel, number> = { high: 0, mid: 1, low: 2 };
 
-/** 展示档位序数：声明档沿用 LEVEL_ORDINAL，culled 视为 3（最远端） */
-function representationOrdinal(rep: LodRepresentation): number {
-  return rep === 'culled' ? 3 : LEVEL_ORDINAL[rep];
+/**
+ * 调度判定序数（T021.1 类型迁移，行为逐位不变）：声明档沿用 LEVEL_ORDINAL；
+ * canopy = 固定序第 4 位（canopy 档源 = BroadleafCanopyProxy，T006.6 时期尚无
+ * canopy 名义区间——canopy 仅类型完备，运行时不可达直至 021.2 选档重写）；culled
+ * 视为最远端（固定序之后）。高/中/低/culled 相对序数关系与迁移前一致。
+ */
+function representationOrdinal(rep: LodSelectionOutcome): number {
+  if (rep === 'culled') return REPRESENTATION_ORDER.length;
+  const index = REPRESENTATION_ORDER.indexOf(rep);
+  return index >= 0 ? index : 0; // 防御（类型完备；运行时 rep 恒为四值域成员）
 }
 
 /**
@@ -128,10 +133,12 @@ export function resolveDeclaredLevel(
 
 /**
  * current 档的名义上界（升档迟滞参照线 b）：mid→highToMid、low→midToLow、culled→lowToCulled。
+ * canopy→lowToCulled（canopy 的名义上界 = 其到裁剪线的边界——T021.1 类型完备分支，
+ * 021.2 选档重写引入 canopy 名义区间前运行时不可达，行为零影响）。
  * high 无上界——升档分支要求 resolved 序数严格小于 current，current = 'high' 时不可能进入
  * 该分支，Infinity 仅为类型完备兜底（不可达路径）。
  */
-function nominalUpperBoundOf(rep: LodRepresentation, thresholds: LodThresholds): number {
+function nominalUpperBoundOf(rep: LodSelectionOutcome, thresholds: LodThresholds): number {
   switch (rep) {
     case 'high':
       return Number.POSITIVE_INFINITY;
@@ -139,6 +146,8 @@ function nominalUpperBoundOf(rep: LodRepresentation, thresholds: LodThresholds):
       return thresholds.highToMid;
     case 'low':
       return thresholds.midToLow;
+    case 'canopy':
+      return thresholds.lowToCulled;
     case 'culled':
       return thresholds.lowToCulled;
   }
@@ -151,7 +160,7 @@ function nominalUpperBoundOf(rep: LodRepresentation, thresholds: LodThresholds):
  * 升档一步跨多档时直接到 resolved（不逐档爬）。
  * 纯函数：同输入逐位同输出；迟滞参考 current 由调用方传入（评估器无状态，D27.6）。
  */
-export function evaluateLodRepresentation(input: LodEvaluationInput): LodRepresentation {
+export function evaluateLodRepresentation(input: LodEvaluationInput): LodSelectionOutcome {
   const declared = input.declaredLevels ?? [];
   // LOD 总开关关 = 目标恒 resolveDeclaredLevel('high', ...)：正常资产即 'high'；
   // culled 一并旁路（超远也不裁）。取舍记档：未声明 high 的奇异资产回最近已声明档而非
@@ -162,15 +171,16 @@ export function evaluateLodRepresentation(input: LodEvaluationInput): LodReprese
   const thresholds = input.thresholds ?? LOD_THRESHOLDS;
   const m = normalizedViewDistance(input.view, input.subject);
 
-  // 名义区间档（边界含下侧：m ≤ 边界归较近档）
-  let nominal: LodRepresentation;
+  // 名义区间档（边界含下侧：m ≤ 边界归较近档）。名义产出域 = 三档 + culled——
+  // canopy 不是名义区间档（021.2 选档重写前 canopy 无名义区间，运行时不可达）
+  let nominal: Exclude<LodSelectionOutcome, 'canopy'>;
   if (m <= thresholds.highToMid) nominal = 'high';
   else if (m <= thresholds.midToLow) nominal = 'mid';
   else if (m <= thresholds.lowToCulled) nominal = 'low';
   else nominal = 'culled';
 
   // culled 不跳档——任何资产（含单档）都可被超远裁剪；声明档才过跳档映射
-  const resolved: LodRepresentation =
+  const resolved: LodSelectionOutcome =
     nominal === 'culled' ? 'culled' : resolveDeclaredLevel(nominal, declared);
 
   const current = input.current;

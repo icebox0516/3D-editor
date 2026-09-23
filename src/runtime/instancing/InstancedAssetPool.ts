@@ -86,7 +86,7 @@ import type { ID, Transform } from '../../core/types';
 import { aSeedValueOf } from '../../domain/assets';
 import type { ModelObject } from '../../domain/assets';
 import type { ProceduralLevel } from '../../domain/assets';
-import type { LodRepresentation } from '../../domain/lod/lodEvaluation';
+import type { LodSelectionOutcome, RenderBounds } from '../../domain/lod/representation';
 import { evaluateLodRepresentation } from '../../domain/lod/lodEvaluation';
 import type { LodDistribution } from '../lodDistribution';
 import { LodDistributionCounter } from '../lodDistribution';
@@ -113,6 +113,16 @@ export interface InstanceSource {
    * 需求出现时再立项，届时挂载/释放与 customDepthMaterial 同规则一并实装）。
    */
   customDistanceMaterial?: THREE.Material;
+  /**
+   * 当前表示的真实几何边界球（T021.1 契约扩展，D41 §四.3/§十一/§10.3）：
+   * RenderBounds——视锥剔除用，随几何成套、**归 Source/Cache 所有并释放**，
+   * 消费方（池/散布/拾取/生命周期）只挂引用不 dispose（与 customDepthMaterial
+   * 同规）。与选档基准 SelectionBounds（恒 High 派生稳定基准球，runtime/lodReference
+   * 派生缓存，D28.4 非资产声明）分别命名、互不替代。可选字段：GLB loader 与既有
+   * 程序化源不填（缺省 = 沿用 geometry.boundingSphere 路径，行为零变化）；内容由
+   * Source 侧（Canopy 源起）成套提供，填充归后续任务（021.7 接线）。
+   */
+  bounds?: RenderBounds;
 }
 
 /** 源提供者：assetId + 对象 seed + 档位 → 实例化源（Renderer 注入复合源路由
@@ -155,11 +165,12 @@ interface PoolEntry {
   /** 对象 seed（obj.asset.seed ?? null；aSeed 逐实例属性与源路由的数据源） */
   seed: number | null;
   /**
-   * LOD 迟滞参考（T006.3）：当前展示档（含 'culled'），由本池持有、逐帧传入评估器
-   * （评估器无状态，D27.6）；undefined = 尚未评估（首帧按名义档起步）。随 entry
-   * 跨桶迁移携带（档位状态跟业务对象走，不跟桶走）。
+   * LOD 迟滞参考（T006.3；T021.1 类型迁移）：当前调度判定产出（表示，或 'culled'
+   * 提交终态——LodSelectionOutcome），由本池持有、逐帧传入评估器（评估器无状态，
+   * D27.6）；undefined = 尚未评估（首帧按名义档起步）。随 entry 跨桶迁移携带
+   * （档位状态跟业务对象走，不跟桶走）。
    */
-  currentLod: LodRepresentation | undefined;
+  currentLod: LodSelectionOutcome | undefined;
   /** LOD 超远裁剪态（调度结果）：true = 槽位写零缩放 / 单例 Mesh visible=false */
   culled: boolean;
   /** 换档迁移目标档（源未就绪时登记；源到达回调迁移；null = 无在途迁移） */
@@ -514,6 +525,10 @@ export class InstancedAssetPool {
           }
           continue;
         }
+        // T021.1 类型完备防御（运行时不可达）：canopy 自 021.2 选档重写起才有名义
+        // 区间——现阶段评估器产出域 ⊆ {high, mid, low, culled}；此分支仅收窄类型
+        // （canopy 换档接线归 021.7），行为零影响。
+        if (next === 'canopy') continue;
         if (entry.culled) {
           entry.culled = false;
           this.writeEntryRenderState(pool, entry);

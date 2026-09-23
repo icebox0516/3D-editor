@@ -30,12 +30,12 @@ import {
 } from '../../../src/domain/lod/lodEvaluation';
 import type {
   LodEvaluationInput,
-  LodRepresentation,
   LodSubject,
   LodView,
   OrthographicLodView,
   PerspectiveLodView,
 } from '../../../src/domain/lod/lodEvaluation';
+import type { LodSelectionOutcome } from '../../../src/domain/lod/representation';
 import { LOD_THRESHOLDS } from '../../../src/domain/lod/lodPolicy';
 
 const T = LOD_THRESHOLDS;
@@ -58,12 +58,13 @@ function subject(radius: number, scale = 1): LodSubject {
   return { point: ORIGIN, radius, scale };
 }
 
-/** 主评估器薄封装（默认无 current——名义档起步路径） */
+/** 主评估器薄封装（默认无 current——名义档起步路径）；返回 = 调度判定产出
+ *  （表示或 'culled' 提交终态——LodSelectionOutcome，T021.1 类型迁移，行为断言零改） */
 function run(
   view: LodView,
   sub: LodSubject,
   options: Omit<LodEvaluationInput, 'view' | 'subject'> = {},
-): LodRepresentation {
+): LodSelectionOutcome {
   return evaluateLodRepresentation({ view, subject: sub, ...options });
 }
 

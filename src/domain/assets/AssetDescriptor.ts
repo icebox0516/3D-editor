@@ -8,6 +8,7 @@
  *      与 ModelAsset 的 import 均为 type-only（编译期擦除，无运行时环）。
  */
 import type { Euler, ID, Vec3 } from '../../core/types';
+import type { RuntimeRepresentation } from '../lod/representation';
 import type { ModelAsset } from './ModelAsset';
 import type { AssetTaxonomy } from './taxonomy';
 
@@ -38,19 +39,25 @@ export interface ProceduralVariants {
 }
 
 /**
- * LOD 档位 id 枚举（D27.7 三值定死）：'high' = 细模；'mid' / 'low' 由各资产 LOD 任务提供内容。
- * proxy/impostor 不进类型枚举（规范语义位归 T010.3，规范真相源 = docs/procedural-assets/lod-spec.md）；
- * culled 是调度结果而非声明档位，不进枚举。Runtime build/缓存参数直接复用本类型（runtime/procedural/types.ts）。
+ * LOD 构建档位 id 枚举（D27.7 三值定死；T021.1/D41 语义收窄）：**Asset Build
+ * Capability**——资产可直接 Build 的几何档位（细模 / 中模 / 远模）。它不再是 Runtime
+ * 远景表示的统一枚举（D41 §三.1：Runtime 表示联合真相源 = domain/lod/representation
+ * 的 RuntimeRepresentation——high/mid/low/canopy，运行面规范 = representation-runtime.md）；
+ * runtime build/缓存参数继续复用本类型（runtime/procedural/types.ts）。
+ * proxy/impostor 不进类型枚举（规范语义位归 lod-spec §3）；culled 是提交终态
+ * （domain/lod LodSubmitState）而非声明档位，不进枚举。
  */
 export type ProceduralLevel = 'high' | 'mid' | 'low';
 
 /**
- * LOD 档位声明——levels 是资产内容声明（D23 职责切分：T009.6 首次提供多档夏栎实现
+ * LOD 构建档位声明——levels 是资产内容声明（D23 职责切分：T009.6 首次提供多档夏栎实现
  * 并落地 Runtime level 维度；T006 只负责运行时距离切换/Chunk/Batch 消费）。
- * 类型形态不变；'mid' / 'low' 由资产按家族预算实测填充。
+ * 类型形态不变；语义 = Asset Build Capability（T021.1 收窄，见 ProceduralLevel 注）；
+ * 'mid' / 'low' 由资产按家族预算实测填充。Runtime 表示能力声明走独立 representations
+ * 字段（见 ProceduralAssetMeta），levels 三值语义不被污染。
  */
 export interface ProceduralLevelDescriptor {
-  /** 档位 id：'high' = 细模；'mid' / 'low' 由各资产 LOD 任务提供内容 */
+  /** 构建档位 id：'high' = 细模；'mid' / 'low' 由各资产 LOD 任务提供内容 */
   id: ProceduralLevel;
 }
 
@@ -68,8 +75,18 @@ export interface ProceduralAssetMeta extends AssetCommonMeta {
   /** 三角形实数（D23：实际内容统计值/预算记录字段——具体预算由资产族与 LOD 验收锁定，
    *  不构成公共硬契约；旧「单株 ≤2000」为 003.4 旧小植物时期口径，仅存历史记录） */
   triangleCount?: number;
-  /** LOD 档位（缺省视为单档细模，与显式声明单档等价；多档内容由 T009.6 起提供，D23） */
+  /** LOD 构建档位（缺省视为单档细模，与显式声明单档等价；多档内容由 T009.6 起提供，D23） */
   levels?: ProceduralLevelDescriptor[];
+  /**
+   * Runtime 表示能力声明（T021.1，D41 §三.2 声明面）：资产声明它能在 Runtime 展示
+   * 哪些表示（有效链由能力驱动生成，不硬编码全链）。类型真相源 =
+   * domain/lod/representation 的 RuntimeRepresentation（运行面规范 =
+   * docs/procedural-assets/representation-runtime.md §三；声明面细则 = lod-spec §2.2）。
+   * 缺省语义：未声明（或空数组）= 从 levels 派生（构建档位即表示能力）；均未声明 =
+   * 单档 'high'。与 levels 独立成字段——levels 三值语义（Asset Build Capability）
+   * 不被污染。'canopy' 表示能力的内容自 T021.6 BroadleafCanopyProxy 起提供。
+   */
+  representations?: RuntimeRepresentation[];
   /** 分类声明（T010.2，D22 三级可寻址——大类 → family → asset；**必填**——程序化资产
    *  一次定契约避免二次迁移。浏览语义，不承载渲染/放置行为分支；值域与依据见
    *  ./taxonomy 与 docs/procedural-assets/metadata-taxonomy.md）。

@@ -81,7 +81,8 @@
 
 > Next 仅表示已排入路线图的后续任务，不代表执行顺序；实际启动顺序由任务文件中的依赖、当前项目状态及有效架构裁定决定（D31.8）。
 
-- [ ] T021 LOD → Representation 运行体系重构（021.0 立项迁移 done 2026-09-23；021.1 起待启动——D41，运行面真相源 docs/procedural-assets/representation-runtime.md）→ [tasks/021-lod-representation.md](tasks/021-lod-representation.md)
+- [ ] T021 LOD → Representation 运行体系重构（021.0 / 021.1 done 2026-09-23；021.2 起待启动——D41，运行面真相源 docs/procedural-assets/representation-runtime.md）→ [tasks/021-lod-representation.md](tasks/021-lod-representation.md)
+  - [x] T021.1 Representation 契约层（done 2026-09-23：表示联合四值 / culled 转提交终态 / representations 声明 / bounds 契约，4041 全绿）→ [tasks/021.1-representation-contract.md](tasks/021.1-representation-contract.md)
 - [ ] T019 颜色管线（Tone Mapping 应急出口 / ACES 素材指针——D29.3 / D39 语义保留；占位行 2026-09-23 补登，D41 会话核实此前未同步）【占位】
 - [ ] T003 收官路径（冻结 2026-09-17；剩余 003.3 验收续走 / 003.5 / 003.6 / 设施返工）→ [tasks/003-scatter-styles.md](tasks/003-scatter-styles.md)
 - [ ] T004 Style Gallery（0/3）→ [tasks/004-style-gallery.md](tasks/004-style-gallery.md)

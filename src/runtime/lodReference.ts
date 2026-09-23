@@ -27,6 +27,14 @@ import * as THREE from 'three';
 export class LodReferenceSphereCache {
   private readonly spheres = new Map<string, THREE.Sphere>();
 
+  /**
+   * SelectionBounds（D41 §四.3 命名锚点，T021.1）：本缓存冻结的 High 派生稳定基准球
+   * 即 **SelectionBounds**——选档输入专用边界（恒 High 基准、不随当前表示变化、
+   * Runtime 派生缓存而非资产声明，D28.4）。与 RenderBounds（当前表示真实几何边界、
+   * 视锥剔除用、随 Source 几何成套——domain/lod/representation 纯数据形态 +
+   * InstanceSource.bounds 契约）分别命名、互不替代；本类持有其 runtime 实现
+   * （THREE.Sphere：center + radius，与选档度量输入同形）。
+   */
   /** High 档源到达时派生并冻结（同 key 幂等 no-op；包围球惰性首算一次） */
   freezeFromHighSource(key: string, source: InstanceSource): void {
     if (this.spheres.has(key)) return;

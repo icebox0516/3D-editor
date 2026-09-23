@@ -75,7 +75,7 @@ import { applyAssetVariants } from '../../domain/assets';
 import type { ProceduralLevel } from '../../domain/assets';
 import { keepThinnedInstance } from '../../domain/lod/batchPolicy';
 import { BATCH_POLICY } from '../../domain/lod/batchPolicy';
-import type { LodRepresentation } from '../../domain/lod/lodEvaluation';
+import type { LodSelectionOutcome } from '../../domain/lod/representation';
 import { evaluateLodRepresentation } from '../../domain/lod/lodEvaluation';
 import type { ScatterChunk, ScatterInstance, ScatterParams } from '../../domain/scatter';
 import { scatterChunk, scatterInfluenceRadius } from '../../domain/scatter';
@@ -155,7 +155,8 @@ interface MergedBucket {
 
 /**
  * (块×资产) 的 LOD 运行态（T006.3）：每帧派生评估的全部帧间状态都在此——
- * current = 迟滞参考（本管持有、逐帧传入评估器）；level = 当前期望桶档（源就绪的
+ * current = 迟滞参考（本管持有、逐帧传入评估器；LodSelectionOutcome = 表示或
+ * 'culled' 提交终态，T021.1 类型迁移）；level = 当前期望桶档（源就绪的
  * 已渲染档；culled 期间保持最后档）；maxScale = 块内实例 max scale（§4.3 保守偏高档，
  * 重撒时更新）；pending = 在途换档目标（源未就绪时登记，到达回调重建）。
  * T006.4 增补：box = 该 (块×资产) 全部实例（抽稀后当档集）的紧致世界 AABB（自有桶/
@@ -165,7 +166,7 @@ interface MergedBucket {
  * mesh.visible 等价物）。
  */
 interface ChunkLodState {
-  current: LodRepresentation | undefined;
+  current: LodSelectionOutcome | undefined;
   level: ProceduralLevel;
   maxScale: number;
   pending?: ProceduralLevel;
@@ -567,6 +568,10 @@ export class ScatterChunkManager {
             }
             continue;
           }
+          // T021.1 类型完备防御（运行时不可达）：canopy 自 021.2 选档重写起才有名义
+          // 区间——现阶段评估器产出域 ⊆ {high, mid, low, culled}；此分支仅收窄类型
+          // （canopy 换档接线归 021.7），行为零影响。
+          if (target === 'canopy') continue;
           if (entry) entry.mesh.visible = true;
           if (lod.mergedBucket && lod.memberCulled) {
             // 回视恢复：实例重入合并桶（确定性重建，矩阵同源——无跳变）

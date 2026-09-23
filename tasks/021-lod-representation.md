@@ -47,7 +47,7 @@ T006 的 level 统一语义（单链 High→Mid→Low→Culled、几何档位与
 ## 子任务
 
 - [x] 021.0 立项与文档迁移（done 2026-09-23）→ [021.0-project-migration.md](021.0-project-migration.md)
-- [ ] 021.1 Representation 契约层 → [021.1-representation-contract.md](021.1-representation-contract.md)
+- [x] 021.1 Representation 契约层（done 2026-09-23：RuntimeRepresentation 四值 / culled 转提交终态 / representations 声明 / bounds 契约 / 有效链纯函数 / streetlamp 收编，4041 全绿）→ [021.1-representation-contract.md](021.1-representation-contract.md)
 - [ ] 021.2 Selection Runtime → [021.2-selection-runtime.md](021.2-selection-runtime.md)
 - [ ] 021.3 Transition Runtime → [021.3-transition-runtime.md](021.3-transition-runtime.md)
 - [ ] 021.4 Density / Batch 解耦 → [021.4-density-batch.md](021.4-density-batch.md)

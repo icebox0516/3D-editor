@@ -59,6 +59,11 @@ export const meta: ProceduralAssetMeta = {
   proceduralProfile: { heightRange: { min: 4.21, max: 4.21 }, widthRange: { min: 0.89, max: 0.89 } }, // 细模包围盒实测（T010.2 探针：h 4.2075 / w 0.8944——含悬臂外伸与灯头）
   triangleCount: 328, // 实数 = High 档结构计数（多档起声明面取细模档，lod-spec §5.2；Low 136 见模块头 LOD 预算记账）
   levels: [{ id: 'high' }, { id: 'low' }], // LOD 两档（T006.2 不完整链验证——mid 未声明，跳档语义归 006.3 Runtime；D27 首版最小化 [{id}]）
+  // Runtime 表示能力声明（T021.1，D41 §10.2）：路灯两档几何即两档表示——由本声明
+  // 收编入「已声明表示能力」分支（源缓存键收敛 sourceKey::representation 归 021.7，
+  // 届时删「未声明多档」中间分支；本任务 ProceduralSourceCache 键逻辑一行不改，
+  // 现行为逐位不变——本声明现阶段纯声明、无运行时消费者）
+  representations: ['high', 'low'],
 };
 
 /** 径向分段表（High = T002.4 现状逐位不变；Low = 降径向细分，其余几何参数全同） */
