@@ -4,7 +4,7 @@
  * 覆盖：
  * - 枚举值域约束：全部收割 meta 的 taxonomy.category ∈ ASSET_TAXONOMY_CATEGORIES、
  *   family（如有）∈ ASSET_TAXONOMY_FAMILIES——锁「所有程序化资产 meta 满足新枚举约束」；
- * - 22 资产归类映射整表锁定：新资产不登记映射 = 测试红（配合 taxonomy 必填的编译
+ * - 23 资产归类映射整表锁定：新资产不登记映射 = 测试红（配合 taxonomy 必填的编译
  *   约束，双闸——忘声明过不了 typecheck，声明了不登表过不了本测试）；
  * - family ↔ 大类配对约束（broadleaf/conifer/shrub → plant；三个设施细分 → facility）；
  * - proceduralProfile 数值纪律：min ≤ max、正数、有限；实测包围盒落带（细模档、
@@ -25,7 +25,7 @@ import {
 import { collectProceduralAssetMetas, getProceduralBuild } from '../../../../src/runtime/procedural/routes';
 import type { InstanceSource } from '../../../../src/runtime/instancing/InstancedAssetPool';
 
-/** 22 资产归类映射表（整表锁——值域依据与 GLB 侧映射见 docs/procedural-assets/metadata-taxonomy.md；计数注释 011.11 随本资产登记校正） */
+/** 23 资产归类映射表（整表锁——值域依据与 GLB 侧映射见 docs/procedural-assets/metadata-taxonomy.md；计数注释 011.12 随本资产登记校正） */
 const EXPECTED_TAXONOMY: Record<string, { category: AssetTaxonomyCategory; family?: AssetTaxonomyFamily }> = {
   asset_flower: { category: 'plant' }, // family 不填：草本/地被族（T015）落地时再定值
   asset_shrub: { category: 'plant', family: 'shrub' },
@@ -43,6 +43,7 @@ const EXPECTED_TAXONOMY: Record<string, { category: AssetTaxonomyCategory; famil
   asset_tree_sophora: { category: 'plant', family: 'broadleaf' }, // T011.9 国槐——阔叶家族第十实例（豆科落叶阔叶第七例、复叶第三型（一回奇数羽状窗列单级化）——Styphnolobium japonicum 现用名口径（FRPS/FOC 传统口径 Sophora japonica 同实体），无花资产 + 念珠荚果串记档见资产模块头）
   asset_tree_fraxinus: { category: 'plant', family: 'broadleaf' }, // T011.10 白蜡——阔叶家族第十一实例（木犀科落叶阔叶第八例、复叶第四型（一回奇数羽状**对生系首例**——Fraxinus chinensis subsp. chinensis 原亚种本尊，三重对生 + 匙形翅果帘幕簇记档见资产模块头）
   asset_tree_ligustrum: { category: 'plant', family: 'broadleaf' }, // T011.11 女贞——阔叶家族第十二实例（木犀科常绿阔叶第二例（香樟后）、家族首例**对生单叶挂点语言**——Ligustrum lucidum f. lucidum 原变型本尊，常绿密冠 + 肾形核果满冠下垂密簇记档见资产模块头）
+  asset_tree_salix: { category: 'plant', family: 'broadleaf' }, // T011.12 垂柳——阔叶家族第十三实例（杨柳科落叶阔叶第九例、家族首例**垂枝冠**（契约应力位①档实证——upturn 强负链域内表达）——Salix babylonica，喷泉状垂帘冠 + 狭披针细叶互生沿索簇记档见资产模块头）
   asset_signpost: { category: 'facility', family: 'road-facility' },
   asset_trashbin: { category: 'facility', family: 'public-facility' },
   asset_streetlamp: { category: 'facility', family: 'road-facility' },

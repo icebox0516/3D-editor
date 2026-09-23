@@ -1,0 +1,1465 @@
+{
+  "env": {
+    "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 2080 Ti (0x00001E07) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "disjointTimerAvailable": true,
+    "viewport": [
+      1920,
+      1080
+    ],
+    "dpr": 1
+  },
+  "baseline": {
+    "sample": {
+      "fps": 2746.2417919402687,
+      "mean": 0.3641339968442772,
+      "p50": 0.3999999999996362,
+      "p95": 0.6000000000003638,
+      "max": 3.399999999999636,
+      "frames": 8239
+    },
+    "stats": {
+      "drawCalls": 3,
+      "triangles": 4,
+      "geometries": 3,
+      "textures": 4,
+      "programs": 3,
+      "objects": 0
+    }
+  },
+  "perAsset": [
+    {
+      "assetId": "asset_tree_3a",
+      "tiers": [
+        {
+          "count": 1,
+          "sample": {
+            "fps": 2496.70013199472,
+            "mean": 0.400528676706184,
+            "p50": 0.3999999999996362,
+            "p95": 0.7000000000007276,
+            "max": 7.600000000000364,
+            "frames": 12484
+          },
+          "stats": {
+            "drawCalls": 7,
+            "triangles": 57512,
+            "geometries": 4,
+            "textures": 4,
+            "programs": 7,
+            "objects": 1
+          }
+        },
+        {
+          "count": 20,
+          "sample": {
+            "fps": 1677.3987121545415,
+            "mean": 0.5961611826418693,
+            "p50": 0.5,
+            "p95": 1.2000000000007276,
+            "max": 6.399999999997817,
+            "frames": 8388
+          },
+          "stats": {
+            "drawCalls": 47,
+            "triangles": 956904,
+            "geometries": 15,
+            "textures": 4,
+            "programs": 11,
+            "objects": 20
+          }
+        },
+        {
+          "count": 100,
+          "sample": {
+            "fps": 1126.7774644507115,
+            "mean": 0.8874866879659209,
+            "p50": 0.7000000000007276,
+            "p95": 1.7000000000007276,
+            "max": 9.100000000002183,
+            "frames": 5634
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 1906064,
+            "geometries": 23,
+            "textures": 4,
+            "programs": 15,
+            "objects": 100
+          }
+        },
+        {
+          "count": 500,
+          "sample": {
+            "fps": 802.1679132834686,
+            "mean": 1.2466217900772876,
+            "p50": 0.8000000000029104,
+            "p95": 2.7000000000007276,
+            "max": 9,
+            "frames": 4011
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 2540960,
+            "geometries": 27,
+            "textures": 4,
+            "programs": 15,
+            "objects": 500
+          }
+        },
+        {
+          "count": 1000,
+          "sample": {
+            "fps": 508.9796408143677,
+            "mean": 1.9647151277013741,
+            "p50": 1.2000000000043656,
+            "p95": 4.400000000001455,
+            "max": 19.30000000000291,
+            "frames": 2545
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 4253216,
+            "geometries": 27,
+            "textures": 4,
+            "programs": 15,
+            "objects": 1000
+          }
+        }
+      ]
+    },
+    {
+      "assetId": "asset_tree_celtis",
+      "tiers": [
+        {
+          "count": 1,
+          "sample": {
+            "fps": 2703.945921081579,
+            "mean": 0.36982988165680464,
+            "p50": 0.3000000000029104,
+            "p95": 0.6999999999970896,
+            "max": 4.799999999995634,
+            "frames": 13520
+          },
+          "stats": {
+            "drawCalls": 7,
+            "triangles": 63116,
+            "geometries": 28,
+            "textures": 4,
+            "programs": 19,
+            "objects": 1
+          }
+        },
+        {
+          "count": 20,
+          "sample": {
+            "fps": 1860.1627967440654,
+            "mean": 0.5375873561982581,
+            "p50": 0.5,
+            "p95": 1,
+            "max": 10.5,
+            "frames": 9301
+          },
+          "stats": {
+            "drawCalls": 47,
+            "triangles": 1018536,
+            "geometries": 39,
+            "textures": 4,
+            "programs": 23,
+            "objects": 20
+          }
+        },
+        {
+          "count": 100,
+          "sample": {
+            "fps": 1167.459904811423,
+            "mean": 0.8565604659129836,
+            "p50": 0.6999999999970896,
+            "p95": 1.6999999999970896,
+            "max": 15.099999999998545,
+            "frames": 5838
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 2181880,
+            "geometries": 45,
+            "textures": 4,
+            "programs": 27,
+            "objects": 100
+          }
+        },
+        {
+          "count": 500,
+          "sample": {
+            "fps": 652.3608583484996,
+            "mean": 1.5328939301042293,
+            "p50": 0.9000000000014552,
+            "p95": 3.400000000001455,
+            "max": 15.099999999998545,
+            "frames": 3262
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 3273908,
+            "geometries": 51,
+            "textures": 4,
+            "programs": 27,
+            "objects": 500
+          }
+        },
+        {
+          "count": 1000,
+          "sample": {
+            "fps": 395.7625424745153,
+            "mean": 2.5267676767676766,
+            "p50": 1,
+            "p95": 6,
+            "max": 18.099999999998545,
+            "frames": 1980
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 5485940,
+            "geometries": 51,
+            "textures": 4,
+            "programs": 27,
+            "objects": 1000
+          }
+        }
+      ]
+    },
+    {
+      "assetId": "asset_tree_camphor",
+      "tiers": [
+        {
+          "count": 1,
+          "sample": {
+            "fps": 2653.2,
+            "mean": 0.37690336197798885,
+            "p50": 0.39999999999417923,
+            "p95": 0.6999999999970896,
+            "max": 3.3999999999941792,
+            "frames": 13266
+          },
+          "stats": {
+            "drawCalls": 7,
+            "triangles": 58408,
+            "geometries": 52,
+            "textures": 4,
+            "programs": 31,
+            "objects": 1
+          }
+        },
+        {
+          "count": 20,
+          "sample": {
+            "fps": 1665.3999999999999,
+            "mean": 0.600456346823586,
+            "p50": 0.5,
+            "p95": 1.1999999999970896,
+            "max": 5.399999999994179,
+            "frames": 8327
+          },
+          "stats": {
+            "drawCalls": 47,
+            "triangles": 938640,
+            "geometries": 64,
+            "textures": 4,
+            "programs": 35,
+            "objects": 20
+          }
+        },
+        {
+          "count": 100,
+          "sample": {
+            "fps": 1271.2982961363107,
+            "mean": 0.7865974516281256,
+            "p50": 0.6000000000058208,
+            "p95": 1.6999999999970896,
+            "max": 10.89999999999418,
+            "frames": 6357
+          },
+          "stats": {
+            "drawCalls": 55,
+            "triangles": 1875544,
+            "geometries": 69,
+            "textures": 4,
+            "programs": 39,
+            "objects": 100
+          }
+        },
+        {
+          "count": 500,
+          "sample": {
+            "fps": 752.1141966052887,
+            "mean": 1.3295853269537503,
+            "p50": 1,
+            "p95": 2.8000000000029104,
+            "max": 9.19999999999709,
+            "frames": 3762
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 2666792,
+            "geometries": 75,
+            "textures": 4,
+            "programs": 39,
+            "objects": 500
+          }
+        },
+        {
+          "count": 1000,
+          "sample": {
+            "fps": 467.5662168915542,
+            "mean": 2.1387345019238992,
+            "p50": 1,
+            "p95": 5.19999999999709,
+            "max": 17.09999999999127,
+            "frames": 2339
+          },
+          "stats": {
+            "drawCalls": 63,
+            "triangles": 4511896,
+            "geometries": 75,
+            "textures": 4,
+            "programs": 39,
+            "objects": 1000
+          }
+        }
+      ]
+    },
+    {
+      "assetId": "asset_tree_zelkova",
+      "tiers": [
+        {
+          "count": 1,
+          "sample": {
+            "fps": 2481.4014878809726,
+            "mean": 0.40299806576402275,
+            "p50": 0.39999999999417923,
+            "p95": 0.6999999999970896,
+            "max": 4.400000000008731,
+            "frames": 12408
+          },
+          "stats": {
+            "drawCalls": 7,
+            "triangles": 64300,
+            "geometries": 76,
+            "textures": 4,
+            "programs": 43,
+            "objects": 1
+          }
+        },
+        {
+          "count": 20,
+          "sample": {
+            "fps": 1688.8986660800344,
+            "mean": 0.5921018354055657,
+            "p50": 0.5,
+            "p95": 1.0999999999912689,
+            "max": 4,
+            "frames": 8445
+          },
+          "stats": {
+            "drawCalls": 51,
+            "triangles": 1066548,
+            "geometries": 87,
+            "textures": 4,
+            "programs": 47,
+            "objects": 20
+          }
+        },
+        {
+          "count": 100,
+          "sample": {
+            "fps": 1216.7513299468028,
+            "mean": 0.8218606180144636,
+            "p50": 0.6999999999970896,
+            "p95": 1.5999999999912689,
+            "max": 5.899999999994179,
+            "frames": 6084
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 2132984,
+            "geometries": 94,
+            "textures": 4,
+            "programs": 51,
+            "objects": 100
+          }
+        },
+        {
+          "count": 500,
+          "sample": {
+            "fps": 675.4,
+            "mean": 1.4806040864672787,
+            "p50": 0.8999999999941792,
+            "p95": 3.3000000000029104,
+            "max": 10.69999999999709,
+            "frames": 3377
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 3309288,
+            "geometries": 99,
+            "textures": 4,
+            "programs": 51,
+            "objects": 500
+          }
+        },
+        {
+          "count": 1000,
+          "sample": {
+            "fps": 411.8517333759832,
+            "mean": 2.428058252427193,
+            "p50": 1,
+            "p95": 6,
+            "max": 12.30000000000291,
+            "frames": 2060
+          },
+          "stats": {
+            "drawCalls": 63,
+            "triangles": 5618656,
+            "geometries": 99,
+            "textures": 4,
+            "programs": 51,
+            "objects": 1000
+          }
+        }
+      ]
+    },
+    {
+      "assetId": "asset_tree_ginkgo",
+      "tiers": [
+        {
+          "count": 1,
+          "sample": {
+            "fps": 2740.98072154228,
+            "mean": 0.3648329198890992,
+            "p50": 0.3000000000174623,
+            "p95": 0.6000000000058208,
+            "max": 4.899999999994179,
+            "frames": 13706
+          },
+          "stats": {
+            "drawCalls": 7,
+            "triangles": 55788,
+            "geometries": 100,
+            "textures": 4,
+            "programs": 55,
+            "objects": 1
+          }
+        },
+        {
+          "count": 20,
+          "sample": {
+            "fps": 1773.693578385301,
+            "mean": 0.5637952418536463,
+            "p50": 0.5,
+            "p95": 1,
+            "max": 3.6000000000058208,
+            "frames": 8869
+          },
+          "stats": {
+            "drawCalls": 47,
+            "triangles": 783436,
+            "geometries": 112,
+            "textures": 4,
+            "programs": 59,
+            "objects": 20
+          }
+        },
+        {
+          "count": 100,
+          "sample": {
+            "fps": 1373.580227163657,
+            "mean": 0.728024457708544,
+            "p50": 0.6000000000058208,
+            "p95": 1.400000000023283,
+            "max": 3.5,
+            "frames": 6869
+          },
+          "stats": {
+            "drawCalls": 63,
+            "triangles": 1488116,
+            "geometries": 120,
+            "textures": 4,
+            "programs": 63,
+            "objects": 100
+          }
+        },
+        {
+          "count": 500,
+          "sample": {
+            "fps": 869.356580157557,
+            "mean": 1.1502759889604401,
+            "p50": 0.8000000000174623,
+            "p95": 2.3999999999941792,
+            "max": 5.5,
+            "frames": 4348
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 2378728,
+            "geometries": 123,
+            "textures": 4,
+            "programs": 63,
+            "objects": 500
+          }
+        },
+        {
+          "count": 1000,
+          "sample": {
+            "fps": 523.5905637744902,
+            "mean": 1.909889270714013,
+            "p50": 1,
+            "p95": 4.600000000005821,
+            "max": 11.89999999999418,
+            "frames": 2619
+          },
+          "stats": {
+            "drawCalls": 59,
+            "triangles": 4253444,
+            "geometries": 123,
+            "textures": 4,
+            "programs": 63,
+            "objects": 1000
+          }
+        }
+      ]
+    },
+    {
+      "assetId": "asset_tree_platanus",
+      "tiers": [
+        {
+          "count": 1,
+          "sample": {
+            "fps": 2610.2000000000003,
+            "mean": 0.3831124051796797,
+            "p50": 0.39999999999417923,
+            "p95": 0.6999999999825377,
+            "max": 4.399999999994179,
+            "frames": 13051
+          },
+          "stats": {
+            "drawCalls": 7,
+            "triangles": 54916,
+            "geometries": 124,
+            "textures": 4,
+            "programs": 67,
+            "objects": 1
+          }
+        },
+        {
+          "count": 20,
+          "sample": {
+            "fps": 1608.9678206435945,
+            "mean": 0.6215164698570512,
+            "p50": 0.40000000002328306,
+            "p95": 1.6999999999825377,
+            "max": 10.700000000011642,
+            "frames": 8045
+          },
+          "stats": {
+            "drawCalls": 31,
+            "triangles": 1131900,
+            "geometries": 130,
+            "textures": 4,
+            "programs": 67,
+            "objects": 20
+          }
+        },
+        {
+          "count": 100,
+          "sample": {
+            "fps": 1138.8,
+            "mean": 0.8781173164734809,
+            "p50": 0.7000000000116415,
+            "p95": 1.6999999999825377,
+            "max": 13.400000000023283,
+            "frames": 5694
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 2110060,
+            "geometries": 139,
+            "textures": 4,
+            "programs": 71,
+            "objects": 100
+          }
+        },
+        {
+          "count": 500,
+          "sample": {
+            "fps": 698.8366049654172,
+            "mean": 1.4309496567505737,
+            "p50": 0.8999999999941792,
+            "p95": 3.1000000000058208,
+            "max": 13.5,
+            "frames": 3496
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 3228900,
+            "geometries": 147,
+            "textures": 4,
+            "programs": 75,
+            "objects": 500
+          }
+        },
+        {
+          "count": 1000,
+          "sample": {
+            "fps": 435.9645791272728,
+            "mean": 2.2937643282897673,
+            "p50": 1.1000000000058208,
+            "p95": 5.2999999999883585,
+            "max": 15.299999999988358,
+            "frames": 2181
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 4973276,
+            "geometries": 147,
+            "textures": 4,
+            "programs": 75,
+            "objects": 1000
+          }
+        }
+      ]
+    },
+    {
+      "assetId": "asset_tree_koelreuteria",
+      "tiers": [
+        {
+          "count": 1,
+          "sample": {
+            "fps": 2690.6,
+            "mean": 0.37166431279268564,
+            "p50": 0.39999999999417923,
+            "p95": 0.6000000000058208,
+            "max": 8.700000000011642,
+            "frames": 13453
+          },
+          "stats": {
+            "drawCalls": 7,
+            "triangles": 48272,
+            "geometries": 148,
+            "textures": 4,
+            "programs": 78,
+            "objects": 1
+          }
+        },
+        {
+          "count": 20,
+          "sample": {
+            "fps": 1530.2939412117578,
+            "mean": 0.653469227753822,
+            "p50": 0.39999999999417923,
+            "p95": 2.2000000000116415,
+            "max": 6.899999999994179,
+            "frames": 7653
+          },
+          "stats": {
+            "drawCalls": 35,
+            "triangles": 942612,
+            "geometries": 155,
+            "textures": 4,
+            "programs": 81,
+            "objects": 20
+          }
+        },
+        {
+          "count": 100,
+          "sample": {
+            "fps": 1102.2,
+            "mean": 0.9072763563781527,
+            "p50": 0.40000000002328306,
+            "p95": 2.400000000023283,
+            "max": 15.60000000000582,
+            "frames": 5511
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 1832584,
+            "geometries": 163,
+            "textures": 4,
+            "programs": 81,
+            "objects": 100
+          }
+        },
+        {
+          "count": 500,
+          "sample": {
+            "fps": 710.7157137145142,
+            "mean": 1.4070323488045007,
+            "p50": 0.6000000000058208,
+            "p95": 3.6000000000058208,
+            "max": 7.900000000023283,
+            "frames": 3555
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 2616760,
+            "geometries": 171,
+            "textures": 4,
+            "programs": 84,
+            "objects": 500
+          }
+        },
+        {
+          "count": 1000,
+          "sample": {
+            "fps": 456.9613171355509,
+            "mean": 2.1883690424136373,
+            "p50": 0.7999999999883585,
+            "p95": 5.899999999994179,
+            "max": 18.29999999998836,
+            "frames": 2287
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 3938964,
+            "geometries": 171,
+            "textures": 4,
+            "programs": 84,
+            "objects": 1000
+          }
+        }
+      ]
+    },
+    {
+      "assetId": "asset_tree_triadica",
+      "tiers": [
+        {
+          "count": 1,
+          "sample": {
+            "fps": 2964.4,
+            "mean": 0.3373363918499528,
+            "p50": 0.3000000000174623,
+            "p95": 0.6000000000058208,
+            "max": 2.900000000023283,
+            "frames": 14822
+          },
+          "stats": {
+            "drawCalls": 7,
+            "triangles": 59728,
+            "geometries": 172,
+            "textures": 4,
+            "programs": 88,
+            "objects": 1
+          }
+        },
+        {
+          "count": 20,
+          "sample": {
+            "fps": 1905.1713794344657,
+            "mean": 0.5248871628004624,
+            "p50": 0.5,
+            "p95": 1,
+            "max": 14.89999999999418,
+            "frames": 9527
+          },
+          "stats": {
+            "drawCalls": 43,
+            "triangles": 1087020,
+            "geometries": 181,
+            "textures": 4,
+            "programs": 92,
+            "objects": 20
+          }
+        },
+        {
+          "count": 100,
+          "sample": {
+            "fps": 1355.7728845423076,
+            "mean": 0.737586664699809,
+            "p50": 0.6000000000058208,
+            "p95": 1.5,
+            "max": 7.899999999994179,
+            "frames": 6779
+          },
+          "stats": {
+            "drawCalls": 59,
+            "triangles": 1925028,
+            "geometries": 188,
+            "textures": 4,
+            "programs": 96,
+            "objects": 100
+          }
+        },
+        {
+          "count": 500,
+          "sample": {
+            "fps": 678.0508288176593,
+            "mean": 1.474815688587439,
+            "p50": 0.8999999999941792,
+            "p95": 3.2999999999883585,
+            "max": 12.39999999999418,
+            "frames": 3391
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 3194196,
+            "geometries": 195,
+            "textures": 4,
+            "programs": 96,
+            "objects": 500
+          }
+        },
+        {
+          "count": 1000,
+          "sample": {
+            "fps": 403.9515258169038,
+            "mean": 2.475544554455434,
+            "p50": 1.1000000000058208,
+            "p95": 5.800000000017462,
+            "max": 19,
+            "frames": 2020
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 5570264,
+            "geometries": 195,
+            "textures": 4,
+            "programs": 96,
+            "objects": 1000
+          }
+        }
+      ]
+    },
+    {
+      "assetId": "asset_tree_bischofia",
+      "tiers": [
+        {
+          "count": 1,
+          "sample": {
+            "fps": 2971.281148754043,
+            "mean": 0.3365551591842237,
+            "p50": 0.29999999998835847,
+            "p95": 0.6000000000349246,
+            "max": 2,
+            "frames": 14857
+          },
+          "stats": {
+            "drawCalls": 7,
+            "triangles": 56568,
+            "geometries": 196,
+            "textures": 4,
+            "programs": 100,
+            "objects": 1
+          }
+        },
+        {
+          "count": 20,
+          "sample": {
+            "fps": 1487.0512948705132,
+            "mean": 0.6724717590102205,
+            "p50": 0.5,
+            "p95": 1.5,
+            "max": 9.799999999988358,
+            "frames": 7436
+          },
+          "stats": {
+            "drawCalls": 43,
+            "triangles": 1034452,
+            "geometries": 205,
+            "textures": 4,
+            "programs": 104,
+            "objects": 20
+          }
+        },
+        {
+          "count": 100,
+          "sample": {
+            "fps": 1136,
+            "mean": 0.8802816901408451,
+            "p50": 0.7000000000116415,
+            "p95": 1.7000000000116415,
+            "max": 17.29999999998836,
+            "frames": 5680
+          },
+          "stats": {
+            "drawCalls": 59,
+            "triangles": 1752280,
+            "geometries": 211,
+            "textures": 4,
+            "programs": 104,
+            "objects": 100
+          }
+        },
+        {
+          "count": 500,
+          "sample": {
+            "fps": 743.8214828441156,
+            "mean": 1.3444086021505408,
+            "p50": 1.099999999976717,
+            "p95": 2.7999999999883585,
+            "max": 15.299999999988358,
+            "frames": 3720
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 2735052,
+            "geometries": 219,
+            "textures": 4,
+            "programs": 108,
+            "objects": 500
+          }
+        },
+        {
+          "count": 1000,
+          "sample": {
+            "fps": 450.4378423767454,
+            "mean": 2.220062139369724,
+            "p50": 1.099999999976717,
+            "p95": 5.199999999953434,
+            "max": 15.099999999976717,
+            "frames": 2253
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 4570940,
+            "geometries": 219,
+            "textures": 4,
+            "programs": 108,
+            "objects": 1000
+          }
+        }
+      ]
+    },
+    {
+      "assetId": "asset_tree_sophora",
+      "tiers": [
+        {
+          "count": 1,
+          "sample": {
+            "fps": 2824.9435011299574,
+            "mean": 0.35398938053097595,
+            "p50": 0.30000000004656613,
+            "p95": 0.6000000000349246,
+            "max": 5.599999999976717,
+            "frames": 14125
+          },
+          "stats": {
+            "drawCalls": 7,
+            "triangles": 64864,
+            "geometries": 220,
+            "textures": 4,
+            "programs": 112,
+            "objects": 1
+          }
+        },
+        {
+          "count": 20,
+          "sample": {
+            "fps": 1431.9140851548775,
+            "mean": 0.698365921787716,
+            "p50": 0.40000000002328306,
+            "p95": 2,
+            "max": 9.399999999965075,
+            "frames": 7160
+          },
+          "stats": {
+            "drawCalls": 31,
+            "triangles": 1398824,
+            "geometries": 226,
+            "textures": 4,
+            "programs": 112,
+            "objects": 20
+          }
+        },
+        {
+          "count": 100,
+          "sample": {
+            "fps": 944.1055894410559,
+            "mean": 1.0592035585681,
+            "p50": 0.7999999999883585,
+            "p95": 2.2000000000116415,
+            "max": 9.700000000011642,
+            "frames": 4721
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 2837216,
+            "geometries": 235,
+            "textures": 4,
+            "programs": 116,
+            "objects": 100
+          }
+        },
+        {
+          "count": 500,
+          "sample": {
+            "fps": 633.1999999999999,
+            "mean": 1.5792798483891346,
+            "p50": 0.9000000000232831,
+            "p95": 3.5,
+            "max": 16.399999999965075,
+            "frames": 3166
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 4244844,
+            "geometries": 243,
+            "textures": 4,
+            "programs": 120,
+            "objects": 500
+          }
+        },
+        {
+          "count": 1000,
+          "sample": {
+            "fps": 417.99164016719374,
+            "mean": 2.3923923444976243,
+            "p50": 1.099999999976717,
+            "p95": 5.599999999976717,
+            "max": 16.400000000023283,
+            "frames": 2090
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 6230904,
+            "geometries": 243,
+            "textures": 4,
+            "programs": 120,
+            "objects": 1000
+          }
+        }
+      ]
+    },
+    {
+      "assetId": "asset_tree_fraxinus",
+      "tiers": [
+        {
+          "count": 1,
+          "sample": {
+            "fps": 2662.4935002599836,
+            "mean": 0.3755877713513116,
+            "p50": 0.3999999999650754,
+            "p95": 0.7000000000116415,
+            "max": 4.5,
+            "frames": 13313
+          },
+          "stats": {
+            "drawCalls": 7,
+            "triangles": 62624,
+            "geometries": 244,
+            "textures": 4,
+            "programs": 124,
+            "objects": 1
+          }
+        },
+        {
+          "count": 20,
+          "sample": {
+            "fps": 1708.3316667333265,
+            "mean": 0.5853664247248902,
+            "p50": 0.5,
+            "p95": 1.2000000000116415,
+            "max": 15.5,
+            "frames": 8542
+          },
+          "stats": {
+            "drawCalls": 47,
+            "triangles": 1133796,
+            "geometries": 254,
+            "textures": 4,
+            "programs": 128,
+            "objects": 20
+          }
+        },
+        {
+          "count": 100,
+          "sample": {
+            "fps": 1228.2526096868432,
+            "mean": 0.8141647671768116,
+            "p50": 0.6000000000349246,
+            "p95": 1.7000000000116415,
+            "max": 14.400000000023283,
+            "frames": 6142
+          },
+          "stats": {
+            "drawCalls": 59,
+            "triangles": 2086928,
+            "geometries": 260,
+            "textures": 4,
+            "programs": 132,
+            "objects": 100
+          }
+        },
+        {
+          "count": 500,
+          "sample": {
+            "fps": 740.5999999999999,
+            "mean": 1.3502565487442615,
+            "p50": 0.8999999999650754,
+            "p95": 2.900000000023283,
+            "max": 9.100000000034925,
+            "frames": 3703
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 3146048,
+            "geometries": 267,
+            "textures": 4,
+            "programs": 132,
+            "objects": 500
+          }
+        },
+        {
+          "count": 1000,
+          "sample": {
+            "fps": 464.2885707430206,
+            "mean": 2.153832902670117,
+            "p50": 1,
+            "p95": 5,
+            "max": 16.20000000001164,
+            "frames": 2322
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 5252328,
+            "geometries": 267,
+            "textures": 4,
+            "programs": 132,
+            "objects": 1000
+          }
+        }
+      ]
+    },
+    {
+      "assetId": "asset_tree_ligustrum",
+      "tiers": [
+        {
+          "count": 1,
+          "sample": {
+            "fps": 2869.5704343652706,
+            "mean": 0.34848421492786713,
+            "p50": 0.29999999998835847,
+            "p95": 0.6000000000349246,
+            "max": 5.400000000023283,
+            "frames": 14349
+          },
+          "stats": {
+            "drawCalls": 7,
+            "triangles": 62068,
+            "geometries": 268,
+            "textures": 4,
+            "programs": 136,
+            "objects": 1
+          }
+        },
+        {
+          "count": 20,
+          "sample": {
+            "fps": 1920.7615847682912,
+            "mean": 0.520626822157438,
+            "p50": 0.5,
+            "p95": 0.8999999999650754,
+            "max": 2.2999999999883585,
+            "frames": 9604
+          },
+          "stats": {
+            "drawCalls": 47,
+            "triangles": 908496,
+            "geometries": 280,
+            "textures": 4,
+            "programs": 140,
+            "objects": 20
+          }
+        },
+        {
+          "count": 100,
+          "sample": {
+            "fps": 1303.4696530346964,
+            "mean": 0.7671831850260816,
+            "p50": 0.7000000000116415,
+            "p95": 1.3000000000465661,
+            "max": 4.399999999965075,
+            "frames": 6518
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 1577988,
+            "geometries": 290,
+            "textures": 4,
+            "programs": 144,
+            "objects": 100
+          }
+        },
+        {
+          "count": 500,
+          "sample": {
+            "fps": 754.95470271783,
+            "mean": 1.324582781456966,
+            "p50": 0.7999999999883585,
+            "p95": 3,
+            "max": 8.099999999976717,
+            "frames": 3775
+          },
+          "stats": {
+            "drawCalls": 59,
+            "triangles": 2671232,
+            "geometries": 291,
+            "textures": 4,
+            "programs": 144,
+            "objects": 500
+          }
+        },
+        {
+          "count": 1000,
+          "sample": {
+            "fps": 455.56355491560464,
+            "mean": 2.1950834064969373,
+            "p50": 1,
+            "p95": 5.5,
+            "max": 15.900000000023283,
+            "frames": 2278
+          },
+          "stats": {
+            "drawCalls": 59,
+            "triangles": 4644808,
+            "geometries": 291,
+            "textures": 4,
+            "programs": 144,
+            "objects": 1000
+          }
+        }
+      ]
+    },
+    {
+      "assetId": "asset_tree_salix",
+      "tiers": [
+        {
+          "count": 1,
+          "sample": {
+            "fps": 2771.6,
+            "mean": 0.3608024245922933,
+            "p50": 0.30000000004656613,
+            "p95": 0.6999999999534339,
+            "max": 4.7000000000116415,
+            "frames": 13858
+          },
+          "stats": {
+            "drawCalls": 7,
+            "triangles": 67940,
+            "geometries": 292,
+            "textures": 4,
+            "programs": 148,
+            "objects": 1
+          }
+        },
+        {
+          "count": 20,
+          "sample": {
+            "fps": 1590.3681926361548,
+            "mean": 0.6287852112676027,
+            "p50": 0.5,
+            "p95": 1.599999999976717,
+            "max": 9.099999999976717,
+            "frames": 7952
+          },
+          "stats": {
+            "drawCalls": 35,
+            "triangles": 1361408,
+            "geometries": 299,
+            "textures": 4,
+            "programs": 152,
+            "objects": 20
+          }
+        },
+        {
+          "count": 100,
+          "sample": {
+            "fps": 994.6607474953482,
+            "mean": 1.005367913148374,
+            "p50": 0.7999999999883585,
+            "p95": 2,
+            "max": 6.7999999999883585,
+            "frames": 4974
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 2790368,
+            "geometries": 307,
+            "textures": 4,
+            "programs": 152,
+            "objects": 100
+          }
+        },
+        {
+          "count": 500,
+          "sample": {
+            "fps": 745.1552906825608,
+            "mean": 1.3420021470746077,
+            "p50": 0.8999999999650754,
+            "p95": 2.8999999999650754,
+            "max": 7.100000000034925,
+            "frames": 3726
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 3935552,
+            "geometries": 315,
+            "textures": 4,
+            "programs": 156,
+            "objects": 500
+          }
+        },
+        {
+          "count": 1000,
+          "sample": {
+            "fps": 548.7914592454841,
+            "mean": 1.8221857923497353,
+            "p50": 1,
+            "p95": 4,
+            "max": 12.599999999976717,
+            "frames": 2745
+          },
+          "stats": {
+            "drawCalls": 67,
+            "triangles": 5427784,
+            "geometries": 315,
+            "textures": 4,
+            "programs": 156,
+            "objects": 1000
+          }
+        }
+      ]
+    }
+  ],
+  "resourceContract": {
+    "asset_tree_celtis": {
+      "draws": [
+        {
+          "count": 20,
+          "drawCalls": 43,
+          "geometries": 315
+        },
+        {
+          "count": 500,
+          "drawCalls": 67,
+          "geometries": 315
+        },
+        {
+          "count": 1000,
+          "drawCalls": 67,
+          "geometries": 315
+        }
+      ],
+      "cleared": true,
+      "afterClearObjects": 0,
+      "cycles10": {
+        "first": {
+          "drawCalls": 35,
+          "geometries": 315,
+          "textures": 4,
+          "programs": 156,
+          "objects": 100
+        },
+        "last": {
+          "drawCalls": 35,
+          "geometries": 315,
+          "textures": 4,
+          "programs": 156,
+          "objects": 100
+        },
+        "stable": true
+      }
+    },
+    "asset_tree_sophora": {
+      "draws": [
+        {
+          "count": 20,
+          "drawCalls": 31,
+          "geometries": 315
+        },
+        {
+          "count": 500,
+          "drawCalls": 67,
+          "geometries": 315
+        },
+        {
+          "count": 1000,
+          "drawCalls": 67,
+          "geometries": 315
+        }
+      ],
+      "cleared": true,
+      "afterClearObjects": 0,
+      "cycles10": {
+        "first": {
+          "drawCalls": 35,
+          "geometries": 315,
+          "textures": 4,
+          "programs": 156,
+          "objects": 100
+        },
+        "last": {
+          "drawCalls": 35,
+          "geometries": 315,
+          "textures": 4,
+          "programs": 156,
+          "objects": 100
+        },
+        "stable": true
+      }
+    },
+    "asset_tree_salix": {
+      "draws": [
+        {
+          "count": 20,
+          "drawCalls": 31,
+          "geometries": 315
+        },
+        {
+          "count": 500,
+          "drawCalls": 71,
+          "geometries": 315
+        },
+        {
+          "count": 1000,
+          "drawCalls": 67,
+          "geometries": 315
+        }
+      ],
+      "cleared": true,
+      "afterClearObjects": 0,
+      "cycles10": {
+        "first": {
+          "drawCalls": 35,
+          "geometries": 315,
+          "textures": 4,
+          "programs": 156,
+          "objects": 100
+        },
+        "last": {
+          "drawCalls": 35,
+          "geometries": 315,
+          "textures": 4,
+          "programs": 156,
+          "objects": 100
+        },
+        "stable": true
+      }
+    }
+  },
+  "shadowAB": {
+    "sunShadowOff": {
+      "fps": 710.3784188834769,
+      "mean": 1.4077004219409284,
+      "p50": 0.5999999999767169,
+      "p95": 4.5,
+      "max": 13.200000000011642,
+      "frames": 2844
+    },
+    "sunShadowOn": {
+      "fps": 390.84366253498257,
+      "mean": 2.558567774936084,
+      "p50": 1.1000000000349246,
+      "p95": 6,
+      "max": 19.099999999976717,
+      "frames": 1564
+    }
+  }
+}

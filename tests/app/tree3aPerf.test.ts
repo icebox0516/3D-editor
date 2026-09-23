@@ -5,6 +5,9 @@
  * window 槽装配守卫（DEV ∧ Renderer ∧ window）归组合根浏览器形态，此处只锁「无头不挂」）：
  * - place：经 BatchCommand 一条历史入 Scene（数量 / seed 序列 / 归「模型」默认层 /
  *   贴地抬升 y=MODEL_BASE_HEIGHT / 方形网格居中公式 / jitter=false 恒等姿态）；
+ * - T011.13 assetId 泛化：place 传任意注册资产 id（朴树用例——同命令路径、资产 id 落盘、
+ *   同句柄切回缺省仍夏栎不叠加）；未注册 assetId 抛错带资产名且场景不变；缺省仍夏栎
+ *   归既有用例覆盖；
  * - jitter=true：变体确定性合成对账（applyAssetVariants 乘性/加性律 = PlacementTool
  *   buildTransform 同款公式）；
  * - 幂等再放置：place 后再 place 同参不叠加（自动 clear 上次）；同参两次场景逐位一致
@@ -169,6 +172,34 @@ describe('place（产品放置路径：真命令管线）', () => {
     const models = modelsOf(facade);
     expect(models).toHaveLength(8); // 不叠加
     expect(models.map(stripId)).toEqual(first); // 同参 → seed/transform/归层逐位一致
+    facade.dispose();
+  });
+
+  it('T011.13 assetId 泛化：place 传朴树 id 走同一命令路径；同句柄切回缺省仍夏栎不叠加', () => {
+    const { facade, handle } = makeHandle();
+    const CELTIS_ID = 'asset_tree_celtis';
+    expect(facade.registries.assets.get(CELTIS_ID)).toBeDefined(); // 前置：朴树已注册
+    expect(handle.place({ count: 6, seedBase: 11, spacing: 7, assetId: CELTIS_ID })).toBe(true);
+    let models = modelsOf(facade);
+    expect(models).toHaveLength(6); // objects = N
+    models.forEach((m, i) => {
+      expect(m.asset.assetId).toBe(CELTIS_ID); // 资产 id 正确落盘（meta.id 派生）
+      expect(m.asset.seed).toBe(11 + i); // seed 序列语义同契约（seedBase + i）
+      expect(m.name).toBe(facade.registries.assets.get(CELTIS_ID)!.asset.name); // name=资产名惯例不变
+    });
+    // 同句柄换资产：幂等 clear 上次的朴树，切缺省（夏栎）不叠加
+    expect(handle.place({ count: 4, seedBase: 2 })).toBe(true);
+    models = modelsOf(facade);
+    expect(models).toHaveLength(4);
+    expect(models.every((m) => m.asset.assetId === TREE_ID)).toBe(true);
+    facade.dispose();
+  });
+
+  it('T011.13 未注册 assetId：抛错带资产名、场景不变（验收循环防错）', () => {
+    const { facade, handle } = makeHandle();
+    const BAD_ID = 'asset_tree_no_such';
+    expect(() => handle.place({ count: 3, assetId: BAD_ID })).toThrow(BAD_ID);
+    expect(modelsOf(facade)).toHaveLength(0); // 抛错在命令执行前——场景零变更
     facade.dispose();
   });
 });
