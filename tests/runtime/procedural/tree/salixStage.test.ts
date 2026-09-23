@@ -20,7 +20,7 @@
  * - mountSlots：8 槽 4×2 行主序网格独立 Mesh（跨槽几何各异——非 InstancedMesh）+
  *   castShadow/customDepthMaterial；stats 逐槽账目（**组 0 纯皮拓扑槽间恒等 26180**
  *   ——无花果资产无果序并入（bischofia 先例同款恒等记档，vs ligustrum 核果并入皮组
- *   的 1596–2360 平滑带）），单叶卡数只断言落 8 槽实测带 **3894–5176**（slot-6 斜弯
+ *   的 1596–2360 平滑带）），单叶卡数只断言落 8 槽实测带 **4715–6192**（2026-09-23 工程密度回调后复测；slot-6 斜弯
  *   矮端 / slot-1 深垂帘高端——T011.12 Stage 探针实测，2026-09-23；不锁具体槽值——
  *   槽间数值归资产侧测试）；viewSlots 网格中心机位（球坐标公式复算）+ viewSlot(5)
  *   槽位特写 + 越界 warn no-op；与 mount/mountWindDemo 互斥重建、unmount/dispose 幂等
@@ -36,8 +36,8 @@
  *   disposeSource 释放恰一次（幂等）；不带字段 → 回退自建进自持释放（两路径行为对账）。
  * 数值锚（vs ligustrum 差异面）：slot-0 High 组 0 纯皮 **26180**（皮拓扑槽间恒定：
  *   主干 406 + L1 1120 + L2 2352 + L3 3780 + L4 9450 + L5 9072——无花果资产无果序
- *   并入）/ 单叶卡 9070 tri / 4535 卡（资产预算锁定账目 triangleCount 35250 = 26180 +
- *   9070；单叶卡 = 2 tri/卡承载单枚狭披针单叶——卡长宽比域 8–18 与 salixMaterials
+ *   并入）/ 单叶卡 11152 tri / 5576 卡（资产预算锁定账目 triangleCount 37332 = 26180 +
+ *   11152——2026-09-23 工程密度回调后；单叶卡 = 2 tri/卡承载单枚狭披针单叶——卡长宽比域 8–18 与 salixMaterials
  *   SDF 包络同域冻结接口）；取景视心高 **4.9**（slot-0 整体 bbox 中心 **4.9153** ≈
  *   0.500h——垂枝冠心偏低：帘幕自叶组顶点最低 1.8341 垂至冠顶 9.8306 近满幅分布 +
  *   喷泉顶薄拱 → bbox 中心即视觉质心；vs ligustrum 冠域中心法 5.6——垂柳同法叶组
@@ -58,7 +58,7 @@ import type { ProceduralLevel } from '../../../../src/domain/assets';
 import { makeControlsStub, makeFakeBuild, makeFakeBuildWithDepth, makeLog } from '../../../support/procedural-tree/stageFixture';
 
 describe('mount / unmount / stats', () => {
-  it('mount：group 挂 scene + stats 账目 = slot-0 锚点实数（组 0 纯皮 26180 / 叶 9070 / 4535 卡，T011.12 Stage 探针实测 = 预算锁定账目 slot-0 High——皮拓扑恒定无果序并入）', () => {
+  it('mount：group 挂 scene + stats 账目 = slot-0 锚点实数（组 0 纯皮 26180 / 叶 11152 / 5576 卡（密度回调后），T011.12 Stage 探针实测 = 预算锁定账目 slot-0 High——皮拓扑恒定无果序并入）', () => {
     const scene = new THREE.Scene();
     const handle = createSalixHandle({ scene });
     handle.mount();
@@ -66,8 +66,8 @@ describe('mount / unmount / stats', () => {
     const stats = handle.stats();
     expect(stats.mounted).toBe(true);
     expect(stats.barkTriangles).toBe(26180);
-    expect(stats.leafTriangles).toBe(9070);
-    expect(stats.leafCards).toBe(4535);
+    expect(stats.leafTriangles).toBe(11152);
+    expect(stats.leafCards).toBe(5576);
     handle.dispose();
     expect(scene.children).toHaveLength(0);
   }, 30000);
@@ -164,7 +164,7 @@ describe('StrictMode 双挂载安全（dispose 只摘自己的）', () => {
     expect(scene.children[0]!.position.x).toBe(10); // B 的树还在
     const stats = b.stats();
     expect(stats.mounted).toBe(true);
-    expect(stats.leafCards).toBe(4535);
+    expect(stats.leafCards).toBe(5576);
     b.dispose();
     expect(scene.children).toHaveLength(0);
   }, 30000);
@@ -281,7 +281,7 @@ describe('mountSlots / viewSlots / viewSlot（8 槽批量出图面）', () => {
     expect(scene.children).toHaveLength(0);
   }, 30000);
 
-  it('stats（slots 模式）：8 项逐槽账目，组 0 **纯皮拓扑槽间恒等 26180**（无花果资产无果序并入——bischofia 先例同款恒等记档，vs ligustrum 核果并入皮组的平滑带）+ 单叶卡数落 8 槽实测带 3894–5176（slot-6 斜弯矮端 / slot-1 深垂帘高端——不锁具体槽值，数值归资产侧测试）+ 顶层合计 8 棵和', () => {
+  it('stats（slots 模式）：8 项逐槽账目，组 0 **纯皮拓扑槽间恒等 26180**（无花果资产无果序并入——bischofia 先例同款恒等记档，vs ligustrum 核果并入皮组的平滑带）+ 单叶卡数落 8 槽实测带 4715–6192（密度回调后；slot-6 斜弯矮端 / slot-1 深垂帘高端——不锁具体槽值，数值归资产侧测试）+ 顶层合计 8 棵和', () => {
     const scene = new THREE.Scene();
     const handle = createSalixHandle({ scene });
     handle.mountSlots();
@@ -293,8 +293,8 @@ describe('mountSlots / viewSlots / viewSlot（8 槽批量出图面）', () => {
       expect(entry.slot).toBe(slot);
       // 组 0 = 纯皮拓扑槽间恒等（结构计数类跨槽恒等纪律——无花果资产无果域）
       expect(entry.barkTriangles).toBe(26180);
-      expect(entry.leafCards).toBeGreaterThanOrEqual(3894); // 8 槽实测带（Stage 探针 2026-09-23）
-      expect(entry.leafCards).toBeLessThanOrEqual(5176);
+      expect(entry.leafCards).toBeGreaterThanOrEqual(4715); // 8 槽实测带（Stage 探针 2026-09-23 + 同日密度回调复测）
+      expect(entry.leafCards).toBeLessThanOrEqual(6192);
       expect(entry.leafTriangles).toBe(entry.leafCards * 2); // 单叶卡 = 2 三角（1 卡承载单枚狭披针单叶）
     }
     expect(stats.barkTriangles).toBe(26180 * 8); // 顶层保持「总量」语义 = 8 棵合计（皮恒等 → 合计恒等）

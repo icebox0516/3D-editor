@@ -14,8 +14,8 @@
  *   unmount/dispose 幂等清理；freezeTime/unfreezeTime 转调注入 time deps（未注入 no-op）。
  * - mountSlots：8 槽 4×2 行主序网格独立 Mesh（跨槽几何各异——非 InstancedMesh）+
  *   castShadow/customDepthMaterial；stats 逐槽账目（**组 0 槽间不恒等**——皮拓扑 24178
- *   恒等但宿存果序并入组 0 随槽 672–1048（84–131 球 ×8），断言带 24850–25226 +
- *   果序 ≡0 mod 8 结构不变量、顶层合计 8 棵和；叶卡数只断言 > 0——不锁具体值，档间/
+ *   恒等但宿存果序并入组 0 随槽 2184–3406（84–131 球 ×26——球 20 + 梗 6），断言带
+ *   26362–27584 + 果序 ≡0 mod 26 结构不变量、顶层合计 8 棵和；叶卡数只断言 > 0——不锁具体值，档间/
  *   槽间数值归资产侧测试）；viewSlots 网格中心机位（球坐标公式复算）+ viewSlot(5)
  *   槽位特写 + 越界 warn no-op；与 mount/mountWindDemo 互斥重建、unmount/dispose 幂等
  *   （slots 模式 stats 归零）。（8 棵 build 耗时长——相关测试 60000ms）
@@ -28,10 +28,10 @@
  * - customDepthMaterial 同源消费（SOP §1.4「DEV 同源」：fake build 带字段 →
  *   mount/mountLevels 挂载与 source.customDepthMaterial 同引用（不自建）、unmount 随
  *   disposeSource 释放恰一次（幂等）；不带字段 → 回退自建进自持释放（两路径行为对账）。
- * 数值锚（vs ginkgo 差异面）：slot-0 High 组 0 皮 25098（皮拓扑恒 24178 + 果序 115 球×8
- *   = 920 并入组 0——果序账目入皮组，platanusGeometry/platanusMaterials 冻结接口，vs
+ * 数值锚（vs ginkgo 差异面）：slot-0 High 组 0 皮 27168（皮拓扑恒 24178 + 果序 115 球×26
+ *   = 2990 并入组 0——果序账目入皮组，platanusGeometry/platanusMaterials 冻结接口，vs
  *   ginkgo 组 0 = 皮恒 20782 不含果序）/ 叶 3368 / 1684 卡（T011.5 探针实测 = 资产预算
- *   锁定账目 triangleCount 28466 = 25098 + 3368）；取景视心高 7.5（slot-0 冠域
+ *   锁定账目 triangleCount 30536 = 27168 + 3368）；取景视心高 7.5（slot-0 冠域
  *   3.44–11.63 冠心 ≈7.54——vs ginkgo 5.4 / camphor 5.5 / zelkova 5.3 / celtis 4.3，
  *   族内最高——上层大乔量级，platanusStage 模块头「树高参考」）。
  */
@@ -44,14 +44,14 @@ import type { ProceduralLevel } from '../../../../src/domain/assets';
 import { makeControlsStub, makeFakeBuild, makeFakeBuildWithDepth, makeLog } from '../../../support/procedural-tree/stageFixture';
 
 describe('mount / unmount / stats', () => {
-  it('mount：group 挂 scene + stats 账目 = slot-0 锚点实数（组 0 皮 25098 / 叶 3368 / 1684 卡，T011.5 探针实测 = 预算锁定账目 slot-0 High——皮 24178 + 果序 115 球×8 并入组 0）', () => {
+  it('mount：group 挂 scene + stats 账目 = slot-0 锚点实数（组 0 皮 27168 / 叶 3368 / 1684 卡，T011.5 探针实测 = 预算锁定账目 slot-0 High——皮 24178 + 果序 115 球×26 并入组 0）', () => {
     const scene = new THREE.Scene();
     const handle = createPlatanusHandle({ scene });
     handle.mount();
     expect(scene.children).toHaveLength(1);
     const stats = handle.stats();
     expect(stats.mounted).toBe(true);
-    expect(stats.barkTriangles).toBe(25098);
+    expect(stats.barkTriangles).toBe(27168);
     expect(stats.leafTriangles).toBe(3368);
     expect(stats.leafCards).toBe(1684);
     handle.dispose();
@@ -231,7 +231,7 @@ describe('mountSlots / viewSlots / viewSlot（8 槽批量出图面）', () => {
     expect(scene.children).toHaveLength(0);
   }, 60000);
 
-  it('stats（slots 模式）：8 项逐槽账目，组 0 不恒等——皮拓扑 24178 恒 + 果序 672–1048 随槽（带 24850–25226、果序 ≡0 mod 8）+ 顶层合计 8 棵和；叶卡数只断言 > 0（不锁具体值——数值归资产侧测试）', () => {
+  it('stats（slots 模式）：8 项逐槽账目，组 0 不恒等——皮拓扑 24178 恒 + 果序 2184–3406 随槽（带 26362–27584、果序 ≡0 mod 26）+ 顶层合计 8 棵和；叶卡数只断言 > 0（不锁具体值——数值归资产侧测试）', () => {
     const scene = new THREE.Scene();
     const handle = createPlatanusHandle({ scene });
     handle.mountSlots();
@@ -241,10 +241,10 @@ describe('mountSlots / viewSlots / viewSlot（8 槽批量出图面）', () => {
     for (let slot = 0; slot < 8; slot++) {
       const entry = stats.slots![slot]!;
       expect(entry.slot).toBe(slot);
-      // 组 0 = 皮拓扑恒 24178 + 果序随槽（84–131 球 ×8 面 = 672–1048，T011.5 探针带）
-      expect(entry.barkTriangles).toBeGreaterThanOrEqual(24178 + 672); // 带下沿
-      expect(entry.barkTriangles).toBeLessThanOrEqual(24178 + 1048); // 带上沿
-      expect((entry.barkTriangles - 24178) % 8).toBe(0); // 果序 = 球 ×8 面——结构不变量（皮拓扑恒 24178）
+      // 组 0 = 皮拓扑恒 24178 + 果序随槽（84–131 球 ×26 面 = 2184–3406，含梗探针带）
+      expect(entry.barkTriangles).toBeGreaterThanOrEqual(24178 + 2184); // 带下沿
+      expect(entry.barkTriangles).toBeLessThanOrEqual(24178 + 3406); // 带上沿
+      expect((entry.barkTriangles - 24178) % 26).toBe(0); // 果序 = 球 ×26 面（球 20 + 梗 6）——结构不变量（皮拓扑恒 24178）
       expect(entry.leafCards).toBeGreaterThan(0); // 叶卡数随簇级剔除定——不锁具体值
       expect(entry.leafTriangles).toBe(entry.leafCards * 2); // 卡 = 2 三角
     }

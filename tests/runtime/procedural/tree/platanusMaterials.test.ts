@@ -49,6 +49,11 @@
  *   + 上部红褐收敛（老枝红褐秃净 Verified）+ **无脊沟系统**（abs(fract( 三角脊剖面不
  *   出现——光滑基底）+ 无横断（樟 31.4 不出现）+ 无苔藓（不做不编造）+ 满干型（中龄
  *   活跃剥落非门控——无基段起斑门控项）；
+ *   果序域着色（果序入皮组——uv v∈[4,5] 身份标记，球+梗整域）：绿褐 #6a7245 级直接
+ *   覆盖（线性 (0.144,0.168,0.060)——sRGB 编码往返 (106,114,69) JS 数值锚；三色带/
+ *   红褐收敛让位）+ 逐球 0.5m 格量化散列 facHash21（±5% ≤10% 幅度上限；零新噪声采样
+ *   ——Mid/Low 1× vnoise 成本账不变）+ roughness 0.95 高糙；三档同配方（Low 域内无
+ *   顶点分支保留）；
  * - 深度材质零噪声库注入（dip 窗/齿载波全 ALU → SDF 零 facVnoise 引用 → 影 pass 不吃
  *   噪声纪律——沿榉 011.3 + 银杏 011.4 组合先例）；
  * - 分档实装（level 参数，缺省 'high'）：三工厂缺省 ≡ 显式 'high'（属性 + 键 + GLSL 全文
@@ -395,6 +400,30 @@ describe('物种配方锚定（Spec platanus-reference 1.0 §2/§4/§5/§7；终
     expect(fragmentShader).not.toContain('smoothstep(1.4, 3.2'); // 樟苔藓基段门控不串种（满干型——幼树基段先起斑不建模）
     expect(fragmentShader).toContain('- smoothstep(0.60, 0.70, pltBarkTone) * 0.14'); // 新露斑光滑（OSU "best asset" 光滑新皮哑光微泽）
   });
+
+  it('宿存果序域着色（果序入皮组——uv v∈[4,5] 几何身份标记，球+梗整域）：绿褐 #6a7245 级直接覆盖（三色带拼贴/红褐收敛让位——褐系近似旧案废止）+ 逐球量化散列变奏 ≤10% + roughness 0.95 高糙；三档同配方；零新增噪声采样', () => {
+    const high = assemble(track(createPlatanusBarkMaterial()), THREE.ShaderLib.physical);
+    expect(high.fragmentShader).toContain('float pltFruitGate = step(4.0, vUv.y);'); // 整域硬门（皮管弧长域 v ≤ ≈3.1 双重隔离——无过渡带，域间无几何）
+    expect(high.fragmentShader).toContain('facHash21(floor(vTreePos.xz * 2.0)'); // 逐球量化散列（0.5m 格 ≈8× 球径——整球同格为主；确定性 ALU 零新采样）
+    expect(high.fragmentShader).toContain('vec3(0.144, 0.168, 0.060) * (0.95 + 0.10 * pltFruitRnd)'); // 绿褐果球 + 变奏乘子 ±5%（≤10% 上限——避免均一塑料球感）
+    expect(high.fragmentShader).toContain('mix(diffuseColor.rgb, vec3(0.144, 0.168, 0.060)'); // 拼贴/红褐收敛让位（直接覆盖不乘皮基色）
+    expect(high.fragmentShader).toContain('roughnessFactor = mix(roughnessFactor, 0.95, pltFruitGate);'); // 果序域高糙（密刺球哑光——简色高糙记档口径）
+    // 线性色数值锚：sRGB EOTF 编码往返 (106,114,69) = #6a7245（目标显示色级）
+    const enc = (c: number): number => 255 * (1.055 * Math.pow(c, 1 / 2.4) - 0.055);
+    expect(Math.round(enc(0.144))).toBe(0x6a);
+    expect(Math.round(enc(0.168))).toBe(0x72);
+    expect(Math.round(enc(0.060))).toBe(0x45);
+    // 三档同配方（果序域分支三档保留——Low 域内无顶点，门控恒 0 零成本）
+    for (const level of ['mid', 'low'] as const) {
+      const tier = assemble(track(createPlatanusBarkMaterial(level)), THREE.ShaderLib.physical);
+      expect(tier.fragmentShader, `皮 ${level} 果序域分支缺失`).toContain('float pltFruitGate = step(4.0, vUv.y);');
+      expect(tier.fragmentShader).toContain('vec3(0.144, 0.168, 0.060)');
+      expect(tier.fragmentShader).toContain('roughnessFactor = mix(roughnessFactor, 0.95, pltFruitGate);');
+    }
+    // 零新增噪声采样（变奏走 ALU 散列——Mid/Low 1× vnoise 成本账不超标）
+    expect(count(high.fragmentShader, 'facVnoise(')).toBe(5); // 库 3 + 调用 2（High 不变）
+    expect(count(assemble(track(createPlatanusBarkMaterial('mid')), THREE.ShaderLib.physical).fragmentShader, 'facVnoise(')).toBe(4); // 库 3 + 代场 1（Mid 不变）
+  });
 });
 
 describe('分档实装（level 参数；缺省 high = 显式 high）', () => {
@@ -588,7 +617,7 @@ describe('program 键纪律与工厂所有权（D17）', () => {
   });
 });
 
-describe('成本记账（10 万实例每像素预算：叶 High ≈12×（多裂 SDF +2× 账）/ 皮 High 8×，hash21=1×/vnoise=3×——dip 窗/齿载波 ALU 化红利）', () => {
+describe('成本记账（10 万实例每像素预算：叶 High ≈12×（多裂 SDF +2× 账）/ 皮 High ≈9×（含果序域 ALU 分支 ≈1×），hash21=1×/vnoise=3×——dip 窗/齿载波 ALU 化红利）', () => {
   it('facVnoise 调用数：叶 High 1 处（3×）、Mid/Low 0 处；皮 High 2 处（6×）、Mid/Low 1 处（3×）；深度 0 处（零噪声库注入）；顶点零噪声', () => {
     const leaf = assemble(track(createPlatanusLeafMaterial()), THREE.ShaderLib.physical);
     const bark = assemble(track(createPlatanusBarkMaterial()), THREE.ShaderLib.physical);

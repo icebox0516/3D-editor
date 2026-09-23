@@ -9,7 +9,7 @@
  * 入口契约（asset_tree_salix.asset）互补——本文件锁「结构怎么长」，那边锁「契约
  * 怎么传」）：
  * - 确定性：同 rng seed + 同 shapeProfile 两次构建 → 全属性逐位相等、stats 账目全等；
- *   rng 消费恒等 85485（消费顺序即契约——次数变化 = 随机流重排；011.3 ③ 教训：包裹
+ *   rng 消费恒等 86115（消费顺序即契约——次数变化 = 随机流重排；2026-09-23 工程密度回调后随保留簇 663 → 731 上调；011.3 ③ 教训：包裹
  *   rng 闭包逐调用计数口径；跨槽/跨 seed 随保留簇数浮动（通透 roll 计数机制，先例
  *   同款记档））；
  * - 组序恰 2（D15 免组膨胀：皮 0 / 单叶卡 1——无花果资产组 0 纯皮拓扑）；皮拓扑面数
@@ -39,11 +39,11 @@
  *   底盖 0.5+0.5cosθ 域）；叶组 uv 标准 0–1 四边形域（v 轴 = 叶基 0 → 叶尖 1、
  *   u = 叶宽方向——狭披针 SDF 消费的几何侧不变式）；
  * - 冠内通透（显式规则）：候选 → 存活存在剔卡且枝干通道/空腔/密度场三规则实际命中；
- *   外密内疏——内核保留率显著低于外壳（家族方向沿用；通透档 0.80）；枝干通道——
+ *   外密内疏——内核保留率显著低于外壳（家族方向沿用；通透档 0.88——2026-09-23 工程密度回调）；枝干通道——
  *   存活叶卡挂点（根边中点 = 过滤判定口径）距通道线段带内数为 0；通透不挖空整层
  *   ——冠顶/冠底 1/3 高度带均有存活叶卡；
  * - 枝梢驱动叶簇（家族方法沿用）：簇-枝梢绑定（簇中心贴挂点 + 簇方向 = 挂点枝切向
- *   单位向量 + L5 末梢挂簇占主导）；簇间间隙（minSeparation 0.44 距离抑制）；
+ *   单位向量 + L5 末梢挂簇占主导）；簇间间隙（minSeparation 0.38 距离抑制——工程密度回调自 0.44）；
  *   shellBias 平摊（互生散布团块域分布）；
  * - 贴地契约：minY 精确 0（原点 = 底部中心）；**垂帘极值触地锁 rawMinY ≥ −0.08**
  *   （叶卡极值斜伸的 ≤8cm 穿地允许带——帘缘止于地上 0.45–2.13m 的设计带内，大幅
@@ -74,7 +74,7 @@ const SEED0 = morphSeedOf('asset_tree_salix', 0);
  *  消费都违约；跨槽/跨 seed 随保留簇数变化（通透 roll 计数 = 存活候选数——先例
  *  同机制；互生逐卡独立 r̂：每卡 8 次固定（phi 抖动 1 + 球面抖动 2 + r̂ 1 + 滚转
  *  1 + 宽 1 + 长宽比 1 + rand 1）——L5 候选 9/L4 候选 10 的六轮回调定档值） */
-const RNG_CALLS_LOCK = 85485;
+const RNG_CALLS_LOCK = 86115;
 /** 皮拓扑面数（6 骨架 + 1 领导：主干 406（14 段 ×14 + 底盖 14——径向 14 承载谐波
  * {4,6} 奈奎斯特域 7 内留 1 档边际）+ L1 1120 + L2 2352 + L3 3780 + L4 9450 +
  * L5 9072——槽间恒等的结构性保证） */
@@ -162,7 +162,7 @@ describe('互生细长卡沿索散簇挂点（垂柳独有身份——「叶沿�
   it('每簇存活叶量 ≤ 10（L4 候选 10 / L5 候选 9 上限）且均值 ≥ 4.5（预算半）；簇账守恒（簇账 = 总卡数）', () => {
     const { stats } = buildTracked(SEED0);
     expect(stats.clusterLeafMax, '逐簇存活数应 ≤ 每簇候选上限 10').toBeLessThanOrEqual(10);
-    expect(stats.clusterLeafMean, '逐簇均值应 ≥ 预算半（互生散簇存活典型 5–9；终测 6.84）').toBeGreaterThanOrEqual(4.5);
+    expect(stats.clusterLeafMean, '逐簇均值应 ≥ 预算半（互生散簇存活典型 6–10；密度回调后终测 7.63）').toBeGreaterThanOrEqual(4.5);
     expect(stats.clusterLeaves.reduce((s, n) => s + n, 0)).toBe(stats.leafCards);
   }, 30000);
 
@@ -294,7 +294,7 @@ describe('冠内通透（显式规则：通道 / 局部空腔 / 内层密度衰�
     expect(stats.leafCards).toBe(stats.leafCandidates - stats.channelRejects - stats.voidRejects - stats.gradientRejects);
   }, 30000);
 
-  it('外密内疏：内核（q<0.4）叶卡保留率显著低于外壳（q>0.6），外壳保留随通透档（0.80——间隙 0.1–0.25 读向；终测内 0.29 级 / 外 0.79 级）', () => {
+  it('外密内疏：内核（q<0.4）叶卡保留率显著低于外壳（q>0.6），外壳保留随通透档（0.88——间隙 0.1–0.25 读向保持；密度回调后终测内 0.38 级 / 外 0.88 级）', () => {
     const { stats } = buildTracked(SEED0);
     const innerCand = stats.qCandidates[0]! + stats.qCandidates[1]!;
     const innerSurv = stats.qSurvived[0]! + stats.qSurvived[1]!;
@@ -373,7 +373,7 @@ describe('枝梢驱动叶簇（家族方法沿用：枝梢 → 簇空间 → 互
     expect(maxUnitErr, '簇方向应为单位向量').toBeLessThan(1e-6);
   }, 30000);
 
-  it('簇间间隙：近邻簇中心距 ≥ 0.44×(ri+rj) 的簇占比 ≥ 90%（clusterMinSeparation=0.44 距离抑制保证下界——垂帘列距保险）', () => {
+  it('簇间间隙：近邻簇中心距 ≥ 0.44×(ri+rj) 的簇占比 ≥ 90%（clusterMinSeparation=0.38 距离抑制保证下界——垂帘列距保险；工程密度回调 0.44 → 0.38）', () => {
     const { stats } = buildTracked(SEED0);
     const n = stats.clusters.length;
     let pass = 0;
@@ -386,9 +386,9 @@ describe('枝梢驱动叶簇（家族方法沿用：枝梢 → 簇空间 → 互
         const d = Math.hypot(a.cx - b.cx, a.cy - b.cy, a.cz - b.cz);
         nnRatio = Math.min(nnRatio, d / (a.radius + b.radius));
       }
-      if (nnRatio >= 0.44) pass++;
+      if (nnRatio >= 0.38) pass++;
     }
-    expect(pass / n, '近邻簇对应以 0.44×(ri+rj) 间隙的占比').toBeGreaterThanOrEqual(0.9);
+    expect(pass / n, '近邻簇对应以 0.38×(ri+rj) 间隙的占比').toBeGreaterThanOrEqual(0.9);
   }, 30000);
 
   it('shellBias 平摊：存活卡簇内归一化半径均值 ≥ 0.7（shellBias=0.44/γ=0.85 互生散布团块域分布——叶沿簇域分布；终测 0.796）', () => {

@@ -145,12 +145,18 @@
  *     材质只管色层。
  *   - 风动：整树缓摆与叶同公式同相位（aBend 恒 0 快颤层天然不作用）。
  *
- * 果序材质分工说明（任务简报问项）：**本文件不导出果序材质工厂**——家族契约恰 2 组冻结
- *   （组 0 皮 / 组 1 叶），果序组是否存在归几何侧决定；若几何侧将果序球并入组 0 皮组，
- *   皮材质在冠上部（vTreePos.y > 5.5 门控满）呈红褐偏色微拼贴球面（褐系近似绿褐果球、
- *   可接受记档），密刺浮雕（宿存花柱刺状）归几何顶点；若需独立绿褐果序组 = 第三材质组
- *   契约扩展，记契约缺口候选⑤归 011.13。简色高糙球面（color 0x6a7245 级 / roughness
- *   0.95）由几何/资产侧按需一行 new，不进本文件（避免无组可挂的死代码）。
+ * 果序材质分工说明（现行配方：**果序域 v≥4 主动绿褐着色**，含梗）：果序并入皮组（组 0
+ *   ——emitFruitBall 冻结接口：顶点 uv v∈[4,5] 果序域，与皮管弧长域 v ≤ ≈3.1 双重隔离），
+ *   皮材质三档 map_fragment 注入体尾部整域门控（step(4.0, vUv.y)）——diffuseColor 直接
+ *   覆盖为绿褐密刺球读向（显示色 #6a7245 级 = 线性 (0.144, 0.168, 0.060)，sRGB 编码往返
+ *   (106,114,69)；三色带拼贴 / 红褐收敛对果序域让位——冠上部红褐染果球的褐系近似旧案
+ *   废止）+ 逐球变奏（0.5m 格 xz 量化散列 facHash21 纯 ALU、幅度 ±5% ≤10% 上限——避免
+ *   均一塑料球感；零新噪声采样，Mid/Low 1× vnoise 成本账不超标）+ 果序域 roughness →
+ *   0.95 高糙（简色高糙记档口径）。Low 几何不发射果序（域内无顶点、门控恒 0 零成本），
+ *   分支保留——三档 GLSL 一致，契约日后 Low 发射果序时材质侧免改。深度侧无需改动：皮组
+ *   aLeafRand=0 实心守卫天然覆盖果序（果影实心不变）。密刺浮雕（宿存花柱刺状）归几何
+ *   顶点（八面体 flat 面读向）；若族级需独立果序光照/刺状表面着色 = 第三材质组契约扩展，
+ *   记候选④。
  *
  * 深度材质（叶影裁切，customDepthMaterial 契约通道——沿 SOP §1.4 六条全守）：
  *   - 单一来源：MeshDepthMaterial + RGBADepthPacking + alphaTest 0.5，SDF alpha 与叶表面
@@ -196,9 +202,9 @@
  *   - 叶 Mid 片元 = 0× 噪声（噪声库死码编译消除）+ 简化 ALU ≈ 3×；
  *   - 叶 Low 片元 = 0× 噪声 + SDF_LOW 简化 ALU ≈ 2×；
  *   - 皮 High 片元 = 2× vnoise（代场 + 破碎场）= 6× + 三带 mix 链/缝/门控纯 ALU
- *     ≈ 2× ≈ 8×；
- *   - 皮 Mid/Low 片元 = 1× vnoise（代场）= 3× + 三带/缝(ALU) ≈ 1.5× ≈ 4.5×（Low
- *     去缝 ≈ 4×）；
+ *     ≈ 2× + 果序域分支（step 门控 + facHash21 ≈1× + mix）≈ 1× ≈ 9×；
+ *   - 皮 Mid/Low 片元 = 1× vnoise（代场）= 3× + 三带/缝(ALU) ≈ 1.5× + 果序域分支
+ *     ≈ 1× ≈ 5.5×（Low 去缝 ≈ 5×）；
  *   - 深度片元 = SDF 纯 ALU ≈ 6×（多裂双窗高于先例 1.5×——多裂 SDF 的账记档），
  *     **零噪声采样**；
  *   - 顶点 = 两次 sin + 一次法线乘，无循环。
@@ -212,8 +218,9 @@
  *     类）可提炼为家族公共 SDF 模式（暂不动公共抽象）；
  *   ③ 离基掌状脉（外展辐射型）装饰层：与樟离基三出（内收吻合型）同族不同向，脉层五型
  *     （中轴/三出/离基三出/羽状/辐射/掌状辐射）公共抽象待族级收口评估；
- *   ④ 果序（成对绿褐密刺球）无材质组通道：契约恰 2 组冻结，并入组 0 走上部红褐偏色
- *     近似记档（褐系近似绿褐）；若族级需精确果序色 → 第三材质组契约扩展；
+ *   ④ 果序（成对绿褐密刺球）色已由皮材质果序域 v≥4 整域绿褐着色承担（球+梗、简色高糙
+ *     #6a7245 级——见「果序材质分工说明」）；剩余缺口：密刺表面细节/独立果序光照无
+ *     通道（若族级需要 → 第三材质组契约扩展）；
  *   ⑤ 大叶长柄重摆的树高锚 12m 为弱 Inferred（终审降级）：树高/冠基类锚与几何侧实际
  *     建树高度的联动无跨层通道（风动锚与 shade 冠基各自硬编码——若 profile 侧树高
  *     变更需材质侧同步，候选：锚点常量上提到 profile 或 build 传参）。
@@ -504,6 +511,27 @@ vec3 pltBarkMul = mix(pltPlate, vec3(1.06, 0.94, 0.84) * (0.90 + 0.10 * pltBarkT
 diffuseColor.rgb *= pltBarkMul;
 `;
 
+/** 宿存果序域着色（三档共用，拼装段末位——拼贴/红褐收敛先算后让位）：uv v∈[4,5] =
+ *  果序域几何身份标记（emitFruitBall 冻结接口，球+梗整域；皮管弧长域 v ≤ ≈3.1 双重
+ *  隔离——硬门 step 无过渡带，域间无几何）。绿褐密刺球显示色 #6a7245 级 = 线性
+ *  (0.144, 0.168, 0.060)（sRGB EOTF 编码往返 (106,114,69)——直接覆盖不乘皮基色，
+ *  与「简色高糙球面 color 0x6a7245」记档口径同源）+ 逐球变奏：0.5m 格 xz 量化散列
+ *  （球径 0.048–0.064m ≈ 格 1/8——整球同格为主、成对球常同格；facHash21 纯 ALU
+ *  零新采样）幅度 ±5%（≤10% 上限——避免均一塑料球感）。roughness 分支见
+ *  PLATANUS_BARK_FRUIT_ROUGHNESS。 */
+const PLATANUS_BARK_FRUIT = /* glsl */ `
+// 宿存果序域（v∈[4,5]——球+梗整域身份标记，果序入皮组接口）：绿褐密刺球直接覆盖——
+// 三色带拼贴/红褐收敛对果序域让位（真果序绿褐非红褐——冠缘「黄褐横条」误读修正）
+float pltFruitGate = step(4.0, vUv.y);
+float pltFruitRnd = facHash21(floor(vTreePos.xz * 2.0) + vec2(7.31, 3.17)); // 逐球量化散列（0.5m 格 xz；确定性 ALU）
+diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.144, 0.168, 0.060) * (0.95 + 0.10 * pltFruitRnd), pltFruitGate);
+`;
+
+/** 果序域高糙（三档共用）：果球 roughness → 0.95（密刺球哑光——简色高糙记档口径；
+ *  pltFruitGate 由 map_fragment 注入体先定义，同 main 作用域可见） */
+const PLATANUS_BARK_FRUIT_ROUGHNESS = /* glsl */ `
+roughnessFactor = mix(roughnessFactor, 0.95, pltFruitGate); // 果序域高糙（皮管光滑微泽不进果球）`;
+
 // ── 工厂（每次调用 new 材质 + 独立注入闭包；键不变则共享 program）──────────────────
 
 /**
@@ -597,6 +625,8 @@ ${leafRoughness}`,
  * 斑块剥落」= 最强身份信号（Spec §7、OSU "best asset"）；Low 三色带拼贴 + 上部红褐保留
  * （**远距斑驳剪影是保留面** Spec §7——vs 榉树 Low 全去的分化），去缝/去 fine，1×
  * vnoise。满干型剥落（中龄活跃期——非门控型，取证机位无需门控处理）。风动三档同源不动。
+ * 果序域 v≥4 整域绿褐着色（PLATANUS_BARK_FRUIT——球+梗，果序入皮组冻结接口；绿褐
+ * #6a7245 级 + 逐球散列变奏 + roughness 0.95 高糙；Low 几何不发射果序但分支保留）。
  * 底参：灰绿-灰褐主调 #787e6f（工程设定——Wikipedia "pale grey-green" [5] + OSU olive
  * [8] + 照片 [9] 交叉；G−R = +6 六树最绿读向——冷调灰绿基底与榉灰白基底的色温分化）/
  * m 0 / r 0.86（光滑基底微泽——剥落新皮光滑哑光读向）/ FrontSide。
@@ -612,15 +642,16 @@ export function createPlatanusBarkMaterial(level: ProceduralLevel = 'high'): THR
   const uTime = { value: 0 };
   (material as TimeBridgedMaterial).uniforms = { uTime };
   const barkBody = level === 'low'
-    ? PLATANUS_BARK_HEAD_LOW + PLATANUS_BARK_HIGH + PLATANUS_BARK_TONE_SIMPLE + PLATANUS_BARK_MUL_LOW
+    ? PLATANUS_BARK_HEAD_LOW + PLATANUS_BARK_HIGH + PLATANUS_BARK_TONE_SIMPLE + PLATANUS_BARK_MUL_LOW + PLATANUS_BARK_FRUIT
     : level === 'mid'
-      ? PLATANUS_BARK_HEAD_MID + PLATANUS_BARK_HIGH + PLATANUS_BARK_TONE_SIMPLE + PLATANUS_BARK_MUL_MID
-      : PLATANUS_BARK_HEAD + PLATANUS_BARK_HIGH + PLATANUS_BARK_TONE + PLATANUS_BARK_MUL;
-  const barkRoughness = level === 'high'
+      ? PLATANUS_BARK_HEAD_MID + PLATANUS_BARK_HIGH + PLATANUS_BARK_TONE_SIMPLE + PLATANUS_BARK_MUL_MID + PLATANUS_BARK_FRUIT
+      : PLATANUS_BARK_HEAD + PLATANUS_BARK_HIGH + PLATANUS_BARK_TONE + PLATANUS_BARK_MUL + PLATANUS_BARK_FRUIT; // 果序域分支三档共用（Low 几何不发射果序——域内无顶点，门控恒 0 零成本）
+  const barkRoughnessBase = level === 'high'
     ? 'roughnessFactor = clamp(roughnessFactor - smoothstep(0.60, 0.70, pltBarkTone) * 0.14 + pltSeam * 0.05 + pltBarkHigh * 0.02, 0.05, 1.0); // 新露斑光滑（smooth 新皮层哑光微泽——OSU best asset 读向）+ 缝内微糙 + 上部小枝微糙'
     : level === 'mid'
       ? 'roughnessFactor = clamp(roughnessFactor - smoothstep(0.60, 0.70, pltBarkTone) * 0.14 + pltSeam * 0.05 + pltBarkHigh * 0.02, 0.05, 1.0); // Mid：新露光滑/直缝糙/上部项保留（fine 均值化无采样差）'
       : 'roughnessFactor = clamp(roughnessFactor - smoothstep(0.60, 0.70, pltBarkTone) * 0.12 + pltBarkHigh * 0.02, 0.05, 1.0); // Low：新露光滑/上部项保留（缝糙度项随段去）';
+  const barkRoughness = barkRoughnessBase + '\n' + PLATANUS_BARK_FRUIT_ROUGHNESS; // 果序域高糙三档共用
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uTime = uTime;
     shader.vertexShader = replaceOnce(

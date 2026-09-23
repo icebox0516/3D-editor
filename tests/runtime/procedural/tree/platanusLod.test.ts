@@ -20,8 +20,8 @@
  * - 预算锁定（D19.8，家族行沿用）：8 槽 × 3 档总面落锁定预算 High ≤ 40000 且
  *   ≥ 27000（悬铃木参考下沿——大卡低数量语义：单卡面积 ≈银杏 ×7.7、同覆盖率卡数
  *   天然低，密度语义由大卡覆盖率承载，低于夏栎参考 28754 不阻塞，记档见资产模块头）/
- *   Mid 6000–10000 / Low 1500–3000（实测带 High 27456–28769 / Mid 6208–6968 /
- *   Low 1854–2158）；
+ *   Mid 6000–10000 / Low 1500–3000（实测带 High 29004–31064 / Mid 7756–9308 /
+ *   Low 1854–2158；果序口径 26 三角/球含梗——2026-09-23 更新）；
  * - 恰 2 组（皮 0 / 叶 1，D15）；档间 bbox 一致：同槽三档 XZ 跨 / 总高差 ≤ 0.5m
  *   （LOW_SHELL_MARGIN 0.16 口径——悬铃木大卡尺度）、minY 三档全 0；
  * - Mid/Low 确定性：同 seed 同档两次构建 position/aBend 逐位复现、stats 全等；
@@ -214,7 +214,7 @@ describe('8 槽 × 3 档横扫（预算锁定 / 恰 2 组 / Low 壳卡与果序�
         expect(r.geometry.groups, `slot-${slot} ${level} 应恰 2 组`).toHaveLength(2);
         expect(r.geometry.groups[0]!.materialIndex).toBe(0);
         expect(r.geometry.groups[1]!.materialIndex).toBe(1);
-        // 组账守恒：组 0 = 皮拓扑 + 果序 × 8（果序入皮组——材质接口约定）、组 1 = 卡 × 2
+        // 组账守恒：组 0 = 皮拓扑 + 果序（球 × 26 = 球 20 + 梗 6——果序入皮组，材质接口约定）、组 1 = 卡 × 2
         expect(r.geometry.groups[0]!.count / 3, `slot-${slot} ${level} 组 0 三角 = 皮 + 果序`).toBe(
           r.stats.barkTriangles + r.stats.fruitTriangles,
         );

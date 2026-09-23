@@ -19,9 +19,10 @@
  *   半（2.5）；簇账守恒（簇账 = 总卡数）；卡几何域（宽 0.30–0.44m / 长宽比 0.70–0.90
  *   落 profile 域——阔卵宽>长口径 Spec [1][3][9]——六资产最大叶）；
  * - **宿存球状果序（Spec 判定做 Verified [1][3][7][8][9]）**：挂点/球数账目（球/点
- *   ∈ [1,2] 且成对主导 ≥1.5×——「二球」名源）；果序三角 = 球 × 8（八面体最小表达，
- *   **入皮组**——platanusMaterials 冻结接口：皮组 aLeafRand=0 实心守卫覆盖果影）；
- *   组 0 三角 = 皮拓扑 + 果序、组 1 三角 = 纯叶卡（组账守恒）；果序顶点数 = 球 × 24；
+ *   ∈ [1,2] 且成对主导 ≥1.5×——「二球」名源）；果序三角 = 球 × 26（二十面体球 20 +
+ *   细梗 6——每球恰一梗，**入皮组**——platanusMaterials 冻结接口：皮组 aLeafRand=0
+ *   实心守卫覆盖果影）；
+ *   组 0 三角 = 皮拓扑 + 果序、组 1 三角 = 纯叶卡（组账守恒）；果序顶点数 = 球 × 78；
  *   长梗下垂——果序顶点均值 Y 低于叶卡均值 Y（「pendulous at least in fruit」FOC [4]
  *   的方向性读数）；
  * - 冠内通透（显式规则）：候选 → 存活存在剔卡且密度场/空腔两规则实际命中（通道为
@@ -169,24 +170,24 @@ describe('大叶疏簇挂点（悬铃木独有身份——Spec §4 互生一节�
 });
 
 describe('宿存球状果序（Spec 判定做——§2/域扩展节 B Verified [1][3][7][8][9]）', () => {
-  it('账目守恒：组 0 三角 = 皮拓扑 + 果序三角；组 1 三角 = 卡 × 2（纯叶卡）；果序三角 = 球 × 8；果序顶点 = 球 × 24（八面体最小表达，入皮组）', () => {
+  it('账目守恒：组 0 三角 = 皮拓扑 + 果序三角；组 1 三角 = 卡 × 2（纯叶卡）；果序三角 = 球 × 26；果序顶点 = 球 × 78（二十面体球 + 细梗，入皮组）', () => {
     const result = buildTracked(SEED0);
     const { stats } = result;
     const group0Tris = result.geometry.groups[0]!.count / 3;
     const group1Tris = result.geometry.groups[1]!.count / 3;
-    expect(stats.fruitTriangles).toBe(stats.fruitBalls * 8);
-    expect(group0Tris, '组 0（皮+果序）三角 = 皮拓扑 + 果序 × 8（果序入皮组记档——材质接口约定）').toBe(
+    expect(stats.fruitTriangles).toBe(stats.fruitBalls * 26);
+    expect(group0Tris, '组 0（皮+果序）三角 = 皮拓扑 + 果序 × 26（果序入皮组记档——材质接口约定）').toBe(
       stats.barkTriangles + stats.fruitTriangles,
     );
     expect(group1Tris, '组 1 三角 = 纯叶卡 × 2').toBe(stats.leafCards * 2);
-    // uv v≥4 果序域顶点数 = 球 × 24（几何身份标记的全几何扫描——v≥4 与皮管弧长域隔离）
+    // uv v≥4 果序域顶点数 = 球 × 78（几何身份标记的全几何扫描——v≥4 与皮管弧长域隔离）
     const uv = result.geometry.getAttribute('uv');
     const count = result.geometry.getAttribute('position').count;
     let fruitVerts = 0;
     for (let i = 0; i < count; i++) {
       if (uv.array[i * 2 + 1]! >= 4) fruitVerts++;
     }
-    expect(fruitVerts, '果序域（uv v≥4）顶点数应 = 球 × 24').toBe(stats.fruitBalls * 24);
+    expect(fruitVerts, '果序域（uv v≥4）顶点数应 = 球 × 78').toBe(stats.fruitBalls * 78);
   }, 30000);
 
   it('每果枝典型 2 球（「二球」名源 [1][3][5]）：球/挂点 ∈ [1, 2] 且成对主导（≥ 1.5×）', () => {

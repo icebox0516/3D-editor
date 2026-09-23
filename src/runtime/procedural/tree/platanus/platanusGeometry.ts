@@ -52,11 +52,16 @@
  *     **每果枝典型 2 个**（「二球」名源 [1][3][5]——85% 成对 / 15% 单球 roll）；
  *     **长梗下垂叶幕下方**（FOC "pendulous at least in fruit" [4]）——挂点 = 保留 L5
  *     簇位低频抽样（bear rate 0.22，roll 与簇位消费同流无条件）+ 球心垂挂簇心下方
- *     0.10–0.18m（簇半径外 + 长梗）+ 成对水平错位 3×球径；表达 = **八面体最小面数**
- *     （8 面/球，flat 法线）；**账目入皮组（组 0）**——platanusMaterials（park-shader-
+ *     0.10–0.18m（簇半径外 + 长梗）+ 成对水平错位 3×球径；表达 = **正二十面体球 +
+ *     细梗**（20 面/球 flat 法线——球形剪影中距 15–30m 可读、近景无八面体菱形/尖角
+ *     读向；球心 sin 散列确定性姿态（零 rng）逐球剪影错位去克隆；每球一根 3 面
+ *     ≈3mm 细梗——首球梗自簇心回连、成对第二球梗自首球球心侧向连出，端点内埋
+ *     簇心/球心（无盖无接缝）破「无梗悬浮」读向；26 三角/球含梗）；
+ *     **账目入皮组（组 0）**——platanusMaterials（park-shader-
  *     agent 并行交付、签名冻结）模块头记档的冻结接口：皮材质圆上部红褐偏色近似绿褐
  *     果球（褐系近似、可接受记档）+ 拼贴场按 uv 采样 + **深度材质 aLeafRand=0 皮组
- *     实心守卫天然覆盖果序（果影实心）**；果序顶点 **uv v ∈ [4,5] 果序域**（与叶卡
+ *     实心守卫天然覆盖果序（果影实心）**；果序顶点（球 + 梗）**uv v ∈ [4,5] 果序域**
+ *     （与叶卡
  *     0–1 四边形域及皮管弧长域（v ≤ ≈3.1）双重隔离的几何身份标记——皮材质拼贴场在
  *     v≥4 域 = 移位拼贴微变奏，无害）
  *     + aLeafRand/aBend 随皮组恒 0（aBend 0 = 刚性悬垂——风动语义归材质层）；rng
@@ -123,7 +128,7 @@
  *        发射（末梢径亚厘米，Mid 观距亚像素；簇位/果序挂点照常派生）+ 簇内叶卡掩码
  *        j % 3 === 1（疏簇 5 候选中 2 张（40%）——被弃候选足额消费 rng 后不进烘焙；
  *        通透过滤对全候选照常执行 → Mid 存活卡 ⊂ High 存活卡逐位同位）+ 树皮微起伏
- *        保留 + **果序全量保留**（身份信号——成对果球中距可读 [9]，8 面/球预算轻）；
+ *        保留 + **果序全量保留**（身份信号——成对果球中距可读 [9]，26 三角/球预算轻）；
  *        皮 4514；
  *      - Low：主干 + L1 骨架极简管（径向 6/4、隔 1 抽 1；递归照常走完消费 rng）+
  *        冠 = High 簇位表驱动的壳层卡（每保留簇 2 张交叉竖卡，半幅 = 簇半径 + 0.16m
@@ -165,10 +170,13 @@ interface ClusterRecord {
   dir: THREE.Vector3;
 }
 
-/** 单个果球记录（八面体发射原料：球心 + 半径） */
+/** 单个果球记录（发射原料：球心 + 半径 + 梗起点——首球梗回簇心、成对第二球梗自首球
+ *  球心侧向连出（不必各自回簇心）；球/梗发射为记录的确定性纯函数，零 rng） */
 interface FruitBall {
   center: THREE.Vector3;
   radius: number;
+  /** 细梗起点（首球 = 簇心；成对第二球 = 首球球心——端点内埋，无盖无接缝） */
+  stemFrom: THREE.Vector3;
 }
 
 /** 果序挂点记录：1–2 球（「果枝有头状果序 1-2 个，典型 2」FRPS Verified [1]） */
@@ -221,9 +229,10 @@ export interface PlatanusGeometryResult {
     /** 叶卡三角（仅卡——leafCards × 2；果序三角单列 fruitTriangles） */
     leafTriangles: number;
     leafCards: number;
-    /** 宿存果序账目：挂点数（1–2 球/点）/ 烘焙球数 / 果序三角（球 × 8；Low = 0 省略）。
-     *  守恒：组 0 三角 = 皮拓扑（barkTriangles）+ fruitTriangles（果序入皮组记档——
-     *  材质接口约定）、组 1 三角 = leafTriangles（纯叶卡） */
+    /** 宿存果序账目：挂点数（1–2 球/点）/ 烘焙球数 / 果序三角（球 × 26 = 二十面体球
+     *  20 + 细梗 6——每球恰一梗；Low = 0 省略）。守恒：组 0 三角 = 皮拓扑
+     *  （barkTriangles）+ fruitTriangles（果序入皮组记档——材质接口约定）、组 1 三角
+     *  = leafTriangles（纯叶卡） */
     fruitSites: number;
     fruitBalls: number;
     fruitTriangles: number;
@@ -360,6 +369,12 @@ const FRUIT_HANG_SPAN = 0.08;
 /** 成对水平错位（× 球径）：3×球径 ≈ 0.14–0.19m——「成对」中距可辨（pairAz = azRoll
  *  派生方位，双球同深错位） */
 const FRUIT_PAIR_OFFSET = 3;
+/** 果梗半径（米）：≈3mm 直径的果梗量级（视觉存在即可——细线读向）；单段 3 面细管、
+ *  两端内埋（from = 簇心/首球球心、to = 球心——被叶幕/球体遮挡，无盖无接缝） */
+const FRUIT_STEM_R = 0.0015;
+/** 每球三角账（结构常数）：正二十面体球 20 + 细梗 6（3 面 × 单段）= 26——
+ *  stats.fruitTriangles = 烘焙球数 × 26（组 0 守恒口径，见 stats.fruitTriangles） */
+const FRUIT_TRIS_PER_BALL = 26;
 
 // ── LOD 三档发射计划（家族方法复制——档位只改「发射」，不改骨架决策/rng 消费序）──
 
@@ -499,66 +514,119 @@ function emitShellCard(
   }
 }
 
-// ── 宿存果序发射（八面体最小面数——8 面/球 flat 法线；uv v∈[4,5] 果序域约定）──
+// ── 宿存果序发射（正二十面体 20 面 flat 球 + 每球一根 3 面细梗 = 26 三角/球；
+//    uv v∈[4,5] 果序域约定——球/梗全部顶点落域内，材质侧冻结接口）──
 
-/** 八面体面表：[顶点三元组（± 轴单位索引）, 面法线]——顶点序 T/B/A/C/M/P = +Y/−Y/+X/+Z/
- *  −X/−Z；绕序外向（与管发射同为非索引三角流）；法线 = 面心向外单位向量（正八面体
- *  解析值，flat shading 逐面恒定） */
-const OCTA_FACES: { v: [number, number, number]; n: THREE.Vector3 }[] = (() => {
-  const T = [0, 1, 0], B = [0, -1, 0], A = [1, 0, 0], C = [0, 0, 1], M = [-1, 0, 0], P = [0, 0, -1];
-  const V = [T, B, A, C, M, P];
-  const mk = (a: number, b: number, c: number): { v: [number, number, number]; n: THREE.Vector3 } => {
-    const [ax, ay, az] = V[a]!;
-    const [bx, by, bz] = V[b]!;
-    const [cx, cy, cz] = V[c]!;
-    const n = new THREE.Vector3(
-      (ax + bx + cx) / 3,
-      (ay + by + cy) / 3,
-      (az + bz + cz) / 3,
-    ).normalize();
-    return { v: [a, b, c], n };
-  };
-  // 顶四面上绕（外向 CCW）+ 底四面下绕
-  return [
-    mk(2, 0, 3), mk(3, 0, 4), mk(4, 0, 5), mk(5, 0, 2),
-    mk(3, 1, 2), mk(4, 1, 3), mk(5, 1, 4), mk(2, 1, 5),
-  ];
+/** 正二十面体单位顶点表（黄金矩形顶点集归一到单位球——12 顶点；flat 面片弦面
+ *  微内切于球（面心 ≈0.79R）——20 面剪影已圆，无八面体上下尖角读向） */
+const ICO_VERTS: THREE.Vector3[] = (() => {
+  const t = (1 + Math.sqrt(5)) / 2;
+  return (
+    [
+      [-1, t, 0], [1, t, 0], [-1, -t, 0], [1, -t, 0],
+      [0, -1, t], [0, 1, t], [0, -1, -t], [0, 1, -t],
+      [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1],
+    ] as const
+  ).map(([x, y, z]) => new THREE.Vector3(x, y, z).normalize());
 })();
 
-/** 八面体单位顶点表（索引同 OCTA_FACES 注释：T/B/A/C/M/P） */
-const OCTA_VERTS: THREE.Vector3[] = [
-  new THREE.Vector3(0, 1, 0),
-  new THREE.Vector3(0, -1, 0),
-  new THREE.Vector3(1, 0, 0),
-  new THREE.Vector3(0, 0, 1),
-  new THREE.Vector3(-1, 0, 0),
-  new THREE.Vector3(0, 0, -1),
-];
+/** 正二十面体面表：[顶点索引三元组, 面法线]——20 面外向 CCW；绕序自校准（叉积法线
+ *  与面心外积 < 0 时翻转顶点序——确定性构造，与手写绕序笔误免疫）；法线 = 面平面
+ *  单位法线（flat shading 逐面恒定） */
+const ICO_FACES: { v: [number, number, number]; n: THREE.Vector3 }[] = (
+  [
+    [0, 11, 5], [0, 5, 1], [0, 1, 7], [0, 7, 10], [0, 10, 11],
+    [1, 5, 9], [5, 11, 4], [11, 10, 2], [10, 7, 6], [7, 1, 8],
+    [3, 9, 4], [3, 4, 2], [3, 2, 6], [3, 6, 8], [3, 8, 9],
+    [4, 9, 5], [2, 4, 11], [6, 2, 10], [8, 6, 7], [9, 8, 1],
+  ] as const
+).map(([a, b, c]) => {
+  const centroid = ICO_VERTS[a]!.clone().add(ICO_VERTS[b]!).add(ICO_VERTS[c]!);
+  const n = ICO_VERTS[b]!
+    .clone()
+    .sub(ICO_VERTS[a]!)
+    .cross(ICO_VERTS[c]!.clone().sub(ICO_VERTS[a]!))
+    .normalize();
+  return n.dot(centroid) >= 0 ? { v: [a, b, c], n } : { v: [a, c, b], n: n.negate() };
+});
+
+/** 球心 sin 散列派生果球姿态（确定性零 rng——Low 壳卡 shellCardRandOf 同款口径）：
+ *  yaw 全周 + tilt ±≈31.5°——逐球 20 面剪影错位，破「整行同向同形」的合并读向；
+ *  同球心同姿态（确定性不破）、跨球心自然去克隆 */
+function fruitBallOrientation(center: THREE.Vector3): THREE.Quaternion {
+  const base = fract01(Math.sin(center.x * 12.9898 + center.y * 78.233 + center.z * 37.719) * 43758.5453);
+  const derived = fract01(base * 7.31 + 0.37);
+  const yaw = base * Math.PI * 2;
+  const tilt = (derived - 0.5) * 1.1;
+  return new THREE.Quaternion().setFromEuler(new THREE.Euler(tilt, yaw, 0));
+}
 
 /**
- * 单果球发射：八面体 8 面 × 3 顶点（24 顶点/球）；uv 三角 (0,4)(1,4)(0.5,5)——**v∈[4,5]
- * 果序域**（几何身份标记：与叶卡 0–1 四边形域及皮管弧长域（v = 累计弧长 × 0.5，最长
- * 枝 ≈6m 弧 → v ≤ ≈3.1）双重隔离——v≥2 会与长枝皮管碰撞，取 ×2 安全带）。**账目入皮组
- * （组 0）**——材质侧 platanusMaterials 冻结接口（其模块头记档）：皮材质圆上部红褐偏色
- * 近似绿褐果球（褐系近似、可接受记档）+ 拼贴场按 uv 采样（v≥4 域 = 移位拼贴微变奏，
- * 无害）+ 深度材质 aLeafRand=0 皮组实心守卫天然覆盖果序（果影实心）；aLeafRand/aBend
- * 随皮组恒 0（果序刚性悬垂——风动语义归材质层）。
+ * 单果球发射：正二十面体 20 面 × 3 顶点（60 顶点/球）+ 球心散列姿态旋转（顶点/法线
+ * 同刚体旋转）；uv 三角 (0,4)(1,4)(0.5,5)——**v∈[4,5] 果序域**（几何身份标记：与叶卡
+ * 0–1 四边形域及皮管弧长域（v = 累计弧长 × 0.5，最长枝 ≈6m 弧 → v ≤ ≈3.1）双重隔离
+ * ——v≥2 会与长枝皮管碰撞，取 ×2 安全带）。**账目入皮组（组 0）**——材质侧
+ * platanusMaterials 冻结接口（其模块头记档）：皮材质按 uv v≥4 门控整域染绿褐色果球 +
+ * 深度材质 aLeafRand=0 皮组实心守卫天然覆盖果序（果影实心）；aLeafRand/aBend 随皮组
+ * 恒 0（果序刚性悬垂——风动语义归材质层）。
  */
 function emitFruitBall(
   sink: BarkSink,
   center: THREE.Vector3,
   radius: number,
 ): void {
-  for (const face of OCTA_FACES) {
+  const q = fruitBallOrientation(center);
+  for (const face of ICO_FACES) {
     const [ia, ib, ic] = face.v;
     const uvs: [number, number][] = [[0, 4], [1, 4], [0.5, 5]];
     const idxs = [ia!, ib!, ic!];
     for (let k = 0; k < 3; k++) {
-      const v = OCTA_VERTS[idxs[k]!]!;
+      const v = ICO_VERTS[idxs[k]!]!.clone().applyQuaternion(q);
       sink.pos.push(center.x + v.x * radius, center.y + v.y * radius, center.z + v.z * radius);
-      sink.nrm.push(face.n.x, face.n.y, face.n.z);
+      const n = face.n.clone().applyQuaternion(q);
+      sink.nrm.push(n.x, n.y, n.z);
       sink.uv.push(uvs[k]![0], uvs[k]![1]);
     }
+  }
+}
+
+/**
+ * 单根细梗发射：from → to 的 3 面细管单段（6 三角/梗）——顶点流与 emitTube 同外向绕制
+ * （(n,b,d) 右手系，参考基取与梗向最不共线基投影）；法线 flat 逐面（边中角径向）；
+ * 梗径 FRUIT_STEM_R ≈3mm（果梗量级，视觉存在即可）；两端内埋（from = 簇心（叶幕内）/
+ * 首球球心、to = 球心（球体内））无盖无接缝；uv：u 沿梗长 0→1、v 恒 4.5——**v∈[4,5]
+ * 果序域**（材质接口与球同域，见 emitFruitBall）。零 rng、纯 from/to 确定性函数。
+ */
+function emitFruitStem(sink: BarkSink, from: THREE.Vector3, to: THREE.Vector3): void {
+  const d = to.clone().sub(from).normalize();
+  const ref = Math.abs(d.y) < 0.9 ? UP : new THREE.Vector3(1, 0, 0);
+  const n = ref.clone().sub(d.clone().multiplyScalar(d.dot(ref))).normalize();
+  const b = d.clone().cross(n); // B = D×N——(n,b,d) 右手系，绕制序外向同 emitTube
+  const pushVert = (base: THREE.Vector3, c: number, s: number, u: number): void => {
+    sink.pos.push(
+      base.x + (n.x * c + b.x * s) * FRUIT_STEM_R,
+      base.y + (n.y * c + b.y * s) * FRUIT_STEM_R,
+      base.z + (n.z * c + b.z * s) * FRUIT_STEM_R,
+    );
+    sink.uv.push(u, 4.5);
+  };
+  for (let j = 0; j < 3; j++) {
+    const th0 = (j / 3) * Math.PI * 2;
+    const th1 = ((j + 1) / 3) * Math.PI * 2;
+    const mid = (th0 + th1) / 2;
+    const c0 = Math.cos(th0), s0 = Math.sin(th0), c1 = Math.cos(th1), s1 = Math.sin(th1);
+    const nx = n.x * Math.cos(mid) + b.x * Math.sin(mid);
+    const ny = n.y * Math.cos(mid) + b.y * Math.sin(mid);
+    const nz = n.z * Math.cos(mid) + b.z * Math.sin(mid);
+    // 顶点流（emitTube 同序）：a0 a1 b1 | a0 b1 b0（from 环 u=0 / to 环 u=1）
+    pushVert(from, c0, s0, 0);
+    pushVert(from, c1, s1, 0);
+    pushVert(to, c1, s1, 1);
+    sink.nrm.push(nx, ny, nz, nx, ny, nz, nx, ny, nz);
+    pushVert(from, c0, s0, 0);
+    pushVert(to, c1, s1, 1);
+    pushVert(to, c0, s0, 1);
+    sink.nrm.push(nx, ny, nz, nx, ny, nz, nx, ny, nz);
   }
 }
 
@@ -862,7 +930,7 @@ function emitBaseCapTri(sink: BarkSink, center: THREE.Vector3, radius: number, r
  * 干向挂点高度分级（长度 ×1.18→×0.72 / 角度 +14…16°→−6…−8° 低枝平展高枝收角）——
  * 阔卵-圆头冠的结构成因，Spec §3 Inferred [9] + open spreading Verified [7][8]；领导枝
  * 0.50 中庸续顶——圆头顶共构）。大叶疏簇挂点：末两级枝梢疏簇（大簇 + 5 候选大卡黄金角
- * 互生螺旋）+ 保留 L5 簇位果序挂点（成对八面体球，见模块头）。主次分级与冠内通透规则
+ * 互生螺旋）+ 保留 L5 簇位果序挂点（成对二十面体球 + 细梗，见模块头）。主次分级与冠内通透规则
  * 见模块头。
  * profile 缺省 = slot-0 标准组合（锚点回落——单测直调便捷路径，资产路径显式传槽
  * profile）。level 缺省 = 'high'（三档同流派生——档位只改发射密度，不改骨架决策/
@@ -1189,13 +1257,15 @@ export function buildPlatanusGeometry(
     }
   }
 
-  // ── 果序烘焙（High/Mid 全量：逐球八面体 8 面——**入皮组（组 0）**：uv v∈[4,5] 果序
-  //    域身份标记 + aLeafRand/aBend 随皮组恒 0（材质侧冻结接口——皮材质冠上部红褐偏色
-  //    近似绿褐果球、深度材质 aLeafRand=0 实心守卫覆盖果影，见 emitFruitBall 注释）；
-  //    「满冠悬垂绿褐果球、长梗下垂叶幕下」Spec §2 判定做的几何侧表达；Low 省略记档 ──
+  // ── 果序烘焙（High/Mid 全量：逐球细梗 + 正二十面体球 = 26 三角/球——**入皮组
+  //    （组 0）**：uv v∈[4,5] 果序域身份标记 + aLeafRand/aBend 随皮组恒 0（材质侧
+  //    冻结接口——皮材质 v≥4 门控整域染绿褐果球、深度材质 aLeafRand=0 实心守卫覆盖
+  //    果影，见 emitFruitBall/emitFruitStem 注释）；「满冠悬垂绿褐果球、长梗下垂叶幕
+  //    下」Spec §2 判定做的几何侧表达；Low 省略记档 ──
   if (!lod.shellCards) {
     for (const site of ctx.fruit) {
       for (const ball of site.balls) {
+        emitFruitStem(bark, ball.stemFrom, ball.center);
         emitFruitBall(bark, ball.center, ball.radius);
       }
     }
@@ -1226,7 +1296,7 @@ export function buildPlatanusGeometry(
   leafGeo.setAttribute('aLeafRand', mkAttr(leafRand));
   leafGeo.setAttribute('aBend', mkAttr(leafBend));
 
-  const geometry = mergeGeometries([barkGeo, leafGeo], true); // 层间成组 → 恰 2 组（皮 0 / 叶 1——果序入叶组）
+  const geometry = mergeGeometries([barkGeo, leafGeo], true); // 层间成组 → 恰 2 组（皮 0 / 叶 1——果序入皮组）
   barkGeo.dispose(); // 合并拷贝数据，层中间体即弃
   leafGeo.dispose();
   if (!geometry) throw new Error('程序化资产 asset_tree_platanus 层合并不兼容（属性集应一致：position/normal/uv/aLeafRand/aBend）');
@@ -1235,7 +1305,7 @@ export function buildPlatanusGeometry(
   /** 组 0 = 皮拓扑 + 果序（果序入皮组——材质接口约定，见 emitFruitBall 注释）；
    *  皮拓扑面数 = 组 0 三角 − 果序三角（结构锁 24178 口径不变） */
   const group0Tris = (groups[0]?.count ?? 0) / 3;
-  const fruitTris = bakedFruitBalls * 8;
+  const fruitTris = bakedFruitBalls * FRUIT_TRIS_PER_BALL;
   return {
     geometry,
     stats: {
@@ -1477,16 +1547,20 @@ function growBranch(
           // 球心垂挂簇心下方：簇半径外 + 长梗（FOC "pendulous at least in fruit" [4]）
           const hangBase = center.clone().addScaledVector(UP, -(radius * 0.9 + hang));
           const u = new THREE.Vector3(Math.cos(pairAz), 0, Math.sin(pairAz));
+          // 细梗挂点：首球梗自簇心回连（簇心藏梗顶）、成对第二球梗自首球球心侧向连出
+          // （成对水平错位的连接读向——不必各自回簇心）；stemFrom 只作发射原料，零 rng
           const balls: FruitBall[] = [
             {
               center: hangBase.clone().addScaledVector(u, ballR * FRUIT_PAIR_OFFSET),
               radius: ballR,
+              stemFrom: center.clone(),
             },
           ];
           if (singleRoll < FRUIT_PAIR_RATE) {
             balls.push({
               center: hangBase.clone().addScaledVector(u, -ballR * FRUIT_PAIR_OFFSET),
               radius: ballR,
+              stemFrom: balls[0]!.center,
             });
           }
           ctx.fruit.push({ balls });
