@@ -17,7 +17,7 @@
 - `npm test`、`npm run check:layers`、`npm run typecheck` 三重门槛全绿才算完成
 - `three` 只允许出现在 `src/runtime` 与 `src/app`（分层检查强制）；editor/ui/domain 零 THREE
 - 渲染循环为每帧连续渲染（有意决策，勿擅自改按需渲染）；`Renderer.dispose` 不得加 `forceContextLoss`（StrictMode 双挂载历史冻结 bug）
-- Scene 是唯一数据源；一切持久变更经 Command（可撤销重做）；渲染层只读场景
+- Scene 是唯一数据源；**用户可编辑场景数据的持久变更默认经 Command**（可撤销重做）；已知系统级例外：图层创建/删除（直调 SceneManager，不可撤销）与组合根 openScene / 默认装配（全量替换语义），二者不入普通编辑历史——清单见 `docs/architecture-audit/09_COMMAND_HISTORY.md`；渲染层只读场景
 - 新增依赖必须属于当前任务范围，使用 npm 最新稳定版并锁定版本，通过三重门槛；既有依赖（含 `three` / `@types/three`）未经任务书或用户明确授权不得升级；不新增重量级依赖（D31）
 - UI 任务先读 frontend-design 技能；视觉遵循 `src/ui/styles/` 设计系统；图标 lucide-react
 - 进程用完即清：视觉验收/调试拉起的 dev server、浏览器标签、后台任务在收尾前停掉，不留跨会话残留
