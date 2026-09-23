@@ -40,8 +40,8 @@ Status 四值：**有效**（当前依据；条内自足的行内修订仍属有
 | D24 | 有效 | — | 文档五件套职责收敛 | `2026-09-18 · D24 文档五件套职责收敛：状态与依赖的单一真相源` |
 | D25 | 有效 | 声明「默认假设」块第 4 条（threejs-expert 派发）失效 | 多 Agent 按 Step 派发 | `2026-09-18 · D25 多 Agent 按 Step 动态派发` |
 | D26 | 有效 | 含同日「D26 修订」子节（收窄第 2 项豁免末条 + 执行细则） | 调研 Gate 与 Reference Spec | `2026-09-18 · D26 资产调研机制：Research Gate + Reference Spec（grilling 逐题裁定）` |
-| D27 | 部分取代 | 第 3 项经 D28.5 升格为硬约束；第 11 项 T006 排期已由 D28.2 / D31.4 改写（旧排期失效）；其余条款仍有效 | 通用 Asset Runtime LOD 架构 | `2026-09-19 · D27 通用 Asset Runtime LOD 架构（grilling 两轮 + 对抗审核，Q1–Q10 逐题裁定）` |
-| D28 | 部分取代 | 第 2 项排期被同日用户指令提前（Step 2 已落地、Step 3 待做），D31.4 确认旧排期失效；其余条款仍有效 | LOD 选档基准稳定化 | `2026-09-20 · D28 LOD 选档基准稳定化方向与 GLB LOD 消费硬约束（grilling 五题裁定）` |
+| D27 | 部分取代 | 第 3 项经 D28.5 升格为硬约束；第 11 项 T006 排期已由 D28.2 / D31.4 改写（旧排期失效）；第 3/4/7/12 项的运行面条款（六档语义集与实装范围 / 桶键 level 维度 / 枚举三值定死 / levels 最小化不扩表示字段）经 D41 升级为 Representation 体系——canopy 入联合、桶键 level→representation、独立 representations 声明字段；运行面真相源 = `docs/procedural-assets/representation-runtime.md`；其余条款仍有效 | 通用 Asset Runtime LOD 架构 | `2026-09-19 · D27 通用 Asset Runtime LOD 架构（grilling 两轮 + 对抗审核，Q1–Q10 逐题裁定）` |
+| D28 | 部分取代 | 第 2 项排期被同日用户指令提前（Step 2 已落地），D31.4 确认旧排期失效；第 3 项 Step 3（A/B 实测 + 阈值重锁判定）2026-09-23 迁 T021.8 承接、006.6 收口（D41）；其余条款仍有效 | LOD 选档基准稳定化 | `2026-09-20 · D28 LOD 选档基准稳定化方向与 GLB LOD 消费硬约束（grilling 五题裁定）` |
 | D29 | 有效 | 同日修订并入第 11–14 条并取代原文第 11/12 条（showSunDisc / displaySky+bakeSky 双实例） | 天空与环境光照架构 | `2026-09-20 · D29 真实程序化天空与环境光照架构（T018 立项 grilling 两轮裁定）` |
 | D30 | 部分取代 | 第 1 条「npm test 每任务必跑」触发条件子句经 D40 改判据式（分层结构不变，历史原文保留）；第 2 条「基线帧参数 SOP §5」指针已修（2026-09-23 行内注 → shadow-visual-sop §3） | 资产验收分层 | `2026-09-20 · D30 资产验收分层：单资产增量验证 + 族级集体验收（grilling 两轮八题裁定）` |
 | D31 | 有效 | 第 4 条取代 D28.2 排期；第 10 条为 2026-09-22 随 D36 增补 | 任务文档规则收口 | `2026-09-20 · D31 任务文档规则收口（grilling 两轮裁定）` |
@@ -55,6 +55,7 @@ Status 四值：**有效**（当前依据；条内自足的行内修订仍属有
 | D38 | 有效 | — | 调研瘦身与证据封顶 | `2026-09-22 · D38 调研层瘦身：Spec 两层化 + 终审采样 + 证据封顶（grilling 六题点选裁定，纯文档零代码）` |
 | D39 | 有效 | 018.5 验收收口裁定；索引行系主代理 2026-09-23 补登（收官会话漏登——同步规则首个实测失败例） | 过曝处置：显示域压缩 | `2026-09-23 · D39 T018 过曝处置：显示域压缩选定，tone mapping 重审弃选（018.5 验收收口裁定）` |
 | D40 | 有效 | — | 任务执行体系收敛 | `2026-09-23 · D40 任务执行体系收敛：Lean Task + read-set 白名单 + 测试纪律（T020 grilling 逐题裁定）` |
+| D41 | 有效 | — | LOD→Representation 运行体系（T021 立项） | `2026-09-23 · D41 LOD→Representation 运行体系（T021 立项：grilling 三轮 16 题裁定 + 独立对抗审核修正）` |
 
 ---
 
@@ -310,7 +311,7 @@ D26.2 六情形末条「spec 关键事实含 Unknown」收窄为：**关键事�
 **背景**：用户检查 LOD 系统提出两项疑点（选档基准稳定性 / GLB 未来接入路径）。经只读事实探查（两链选档输入、三档 bounds 实测差异、GLB 链路、规范记档现状）+ grilling 五题逐题裁决（Q1 无观察病症定性卫生债 / Q2 GLB 已共享 Runtime / Q3 稳定基准 = High 档派生 / Q4 T011 后修 + 测试先行 / Q5 GLB 原则升格硬约束）。
 
 1. **现状定性（卫生债，非缺陷）**：两链选档度量 `m = d/(r·scale)` 的 `r` 均取**当前档位**几何 boundingSphere（放置链 `InstancedAssetPool.frameLod` 随桶迁档换源；散布链 `ScatterChunkManager.frame` 按当前档位键取缓存半径）；三档几何 bounds 实际不等（档间轮廓连续性容差 ≤0.4m，折算半径差 ~2-5%）——「迁档→半径换源→读数平移」反馈环存在，但被 15% 迟滞带（hysteresisBand）吸收，无观察病症。`ScatterChunkManager`「档间轮廓连续不变量下各档近似同值」此前仅为注释级假设，未被测试锁定。
-2. **演进方向锁定：选档基准 = High 档派生的稳定资产级半径**。Runtime 在源解析时一次计算 High 档几何包围球并缓存为资产级选档半径，两链恒用；**剔除不跟随**（逐桶视锥剔除继续用各档真实几何球——剔除用真实包围是正确语义）；`sourceKey` 形态身份、桶键、迟滞、批次控制语义零变化。实装归 **T006.6**，排期 = T011 族建设后（不阻塞当前 epic）。（2026-09-20 同日修订：用户指令 Step 2 提前于 T011 执行并落地，Step 3 A/B 实测记档仍待做——见 006.6 完成记录。）仓库此前无任何稳定资产级基准概念（`proceduralProfile` h/w 为 T016 浏览语义、运行时零消费者）。
+2. **演进方向锁定：选档基准 = High 档派生的稳定资产级半径**。Runtime 在源解析时一次计算 High 档几何包围球并缓存为资产级选档半径，两链恒用；**剔除不跟随**（逐桶视锥剔除继续用各档真实几何球——剔除用真实包围是正确语义）；`sourceKey` 形态身份、桶键、迟滞、批次控制语义零变化。实装归 **T006.6**，排期 = T011 族建设后（不阻塞当前 epic）。（2026-09-20 同日修订：用户指令 Step 2 提前于 T011 执行并落地。2026-09-23 追记：Step 3 A/B 实测记档迁 T021.8 承接〔D41〕——006.6 任务书已收口。）仓库此前无任何稳定资产级基准概念（`proceduralProfile` h/w 为 T016 浏览语义、运行时零消费者）。
 3. **阈值重锁判定义务**：统一到 High 半径后有效换档点整体平移 ≤~5%（`m = d/r` 反比），处于迟滞带内；按 006.5 常量纪律（数值变更须重开实测记档），T006.6 须带 A/B 对照实测记档，判定 LOD_THRESHOLDS 6/16/60/0.15 是否触发重锁。
 4. **D27.12 边界澄清**：稳定基准是 Runtime 从 High 档几何**派生的缓存值**，不是资产声明字段——不违反「调度阈值归 Runtime 全局策略常量、不进资产 Profile」（D27.12）；`proceduralProfile` h/w 保持浏览语义不进选档。
 5. **GLB LOD 消费硬约束（D27.3 GLB Proxy 条目升格）**：GLB 资产未来接入多档时**必须直接消费现有 Asset Runtime LOD**——扩展点 = `ModelAsset` levels 声明契约 + `Renderer.declaredLevelsOf` + `AssetSourceRouter` file 分支 level 透传；**禁止另建 GLB 专用 LOD 体系**（D27.1 资产域专属 LOD 禁令的延续，GLBLOD 类平行系统同样禁止）。现状记档：GLB 已走共享链（file 分支忽略 level → 无声明档位恒 High + 超远 culled），仓库零 GLB 专用 LOD 代码；Proxy/Impostor 规范预留位语义不变（lod-spec §3）。
@@ -495,4 +496,23 @@ D26.2 六情形末条「spec 关键事实含 Unknown」收窄为：**关键事�
 5. **历史任务隔离与族门骨架**：历史任务书 / 完成记录的旧协议表述（复述流程骨架 / 旧基线数 / 旧门槛口径）为当时事实不回改（D31.1 延续）；check 脚本对历史信号 report-only、不判合法性。Family Acceptance Gate 升骨架不升全 SOP（R7：仅 Broadleaf 一族执行过，不足以泛化家族特有检查项）——workflow 载七项骨架（横向一致性 / 真实差异 / 混合场景 / 预算·LOD / 性能 / 家族契约收口 / 回归），family-specific 检查项归各 Epic 定义（Broadleaf 实现留在 011.13 完成记录，不复制进 workflow）。
 
 **承载文件清单（生效依赖，可机械核对）**：`AGENTS.md`（四句判据式硬约束）｜`.zcode/agents/threejs-runtime-agent.md` + `procedural-asset-agent.md` + `park-shader-agent.md`（read-set 统一，本地私有 R1）｜`.zcode/skills/asset-production/workflows/tree.md`（三列化 + Step 1 读取顺序 + 测试纪律 + 族门骨架节 + 定位句，本地私有 R1）｜`docs/task-authoring.md`（Lean Task 规范）｜`tasks/_template.md`（canonical 模板）｜`scripts/check-task-authoring.mjs` + `package.json`（`check:tasks`）｜`TASKS.md` / `PROGRESS.md`（D24 口径压缩）｜`docs/procedural-assets/precedents/broadleaf.md`（定位句一行同步）。D16 / D30 索引行 Status 改「部分取代」。
+
+## 2026-09-23 · D41 LOD→Representation 运行体系（T021 立项：grilling 三轮 16 题裁定 + 独立对抗审核修正）
+
+**背景**：用户提供根目录草稿 `lod升级.md`（未跟踪工作文件，提出以 Representation 体系取代 T006 level 统一语义）。经 grilling 三轮（Round1 九题 / Round2 七题 / Round3 编号与落盘形态 + 散布风动相位）逐题裁定 + 两个只读事实核验代理（代码面 10 项、生态面 9 项全证实：m 公式与代码注释口径、BATCH_POLICY 数值、阈值、ClusterRecord 13 处无共享类型、风动三档同源注释、focusObjects 签名、散布无 slot 维度等）+ 一个全新对抗审核代理（判定「需修正后落盘」，四组必改全部采纳：DECISIONS 处置扩容 / lod-spec 过渡范围扩大 / T006·006.6 记档范围扩大 / 两处衔接口径）。草稿内容全部迁入规范与任务书后删除。**运行面真相源 = `docs/procedural-assets/representation-runtime.md`；声明面真相源 = `lod-spec.md`（两面互指）；任务体系 = `tasks/021-*.md`（021.0–021.8）。**
+
+1. **六概念分离（不可逆）**：Selection / Representation / Transition / Shadow / Density / Batch 六概念独立建模，禁止重新合并成「LOD 档位」；`culled` 是提交状态不是表示档位。
+2. **表示模型**：`RuntimeRepresentation` 第一阶段 = high/mid/low/canopy 四值——**不含 impostor**（架构预留不实装，禁 Atlas Baker 等占位）；`ProceduralLevel` 三值保留、语义收窄为 Asset Build Capability；旧 `LodRepresentation`（含 culled）原地演化退役、不搞新旧双轨；有效链由资产能力声明驱动（AssetDescriptor 新增独立 `representations` 字段，`levels` 三值不污染——D27.12 最小化口径经本条扩展）；扩展契约 = 新增表示 = 扩联合类型 + 注册 source provider 一处改动、不重写 Runtime。
+3. **选档**：度量 `m` 公式维持现状（与代码逐操作符一致）；**screenFraction = 1/m**（草稿 2/m 为误，修正后 legacy 阈值对应屏占比 16.7% / 6.25% / 1.67%）；新链初值继承 {6, 16, 60} 映射 + 迟滞 0.15、全部候选化（021.8 重锁）；Selection Granularity = 放置逐对象 / 散布 region×chunk×asset 四维（散布代表 scale = 桶内最大，保守偏高档）；SelectionBounds（恒 High 基准球，D28.2 延续）与 RenderBounds（随 Source 成套、球形、Cache 拥有池引用）分离，过渡期剔除边界取并集。
+4. **过渡**：High↔Mid 硬切、入 Canopy dither、Canopy 退场 fade out；阴影过渡中点切换、不做双影交叉；双表示桶 draw call 增量红线 +30；dither 与既有 alphaTest(0.5)+alphaToCoverage 的合成顺序为 park-shader-agent 交付必答题；pending 语义并入 target + sourceReady。
+5. **Canopy Proxy**：BroadleafCanopyProxy 统一实现，≤500 面/树（冠层 shell + 简化树干预柱；对照 Low 1662–2150 再压一个量级）；必须从现有 ClusterRecord / Low 壳卡逻辑派生（前置工作 = 从 13 树种文件抽共享冠层场契约）；**风动接同一体系**（同一 uTime + aSeed/aBend，档间同相 = 身份一致原则的强制延伸）；**aSeed 前向兼容口径**：散布链当前无逐实例 aSeed（D20.4 留 T003 解冻后独立任务）——Canopy 材质首日声明 aSeed、散布缺属性按 GL 缺省零（与散布 High/Mid 现行为逐位一致，档间 0=0 同相平凡成立），D20.4 修复落地后全表示零改动自动获得逐实例相位；**禁止坐标哈希等第三套相位机制**（dither 共存期同树双相位 = 可见脱同步）；材质简化受光（主光 lambert + IBL 环境项）共享 T018 envMap/intensity 域、禁 unlit；散布侧按 assetId 派生（链无 slot 维度，树种级冠形即远景保留目标）。
+6. **阴影三字段** `{cast, receive, depth}`：High 沿用全开现状；Mid depth full/simplified 留 A/B；Low/Canopy = simplified；Cull = off；**Canopy 初始 receive = false**（现状两链建网格统一 true——真实行为变化，021.8 A/B 复核）；Canopy Depth Material 禁完整叶片级 SDF；Shadow Camera（2048/±160/1/400/−0.0004，D29.1）与 T018 环境全冻结。
+7. **密度与批次**：密度默认全表示 100%、剔除 0，**不得自动继承旧 low=0.5**（levelInstanceKeep 密度职责废止，几何降档与实例抽稀解耦）；75%/50% 仅 021.8 独立 A/B；批次策略绑 representation；32m chunk + 2×2 sparse merge 第一版保留；drawCallBudget 650 降格 Legacy Baseline 重测重锁。
+8. **状态 / 键 / 路由**：SelectionState {current, target, sourceReady, transition, transitionActive} 按粒度实例化（放置 per-object / 散布 per region×chunk×asset），阴影密度为 Policy 派生视图不进状态体、诊断量不进 Scene 持久化；源缓存键统一 `sourceKey + representation`、三分支收敛为二（声明 → sourceKey::representation；未声明 → 纯 assetId）；GLB 恒 'high'（D28.5 不变）；representation 永不进 sourceKey 形态身份（D19/D23.2 延续）；RepresentationSourceRouter 为现有路由上门面、Source 契约扩 {geometry, material, customDepthMaterial?, bounds}。
+9. **编辑态与拾取**：全新 Runtime pin 层——selected / transforming / gizmo target / focusObjects 目标（相机飞行期间）每帧强制 High + Shadow full + Fade 1，零 Scene 数据改动；Ghost/Preview 沿用固定 High（D27.14）；拾取身份（objectId/seed/shapeSlot）跨表示不变，过渡期可拾取、真剔除后不可拾取。
+10. **取代关系**：D27 第 3/4/7/12 项运行面条款部分取代（见索引行 Note）；D28 Step 3 迁 T021.8（006.6 收口，D28.2 行内注同步）；T006 epic 部分取代——T006.1–6.5 + T006.6 Step 1/2 保留为技术基线；**T019 编号保留追认**（颜色管线语义，D29.3/D39 引用；审核发现 T020 完成记录所称「TASKS/PROGRESS 同步 T019」实未同步——T020 历史不回改〔D31.1〕，TASKS 占位行随本条补齐）。
+11. **执行口径**：测试面授权——既有 LOD / 迟滞 / 稳定基准 / 键碰撞断言随表示语义变更同步改写属授权范围（T020 R6「66 树测试文件不迁移」指组织等价重构、非语义断言冻结），改写逐条记档；check:tasks 对待——任务书待裁决位写差异摘要不复述规范原文、representation-runtime.md 已入检查参考集（任务书禁用其节标题）、新文件预期信号在完成记录记档（report-only 不阻断）；子任务 021.0–021.8 一会话一个（D16），执行路由按 AGENTS 三专业代理（运行时 → threejs-runtime-agent；共享冠层场契约与 canopy 几何 → procedural-asset-agent；dither/canopy 材质/深度材质 → park-shader-agent）；启动前置已满足（T018.5 收官）。
+12. **禁止事项 15 条**与验收口径（性能梯队含 2000 新档与高密度混植、远景十项 M25/F50、Density/Fade/生命周期三专项）：见 `representation-runtime.md` §十四 / §十五，不在此复制。
+
+**承载文件清单（生效依赖，可机械核对）**：`docs/procedural-assets/representation-runtime.md`（运行面真相源，新建）｜`docs/procedural-assets/lod-spec.md`（声明面收窄 + 五处过渡注）｜`tasks/021-lod-representation.md` + `021.0`–`021.8` 共十份（新建）｜`DECISIONS.md`（本条 + 索引行 D41 + D27/D28 Note 修订 + D28.2 行内注）｜`TASKS.md` / `PROGRESS.md`（T006/T006.6 收口 + T019 占位 + T021 挂行）｜`tasks/006.6-lod-reference-bounds.md` + `tasks/006-lod-chunking.md`（迁移处置记档）｜根目录 `lod升级.md`（迁移后删除）。
 

@@ -1,6 +1,6 @@
 # 程序化资产 LOD 声明与调度规范
 
-> T010.3 产出（2026-09-19）。**本文档为 LOD 规范唯一真相源；`docs/lod-reference.md` 为归档输入材料（D27——不再更新，冲突时以本文档与 DECISIONS.md 为准）。**
+> T010.3 产出（2026-09-19）；2026-09-23 T021 立项（D41）起**本文档收窄为 LOD「声明面」唯一真相源**（资产如何声明可用表示、内容契约与家族预算）；**运行面**（选档 / 过渡 / 阴影策略 / 密度 / 批次 / 状态 / 键 / 路由 / 验收口径）唯一真相源 = [`representation-runtime.md`](representation-runtime.md)。`docs/lod-reference.md` 为归档输入材料（D27——不再更新，冲突时以本文档与 DECISIONS.md 为准）。
 > 适用范围：一切程序化资产（`*.asset.ts` 插件体系，D17）的 LOD 档位声明与内容交付，以及 T006 Runtime 调度侧的实施依据。GLB 导入资产不适用本规范声明面（其 Proxy 语义收录见 §3，未经验证）。
 > 姊妹规范：文件组织与三级职责边界（010.1）→ `organization.md`；元数据与分类契约（010.2）→ `metadata-taxonomy.md`；Shadow 公共能力与视觉验收 SOP（010.4）→ `shadow-visual-sop.md`。
 > 决策锚：D27 全节（通用 Asset Runtime LOD 架构）、D23.2（level 契约与双维缓存）、D19（sourceKey 形态身份）、D20.5（统一 Asset Runtime 能力 + 家族预算制）、D19.8（预算制口径）。
@@ -33,7 +33,7 @@ export interface ProceduralLevelDescriptor { id: ProceduralLevel; }  // runtime/
 | `'mid'` | 中模 | 几何细节与 Shader 成本同步降（夏栎先例：降枝条段数/叶簇量/叶卡量，材质去脉三线/节疤） |
 | `'low'` | 远模 | 只保轮廓 + 体量 + 颜色层次 + 整体风格，不保持内部结构 |
 
-枚举纪律：**改名 / 扩值是破坏性契约变更，必须过决策门**。proxy / impostor 只是规范语义位（§3），实装时再扩枚举（防幽灵字段）；`culled` 是调度结果不是声明档位，永不进枚举。
+枚举纪律：**改名 / 扩值是破坏性契约变更，必须过决策门**。proxy / impostor 只是规范语义位（§3），实装时再扩枚举（防幽灵字段）；`culled` 是调度结果不是声明档位，永不进枚举。（2026-09-23 D41 过决策门：`'canopy'` 转正进入 Runtime 表示联合——运行面类型与有效链见 `representation-runtime.md` §三；本节 `ProceduralLevel` 三值保留为 Asset Build Capability 语义，声明面新增 `representations` 字段由 T021.1 增量修订本节。）
 
 ### 2.2 meta 声明形态——首版最小化（D27.12）
 
@@ -87,12 +87,14 @@ levels?: ProceduralLevelDescriptor[]   // 夏栎实例：[{ id: 'high' }, { id: 
 | Impostor | 面片替身 | Billboard / 多视角 Atlas（Albedo / Normal / Depth），极远距 | 否（预留） | 否（预留） | 规范预留——**未实装未验证** |
 | Culled | 不渲染 | 调度结果（被裁剪 / 超远） | 否 | 否——**调度结果非声明档位** | T006 实装（裁剪既有） |
 
-- **本期实装范围 = High / Mid / Low + Culled**；Proxy / Impostor 只是规范语义位：不进类型枚举、不进 levels 声明、不写任何接口占位代码（防幽灵字段，D27.7/D27.12）。
+- **本期实装范围 = High / Mid / Low + Culled**；Proxy / Impostor 只是规范语义位：不进类型枚举、不进 levels 声明、不写任何接口占位代码（防幽灵字段，D27.7/D27.12）。（2026-09-23 D41 修订：**Canopy 转正**为第一阶段运行表示〔T021.6 BroadleafCanopyProxy〕，运行面语义全集见 `representation-runtime.md` §六；本表 Proxy 行保留为 GLB 低模代理语义位，Impostor 维持预留不实装。）
 - **范围门（判定绑定观测指标，006.5 执行）**：十万实例压力下 triangles / draw calls / frame time p95 任一超预算 → Impostor 升级必做。
 - GLB Proxy 语义收录：GLB 资产未来可用低模 GLB 作 Proxy 档——语义方向收录，**未经验证**，不在本期任何验收面内；届时过增量决策再定接口。
 - **GLB LOD 消费硬约束（D28.5，2026-09-20 升格）**：GLB 资产未来接入多档必须**直接消费现有 Asset Runtime LOD**——扩展点 = `ModelAsset` levels 声明 + `Renderer.declaredLevelsOf` + SourceRouter file 分支 level 透传；**禁止另建 GLB 专用 LOD 体系**（D27.1 资产域专属禁令延续）。现状：GLB 已走共享链（file 分支忽略 level → 恒 High + 超远 culled），仓库零 GLB 专用 LOD 代码；Proxy/Impostor 预留位语义不变。
 
 ## 4. 选档语义规范（Runtime 侧，T006 实施依据）
+
+> （2026-09-23 D41 起：本节为 T006 时期实施依据快照——度量 `m`、稳定基准球、正交退化、chunk 代表口径继续有效；表示链阈值与 screenFraction 口径、Selection / Transition Granularity、Bounds 契约以 `representation-runtime.md` §四 为准，阈值重锁归 T021.8。）
 
 ### 4.1 度量 = 归一化视距（张角，D27.2）
 
@@ -166,6 +168,8 @@ levels?: ProceduralLevelDescriptor[]   // 夏栎实例：[{ id: 'high' }, { id: 
 夏栎第一实例实测数据（量级参照）：皮恒 20724 / 3882 / 330（High / Mid / Low）；High 总面 28754–38780（8 槽带，slot-6 最低 / slot-7 最高；叶卡 4015–9028）；Mid 6414–9650（叶卡 ≈ High 存活卡 × 7/22）；Low 1662–2150（壳卡 = 保留簇 × 2）；rng 消费三档恒等 177234、minY 三档恒 0。
 
 ## 6. T006 接缝——职责边界表
+
+> （2026-09-23 D41 起：本表 `level` 维度由 `representation` 接替、`culled` 转为 submit state、新增双表示共存与编辑态 pin——见 `representation-runtime.md` §四.4 / §五 / §十 / §十二；021.1 / 021.7 落地时本表同步改写，历史表述在此之前仅作 T006 语境快照。）
 
 | 事项 | 资产侧（声明与内容交付，T009.6 型任务） | Runtime 侧（调度与消费，T006） |
 |---|---|---|

@@ -35,8 +35,9 @@
 
 （T006/T010/T008/T009 以下为此前 Done 条目）
 
-- [x] T006 Asset Runtime LOD（5/5 epic 收官 2026-09-19；收官后 D28 追加演进任务 006.6 见 Next）→ [tasks/006-lod-chunking.md](tasks/006-lod-chunking.md)
+- [x] T006 Asset Runtime LOD（5/5 epic 收官 2026-09-19；**D41 2026-09-23 部分取代**——level 统一语义由 T021 Representation 体系接替，既有交付保留为技术基线）→ [tasks/006-lod-chunking.md](tasks/006-lod-chunking.md)
   - [x] T006.5 验收门（done 2026-09-19：双档达标 + 常量锁定）→ [tasks/006.5-acceptance.md](tasks/006.5-acceptance.md)
+  - [x] T006.6 LOD 选档稳定基准（done 2026-09-23 收口：Step 1/2 done 2026-09-20〔稳定基准球〕；Step 3 迁 T021.8 承接——D41）→ [tasks/006.6-lod-reference-bounds.md](tasks/006.6-lod-reference-bounds.md)
   - [x] T006.1 LOD 公共语义层（done 2026-09-19）→ [tasks/006.1-lod-semantics.md](tasks/006.1-lod-semantics.md)
   - [x] T006.2 非植物第二资产档位验证（done 2026-09-19）→ [tasks/006.2-second-asset-levels.md](tasks/006.2-second-asset-levels.md)
   - [x] T006.3 块×档分桶+换档（done 2026-09-19）→ [tasks/006.3-chunk-lod-bucketing.md](tasks/006.3-chunk-lod-bucketing.md)
@@ -80,7 +81,8 @@
 
 > Next 仅表示已排入路线图的后续任务，不代表执行顺序；实际启动顺序由任务文件中的依赖、当前项目状态及有效架构裁定决定（D31.8）。
 
-- [ ] T006.6 LOD 选档稳定基准（余 Step 3 A/B 实测 + 阈值重锁判定——不阻塞，可并行/其后执行）→ [tasks/006.6-lod-reference-bounds.md](tasks/006.6-lod-reference-bounds.md)
+- [ ] T021 LOD → Representation 运行体系重构（021.0 立项迁移 done 2026-09-23；021.1 起待启动——D41，运行面真相源 docs/procedural-assets/representation-runtime.md）→ [tasks/021-lod-representation.md](tasks/021-lod-representation.md)
+- [ ] T019 颜色管线（Tone Mapping 应急出口 / ACES 素材指针——D29.3 / D39 语义保留；占位行 2026-09-23 补登，D41 会话核实此前未同步）【占位】
 - [ ] T003 收官路径（冻结 2026-09-17；剩余 003.3 验收续走 / 003.5 / 003.6 / 设施返工）→ [tasks/003-scatter-styles.md](tasks/003-scatter-styles.md)
 - [ ] T004 Style Gallery（0/3）→ [tasks/004-style-gallery.md](tasks/004-style-gallery.md)
 - [ ] T005 Animation Pathway（0/3）→ [tasks/005-animation-pathway.md](tasks/005-animation-pathway.md)
