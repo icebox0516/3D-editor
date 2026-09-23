@@ -4,7 +4,7 @@
 
 ## Current
 
-- [ ] T019 任务执行体系收敛（第二批：执行协议整体切换，2026-09-23 立项——grilling 会话裁定全录任务书）——阶段一 rule 层原子提交（D40 + AGENTS + 三 Agent + tree.md + task-authoring + `_template` + check 脚本 + TASKS/PROGRESS 压缩）、阶段二 code 面（共享 harness / O(n²) 集中化 / 16 软跳过），两会话两提交 → [tasks/019-task-system-reform.md](tasks/019-task-system-reform.md)
+- [ ] T020 任务执行体系收敛（第二批：执行协议整体切换，2026-09-23 立项——grilling 会话裁定全录任务书；T019 为颜色管线语义保留故顺延）——阶段一 rule 层原子切换（D40 + AGENTS + 三 Agent + tree.md + task-authoring + `_template` + check 脚本 + TASKS/PROGRESS 压缩）、阶段二 code 面（共享 harness / O(n²) 集中化 / 16 软跳过），两会话两提交 → [tasks/020-task-system-reform.md](tasks/020-task-system-reform.md)
 
 ## Done（近）
 
