@@ -142,7 +142,6 @@
 
 > 本清单只做速览与指针：**规则条文以 [`AGENTS.md`](AGENTS.md) 为准**（完成定义 / 依赖纪律 / 分层 / Command / 渲染循环），此处不复制易腐信息（测试数量、依赖版本口径等）。
 
-- 设计共识类工作先过 grilling 会话与用户逐题对齐再开工（二期起，共识记录见 [`DECISIONS.md`](DECISIONS.md)）
 - 分层单向依赖：`core → scene → domain → registries → editor/runtime/io → ui → app`；`three` 仅允许出现在 `runtime/app`
 - 用户可编辑场景数据的持久变更默认经 Command（可撤销重做）；Scene 是唯一数据源，渲染层只读
 - 依赖：新增须属当前任务范围并锁定版本；既有依赖未经授权不得升级（详见 AGENTS.md 工程硬约束）

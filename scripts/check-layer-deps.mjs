@@ -8,7 +8,7 @@
  *     - editor/runtime/io→core,scene,domain,registries（兄弟层之间禁止互导）
  *     - ui→core,scene,domain,registries,editor（禁止导入 runtime/io）
  *     - app（src/app/** 与入口 src/main.tsx、src/App.tsx）可导入一切
- *  2. three 白名单：`three` 与 `three/examples/*` 仅允许出现在 src/runtime/**、src/app/**、src/main.tsx
+ *  2. three 白名单：`three` 与 `three/examples/*` 仅允许出现在 src/runtime/**、src/app/**（与 AGENTS.md 口径一致）
  *  3. tests/** 不受 DAG 限制，但受 three 白名单限制（runtime 单测允许 three）
  *
  * 违规输出格式：`文件 -> 违规导入 -> 原因`，并 exit 1；全绿 exit 0。
@@ -46,7 +46,6 @@ function isThreeImport(spec) {
 function threeAllowed(relPosixPath) {
   if (relPosixPath.startsWith('src/runtime/')) return true
   if (relPosixPath.startsWith('src/app/')) return true
-  if (relPosixPath === 'src/main.tsx') return true
   // tests/**：不受 DAG 限制，但 three 仅限 runtime 单测（按路径含 runtime 段判定）
   if (relPosixPath.startsWith('tests/') && relPosixPath.split('/').includes('runtime')) return true
   return false
@@ -135,7 +134,7 @@ for (const file of files) {
     if (info.kind === 'three') {
       if (!threeAllowed(relFile)) {
         violations.push(
-          `${relFile} -> ${spec} -> three 白名单违规：three/three/examples 仅允许出现在 src/runtime/**、src/app/**、src/main.tsx（tests/ 仅 runtime 单测）`,
+          `${relFile} -> ${spec} -> three 白名单违规：three/three/examples 仅允许出现在 src/runtime/**、src/app/**（tests/ 仅 runtime 单测）`,
         )
       }
       continue
