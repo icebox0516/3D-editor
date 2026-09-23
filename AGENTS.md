@@ -14,7 +14,10 @@
 
 ## 工程硬约束（完成定义）
 
-- `npm test`、`npm run check:layers`、`npm run typecheck` 三重门槛全绿才算完成
+- 三门槛判据式（D40）：**代码执行面变化（`src/**`、`tests/**`、`package.json`/lock、vite/vitest/tsconfig、构建·测试脚本）才必须 `npm test`**；`npm run check:layers` 与 `npm run typecheck` 恒跑
+- 任务书不得复述稳定生产流程——流程从当前 Workflow / Skill / docs 获取，任务书只描述本次实例差异（Lean Task 规范 = `docs/task-authoring.md`，D40）
+- read-set 白名单（D40）：默认上下文 = AGENTS.md + 当前任务书 + 本 Step resolved read-set + Step 显式指定的 Skill/reference；Workflow 显式授权的按需先例读取不算违规；禁「可能相关」自行扩大；缺口先报主代理裁决
+- DECISIONS 定向读取（D40）：主代理点名 Dxx → 索引定位只读该条，不全量加载
 - `three` 只允许出现在 `src/runtime` 与 `src/app`（分层检查强制）；editor/ui/domain 零 THREE
 - 渲染循环为每帧连续渲染（有意决策，勿擅自改按需渲染）；`Renderer.dispose` 不得加 `forceContextLoss`（StrictMode 双挂载历史冻结 bug）
 - Scene 是唯一数据源；**用户可编辑场景数据的持久变更默认经 Command**（可撤销重做）；已知系统级例外：图层创建/删除（直调 SceneManager，不可撤销）与组合根 openScene / 默认装配（全量替换语义），二者不入普通编辑历史——清单见 `docs/architecture-audit/09_COMMAND_HISTORY.md`；渲染层只读场景

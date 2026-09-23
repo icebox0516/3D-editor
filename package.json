@@ -11,6 +11,7 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "check:layers": "node scripts/check-layer-deps.mjs",
+    "check:tasks": "node scripts/check-task-authoring.mjs",
     "assets:generate": "node scripts/generate-assets.mjs",
     "assets:scan": "node scripts/scan-assets.mjs"
   },

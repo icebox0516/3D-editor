@@ -1,6 +1,6 @@
 # T020 任务执行体系收敛（第二批：执行协议整体切换）
 
-> 状态：**pending（2026-09-23 立项）** ｜ 前置：T018 收官（✅ `91c9a31`）+ 第一批历史卫生（✅ `5aa70e1` / `bcd7f04` / `0bc08ae`）｜ 非程序化资产任务——治理任务，无 `workflow:` 声明（生产流程类规则不适用；本任务书即 Lean Task 首例：只装本次差异与裁定记档，不复述稳定流程）｜ **编号说明：T019 为颜色管线语义保留**（D29「独立立 T019 颜色管线任务 / Tone Mapping 应急出口」与 D39「ACES 证据留 T019 素材指针」已引用，TASKS/PROGRESS 同步），本任务顺延 T020
+> 状态：**阶段一 done（2026-09-23）；阶段二 code 面待独立会话** ｜ 前置：T018 收官（✅ `91c9a31`）+ 第一批历史卫生（✅ `5aa70e1` / `bcd7f04` / `0bc08ae`）｜ 非程序化资产任务——治理任务，无 `workflow:` 声明（生产流程类规则不适用；本任务书即 Lean Task 首例：只装本次差异与裁定记档，不复述稳定流程）｜ **编号说明：T019 为颜色管线语义保留**（D29「独立立 T019 颜色管线任务 / Tone Mapping 应急出口」与 D39「ACES 证据留 T019 素材指针」已引用，TASKS/PROGRESS 同步），本任务顺延 T020
 
 ## Goal
 
@@ -56,4 +56,20 @@
 
 ## 完成记录
 
-（待执行会话按阶段填写）
+### 阶段一：rule 层原子切换（done 2026-09-23，单会话）
+
+**用户过目门执行记档**：D40 草案全文 + 8 项落盘要点 + broadleaf.md 范围说明经 AskUserQuestion 呈报，用户选「放行，按草案落盘」（含 broadleaf.md 定位句一行同步）。
+
+1. **D40 落盘**（DECISIONS.md 文末 + 索引同步同 commit——同步规则第二次实测成功；D16 / D30 索引行 Status 改「部分取代」，正文零回写）。`docs/task-authoring.md`（Lean Task 规范：允许字段表 + 禁止复述清单七类 + 检查入口）与 `tasks/_template.md`（canonical 模板，无 Step 复制区）新建。
+2. **AGENTS.md**：工程硬约束首句「三重门槛全绿才算完成」整句替换为四句判据式（三门槛判据 / 任务书不复述 / read-set 白名单 / DECISIONS 定向读取），不下沉不展开。
+3. **`.zcode/` 三文件同刻本地改毕（不入库，R1）**：三 Agent read-set 统一（删 TASKS.md 引用；park-shader 的「DECISIONS.md 中相关决策」改点名定向读取；procedural/park-shader 尾部「以当前 `tasks/*.md` 为准」改「当前任务书」）；`workflows/tree.md` 五点（read-set 表三列化 Path|Section|Mode 共 27 行 / Step 1 读取顺序 + 观察钩子 / 「索引只导航不承重」改「方法摘要 + 导航」/ 测试纪律五者判据 + 三门槛判据式引用 / §5 族级改七项骨架节）。
+4. **checker**：`scripts/check-task-authoring.mjs` + `package.json` `check:tasks`。**首跑报告**（report-only 恒 exit 0）：扫描 72 份任务书，warning 44 / normal 83——信号①（同名固定段标题）**零命中**；信号②（行级重合）1 处（004-style-gallery.md 历史 5.1%）；信号③按章节报告并抓到历史多基线交叉（011.7–011.9「3245 vs 3353/3461/3574」、018.x 链式基线、002 epic 四基线并列等，与 011.12「3245 vs 3803」腐例同形态）；信号④ DECISIONS 标题 D 号 41 == 索引 ID 41 集合相等零漏登零幽灵行（40 旧 + D40）。
+5. **TASKS.md / PROGRESS.md 压缩**（D24 口径）：Done 叙事 / 测试数 / 性能实测 / 验收过程全删，保留勾选 + 一行结论摘要 + 链接；候选池占位行按 D34.5 原样保留；Next 增「T020 阶段二」行。011.x 摘要日期经任务书头部逐份核实修正（011.4/011.5 实为 09-20）。
+6. **范围说明落地**：`precedents/broadleaf.md` 定位句一行同步（「生产导航索引，只回答先去看谁」→「方法摘要 + 导航」）——任务书 8 项清单外文件，依 D40 总原则「已生效未同步窗口为零」执行并列入 D40 承载文件清单，已经用户过目放行。
+7. **收尾扫描三条全过**：①三 agent 文件 `grep -c "TASKS.md"` = 0/0/0；②`grep -rn "SOP §5"` 活规则文件（AGENTS / workflow / SKILL / agents / tree.md）零命中，余量三类均属有意保留——墓碑节 :159 自身、DECISIONS 两处 D31.1 历史记档正文（D30 索引 Note 与正文第 2 条的指针修正记档）、docs/acceptance/t011 历史验收记录（D31.1 不回写）+ 本任务书验收条款自引；③AGENTS 旧整句已判据式替换。
+8. **三门槛**：package.json 变更 → 按新判据 npm test 必跑（判据式口径首次实测）——`npm test` 259 文件 **4034 全绿**（118s）/ `check:layers` **601 通过** / `typecheck` **零错**，零回归。
+9. **遗留**：阶段二 code 面（9–12 项）待独立会话独立提交；`tasks/011.9-sophora.md` 头部状态行残留「排产」（完成记录 done 2026-09-22，头部未回写——T011 已收官 epic 内历史冻结，按 D31.1 不回改，记档备查）。
+
+### 阶段二：code 面
+
+（待执行会话填写）
