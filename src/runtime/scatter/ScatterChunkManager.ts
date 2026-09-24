@@ -105,10 +105,12 @@ import type {
 } from '../../domain/lod/representation';
 import { effectiveRepresentationChain } from '../../domain/lod/representation';
 import { evaluateLodRepresentation, normalizedViewDistance } from '../../domain/lod/lodEvaluation';
+import { isShadowCasterFor, shadowPolicyOf } from '../../domain/lod/shadowPolicy';
 import { steadySelectionState, stepTransition, transitionKindOf } from '../../domain/lod/transition';
 import type { ScatterChunk, ScatterInstance, ScatterParams } from '../../domain/scatter';
 import { scatterChunk, scatterInfluenceRadius } from '../../domain/scatter';
 import type { InstanceSource } from '../instancing/InstancedAssetPool';
+import { shadowDepthMaterialOf } from '../instancing/InstancedAssetPool';
 import { FadeGeometryPool, writeFadeRange } from '../instancing/fadeGeometry';
 import { hueOffsetToMultiplier } from '../instancing/instanceTint';
 import { lodViewOfCamera } from '../instancing/lodView';
@@ -226,6 +228,13 @@ interface ChunkLodState {
    * steadySelectionState(level) 起步，每帧 frame 经 domain stepTransition 推进。
    */
   transition: SelectionState | null;
+  /**
+   * 阴影表示缓存（T021.5，§5.4 中点切换）：最近一次 TransitionCommit.
+   * shadowRepresentation（连续派生——每帧幂等，不消费 midpointCrossed 边沿〔留诊断〕）。
+   * 消费面：自有桶/客座桶 cast 判定（refreshShadowCast）、合并桶成员 OR 语义与
+   * shadowCasterInstances 计数；首评前 = level。
+   */
+  shadowRepresentation: RuntimeRepresentation;
   /** 展示表示缓存（提交口径：终态 cull → 'culled'，否则 SelectionState.current——
    *  分布计数与诊断消费；undefined = 未评估（回退 current ?? level） */
   display: LodSelectionOutcome | undefined;
@@ -313,8 +322,9 @@ function chunkKeyString(key: ScatterChunkKey): string {
 /**
  * 网格提交态判定（分布统计 shadowCasterInstances 口径用，T021.4）：块组可见（视锥
  * 剔除 / 源显隐的写手）∧ 网格自身可见（LOD culled 的写手）——两开关共同决定主渲染
- * 与影遍的零提交（resolvePick 可见性守卫同口径）。castShadow 由调用方另判（021.5
- * 前建网格点统一 true）。
+ * 与影遍的零提交（resolvePick 可见性守卫同口径）。castShadow 由调用方另判（T021.5
+ * 起建网格点按 Shadow Policy + 阴影表示〔中点切换〕维护——mesh.castShadow 读取即
+ * 真值：自有/客座桶 per-chunk 精确、合并桶成员 OR 语义）。
  */
 function isSubmittedMesh(
   mesh: THREE.InstancedMesh<THREE.BufferGeometry, THREE.Material | THREE.Material[]>,
@@ -697,6 +707,10 @@ export class ScatterChunkManager {
     lod.transition = next;
     lod.display = commit.culled ? 'culled' : next.current;
     lod.transitionActive = next.transitionActive;
+    // T021.5：阴影表示缓存（§5.4 中点切换——TransitionCommit.shadowRepresentation 连续
+    // 派生，每帧幂等；不消费 midpointCrossed 边沿〔留诊断面，无状态推导优先〕；cast
+    // 标志刷新归各提交执行点——applyCulledCommit / 建桶点 / applyPending* 收敛点）
+    lod.shadowRepresentation = commit.shadowRepresentation;
 
     const kind = transitionKindOf(prev.current, selection);
 
@@ -766,6 +780,10 @@ export class ScatterChunkManager {
    * 终态 cull 可见性执行（沿既有机制，T021.3 改为 commit.culled 驱动——fade-out 型
    * 在退场带末才触发、硬切型瞬时；恢复路径同帧回 true / 重入合并组）：自有桶
    * mesh.visible 开关（桶保留，回视即时恢复）；合并成员 memberCulled 退组重建。
+   * T021.5：可见性翻转后重算阴影标志（culled 提交终态 cast/receive 一并 false 的
+   * belt-and-braces——§七 Cull=off 与 shadowCasterInstances 计数语义自洽；恢复路径
+   * 同帧复原策略值）。本方法在每个非完成提交路径尾步被调（稳态亦然）——阴影 cast
+   * 标志随之中点翻转点逐帧刷新（refreshShadowCast 幂等）。
    */
   private applyCulledCommit(
     state: SourceState,
@@ -785,6 +803,7 @@ export class ScatterChunkManager {
       } else if (entry) {
         entry.mesh.visible = false;
       }
+      this.refreshShadowCast(state, chunk, assetId, lod);
       return;
     }
     if (entry) entry.mesh.visible = true;
@@ -793,6 +812,55 @@ export class ScatterChunkManager {
       lod.memberCulled = false;
       this.rebuildMergedBucket(state, lod.mergedBucket);
     }
+    this.refreshShadowCast(state, chunk, assetId, lod);
+  }
+
+  /**
+   * (块×资产) 阴影 cast 标志刷新（T021.5，每帧幂等；语义在 domain shadowPolicy、
+   * 执行在本管）：
+   *  - 自有桶 per-chunk 精确：castShadow = 提交中（mesh.visible = culled 写手）∧
+   *    isShadowCasterFor(当档表示, 阴影表示)（§5.4 中点切换——dither 中点后当档桶
+   *    让棒、fade-out 退场期恒 cast 至 culled）；receiveShadow 静态按表示（canopy
+   *    false），仅整桶零提交时一并 false（belt-and-braces）；
+   *  - 客座桶目标侧：cast = isShadowCasterFor(目标表示, 阴影表示)（中点前 false、
+   *    中点后 true——恰一侧）；receive 静态按目标表示；
+   *  - 合并桶成员 **OR 语义**（主代理裁定）：合并桶内各 chunk×asset 的 midpoint 可能
+   *    错开数帧——任一成员该表示仍是 shadowRepresentation 则整桶 cast；短暂双投
+   *    窗口在远场稀疏块、影 texel ~16cm 下不可辨（记档 021.8 观察点）。
+   */
+  private refreshShadowCast(
+    state: SourceState,
+    chunk: ChunkState,
+    assetId: string,
+    lod: ChunkLodState,
+  ): void {
+    const policy = shadowPolicyOf(lod.level);
+    const entry = chunk.meshes.get(assetId);
+    if (entry) {
+      entry.mesh.castShadow =
+        entry.mesh.visible && isShadowCasterFor(lod.level, lod.shadowRepresentation);
+      entry.mesh.receiveShadow = policy.receive && entry.mesh.visible;
+    }
+    const incoming = chunk.incoming.get(assetId);
+    if (incoming) {
+      incoming.mesh.castShadow = isShadowCasterFor(incoming.level, lod.shadowRepresentation);
+      incoming.mesh.receiveShadow = shadowPolicyOf(incoming.level).receive;
+    }
+    const bucket = lod.mergedBucket;
+    if (bucket?.mesh) {
+      bucket.mesh.castShadow = bucket.mesh.visible && this.mergedBucketCasts(state, bucket);
+      bucket.mesh.receiveShadow = shadowPolicyOf(bucket.level).receive && bucket.mesh.visible;
+    }
+  }
+
+  /** 合并桶 cast OR 判定（成员扫描）：任一成员 !memberCulled ∧ 阴影表示 === 桶表示 */
+  private mergedBucketCasts(state: SourceState, bucket: MergedBucket): boolean {
+    for (const memberKey of bucket.members) {
+      const lod = state.chunks.get(memberKey)?.lod.get(bucket.assetId);
+      if (!lod || lod.mergedBucket !== bucket) continue;
+      if (!lod.memberCulled && isShadowCasterFor(bucket.level, lod.shadowRepresentation)) return true;
+    }
+    return false;
   }
 
   /**
@@ -868,7 +936,16 @@ export class ScatterChunkManager {
       const mesh = new THREE.InstancedMesh(asset.source.geometry, asset.source.material, capacity);
       mesh.name = `incoming:${state.id}:${chunk.key.i}:${chunk.key.j}:${assetId}:${target}`;
       mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-      mesh.castShadow = true; // 块组可见性管辖影 pass 同零提交
+      // T021.5：客座桶目标侧阴影策略（块组可见性管辖影 pass 同零提交）：cast = 中点
+      // 判定——isShadowCasterFor(目标表示, 当前阴影表示)（创建时按现值，冷源迟到跳档
+      // 场景〔applyPendingIncoming〕亦成立；每帧 refreshShadowCast 细化）；receive 静态
+      // 按目标表示（canopy false）；depth 三档映射 shadowDepthMaterialOf（canopy 挂
+      // 源深度材质——simplified 构造）
+      mesh.castShadow = isShadowCasterFor(target, lod.shadowRepresentation);
+      const incomingPolicy = shadowPolicyOf(target);
+      mesh.receiveShadow = incomingPolicy.receive;
+      const incomingDepth = shadowDepthMaterialOf(target, asset.source);
+      if (incomingDepth !== undefined) mesh.customDepthMaterial = incomingDepth;
       chunk.group.add(mesh);
       this.meshOwners.set(mesh, chunk.sourceId); // 拾取反查（fade 期命中 → 源 id，§12）
       entry = { mesh, capacity, level: target };
@@ -999,8 +1076,9 @@ export class ScatterChunkManager {
    * transitionTargets = 过渡中 (块×资产) 的实例按 SelectionState.target 归档（与
    * instances/transition 计数面合流不重复计——非过渡单元不计、客座侧不单列）；
    * shadowCasterInstances = 提交中网格（parent 可见 ∧ mesh 可见 ∧ castShadow）的实例
-   * 数合计——**021.5 前现值口径记档**：本管全部建网格点 castShadow 统一 true，故现值
-   * = 提交中实例数；021.5 Shadow Policy 按表示驱动 cast 后本字段自动跟随策略值。
+   * 数合计——**T021.5 策略驱动真值口径**：建网格点 castShadow 按 Shadow Policy +
+   * 阴影表示（§5.4 中点切换）维护——自有/客座桶 per-chunk 精确（中点切换后当档桶
+   * 不计、客座桶计）、合并桶成员 OR 语义，本字段自动跟随策略值。
    * O(块×资产) 遍历，供验收报表/调试按需调用，不进帧路径。
    */
   getLodDistribution(): LodDistribution {
@@ -1013,7 +1091,10 @@ export class ScatterChunkManager {
           if (!entry) continue; // 源未就绪（pending 登记）：无桶无实例
           const rep = lod.display ?? lod.current ?? lod.level;
           counter.add(rep, entry.mesh.count, 1);
-          if (isSubmittedMesh(entry.mesh)) counter.addShadowCasters(entry.mesh.count);
+          // T021.5：castShadow 读取即真值（refreshShadowCast 按策略+阴影表示维护）
+          if (isSubmittedMesh(entry.mesh) && entry.mesh.castShadow) {
+            counter.addShadowCasters(entry.mesh.count);
+          }
           if (lod.transitionActive) {
             counter.addTransition(lod.instanceCount, 1, 0);
             counter.addTransitionTarget(lod.transition?.target ?? lod.level, lod.instanceCount);
@@ -1023,7 +1104,10 @@ export class ScatterChunkManager {
         for (const entry of chunk.incoming.values()) {
           const rep = entry.mesh.count > 0 ? entry.level : 'culled';
           counter.add(rep, entry.mesh.count, 1);
-          if (isSubmittedMesh(entry.mesh)) counter.addShadowCasters(entry.mesh.count);
+          // T021.5：castShadow 读取即真值（中点后目标侧才计）
+          if (isSubmittedMesh(entry.mesh) && entry.mesh.castShadow) {
+            counter.addShadowCasters(entry.mesh.count);
+          }
           if (entry.mesh.count > 0) counter.addTransition(0, 1, 1);
         }
       }
@@ -1113,6 +1197,7 @@ export class ScatterChunkManager {
           // 卡住后续决策分支、防分布计数残留排队期旧值）
           lod.transition = steadySelectionState(level);
           lod.display = level;
+          lod.shadowRepresentation = level; // T021.5：稳态随迁（下一帧连续派生幂等重申）
         }
       }
     }
@@ -1216,6 +1301,7 @@ export class ScatterChunkManager {
           instanceCount: 0,
           memberCulled: false,
           transition: null,
+          shadowRepresentation: 'high' as const, // T021.5：首评前 = 桶档（未评估回退口径沿）
           display: undefined,
           transitionActive: false,
           fadeOut: 0,
@@ -1458,7 +1544,9 @@ export class ScatterChunkManager {
       );
       mesh.name = `merge:${state.id}:${bucket.superKey.i}:${bucket.superKey.j}:${bucket.assetId}:${bucket.level}`;
       mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-      mesh.castShadow = true; // 源隐藏/零实例时 visible=false，阴影 pass 同零提交
+      // T021.5：depth 三档映射（归源所有只挂引用）；cast/receive 收尾统一落值（OR 语义）
+      const mergedDepth = shadowDepthMaterialOf(bucket.level, asset.source);
+      if (mergedDepth !== undefined) mesh.customDepthMaterial = mergedDepth;
       this.root.add(mesh); // 直挂 root：three 逐对象包围球自动视锥剔除（合并盒 = 成员实例并集）
       this.meshOwners.set(mesh, state.id); // 拾取反查（命中 → 源 id；culled 成员实例已退出写入不可命中）
       bucket.mesh = mesh;
@@ -1510,6 +1598,11 @@ export class ScatterChunkManager {
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     mesh.computeBoundingSphere();
     mesh.visible = state.visible && total > 0;
+    // T021.5：合并桶阴影策略收尾落值（源隐藏/零实例 visible=false，影 pass 同零提交）：
+    // cast = 成员 OR 语义（mergedBucketCasts——midpoint 错开数帧的短暂双投记档 021.8
+    // 观察点）；receive 静态按桶表示（整桶零提交 belt-and-braces 一并 false）
+    mesh.castShadow = mesh.visible && this.mergedBucketCasts(state, bucket);
+    mesh.receiveShadow = shadowPolicyOf(bucket.level).receive && mesh.visible;
   }
 
   /** 成员块键升序快照（(i,j) 数值序——重建确定性遍历序） */
@@ -1567,7 +1660,14 @@ export class ScatterChunkManager {
       const capacity = capacityFor(count);
       const mesh = new THREE.InstancedMesh(asset.source.geometry, asset.source.material, capacity);
       mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-      mesh.castShadow = true; // 块 visible=false 时阴影 pass 同零提交（验收口径）
+      // T021.5：阴影策略驱动（cast 初值 = 策略值——refreshShadowCast 每帧按提交态与
+      // 阴影表示〔中点切换〕细化；块 visible=false 时影 pass 同零提交〔验收口径〕；
+      // depth 三档映射 shadowDepthMaterialOf——归源所有只挂引用）
+      const ownPolicy = shadowPolicyOf(level);
+      mesh.castShadow = ownPolicy.cast;
+      mesh.receiveShadow = ownPolicy.receive;
+      const ownDepth = shadowDepthMaterialOf(level, asset.source);
+      if (ownDepth !== undefined) mesh.customDepthMaterial = ownDepth;
       chunk.group.add(mesh);
       this.meshOwners.set(mesh, chunk.sourceId); // 拾取反查登记（网格生灭与条目严格成对）
       entry = { mesh, capacity, level };

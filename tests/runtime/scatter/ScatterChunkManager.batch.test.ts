@@ -25,7 +25,8 @@
  * - 局部重算：合并成员块重撒 → 合并桶重建，实例与新参数一致（同档保档语义）；
  * - 摘源重建（撤销重做模型）：同参确定性复原 + 合并组重建一致（矩阵逐位）；
  * - LOD 分布双口径 + §十三升级位（T021.4）：各档实例数 + 桶数（提交口径；culled 成员
- *   实例计 culled）+ shadowCasterInstances（021.5 前现值口径 = 提交中实例数）；
+ *   实例计 culled）+ shadowCasterInstances（T021.5 起策略驱动真值口径 = 提交中且
+ *   mesh.castShadow〔按策略+阴影表示维护〕的实例数；稳态下同现值）；
  * - 拾取：合并桶命中 → 源 id。
  * 边界：fake 源提供者按 (assetId × level) 分源（几何身份即档位标签）；几何包围手工
  *      钉死（半径按档差异化 High 5 / Mid 4.8 / Low 4.9——真实档间轮廓差 2~5% 量级，
@@ -46,6 +47,11 @@
  *      合法少于近档」语义整体退场；合并桶/自有桶/分布计数期望随之全量化）；
  * - keepThinnedInstance/BATCH_POLICY 域断言迁出（batchPolicy 域测试重写承接）；
  * - 「远距密度降级」条目改为「密度与表示独立」双向验收（§八）。
+ * T021.5 改写记档（仅注释——数值零变化）：shadowCasterInstances 三处断言（high
+ *      稳态 / low 合并稳态 / 全组 culled 零）在策略驱动真值口径下逐位同值（稳态
+ *      阴影表示 = 桶表示、四表示表初值全 cast、culled 零提交零 caster），「现值口径」
+ *      注释升级为「策略真值口径」；过渡期数值变化位归 InstancedAssetPool.lod /
+ *      ScatterChunkManager.shadow 测试锁定。
  */
 import { describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
@@ -667,7 +673,7 @@ describe('ScatterChunkManager 批次控制：块生命周期', () => {
 // ── LOD 分布双口径 + §十三升级位 ──────────────────────────
 
 describe('ScatterChunkManager 批次控制：LOD 分布双口径', () => {
-  it('各档实例数 + 桶数（提交口径）；culled 成员实例计 culled；自有/合并不双计；shadowCasterInstances 现值口径（cast 统一 true = 提交中实例数，021.5 前记档）', async () => {
+  it('各档实例数 + 桶数（提交口径）；culled 成员实例计 culled；自有/合并不双计；shadowCasterInstances 策略驱动真值口径（稳态全 cast，021.5 记档注释升级——数值不变）', async () => {
     const { provider } = makeLeveledProvider();
     const m = makeManager(provider, { sparseMerge: MERGE });
     const params = sparseParams();
@@ -681,7 +687,7 @@ describe('ScatterChunkManager 批次控制：LOD 分布双口径', () => {
     expect(dist.buckets.high).toBe(4);
     expect(dist.buckets.mid + dist.buckets.low + dist.buckets.culled).toBe(0);
     expect(dist.instances.high).toBe(totalTruth);
-    expect(dist.shadowCasterInstances).toBe(totalTruth); // 提交中实例全 cast（现值口径）
+    expect(dist.shadowCasterInstances).toBe(totalTruth); // 提交中 ∧ high 稳态 caster（策略真值口径，同现值）
     expect(dist.transitionInstances).toBe(0);
     expect(dist.transitionTargets).toEqual({ high: 0, mid: 0, low: 0, canopy: 0, culled: 0 });
 
@@ -694,7 +700,7 @@ describe('ScatterChunkManager 批次控制：LOD 分布双口径', () => {
     expect(dist.shadowCasterInstances).toBe(totalTruth);
 
     // 全组 culled：桶计 culled（零提交口径）、实例计 culled（终态线外——退场带内
-    // 实例仍计 low 且 transitionInstances 计过渡中）；阴影投射随提交归零
+    // 实例仍计 low 且 transitionInstances 计过渡中）；阴影投射随提交与 cast 标志归零
     await settle(
       m,
       cameraAboveCenter(LOD_THRESHOLDS.canopyToCulled * (1 + TRANSITION_BAND_RATIO) * 1.02),

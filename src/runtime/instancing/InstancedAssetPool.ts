@@ -19,10 +19,17 @@
  *      AssetSourceRouter——GLB 与程序化同通道，T002.3；测试接 fake 工厂），池只
  *      挂载/移除、不 dispose 共享模板资源（源端统一释放）；选中高亮与 Ghost 预览
  *      不走本池（PreviewManager 独立路径）；userData 不写业务数据（锚点 id 映射
- *      由 RuntimeObjectMap.set 负责）；池创建的渲染网格统一投影/接收阴影
- *      （castShadow/receiveShadow = true——singleMesh / instancedMesh / 诊断亮网格
- *      三个创建点；源带 customDepthMaterial 时同三点挂影 pass 深度材质，T009.5——
- *      归源所有，池只挂引用不 dispose；锚点补挂 Mesh 不设两者：不进场景仅包围盒）。
+ *      由 RuntimeObjectMap.set 负责）；阴影策略驱动（T021.5，D41 §七——设置权自
+ *      「建网格统一 cast/receive=true」收归策略层）：castShadow/receiveShadow/
+ *      customDepthMaterial 按 domain shadowPolicy 按表示设置（singleMesh /
+ *      instancedMesh / 诊断亮网格三个创建点；depth 三档映射 shadowDepthMaterialOf：
+ *      full 挂源 SDF 深度材质 / canopy-simplified 挂 canopy 源深度材质 / low-
+ *      simplified 不挂〔实心几何深度，跳过源提供的 LOW SDF 材质〕/ none 不挂；归源
+ *      所有，池只挂引用不 dispose）；过渡期 cast 由 TransitionCommit.
+ *      shadowRepresentation 驱动（§5.4 中点切换：mesh(表示) 的 cast ⇔ policy.cast
+ *      ∧ 表示 === shadowRepresentation——桶级 OR 表达，refreshSubmitVisibility 维护；
+ *      稳态 receive 静态按表示，整桶零提交时 cast/receive 一并 false 的 belt-and-
+ *      braces）；锚点补挂 Mesh 不设两者：不进场景仅包围盒。
  * 实例颜色（T002.3 烘焙式变体色相微差）：源无关颜色槽——setColor(id, color) /
  *      clearColor(id) 只登记「id + 颜色」，池不读 meta/seed（变体采样在调用方）。
  *      InstancedMesh 路径任意实例有色时建 instanceColor 逐槽写（未设色实例白 1,1,1
@@ -116,6 +123,7 @@ import {
   transitionKindOf,
 } from '../../domain/lod/transition';
 import type { TransitionCommit } from '../../domain/lod/transition';
+import { isShadowCasterFor, shadowPolicyOf } from '../../domain/lod/shadowPolicy';
 import type { LodDistribution } from '../lodDistribution';
 import { LodDistributionCounter } from '../lodDistribution';
 import { LodReferenceSphereCache } from '../lodReference';
@@ -132,9 +140,11 @@ export interface InstanceSource {
   material: THREE.Material | THREE.Material[];
   /**
    * 影 pass 专用深度材质（T009.5 叶影裁切通道）：源资产声明时池在三个建网格点
-   * （singleMesh / instancedMesh / 诊断亮网格）挂 mesh.customDepthMaterial——
-   * undefined 不赋值保持 three 缺省（GLB/旧资产行为零变化）。归源所有：与
-   * geometry/material 同生命周期，源端统一 dispose，消费方只挂引用。
+   * （singleMesh / instancedMesh / 诊断亮网格）按 Shadow Policy depth 档挂
+   * mesh.customDepthMaterial（T021.5：full / canopy-simplified 挂；low-simplified
+   * 与 none 不挂——映射原语 shadowDepthMaterialOf）——undefined 不赋值保持 three
+   * 缺省（GLB/旧资产行为零变化）。归源所有：与 geometry/material 同生命周期，
+   * 源端统一 dispose，消费方只挂引用。
    */
   customDepthMaterial?: THREE.Material;
   /**
@@ -152,6 +162,30 @@ export interface InstanceSource {
    * Source 侧（Canopy 源起）成套提供，填充归后续任务（021.7 接线）。
    */
   bounds?: RenderBounds;
+}
+
+/**
+ * 深度表示三档 → customDepthMaterial 挂载值（T021.5；语义真相源 domain/lod/
+ * shadowPolicy §depth 映射，本函数是两链共用的执行原语——语义在 domain、执行在
+ * runtime §十三）：
+ *  - 'full' → source.customDepthMaterial（undefined 不挂——three 缺省深度材质，
+ *    现状契约不变）；
+ *  - 'simplified' → canopy 挂 source.customDepthMaterial（canopy 源的深度材质本身
+ *    就是 simplified 构造：无 SDF/无 alphaTest/几何本体+xz 风摆，broadleafCanopyMaterials
+ *    T021.6）/ low 不挂（跳过源提供的 LOW SDF 深度材质——three 缺省 = 实心几何深度，
+ *    零 SDF 计算；静态影取舍沿现状）；
+ *  - 'none' → 不挂（cast=false 影 pass 不进）。
+ * 消费方：本池与 ScatterChunkManager 全部建网格点（挂引用不 dispose，归源所有）。
+ */
+export function shadowDepthMaterialOf(
+  representation: RuntimeRepresentation,
+  source: InstanceSource,
+): THREE.Material | undefined {
+  const depth = shadowPolicyOf(representation).depth;
+  if (depth === 'none') return undefined;
+  if (depth === 'full') return source.customDepthMaterial;
+  // 'simplified'：canopy 靠专属深度材质达成，low 靠不挂 SDF 材质达成（模块头注）
+  return representation === 'canopy' ? source.customDepthMaterial : undefined;
 }
 
 /** 源提供者：assetId + 对象 seed + 表示 → 实例化源（Renderer 注入复合源路由
@@ -218,10 +252,18 @@ interface PoolEntry {
   lodTransition: SelectionState | null;
   /**
    * 双表示共存期的客座镜像（T021.3 dither 位）：指向目标桶内的客座 PoolEntry；
-   * null = 无（常态）。客座不独立评估（随属主状态机）、同 id（拾取双侧命中同
-   * 业务对象 §12）、矩阵/颜色/seed 由属主写入路径镜像。
+   *  null = 无（常态）。客座不独立评估（随属主状态机）、同 id（拾取双侧命中同
+   *  业务对象 §12）、矩阵/颜色/seed 由属主写入路径镜像。
    */
   transitionPeer: PoolEntry | null;
+  /**
+   * 阴影表示缓存（T021.5，§5.4 中点切换）：最近一次 TransitionCommit.
+   * shadowRepresentation（连续派生——每帧幂等，不消费 midpointCrossed 边沿〔留诊断〕；
+   * 客座镜像同属主值）。消费面：桶级 castShadow OR 判定（refreshSubmitVisibility）
+   * 与 shadowCasterInstances 计数；首评前 = 桶档（未评估回退桶档口径沿）。随 entry
+   * 跨桶迁移携带。
+   */
+  shadowRepresentation: RuntimeRepresentation;
   /** 客座标记（dither 目标侧镜像实例）：评估循环跳过、分布计数跳过 */
   readonly isTransitionGuest: boolean;
   /** 客座 → 属主回链（桶拆除时清属主 peer 引用用） */
@@ -418,6 +460,7 @@ export class InstancedAssetPool {
       culled: false,
       lodTransition: null,
       transitionPeer: null,
+      shadowRepresentation: 'high', // T021.5：attach 起步恒 high 桶（首帧 frameLod 即校正）
       isTransitionGuest: false,
       guestRoot: null,
       hostPool: null,
@@ -523,10 +566,11 @@ export class InstancedAssetPool {
    * dualSubmitBuckets（DC 增量可观测面，判定归 021.8）。T021.4 增位：
    * transitionTargets = 过渡中实例按 SelectionState.target 归档（客座不单列——目标
    * 侧份额由属主表达，与 instances/transition 合流不重复计）；
-   * shadowCasterInstances = renderable 实例数（owner + 提交中客座）——**021.5 前现值
-   * 口径记档**：本池三个建网格点 castShadow 统一 true，renderable（提交中）即投
-   * 影；021.5 Shadow Policy 按表示驱动后改按 cast 策略计。O(桶+实例) 遍历，供验收
-   * 报表/调试按需调用，不进帧路径。
+   * shadowCasterInstances = caster 实例数（owner + 提交中客座）——**T021.5 策略驱动
+   * 真值口径**：caster = renderable ∧ isShadowCasterFor(桶表示, entry 阴影表示)
+   * （domain shadowPolicy cast 判定：dither 中点切换后当侧不计、目标侧客座计；
+   * fade-out 退场期恒计至 culled）。O(桶+实例) 遍历，供验收报表/调试按需调用，
+   * 不进帧路径。
    */
   getLodDistribution(): LodDistribution {
     const counter = new LodDistributionCounter();
@@ -536,7 +580,11 @@ export class InstancedAssetPool {
       let submittingGuests = 0;
       let shadowCasters = 0;
       for (const entry of pool.entries) {
-        if (this.isRenderable(entry)) shadowCasters += 1; // cast 统一 true 现值口径（021.5 前记档）
+        // T021.5 真值口径：caster = renderable ∧ isShadowCasterFor(桶表示, 阴影表示)
+        // ——域判定（策略 cast ∧ 表示 === shadowRepresentation，中点切换消费面）
+        if (this.isRenderable(entry) && isShadowCasterFor(pool.level, entry.shadowRepresentation)) {
+          shadowCasters += 1;
+        }
         if (entry.isTransitionGuest) {
           if (this.isRenderable(entry)) submittingGuests += 1;
           continue;
@@ -653,6 +701,10 @@ export class InstancedAssetPool {
     const prev = entry.lodTransition ?? steadySelectionState(pool.level);
     const { state, commit } = stepTransition({ state: prev, selection: decision, metric, sourceReady });
     entry.lodTransition = state;
+    // T021.5：阴影表示缓存 + 双侧桶 cast 标志（§5.4 中点切换——TransitionCommit.
+    // shadowRepresentation 连续派生每帧幂等；不消费 midpointCrossed 边沿〔留诊断面，
+    // 无状态推导优先〕。变化才刷新——翻转只发生在中点 / 完成 / 回退事件点，帧间零开销）
+    this.setEntryShadowRepresentation(pool, entry, commit.shadowRepresentation);
 
     // 完成迁移（硬切源就绪即时 / dither 带末）先行：客座与属主在 migrateEntry 内原子
     // 交换——不可先拆客座（仅含客座的目标桶会被 reconcile 拆除，属主随即入僵尸桶）
@@ -684,6 +736,27 @@ export class InstancedAssetPool {
   }
 
   /**
+   * 阴影表示缓存维护（T021.5，§5.4 中点切换）：entry.shadowRepresentation :=
+   * commit.shadowRepresentation（连续派生——每帧幂等）；客座镜像同值。变化才重算
+   * 受影响桶的 cast 标志（refreshSubmitVisibility 的桶级 OR 语义——mesh 级
+   * castShadow 只能整桶表达：任一 renderable 实例 isShadowCasterFor(桶表示, 其阴影
+   * 表示) 则整桶 cast；多实例共存期中点错开时呈 OR 模糊，与散布合并桶同口径记档
+   * 〔021.8 观察点〕）。翻转只发生在中点 / 完成 / 回退事件点，帧间零开销。
+   */
+  private setEntryShadowRepresentation(
+    pool: AssetPool,
+    entry: PoolEntry,
+    representation: RuntimeRepresentation,
+  ): void {
+    if (entry.shadowRepresentation === representation) return;
+    entry.shadowRepresentation = representation;
+    const guest = entry.transitionPeer;
+    if (guest) guest.shadowRepresentation = representation;
+    this.refreshSubmitVisibility(pool);
+    if (guest?.hostPool) this.refreshSubmitVisibility(guest.hostPool);
+  }
+
+  /**
    * 建客座镜像（dither 双表示，T021.3）：目标桶内登记同 id 镜像实例——矩阵/颜色/seed
    * 复制属主（后续属主写入路径逐槽镜像），不独立评估（frameLod 跳过）、culled 起步
    * true（fade 0 零提交，updateTransitionGuest 按呈现度翻转）。目标桶源就绪是调用前提。
@@ -700,6 +773,7 @@ export class InstancedAssetPool {
       culled: true, // fade 0 起步（首帧 updateTransitionGuest 翻转）
       lodTransition: null,
       transitionPeer: null,
+      shadowRepresentation: owner.shadowRepresentation, // T021.5：镜像属主（cast OR 判定同源）
       isTransitionGuest: true,
       guestRoot: owner,
       hostPool: targetPool,
@@ -851,6 +925,7 @@ export class InstancedAssetPool {
         }
         if (transitionKindOf(state.current, state.target) !== 'hard-cut') continue;
         entry.lodTransition = steadySelectionState(targetPool.level);
+        entry.shadowRepresentation = targetPool.level; // T021.5：稳态随迁（下一帧 setEntry 幂等重申）
         this.migrateEntry(pool, targetPool, entry);
       }
     }
@@ -918,24 +993,53 @@ export class InstancedAssetPool {
   }
 
   /**
-   * 桶级提交跳过（T006.4，006.3 遗留面）：桶内无任何 renderable 实例 → InstancedMesh
-   * 整体 visible=false（three 对 visible=false 零提交——省整桶 draw call 与逐顶点提交，
-   * 画面零变化：全零缩放实例本就无像素）。split 态两侧独立判定；单例 Mesh 不经此处
-   * （applyEntryToObject 已合成 visible = visible ∧ ¬culled）。调用点 = 桶成员/渲染态
-   * 变化路径收尾（reconcile / writeEntry / writeEntryRenderState）——任一实例回
-   * renderable 即整桶恢复提交，回视恢复语义与 006.3 一致。
+   * 桶级提交跳过 + 阴影策略标志维护（T006.4，006.3 遗留面；T021.5 增阴影面）：
+   *  - 提交跳过：桶内无任何 renderable 实例（全 hidden 或全 culled——零缩放口径）
+   *    时 InstancedMesh 整体 visible=false（省 1 draw call/桶 + 逐顶点提交；画面零
+   *    变化——零缩放实例本就无像素）。恢复 = 任一实例回 renderable 同帧置回 true
+   *    （frameLod → writeEntryRenderState → 本方法，回视恢复路径不变）；迁移/成员
+   *    变化经 reconcile 尾步同步重算。split 诊断分组态两侧网格独立判定（dimEntries /
+   *    brightEntries 各自含 renderable 才提交）。
+   *  - 阴影标志（T021.5 策略驱动，D41 §七）：castShadow = policy(桶表示).cast ∧ ∃
+   *    renderable 实例 isShadowCasterFor(桶表示, 其阴影表示)（§5.4 中点切换的桶级
+   *    OR 表达——mesh 级 castShadow 只能整桶；多实例中点错开呈 OR 模糊，021.8 观察
+   *    点）；receiveShadow = policy.receive ∧ ∃ renderable（静态按表示、不随过渡
+   *    翻转——仅整桶零提交时一并 false：culled 提交终态 cast/receive 双 false 的
+   *    belt-and-braces，§七 Cull=off 与 shadowCasterInstances 计数语义自洽）。
+   *    单例 Mesh 同判定（alive = visible ∧ ¬culled）。调用点 = 桶成员/渲染态变化
+   *    路径收尾 + 阴影表示翻转（setEntryShadowRepresentation）。
    */
   private refreshSubmitVisibility(pool: AssetPool): void {
+    const policy = shadowPolicyOf(pool.level);
     const split = pool.split;
     if (split) {
       if (pool.instancedMesh) {
         pool.instancedMesh.visible = split.dimEntries.some((entry) => this.isRenderable(entry));
+        pool.instancedMesh.castShadow = split.dimEntries.some(
+          (entry) => this.isRenderable(entry) && isShadowCasterFor(pool.level, entry.shadowRepresentation),
+        );
+        pool.instancedMesh.receiveShadow = policy.receive && pool.instancedMesh.visible;
       }
       split.highlightMesh.visible = split.brightEntries.some((entry) => this.isRenderable(entry));
+      split.highlightMesh.castShadow = split.brightEntries.some(
+        (entry) => this.isRenderable(entry) && isShadowCasterFor(pool.level, entry.shadowRepresentation),
+      );
+      split.highlightMesh.receiveShadow = policy.receive && split.highlightMesh.visible;
       return;
     }
     if (pool.instancedMesh) {
       pool.instancedMesh.visible = pool.entries.some((entry) => this.isRenderable(entry));
+      pool.instancedMesh.castShadow = pool.entries.some(
+        (entry) => this.isRenderable(entry) && isShadowCasterFor(pool.level, entry.shadowRepresentation),
+      );
+      pool.instancedMesh.receiveShadow = policy.receive && pool.instancedMesh.visible;
+    }
+    if (pool.singleMesh && pool.entries.length === 1) {
+      const entry = pool.entries[0]!;
+      const alive = this.isRenderable(entry);
+      pool.singleMesh.castShadow =
+        alive && isShadowCasterFor(pool.level, entry.shadowRepresentation);
+      pool.singleMesh.receiveShadow = policy.receive && alive;
     }
   }
 
@@ -1017,12 +1121,14 @@ export class InstancedAssetPool {
         brightSlotOf: new Map(),
       };
       split.highlightMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-      split.highlightMesh.castShadow = true;
-      split.highlightMesh.receiveShadow = true;
-      // T009.5：亮网格与主网格同待遇——源带影 pass 深度材质则挂（归源所有，只挂引用）
-      if (source.customDepthMaterial !== undefined) {
-        split.highlightMesh.customDepthMaterial = source.customDepthMaterial;
-      }
+      // T021.5：阴影策略驱动（cast 初值 = 策略值——refreshSubmitVisibility 按提交态
+      // 与阴影表示〔中点切换〕细化；depth 三档映射 shadowDepthMaterialOf——归源所有
+      // 只挂引用；与主网格同待遇）
+      const splitPolicy = shadowPolicyOf(pool.level);
+      split.highlightMesh.castShadow = splitPolicy.cast;
+      split.highlightMesh.receiveShadow = splitPolicy.receive;
+      const splitDepth = shadowDepthMaterialOf(pool.level, source);
+      if (splitDepth !== undefined) split.highlightMesh.customDepthMaterial = splitDepth;
       split.highlightMesh.layers.set(diag.highlightLayer);
       pool.split = split;
       this.root.add(split.highlightMesh);
@@ -1186,12 +1292,14 @@ export class InstancedAssetPool {
     }
     if (!pool.singleMesh) {
       pool.singleMesh = new THREE.Mesh(source.geometry, source.material);
-      pool.singleMesh.castShadow = true;
-      pool.singleMesh.receiveShadow = true;
-      // T009.5：源带影 pass 深度材质则挂（复用对象创建点挂一次——源不变于池生命周期）
-      if (source.customDepthMaterial !== undefined) {
-        pool.singleMesh.customDepthMaterial = source.customDepthMaterial;
-      }
+      // T021.5：阴影策略驱动（cast 初值 = 策略值——refreshSubmitVisibility 按提交态
+      // 与阴影表示细化；depth 三档映射 shadowDepthMaterialOf，复用对象创建点挂一次
+      // ——源不变于池生命周期）
+      const singlePolicy = shadowPolicyOf(pool.level);
+      pool.singleMesh.castShadow = singlePolicy.cast;
+      pool.singleMesh.receiveShadow = singlePolicy.receive;
+      const singleDepth = shadowDepthMaterialOf(pool.level, source);
+      if (singleDepth !== undefined) pool.singleMesh.customDepthMaterial = singleDepth;
     }
     if (pool.singleMesh.userData.objectId !== pool.entries[0].id) {
       pool.singleMesh.userData.objectId = pool.entries[0].id;
@@ -1212,10 +1320,14 @@ export class InstancedAssetPool {
       pool.capacity = capacityFor(count);
       mesh = new THREE.InstancedMesh(source.geometry, source.material, pool.capacity);
       mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      // T009.5：源带影 pass 深度材质则挂（Mesh 对象跨扩容复用，创建点挂一次即可）
-      if (source.customDepthMaterial !== undefined) mesh.customDepthMaterial = source.customDepthMaterial;
+      // T021.5：阴影策略驱动（cast 初值 = 策略值——Mesh 对象跨扩容复用创建点挂一次；
+      // 提交态与阴影表示〔中点切换〕由 refreshSubmitVisibility 每事件点细化；depth
+      // 三档映射 shadowDepthMaterialOf——归源所有只挂引用）
+      const instancedPolicy = shadowPolicyOf(pool.level);
+      mesh.castShadow = instancedPolicy.cast;
+      mesh.receiveShadow = instancedPolicy.receive;
+      const instancedDepth = shadowDepthMaterialOf(pool.level, source);
+      if (instancedDepth !== undefined) mesh.customDepthMaterial = instancedDepth;
       pool.instancedMesh = mesh;
       this.root.add(mesh);
     } else if (pool.capacity < count) {

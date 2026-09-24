@@ -27,7 +27,8 @@
  *   canopy 源零请求、迟滞参考已记录）。
  * - 分布 §十三升级位（T021.4）：transitionInstances（顶层镜像）、transitionTargets
  *   （目标表示口径——dither 期按 SelectionState.target 归档）、shadowCasterInstances
- *   （021.5 前现值口径：cast 统一 true → renderable 实例数；零提交 = 0）。放置链
+ *   （T021.5 策略驱动真值口径：caster = renderable ∧ isShadowCasterFor(桶表示,
+ *   阴影表示)——中点切换后当侧不计、目标侧客座计；零提交 = 0）。放置链
  *   无密度抽稀消费面（T021.4 核实）——密度职责废止对本池零行为改动。
  *
  * T021.2 改写记档（原断言 → 新断言 → 为何等价）：
@@ -35,6 +36,13 @@
  *   [high,mid,low] 等价；representations 声明优先分支归 domain 组合测试覆盖）；
  * - T.midToLow → T.midToCanopy、T.lowToCulled → T.canopyToCulled（候选初值同值直承
  *   16/60——全部数值断言与档位断言不变；low 环 = canopy 名义带跳档承接，逐位等价）。
+ * T021.5 改写记档（现值口径断言升级为策略驱动真值口径）：
+ * - 「dither f=0.25 期 shadowCasterInstances = 2」→「= 1」：原口径 cast 统一 true
+ *   双侧都计；策略口径下 canopy 客座阴影表示 = mid（中点前）≠ 桶表示 canopy → 不计
+ *   ——恰一侧 caster 是 §5.4 中点切换的本意行为（非回归），同断言点的 mesh 级
+ *   castShadow 翻转由 InstancedAssetPool.shadow.test.ts 锁定；
+ * - 「零提交 = 0」「high 稳态 = 2」数值不变（稳态下真值口径 = 现值口径），仅注释
+ *   从「现值口径」升级为「策略驱动真值口径」。
  * 边界：fake 源提供者按 (assetId × 槽 × level) 分源；几何包围手工钉死——选档输入
  *      确定性（High 球心 (0,3,0) = 机位定标口径；Mid/Low 球心沿视轴（Z）偏移 ±0.5
  *      ——档间球心差的放大应力：选档若误取当档球心，读数平移 ±0.25（m 口径）≫ 迟滞
@@ -663,7 +671,7 @@ describe('InstancedAssetPool LOD：桶级提交跳过', () => {
     expect(dist.instances.culled).toBe(2);
     expect(dist.buckets.culled).toBe(2); // slot-0/slot-1 两 high 桶各自整桶跳过
     expect(dist.buckets.high).toBe(0);
-    expect(dist.shadowCasterInstances).toBe(0); // T021.4：零提交 = 零阴影投射（现值口径）
+    expect(dist.shadowCasterInstances).toBe(0); // T021.5：零提交 = 零阴影投射（策略驱动真值口径）
 
     // 回近：near 桶与 far 桶都恢复 high 提交
     pool.frameLod(cameraForM(t.highToMid * 0.5), true);
@@ -672,7 +680,7 @@ describe('InstancedAssetPool LOD：桶级提交跳过', () => {
     expect(dist.instances.high).toBe(2);
     expect(dist.buckets.high).toBe(2);
     expect(dist.buckets.culled).toBe(0);
-    expect(dist.shadowCasterInstances).toBe(2); // renderable 实例 = 阴影投射（cast 统一 true）
+    expect(dist.shadowCasterInstances).toBe(2); // renderable ∧ 稳态阴影表示 = 桶表示（策略驱动真值口径——稳态下同现值）
     pool.dispose();
   });
 });
@@ -807,7 +815,7 @@ describe('InstancedAssetPool LOD：canopy dither 执行（假想声明资产）'
     // T021.4 §十三升级位：顶层镜像同值 + 目标表示口径 + 阴影投射现值口径
     expect(dist.transitionInstances).toBe(1); // 镜像位 = transition.instances（存储单点）
     expect(dist.transitionTargets.canopy).toBe(1); // 过渡中实例按 SelectionState.target 归档
-    expect(dist.shadowCasterInstances).toBe(2); // 属主 mid renderable + canopy 客座提交中（cast 统一 true 现值口径）
+    expect(dist.shadowCasterInstances).toBe(1); // T021.5 真值口径：恰一侧 caster——属主 mid（阴影表示 mid=桶表示）计；canopy 客座阴影表示 mid ≠ canopy 不计（中点前，§5.4）
 
     // 带末（f=1）：完成迁移——客座拆除、属主入 canopy 桶、mid 桶拆空
     const m2 = t.midToCanopy * (1 + TRANSITION_BAND_RATIO) * 1.01;

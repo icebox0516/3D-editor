@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>shadow 冒烟（T021.5 Shadow Representation——策略层直消费最小 harness）</title>
+  <script>
+    // console 捕获（先于 three/材质模块加载注入——沿 011.9 / 021.3 / 021.6 先例）
+    window.__SHADOW_ERRORS = [];
+    window.__SHADOW_WARNINGS = [];
+    (function () {
+      var oe = console.error, ow = console.warn;
+      console.error = function () {
+        window.__SHADOW_ERRORS.push(Array.prototype.map.call(arguments, String).join(' '));
+        oe.apply(console, arguments);
+      };
+      console.warn = function () {
+        window.__SHADOW_WARNINGS.push(Array.prototype.map.call(arguments, String).join(' '));
+        ow.apply(console, arguments);
+      };
+      window.addEventListener('error', function (e) { window.__SHADOW_ERRORS.push('window.onerror: ' + e.message); });
+      window.addEventListener('unhandledrejection', function (e) { window.__SHADOW_ERRORS.push('unhandledrejection: ' + String(e.reason)); });
+    })();
+  </script>
+  <style>
+    html, body { margin: 0; padding: 0; background: #20242a; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <script type="module" src="./shadow-smoke-page.ts"></script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 /**
  * runtime/lodDistribution —— LOD 分布双口径计数（纯计数模块，node 可测；T006.4，D27.9；
- * T021.3 过渡计数面升级；T021.4 口径升级，D41 §十三）。
+ * T021.3 过渡计数面升级；T021.4 口径升级，D41 §十三；T021.5 阴影计数真值化——仅注释）。
  *
  * 职责：批次治理归因数据的聚合容器——各调度判定产出（high/mid/low/canopy/culled）双口径
  *      计数：instances（实例数）+ buckets（桶数），加 T021.3 过渡计数面与 T021.4 升级位
@@ -31,9 +31,10 @@
  *          current（'culled' 不进 target，D41 §三.1）——退场单元按其当前表示归档，
  *          culled 键恒 0）；
  *      shadowCasterInstances = 阴影投射实例数（提交中且 castShadow 的实例合计）。
- *          **021.5 前现值口径记档**：两链全部建网格点 castShadow 统一 true，故现值 =
- *          提交中实例数；021.5 Shadow Policy 按表示驱动 cast 后由两链喂入改按策略计
- *          （本计数器不感知策略——只聚合调用方判定）。
+ *          **T021.5 策略驱动真值口径**：两链建网格点 castShadow 按 domain
+ *          shadowPolicy（cast 策略 + 阴影表示〔§5.4 中点切换〕）维护——放置链
+ *          per-entry 精确计数、散布链按桶 castShadow 标志（自有/客座 per-chunk、
+ *          合并桶成员 OR），本计数器只聚合调用方判定（不感知策略）。
  * T021.1 类型迁移（D41）：键联合随 LodSelectionOutcome 演化补 'canopy' 键位。
  * 解释口径（T021.2，D41 §4.1）：分布报表与阈值（m 口径，lodPolicy 候选值）对照读数时
  *      统一按 screenFraction = 1/m 折算（资产直径 / 视口高；6/16/60 ↔ 16.7%/6.25%/1.67%）
@@ -78,8 +79,8 @@ export interface LodDistribution {
    */
   transitionTargets: LodCountMap;
   /**
-   * 阴影投射实例数（§十三）——021.5 前现值口径：两链 castShadow 统一 true → =
-   * 提交中实例数（模块头注记档；021.5 起由两链按 Shadow Policy 喂入）
+   * 阴影投射实例数（§十三）——T021.5 策略驱动真值口径：两链按 Shadow Policy
+   * （cast ∧ 阴影表示 === 桶/条目表示，中点切换）喂入（模块头注）；计数器只聚合
    */
   shadowCasterInstances: number;
   transition: LodTransitionCounts;

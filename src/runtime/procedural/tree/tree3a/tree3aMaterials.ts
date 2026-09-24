@@ -30,7 +30,8 @@
  *   否则多材质网格的皮组会被叶形 SDF 在圆柱 uv 域上误裁出洞）。**通道记档（T009.5
  *   契约立契）**：InstanceSource 契约已含 customDepthMaterial——夏栎 build 返回本工厂
  *   产物（档位匹配），产品路径 InstancedAssetPool 桶网格/单例网格/诊断亮网格三创建点
- *   挂载（池路径桶网格自 2026-09-18 起统一 castShadow/receiveShadow=true），DEV 舞台
+ *   挂载（池路径桶网格 cast/receive 自 2026-09-24 T021.5 起按表示驱动 ShadowPolicy：
+ *   high/mid 挂本 SDF 深度、low 策略 simplified 跳过挂载走实心几何影），DEV 舞台
  *   （tree3aStage）消费同源 source.customDepthMaterial（fake build 注入不带字段时
  *   回退自建）——DEV 出图面 = 正式场景，影 pass 均为 SDF 裁切影。风动位移不进 depth
  *   pass（静态影，摆幅 cm 级 + 影贴图 ~16cm/_texel 下不可辨，已知取舍维持）。

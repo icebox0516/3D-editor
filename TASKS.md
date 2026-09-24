@@ -81,7 +81,8 @@
 
 > Next 仅表示已排入路线图的后续任务，不代表执行顺序；实际启动顺序由任务文件中的依赖、当前项目状态及有效架构裁定决定（D31.8）。
 
-- [ ] T021 LOD → Representation 运行体系重构（021.0–021.4 / 021.6 done——021.3/021.4 done 2026-09-24；下一步 021.5——D41，运行面真相源 docs/procedural-assets/representation-runtime.md）→ [tasks/021-lod-representation.md](tasks/021-lod-representation.md)
+- [ ] T021 LOD → Representation 运行体系重构（021.0–021.6 done——021.5 done 2026-09-24；下一步 021.7，其后 021.8——D41，运行面真相源 docs/procedural-assets/representation-runtime.md）→ [tasks/021-lod-representation.md](tasks/021-lod-representation.md)
+  - [x] T021.5 Shadow Representation（done 2026-09-24：ShadowPolicy 三字段策略层 / depth 三档〔low 不挂 SDF→实心影〕/ 两链策略驱动 + 合并桶 OR / 中点切换钩子接通 / culled 零残影 + 九帧取证，4160 全绿）→ [tasks/021.5-shadow-representation.md](tasks/021.5-shadow-representation.md)
   - [x] T021.4 Density / Batch 解耦（done 2026-09-24：levelInstanceKeep 废止密度恒全量 / 批次键迁移 representation / 分布口径升级，4141 全绿）→ [tasks/021.4-density-batch.md](tasks/021.4-density-batch.md)
   - [x] T021.3 Transition Runtime（done 2026-09-24：metric 步进过渡状态机 / aFadeOut 属性缝 / 两链客座双表示 + Union 剔除 / dither×alphaTest 合成〔A2C 不吃 fade、IGN 镜像互补〕/ 中点切换钩子，4129 全绿）→ [tasks/021.3-transition-runtime.md](tasks/021.3-transition-runtime.md)
   - [x] T021.6 Broadleaf Canopy Proxy（done 2026-09-23：共享冠层场契约收编 / 统一工厂 487 面 / 材质与深度材质 drift-lock / 13 树种基线帧取证，与 021.2 并行）→ [tasks/021.6-canopy-proxy.md](tasks/021.6-canopy-proxy.md)
