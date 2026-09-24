@@ -338,12 +338,12 @@ describe('分档实装（level 参数；缺省 high = 显式 high）', () => {
       expect(material.customProgramCacheKey()).toBe(key);
       keys.add(material.customProgramCacheKey());
     };
-    expectKey(track(createGinkgoLeafMaterial()), 'ginkgo:leaf');
-    expectKey(track(createGinkgoLeafMaterial('mid')), 'ginkgo:leaf:mid');
-    expectKey(track(createGinkgoLeafMaterial('low')), 'ginkgo:leaf:low');
-    expectKey(track(createGinkgoBarkMaterial()), 'ginkgo:bark');
-    expectKey(track(createGinkgoBarkMaterial('mid')), 'ginkgo:bark:mid');
-    expectKey(track(createGinkgoBarkMaterial('low')), 'ginkgo:bark:low');
+    expectKey(track(createGinkgoLeafMaterial()), 'ginkgo:leaf+dither');
+    expectKey(track(createGinkgoLeafMaterial('mid')), 'ginkgo:leaf:mid+dither');
+    expectKey(track(createGinkgoLeafMaterial('low')), 'ginkgo:leaf:low+dither');
+    expectKey(track(createGinkgoBarkMaterial()), 'ginkgo:bark+dither');
+    expectKey(track(createGinkgoBarkMaterial('mid')), 'ginkgo:bark:mid+dither');
+    expectKey(track(createGinkgoBarkMaterial('low')), 'ginkgo:bark:low+dither');
     expectKey(track(createGinkgoLeafDepthMaterial()), 'ginkgo:leaf-depth');
     expectKey(track(createGinkgoLeafDepthMaterial('mid')), 'ginkgo:leaf-depth:mid');
     expectKey(track(createGinkgoLeafDepthMaterial('low')), 'ginkgo:leaf-depth:low');

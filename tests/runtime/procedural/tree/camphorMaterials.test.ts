@@ -306,12 +306,12 @@ describe('分档实装（level 参数；缺省 high = 显式 high）', () => {
       expect(material.customProgramCacheKey()).toBe(key);
       keys.add(material.customProgramCacheKey());
     };
-    expectKey(track(createCamphorLeafMaterial()), 'camphor:leaf');
-    expectKey(track(createCamphorLeafMaterial('mid')), 'camphor:leaf:mid');
-    expectKey(track(createCamphorLeafMaterial('low')), 'camphor:leaf:low');
-    expectKey(track(createCamphorBarkMaterial()), 'camphor:bark');
-    expectKey(track(createCamphorBarkMaterial('mid')), 'camphor:bark:mid');
-    expectKey(track(createCamphorBarkMaterial('low')), 'camphor:bark:low');
+    expectKey(track(createCamphorLeafMaterial()), 'camphor:leaf+dither');
+    expectKey(track(createCamphorLeafMaterial('mid')), 'camphor:leaf:mid+dither');
+    expectKey(track(createCamphorLeafMaterial('low')), 'camphor:leaf:low+dither');
+    expectKey(track(createCamphorBarkMaterial()), 'camphor:bark+dither');
+    expectKey(track(createCamphorBarkMaterial('mid')), 'camphor:bark:mid+dither');
+    expectKey(track(createCamphorBarkMaterial('low')), 'camphor:bark:low+dither');
     expectKey(track(createCamphorLeafDepthMaterial()), 'camphor:leaf-depth');
     expectKey(track(createCamphorLeafDepthMaterial('mid')), 'camphor:leaf-depth:mid');
     expectKey(track(createCamphorLeafDepthMaterial('low')), 'camphor:leaf-depth:low');

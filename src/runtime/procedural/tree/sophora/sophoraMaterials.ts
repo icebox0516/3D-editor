@@ -249,6 +249,7 @@
 import * as THREE from 'three';
 import { FACILITY_GLSL_NOISE } from '../../materials/facilityGlsl';
 import type { ProceduralLevel } from '../../../../domain/assets';
+import { applyTreeFadeDither } from '../treeFadeDither';
 
 /** onBeforeCompile 材质的 uTime 桥接面（TimeUniformService 扫描材质级 uniforms.uTime） */
 type TimeBridgedMaterial = THREE.MeshStandardMaterial & {
@@ -678,6 +679,7 @@ ${leafRoughness}`,
     }
   };
   material.customProgramCacheKey = () => `sophora:leaf${levelKeySuffix(level)}`;
+  applyTreeFadeDither(material); // T021.3 dither fade（direct 侧；aFadeOut 缺省 0 = 行为逐位不变，键 +dither）
   return material;
 }
 
@@ -778,6 +780,7 @@ ${barkRoughness}`,
     }
   };
   material.customProgramCacheKey = () => `sophora:bark${levelKeySuffix(level)}`;
+  applyTreeFadeDither(material); // T021.3 dither fade（direct 侧；aFadeOut 缺省 0 = 行为逐位不变，键 +dither）
   return material;
 }
 

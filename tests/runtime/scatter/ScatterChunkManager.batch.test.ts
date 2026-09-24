@@ -38,7 +38,8 @@ import { describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 import { BATCH_POLICY, keepThinnedInstance } from '../../../src/domain/lod/batchPolicy';
 import { LOD_THRESHOLDS } from '../../../src/domain/lod/lodPolicy';
-import type { ProceduralLevel } from '../../../src/domain/assets';
+import { TRANSITION_BAND_RATIO } from '../../../src/domain/lod/transition';
+import type { RuntimeRepresentation } from '../../../src/domain/lod/representation';
 import type { ScatterInstance, ScatterParams } from '../../../src/domain/scatter';
 import { scatterChunk } from '../../../src/domain/scatter';
 import type { Vec2 } from '../../../src/core/types';
@@ -52,7 +53,7 @@ import type { InstanceSource } from '../../../src/runtime/instancing/InstancedAs
  * 三档源几何包围球半径（真实差异化，不再三档 pin 同球）：High 基准 5.0、Mid −4%、
  * Low −2%——档间轮廓差实测量级 2~5%（口径同 ScatterChunkManager.lod 测试）。
  */
-const LEVEL_RADIUS: Record<ProceduralLevel, number> = { high: 5, mid: 4.8, low: 4.9 };
+const LEVEL_RADIUS: Record<RuntimeRepresentation, number> = { high: 5, mid: 4.8, low: 4.9, canopy: 5.05 };
 /** 相机定标基准半径（= High 档；cameraAboveCenter 的机位口径） */
 const SOURCE_RADIUS = LEVEL_RADIUS.high;
 const GEO_HALF = 1;
@@ -87,7 +88,7 @@ function sparseParams(overrides: Partial<ScatterParams> = {}): ScatterParams {
 /** 密集参数：~100 实例/块 > 32（合并阈值之上） */
 const denseParams = (): ScatterParams => sparseParams({ densityPerM2: 0.1 });
 
-function leveledSource(level: ProceduralLevel): InstanceSource {
+function leveledSource(level: RuntimeRepresentation): InstanceSource {
   const geometry = new THREE.BoxGeometry(2, 2, 2);
   geometry.boundingBox = new THREE.Box3(
     new THREE.Vector3(-GEO_HALF, -GEO_HALF, -GEO_HALF),
@@ -99,7 +100,7 @@ function leveledSource(level: ProceduralLevel): InstanceSource {
 
 function makeLeveledProvider() {
   const sources = new Map<string, InstanceSource>();
-  const provider = vi.fn(async (assetId: string, level?: ProceduralLevel): Promise<InstanceSource> => {
+  const provider = vi.fn(async (assetId: string, level?: RuntimeRepresentation): Promise<InstanceSource> => {
     const key = `${assetId}::${level ?? 'high'}`;
     let source = sources.get(key);
     if (!source) {
@@ -114,7 +115,7 @@ function makeLeveledProvider() {
 function sourceOf(
   sources: Map<string, InstanceSource>,
   assetId: string,
-  level: ProceduralLevel,
+  level: RuntimeRepresentation,
 ): InstanceSource {
   const source = sources.get(`${assetId}::${level}`);
   expect(source).toBeDefined();
@@ -178,7 +179,13 @@ function meshesHolding(
   for (const group of m.root.children) {
     for (const child of [group, ...group.children]) {
       const mesh = child as THREE.InstancedMesh;
-      if (mesh.isInstancedMesh && mesh.geometry === geometry) found.push(mesh);
+      if (
+        mesh.isInstancedMesh &&
+        (mesh.geometry === geometry ||
+          mesh.geometry.attributes.position === geometry.attributes.position)
+      ) {
+        found.push(mesh);
+      }
     }
   }
   return found;
@@ -195,8 +202,8 @@ function truthOf(params: ScatterParams, i: number, j: number): ScatterInstance[]
 }
 
 /** 档位抽稀后的期望保留集（domain 规则——与实现共用同一纯函数契约） */
-function thinned(list: ScatterInstance[], level: ProceduralLevel): ScatterInstance[] {
-  const keep = BATCH_POLICY.levelInstanceKeep[level];
+function thinned(list: ScatterInstance[], level: RuntimeRepresentation): ScatterInstance[] {
+  const keep = level === 'canopy' ? 1 : BATCH_POLICY.levelInstanceKeep[level];
   return list.filter((_, index) => keepThinnedInstance(index, keep));
 }
 
@@ -208,7 +215,7 @@ const ALL_MEMBERS: [number, number][] = [
 ];
 
 /** 期望合并桶实例序（成员 (i,j) 升序 × 块内撒点序 × 档位抽稀） */
-function expectedMerged(params: ScatterParams, members: [number, number][], level: ProceduralLevel): ScatterInstance[] {
+function expectedMerged(params: ScatterParams, members: [number, number][], level: RuntimeRepresentation): ScatterInstance[] {
   const out: ScatterInstance[] = [];
   for (const [i, j] of members.sort((a, b) => a[0] - b[0] || a[1] - b[1])) {
     out.push(...thinned(truthOf(params, i, j), level));
@@ -398,47 +405,69 @@ describe('ScatterChunkManager 批次控制：档位升降', () => {
 // ── 合并成员 culled ────────────────────────────────────────
 
 describe('ScatterChunkManager 批次控制：合并成员 culled', () => {
-  it('单成员超线 culled：实例退出合并桶；回视恢复重入（确定性）；拾取语义不变', async () => {
+  /**
+   * T021.3 改写记档：Low→Cull 自决策线瞬时 cull 变为退场带 fade（终态线 = 名义线 ×
+   * (1+W)）。角点机位下「单成员超线而余员未超」在 32m 块 + 带宽 0.25 的几何下不可达
+   * （角点最近点距离比随高度收敛 →1，决策线 60 与终态线 75 的 1.25 比分不动）；单成员
+   * 退出改经 **scale 不对称双源**构造（同 2×2 超块：far 源仅覆盖 (1,1) 且 scale 0.6
+   * ——读数 = 距离/(R×scale) 折算放大 5/3 倍，与 near 源两块拉开 1.25+ 比分）；两源
+   * 各自合并桶独立退出 / 重入（memberCulled 机制面等价——同代码路径）。
+   */
+  it('far 源合并成员超终态线退出合并桶；near 源成员保留；回视恢复重入（确定性）；拾取语义不变', async () => {
     const { provider } = makeLeveledProvider();
     const m = makeManager(provider, { sparseMerge: MERGE });
-    const params = sparseParams();
-    m.setSource('s', params);
+    const nearParams = sparseParams({ polygon: rect(0, 0, 64, 32) }); // 块 (0,0)(1,0)
+    const farParams = sparseParams({
+      polygon: rect(32, 32, 64, 64),
+      scaleRange: { min: 0.7, max: 0.7 },
+    }); // 块 (1,1)
+    m.setSource('near', nearParams);
+    m.setSource('far', farParams);
     await flush();
     const t = LOD_THRESHOLDS;
-    // 先全部 low（合并建立）
+    const cullTerminal = t.canopyToCulled * (1 + TRANSITION_BAND_RATIO);
+    // 先全部 low（两源各一合并桶）
     await settle(m, cameraAboveCenter(LOW_BAND_M));
-    expect(mergedMeshes(m)).toHaveLength(1);
-    const full = mergedMeshes(m)[0]!;
-    const fullCount = full.count;
-    const fullSnapshot = Float32Array.from(full.instanceMatrix.array.subarray(0, full.count * 16));
-
-    // 角点机位抬升：块 (0,0) 仍 low 带、块 (1,1) 超 culled 线（其余两块带内）——选档
-    // 稳定基准恒按 High 半径折算（mOfChunk 缺省口径，与四块当前 low 档无关）
-    let h = 1 + t.canopyToCulled * 0.9 * SOURCE_RADIUS;
-    while (mOfChunk(1, 1, h) <= t.canopyToCulled * 1.001) h += 2;
-    expect(mOfChunk(0, 0, h)).toBeLessThanOrEqual(t.canopyToCulled); // (0,0) 未超线
-    await settle(m, cameraAboveCorner(h));
-    const partiallyCulled = mergedMeshes(m)[0]!;
-    const expectedRemaining = expectedMerged(params, [
-      [0, 0],
-      [0, 1],
-      [1, 0],
-    ], 'low');
-    expect(partiallyCulled.count).toBe(expectedRemaining.length); // (1,1) 实例退出写入
-    expect(partiallyCulled.count).toBeLessThan(fullCount);
-    expectMeshInstances(partiallyCulled, expectedRemaining);
-    // 拾取：合并桶命中 → 源 id（跨档/合并一致）
-    expect(
-      m.resolvePick({ object: partiallyCulled, instanceId: 0 } as unknown as THREE.Intersection),
-    ).toBe('s');
-
-    // 回视（回落 low 带内 m=38 < 迟滞升档线 51）：成员重入，逐位复原
-    await settle(m, cameraAboveCenter(LOW_BAND_M));
-    const restored = mergedMeshes(m)[0]!;
-    expect(restored.count).toBe(fullCount);
-    expect(Float32Array.from(restored.instanceMatrix.array.subarray(0, restored.count * 16))).toEqual(
-      fullSnapshot,
+    expect(mergedMeshes(m)).toHaveLength(2);
+    const nearFull = mergedMeshes(m).find((mesh) => mesh.name.includes(':near:'))!;
+    const farFull = mergedMeshes(m).find((mesh) => mesh.name.includes(':far:'))!;
+    expect(nearFull).toBeDefined();
+    expect(farFull).toBeDefined();
+    const nearFullCount = nearFull.count;
+    const farFullCount = farFull.count;
+    const farSnapshot = Float32Array.from(
+      farFull.instanceMatrix.array.subarray(0, farFull.count * 16),
     );
+
+    // 角点机位 (0, h, 0)：near 块最近点 ≈ h−1（读数 = (h−1)/5 ≤ 决策线）；far 块 (1,1)
+    // 距离 √(2·32² + (h−1)²)、scale 0.7 → 读数 = 距离/(5×0.7) ≥ 终态线（scale 折算放大
+    // 拉开与 near 的比分；0.7 同时保证均匀机位下 far 读数 54 仍落 low 带）
+    const h = 291;
+    const nearReading = (h - 1) / SOURCE_RADIUS;
+    const farReading = Math.sqrt(2 * 32 * 32 + (h - 1) ** 2) / (SOURCE_RADIUS * 0.7);
+    expect(nearReading).toBeLessThan(t.canopyToCulled); // near 未超决策线（退场带外）
+    expect(farReading).toBeGreaterThan(cullTerminal); // far 超终态线
+    await settle(m, cameraAboveCorner(h));
+    // far 源合并桶：成员终态 cull 退出 → 零实例零提交（桶保留）
+    const farCulled = mergedMeshes(m).find((mesh) => mesh.name.includes(':far:'))!;
+    expect(farCulled.count).toBe(0);
+    expect(farCulled.visible).toBe(false);
+    // near 源合并桶：成员保留（未超线）、实例完整
+    const nearKept = mergedMeshes(m).find((mesh) => mesh.name.includes(':near:'))!;
+    expect(nearKept.count).toBe(nearFullCount);
+    expectMeshInstances(nearKept, expectedMerged(nearParams, [[0, 0], [1, 0]], 'low'));
+    // 拾取：near 合并桶命中 → 源 id
+    expect(
+      m.resolvePick({ object: nearKept, instanceId: 0 } as unknown as THREE.Intersection),
+    ).toBe('near');
+
+    // 回视（回落 low 带内）：far 成员重入，逐位复原（确定性）
+    await settle(m, cameraAboveCenter(LOW_BAND_M));
+    const farRestored = mergedMeshes(m).find((mesh) => mesh.name.includes(':far:'))!;
+    expect(farRestored.count).toBe(farFullCount);
+    expect(
+      Float32Array.from(farRestored.instanceMatrix.array.subarray(0, farRestored.count * 16)),
+    ).toEqual(farSnapshot);
     m.dispose();
   });
 
@@ -449,8 +478,11 @@ describe('ScatterChunkManager 批次控制：合并成员 culled', () => {
     await flush();
     await settle(m, cameraAboveCenter(LOW_BAND_M));
     expect(mergedMeshes(m)).toHaveLength(1);
-    // 全部块超 culled 线（均匀机位 m = 1.2·canopyToCulled）
-    await settle(m, cameraAboveCenter(LOD_THRESHOLDS.canopyToCulled * 1.2));
+    // 全部块超退场带终态线（均匀机位；1.2·名义线在带内——不整桶消失）
+    await settle(
+      m,
+      cameraAboveCenter(LOD_THRESHOLDS.canopyToCulled * (1 + TRANSITION_BAND_RATIO) * 1.02),
+    );
     const all = mergedMeshes(m);
     expect(all).toHaveLength(1); // 桶保留（调度结果非拆除）
     expect(all[0]!.count).toBe(0);
@@ -544,11 +576,16 @@ describe('ScatterChunkManager 批次控制：LOD 分布双口径', () => {
     expect(dist.buckets.high + dist.buckets.mid).toBe(0);
     expect(dist.instances.low).toBe(expectedMerged(params, [...ALL_MEMBERS], 'low').length);
 
-    // 全组 culled：桶计 culled（零提交口径）、实例计 culled
-    await settle(m, cameraAboveCenter(LOD_THRESHOLDS.canopyToCulled * 1.2));
+    // 全组 culled：桶计 culled（零提交口径）、实例计 culled（终态线外——退场带内
+    // 实例仍计 low 且 transition.instances 计过渡中）
+    await settle(
+      m,
+      cameraAboveCenter(LOD_THRESHOLDS.canopyToCulled * (1 + TRANSITION_BAND_RATIO) * 1.02),
+    );
     dist = m.getLodDistribution();
     expect(dist.buckets.culled).toBe(1);
     expect(dist.instances.culled).toBe(expectedMerged(params, [...ALL_MEMBERS], 'low').length);
+    expect(dist.transition.instances).toBe(0); // 终态后无过渡中实例
     m.dispose();
   });
 });

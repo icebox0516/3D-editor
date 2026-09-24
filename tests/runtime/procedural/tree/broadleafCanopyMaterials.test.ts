@@ -54,7 +54,7 @@ function inject(material: THREE.Material): InjectedShader {
     uniforms: {} as Record<string, { value: number }>,
     vertexShader: '#include <common>\n#include <begin_vertex>\n',
     fragmentShader:
-      '#include <common>\n#include <map_fragment>\n#include <roughnessmap_fragment>\n#include <opaque_fragment>\n',
+      '#include <common>\n#include <map_fragment>\n#include <alphatest_fragment>\n#include <roughnessmap_fragment>\n#include <opaque_fragment>\n', // alphatest 锚点：card/trunk 的 T021.3 fade dither 注入位（同步记档——注入后测试假 shader 需含该锚点）
   };
   const hook = (material as { onBeforeCompile?: (s: unknown, r: unknown) => void }).onBeforeCompile;
   if (!hook) throw new Error('材质无 onBeforeCompile（应已注入）');
@@ -330,8 +330,8 @@ describe('Canopy Depth Material（轮廓-only）', () => {
       expect(depth.depthPacking, `${id} RGBADepthPacking`).toBe(THREE.RGBADepthPacking);
       expect(depth.alphaTest, `${id} 深度应无 alphaTest（轮廓-only，卡即壳）`).toBe(0);
       const injected = inject(depth);
-      expect(injected.fragmentShader, `${id} 深度片元应零注入（无 SDF 路径）`).toBe(
-        '#include <common>\n#include <map_fragment>\n#include <roughnessmap_fragment>\n#include <opaque_fragment>\n',
+      expect(injected.fragmentShader, `${id} 深度片元应零注入（无 SDF 路径；fade dither 亦不进深度——阴影走中点切换）`).toBe(
+        '#include <common>\n#include <map_fragment>\n#include <alphatest_fragment>\n#include <roughnessmap_fragment>\n#include <opaque_fragment>\n',
       );
       expect(injected.vertexShader, `${id} 深度应含 aBend 风摆`).toMatch(/aBend \* [\d.]+/);
       expect(injected.vertexShader, `${id} 深度链不应引用 objectNormal（未定义变量）`).not.toContain('objectNormal');

@@ -457,8 +457,15 @@ export class Renderer {
     };
     this.instancedPool = assetRouter
       ? new InstancedAssetPool({
-          provideSource: (assetId, seed, level) =>
-            assetRouter.provideInstanceSource(assetId, { seed, level }),
+          // T021.3：桶维度宽化到 RuntimeRepresentation（canopy 目标位执行路径落代码）。
+          // canopy 源路由归 021.7（§11 provideSource 签名演化——ProceduralSourceCache
+          // 二分支收敛）；生产 canopy 不可达（真实资产未声明 canopy 能力，021.2 记档），
+          // 假想声明资产在 021.7 前经本窄化回退 high 源（保守侧——high 是最全表示）
+          provideSource: (assetId, seed, representation) =>
+            assetRouter.provideInstanceSource(assetId, {
+              seed,
+              level: representation === 'canopy' ? undefined : representation,
+            }),
           resolvePoolKey: (assetId, seed) => {
             const descriptor = assets?.get(assetId);
             if (!descriptor || descriptor.kind !== 'procedural') return assetId;
@@ -475,8 +482,11 @@ export class Renderer {
     // 散布实例天然不参与拾取（映射回区域是 003.3 的事）。会话私有，随 dispose 链拆除。
     this.scatter = assetRouter
       ? new ScatterChunkManager({
-          provideSource: (assetId, level) =>
-            assetRouter.provideInstanceSource(assetId, { level }),
+          // T021.3 canopy 窄化边界同放置池：canopy 源路由归 021.7，此前回退 high 源
+          provideSource: (assetId, representation) =>
+            assetRouter.provideInstanceSource(assetId, {
+              level: representation === 'canopy' ? undefined : representation,
+            }),
           getAssetVariants: (assetId) => {
             const descriptor = assets!.get(assetId);
             return descriptor && descriptor.kind === 'procedural' ? descriptor.asset.variants : undefined;

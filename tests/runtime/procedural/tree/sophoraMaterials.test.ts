@@ -618,12 +618,12 @@ describe('分档实装（level 参数；缺省 high = 显式 high）', () => {
       expect(material.customProgramCacheKey()).toBe(key);
       keys.add(material.customProgramCacheKey());
     };
-    expectKey(track(createSophoraLeafMaterial()), 'sophora:leaf');
-    expectKey(track(createSophoraLeafMaterial('mid')), 'sophora:leaf:mid');
-    expectKey(track(createSophoraLeafMaterial('low')), 'sophora:leaf:low');
-    expectKey(track(createSophoraBarkMaterial()), 'sophora:bark');
-    expectKey(track(createSophoraBarkMaterial('mid')), 'sophora:bark:mid');
-    expectKey(track(createSophoraBarkMaterial('low')), 'sophora:bark:low');
+    expectKey(track(createSophoraLeafMaterial()), 'sophora:leaf+dither');
+    expectKey(track(createSophoraLeafMaterial('mid')), 'sophora:leaf:mid+dither');
+    expectKey(track(createSophoraLeafMaterial('low')), 'sophora:leaf:low+dither');
+    expectKey(track(createSophoraBarkMaterial()), 'sophora:bark+dither');
+    expectKey(track(createSophoraBarkMaterial('mid')), 'sophora:bark:mid+dither');
+    expectKey(track(createSophoraBarkMaterial('low')), 'sophora:bark:low+dither');
     expectKey(track(createSophoraLeafDepthMaterial()), 'sophora:leaf-depth');
     expectKey(track(createSophoraLeafDepthMaterial('mid')), 'sophora:leaf-depth:mid');
     expectKey(track(createSophoraLeafDepthMaterial('low')), 'sophora:leaf-depth:low');

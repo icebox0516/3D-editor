@@ -314,12 +314,12 @@ diffuseColor.rgb *= t3aBarkMul;
       expect(material.customProgramCacheKey()).toBe(key);
       keys.add(material.customProgramCacheKey());
     };
-    expectKey(track(createTree3aLeafMaterial()), 'tree3a:leaf');
-    expectKey(track(createTree3aLeafMaterial('mid')), 'tree3a:leaf:mid');
-    expectKey(track(createTree3aLeafMaterial('low')), 'tree3a:leaf:low');
-    expectKey(track(createTree3aBarkMaterial()), 'tree3a:bark');
-    expectKey(track(createTree3aBarkMaterial('mid')), 'tree3a:bark:mid');
-    expectKey(track(createTree3aBarkMaterial('low')), 'tree3a:bark:low');
+    expectKey(track(createTree3aLeafMaterial()), 'tree3a:leaf+dither');
+    expectKey(track(createTree3aLeafMaterial('mid')), 'tree3a:leaf:mid+dither');
+    expectKey(track(createTree3aLeafMaterial('low')), 'tree3a:leaf:low+dither');
+    expectKey(track(createTree3aBarkMaterial()), 'tree3a:bark+dither');
+    expectKey(track(createTree3aBarkMaterial('mid')), 'tree3a:bark:mid+dither');
+    expectKey(track(createTree3aBarkMaterial('low')), 'tree3a:bark:low+dither');
     expectKey(track(createTree3aLeafDepthMaterial()), 'tree3a:leaf-depth');
     expectKey(track(createTree3aLeafDepthMaterial('mid')), 'tree3a:leaf-depth:mid');
     expectKey(track(createTree3aLeafDepthMaterial('low')), 'tree3a:leaf-depth:low');
@@ -634,8 +634,8 @@ describe('资产换装（asset_tree_3a 双材质组）', () => {
     built.push(source);
     const mats = (Array.isArray(source.material) ? source.material : [source.material]) as THREE.MeshStandardMaterial[];
     expect(mats).toHaveLength(2);
-    expect(mats[0]!.customProgramCacheKey()).toBe('tree3a:bark'); // 组 0 树皮
-    expect(mats[1]!.customProgramCacheKey()).toBe('tree3a:leaf'); // 组 1 叶卡（契约序）
+    expect(mats[0]!.customProgramCacheKey()).toBe('tree3a:bark+dither'); // 组 0 树皮
+    expect(mats[1]!.customProgramCacheKey()).toBe('tree3a:leaf+dither'); // 组 1 叶卡（契约序）
     expect(mats[0]!.side).toBe(THREE.FrontSide);
     expect(mats[1]!.side).toBe(THREE.DoubleSide);
     expect(materialUniformsOf(mats[0]!).uTime).toBeDefined();

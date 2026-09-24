@@ -277,9 +277,9 @@ describe('LOD 档位路由（T009.6：build 透传 params.level——几何/材�
 
   it('材质档位分档：customProgramCacheKey 皮/叶按档唯一（high 无后缀 / :mid / :low）', () => {
     const cases: [ProceduralLevel, string, string][] = [
-      ['high', 'tree3a:bark', 'tree3a:leaf'],
-      ['mid', 'tree3a:bark:mid', 'tree3a:leaf:mid'],
-      ['low', 'tree3a:bark:low', 'tree3a:leaf:low'],
+      ['high', 'tree3a:bark+dither', 'tree3a:leaf+dither'],
+      ['mid', 'tree3a:bark:mid+dither', 'tree3a:leaf:mid+dither'],
+      ['low', 'tree3a:bark:low+dither', 'tree3a:leaf:low+dither'],
     ];
     for (const [level, barkKey, leafKey] of cases) {
       const mats = materialsOf(buildLevelTracked(level));

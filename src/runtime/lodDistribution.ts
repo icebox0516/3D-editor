@@ -1,20 +1,27 @@
 /**
- * runtime/lodDistribution —— LOD 分布双口径计数（纯计数模块，node 可测；T006.4，D27.9）。
+ * runtime/lodDistribution —— LOD 分布双口径计数（纯计数模块，node 可测；T006.4，D27.9；
+ * T021.3 过渡计数面升级，D41 §十三/§5.2）。
  *
  * 职责：批次治理归因数据的聚合容器——各调度判定产出（high/mid/low/canopy/culled）双口径
- *      计数：instances（实例数）+ buckets（桶数）。散布链（ScatterChunkManager，自有桶 + 合并桶）
- *      与放置链（InstancedAssetPool，source×level 桶）各自产出只读快照，Renderer 经本计数器
- *      合并为全场景分布（getLodDistribution 出口，供 006.5 验收报表与调试）。
+ *      计数：instances（实例数）+ buckets（桶数），加 T021.3 过渡计数面（见下）。
+ *      散布链（ScatterChunkManager，自有桶 + 合并桶 + 过渡客座桶）与放置链
+ *      （InstancedAssetPool，source×level 桶 + 过渡客座桶）各自产出只读快照，
+ *      Renderer 经本计数器合并为全场景分布（getLodDistribution 出口，供验收报表与调试）。
  * 口径记档：
- *  - 实例数按「当前展示表示」归档（entry/lod 的 currentLod/current，未评估回退所在桶档）；
- *    culled 实例计入 culled（含合并桶中被排除渲染的成员实例）；
+ *  - 实例数按「当前展示表示」归档（D27.9 口径；T021.3 起精确到 SelectionState.current
+ *    ——排队期按在渲染的旧表示、fade-out 退场期按退场中表示、终态 cull 计 culled；
+ *    未评估回退所在桶档）；culled 实例计入 culled（含合并桶中被排除渲染的成员实例）；
  *  - 桶数按「提交口径」：会提交渲染的桶计其档位；整桶零提交（全 culled 隐藏 / count=0）
- *    计入 culled——桶数合计 ≈ 实例桶 draw call 上界口径（不含环境/UI）。
- * T021.1 类型迁移（D41）：键联合随 LodSelectionOutcome 演化补 'canopy' 键位（最小机械
- *      处理）——canopy 表示自 T021.6 起才有内容（021.2 起选档可产出 canopy，但真实资产
- *      均未声明 canopy 能力），故本键恒 0 直至 021.6/021.7 接线；计数逻辑与数值口径
- *      逐位不变。统计口径升级（transition / target / shadowCaster 全集，D41 §十三）归
- *      后续接线任务。
+ *    计入 culled——桶数合计 ≈ 实例桶 draw call 上界口径（不含环境/UI）；
+ *  - 过渡计数面（T021.3，D41 §5.2「双表示桶 draw call 增量 ≤ +30」的可观测面——
+ *    **只交计数、判定归 021.8**）：
+ *      transition.instances = 过渡中实例数（transitionActive 的粒度单元实例合计——
+ *          dither 双表示 + fade-out 退场；sourceReady 排队期不计——无第二套渲染）；
+ *      transition.buckets = 过渡中桶数（含过渡实例的当档桶 + dither 客座桶）；
+ *      transition.dualSubmitBuckets = 双表示并存提交的客座桶数（dither 目标侧桶——
+ *          每桶即 +1 draw call 增量的近似口径；fade-out 不增桶不计）。
+ * T021.1 类型迁移（D41）：键联合随 LodSelectionOutcome 演化补 'canopy' 键位。
+ *      shadowCasterInstances（§十三全集的阴影位）归 021.5 接线任务，本任务不立占位。
  * 解释口径（T021.2，D41 §4.1）：分布报表与阈值（m 口径，lodPolicy 候选值）对照读数时
  *      统一按 screenFraction = 1/m 折算（资产直径 / 视口高；6/16/60 ↔ 16.7%/6.25%/1.67%）
  *      ——调试与验收解释口径，不作选档输入。
@@ -27,18 +34,34 @@ import type { LodSelectionOutcome } from '../domain/lod/representation';
 /** 各调度判定产出 → 数量的计数表（五键恒全——snapshot 拷贝含零值键，报表消费免防御） */
 export type LodCountMap = Record<LodSelectionOutcome, number>;
 
-/** LOD 分布双口径（D27.9：各档实例数 + 各档桶数） */
+/** 过渡计数面（T021.3；口径见模块头注） */
+export interface LodTransitionCounts {
+  /** 过渡中实例数（transitionActive 粒度单元合计；排队不计） */
+  instances: number;
+  /** 过渡中桶数（含过渡实例的当档桶 + dither 客座桶） */
+  buckets: number;
+  /** 双表示并存提交的客座桶数（DC 增量可观测面——判定归 021.8，红线 +30） */
+  dualSubmitBuckets: number;
+}
+
+/** LOD 分布双口径（D27.9：各档实例数 + 各档桶数；T021.3：过渡计数面） */
 export interface LodDistribution {
   instances: LodCountMap;
   buckets: LodCountMap;
+  transition: LodTransitionCounts;
 }
 
 const REPRESENTATIONS: readonly LodSelectionOutcome[] = ['high', 'mid', 'low', 'canopy', 'culled'];
+
+function emptyTransitionCounts(): LodTransitionCounts {
+  return { instances: 0, buckets: 0, dualSubmitBuckets: 0 };
+}
 
 export function emptyLodDistribution(): LodDistribution {
   return {
     instances: { high: 0, mid: 0, low: 0, canopy: 0, culled: 0 },
     buckets: { high: 0, mid: 0, low: 0, canopy: 0, culled: 0 },
+    transition: emptyTransitionCounts(),
   };
 }
 
@@ -47,6 +70,15 @@ function frozenCounts(map: LodCountMap): LodCountMap {
     if (!Number.isFinite(map[rep])) map[rep] = 0;
   }
   return Object.freeze(map);
+}
+
+function frozenTransition(counts: LodTransitionCounts): LodTransitionCounts {
+  const safe = {
+    instances: Number.isFinite(counts.instances) ? counts.instances : 0,
+    buckets: Number.isFinite(counts.buckets) ? counts.buckets : 0,
+    dualSubmitBuckets: Number.isFinite(counts.dualSubmitBuckets) ? counts.dualSubmitBuckets : 0,
+  };
+  return Object.freeze(safe);
 }
 
 /** 双口径计数器：各链喂入聚合，snapshot 出全场景只读分布 */
@@ -59,11 +91,27 @@ export class LodDistributionCounter {
     this.dist.buckets[rep] += buckets;
   }
 
+  /**
+   * 过渡计数面累加（T021.3）：instances/buckets/dualSubmitBuckets 各自独立累加、
+   * 可为 0（当档侧只加桶、客座侧只加 dual 的分工由调用方组织）。
+   */
+  addTransition(instances = 0, buckets = 0, dualSubmitBuckets = 0): void {
+    this.dist.transition.instances += instances;
+    this.dist.transition.buckets += buckets;
+    this.dist.transition.dualSubmitBuckets += dualSubmitBuckets;
+  }
+
   /** 并入一条渲染链的分布快照（Renderer 聚合两链用） */
   addDistribution(other: LodDistribution): void {
     for (const rep of REPRESENTATIONS) {
       this.dist.instances[rep] += other.instances[rep] ?? 0;
       this.dist.buckets[rep] += other.buckets[rep] ?? 0;
+    }
+    const t = other.transition;
+    if (t) {
+      this.dist.transition.instances += t.instances ?? 0;
+      this.dist.transition.buckets += t.buckets ?? 0;
+      this.dist.transition.dualSubmitBuckets += t.dualSubmitBuckets ?? 0;
     }
   }
 
@@ -72,6 +120,7 @@ export class LodDistributionCounter {
     return {
       instances: frozenCounts({ ...this.dist.instances }),
       buckets: frozenCounts({ ...this.dist.buckets }),
+      transition: frozenTransition({ ...this.dist.transition }),
     };
   }
 
@@ -79,5 +128,6 @@ export class LodDistributionCounter {
   reset(): void {
     this.dist.instances = { high: 0, mid: 0, low: 0, canopy: 0, culled: 0 };
     this.dist.buckets = { high: 0, mid: 0, low: 0, canopy: 0, culled: 0 };
+    this.dist.transition = emptyTransitionCounts();
   }
 }

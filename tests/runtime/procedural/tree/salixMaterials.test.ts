@@ -524,12 +524,12 @@ describe('分档实装（level 参数；缺省 high = 显式 high）', () => {
       expect(material.customProgramCacheKey()).toBe(key);
       keys.add(material.customProgramCacheKey());
     };
-    expectKey(track(createSalixLeafMaterial()), 'salix:leaf');
-    expectKey(track(createSalixLeafMaterial('mid')), 'salix:leaf:mid');
-    expectKey(track(createSalixLeafMaterial('low')), 'salix:leaf:low');
-    expectKey(track(createSalixBarkMaterial()), 'salix:bark');
-    expectKey(track(createSalixBarkMaterial('mid')), 'salix:bark:mid');
-    expectKey(track(createSalixBarkMaterial('low')), 'salix:bark:low');
+    expectKey(track(createSalixLeafMaterial()), 'salix:leaf+dither');
+    expectKey(track(createSalixLeafMaterial('mid')), 'salix:leaf:mid+dither');
+    expectKey(track(createSalixLeafMaterial('low')), 'salix:leaf:low+dither');
+    expectKey(track(createSalixBarkMaterial()), 'salix:bark+dither');
+    expectKey(track(createSalixBarkMaterial('mid')), 'salix:bark:mid+dither');
+    expectKey(track(createSalixBarkMaterial('low')), 'salix:bark:low+dither');
     expectKey(track(createSalixLeafDepthMaterial()), 'salix:leaf-depth');
     expectKey(track(createSalixLeafDepthMaterial('mid')), 'salix:leaf-depth:mid');
     expectKey(track(createSalixLeafDepthMaterial('low')), 'salix:leaf-depth:low');

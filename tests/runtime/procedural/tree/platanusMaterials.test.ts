@@ -451,12 +451,12 @@ describe('分档实装（level 参数；缺省 high = 显式 high）', () => {
       expect(material.customProgramCacheKey()).toBe(key);
       keys.add(material.customProgramCacheKey());
     };
-    expectKey(track(createPlatanusLeafMaterial()), 'platanus:leaf');
-    expectKey(track(createPlatanusLeafMaterial('mid')), 'platanus:leaf:mid');
-    expectKey(track(createPlatanusLeafMaterial('low')), 'platanus:leaf:low');
-    expectKey(track(createPlatanusBarkMaterial()), 'platanus:bark');
-    expectKey(track(createPlatanusBarkMaterial('mid')), 'platanus:bark:mid');
-    expectKey(track(createPlatanusBarkMaterial('low')), 'platanus:bark:low');
+    expectKey(track(createPlatanusLeafMaterial()), 'platanus:leaf+dither');
+    expectKey(track(createPlatanusLeafMaterial('mid')), 'platanus:leaf:mid+dither');
+    expectKey(track(createPlatanusLeafMaterial('low')), 'platanus:leaf:low+dither');
+    expectKey(track(createPlatanusBarkMaterial()), 'platanus:bark+dither');
+    expectKey(track(createPlatanusBarkMaterial('mid')), 'platanus:bark:mid+dither');
+    expectKey(track(createPlatanusBarkMaterial('low')), 'platanus:bark:low+dither');
     expectKey(track(createPlatanusLeafDepthMaterial()), 'platanus:leaf-depth');
     expectKey(track(createPlatanusLeafDepthMaterial('mid')), 'platanus:leaf-depth:mid');
     expectKey(track(createPlatanusLeafDepthMaterial('low')), 'platanus:leaf-depth:low');

@@ -715,12 +715,12 @@ describe('分档实装（level 参数；缺省 high = 显式 high）', () => {
       expect(material.customProgramCacheKey()).toBe(key);
       keys.add(material.customProgramCacheKey());
     };
-    expectKey(track(createFraxinusLeafMaterial()), 'fraxinus:leaf');
-    expectKey(track(createFraxinusLeafMaterial('mid')), 'fraxinus:leaf:mid');
-    expectKey(track(createFraxinusLeafMaterial('low')), 'fraxinus:leaf:low');
-    expectKey(track(createFraxinusBarkMaterial()), 'fraxinus:bark');
-    expectKey(track(createFraxinusBarkMaterial('mid')), 'fraxinus:bark:mid');
-    expectKey(track(createFraxinusBarkMaterial('low')), 'fraxinus:bark:low');
+    expectKey(track(createFraxinusLeafMaterial()), 'fraxinus:leaf+dither');
+    expectKey(track(createFraxinusLeafMaterial('mid')), 'fraxinus:leaf:mid+dither');
+    expectKey(track(createFraxinusLeafMaterial('low')), 'fraxinus:leaf:low+dither');
+    expectKey(track(createFraxinusBarkMaterial()), 'fraxinus:bark+dither');
+    expectKey(track(createFraxinusBarkMaterial('mid')), 'fraxinus:bark:mid+dither');
+    expectKey(track(createFraxinusBarkMaterial('low')), 'fraxinus:bark:low+dither');
     expectKey(track(createFraxinusLeafDepthMaterial()), 'fraxinus:leaf-depth');
     expectKey(track(createFraxinusLeafDepthMaterial('mid')), 'fraxinus:leaf-depth:mid');
     expectKey(track(createFraxinusLeafDepthMaterial('low')), 'fraxinus:leaf-depth:low');

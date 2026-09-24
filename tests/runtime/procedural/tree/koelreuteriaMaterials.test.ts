@@ -552,12 +552,12 @@ describe('分档实装（level 参数；缺省 high = 显式 high）', () => {
       expect(material.customProgramCacheKey()).toBe(key);
       keys.add(material.customProgramCacheKey());
     };
-    expectKey(track(createKoelreuteriaLeafMaterial()), 'koelreuteria:leaf');
-    expectKey(track(createKoelreuteriaLeafMaterial('mid')), 'koelreuteria:leaf:mid');
-    expectKey(track(createKoelreuteriaLeafMaterial('low')), 'koelreuteria:leaf:low');
-    expectKey(track(createKoelreuteriaBarkMaterial()), 'koelreuteria:bark');
-    expectKey(track(createKoelreuteriaBarkMaterial('mid')), 'koelreuteria:bark:mid');
-    expectKey(track(createKoelreuteriaBarkMaterial('low')), 'koelreuteria:bark:low');
+    expectKey(track(createKoelreuteriaLeafMaterial()), 'koelreuteria:leaf+dither');
+    expectKey(track(createKoelreuteriaLeafMaterial('mid')), 'koelreuteria:leaf:mid+dither');
+    expectKey(track(createKoelreuteriaLeafMaterial('low')), 'koelreuteria:leaf:low+dither');
+    expectKey(track(createKoelreuteriaBarkMaterial()), 'koelreuteria:bark+dither');
+    expectKey(track(createKoelreuteriaBarkMaterial('mid')), 'koelreuteria:bark:mid+dither');
+    expectKey(track(createKoelreuteriaBarkMaterial('low')), 'koelreuteria:bark:low+dither');
     expectKey(track(createKoelreuteriaLeafDepthMaterial()), 'koelreuteria:leaf-depth');
     expectKey(track(createKoelreuteriaLeafDepthMaterial('mid')), 'koelreuteria:leaf-depth:mid');
     expectKey(track(createKoelreuteriaLeafDepthMaterial('low')), 'koelreuteria:leaf-depth:low');

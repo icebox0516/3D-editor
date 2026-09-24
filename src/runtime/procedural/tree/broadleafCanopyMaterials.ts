@@ -59,6 +59,7 @@
  *   （hash 无除法无 NaN）。
  */
 import * as THREE from 'three';
+import { applyTreeFadeDither } from './treeFadeDither';
 
 /** onBeforeCompile 材质的 uTime 桥接面（TimeUniformService 扫描材质级 uniforms.uTime） */
 type TimeBridgedMaterial = THREE.MeshStandardMaterial & {
@@ -324,6 +325,7 @@ ${canopyWindGlsl(spec.wind, true)}`,
     );
   };
   trunkMaterial.customProgramCacheKey = () => `canopy:trunk:${assetId}`;
+  applyTreeFadeDither(trunkMaterial, { mirrored: true }); // T021.3 dither fade（incoming 镜像侧——aFadeOut 缺省 0 = 行为逐位不变；深度材质不注入：阴影走中点切换）
 
   // ── 冠卡（组 1）：树种冠色 + aCrownQ 内外明暗 + aLeafRand 变奏 + 透光微扰 + 风动 ──
   const cardMaterial = new THREE.MeshStandardMaterial({
@@ -372,6 +374,7 @@ ${canopyCardBodyGlsl(spec.variation)}`,
     );
   };
   cardMaterial.customProgramCacheKey = () => `canopy:card:${assetId}`;
+  applyTreeFadeDither(cardMaterial, { mirrored: true }); // T021.3 dither fade（incoming 镜像侧——与树种 direct 侧同屏精确互补，模块头注推导）
 
   // ── 深度（customDepthMaterial）：轮廓-only 无 SDF + 风摆同相（干柱 / 冠卡两共用一）──
   const depthMaterial = new THREE.MeshDepthMaterial({

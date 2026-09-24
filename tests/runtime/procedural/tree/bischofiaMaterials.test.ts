@@ -617,12 +617,12 @@ describe('分档实装（level 参数；缺省 high = 显式 high）', () => {
       expect(material.customProgramCacheKey()).toBe(key);
       keys.add(material.customProgramCacheKey());
     };
-    expectKey(track(createBischofiaLeafMaterial()), 'bischofia:leaf');
-    expectKey(track(createBischofiaLeafMaterial('mid')), 'bischofia:leaf:mid');
-    expectKey(track(createBischofiaLeafMaterial('low')), 'bischofia:leaf:low');
-    expectKey(track(createBischofiaBarkMaterial()), 'bischofia:bark');
-    expectKey(track(createBischofiaBarkMaterial('mid')), 'bischofia:bark:mid');
-    expectKey(track(createBischofiaBarkMaterial('low')), 'bischofia:bark:low');
+    expectKey(track(createBischofiaLeafMaterial()), 'bischofia:leaf+dither');
+    expectKey(track(createBischofiaLeafMaterial('mid')), 'bischofia:leaf:mid+dither');
+    expectKey(track(createBischofiaLeafMaterial('low')), 'bischofia:leaf:low+dither');
+    expectKey(track(createBischofiaBarkMaterial()), 'bischofia:bark+dither');
+    expectKey(track(createBischofiaBarkMaterial('mid')), 'bischofia:bark:mid+dither');
+    expectKey(track(createBischofiaBarkMaterial('low')), 'bischofia:bark:low+dither');
     expectKey(track(createBischofiaLeafDepthMaterial()), 'bischofia:leaf-depth');
     expectKey(track(createBischofiaLeafDepthMaterial('mid')), 'bischofia:leaf-depth:mid');
     expectKey(track(createBischofiaLeafDepthMaterial('low')), 'bischofia:leaf-depth:low');

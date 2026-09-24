@@ -41,8 +41,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 import type { ID, Transform } from '../../src/core/types';
-import type { ModelObject, ProceduralLevel } from '../../src/domain/assets';
+import type { ModelObject } from '../../src/domain/assets';
 import { LOD_THRESHOLDS } from '../../src/domain/lod/lodPolicy';
+import { TRANSITION_BAND_RATIO } from '../../src/domain/lod/transition';
+import type { RuntimeRepresentation } from '../../src/domain/lod/representation';
 import { InstancedAssetPool } from '../../src/runtime/instancing/InstancedAssetPool';
 import type { InstanceSource } from '../../src/runtime/instancing/InstancedAssetPool';
 
@@ -55,10 +57,11 @@ const SLOTS = 8;
  * 视轴（Z）偏移 ±0.5——档间球心差的放大应力（真实差 ~厘米级）：选档若误取当档
  * 球心，读数平移 ±0.25（m 口径）≫ 迟滞带 15%，档位结果必翻转（判别机位即可捕捉）。
  */
-const LEVEL_CENTER: Record<ProceduralLevel, THREE.Vector3> = {
+const LEVEL_CENTER: Record<RuntimeRepresentation, THREE.Vector3> = {
   high: new THREE.Vector3(0, 3, 0),
   mid: new THREE.Vector3(0, 3, 0.5),
   low: new THREE.Vector3(0, 3, -0.5),
+  canopy: new THREE.Vector3(0, 3, 0.25), // T021.3 假想 canopy 源（真实资产 021.7 前不可达）
 };
 /** 相机定标基准球心（= High 档；机位与期望读数的折算口径） */
 const SOURCE_CENTER = LEVEL_CENTER.high;
@@ -69,7 +72,12 @@ const SOURCE_CENTER = LEVEL_CENTER.high;
  * ——差异化半径是「基准不得随档平移」的应力输入：机位一律按 High 半径定标
  * （cameraForM），读数与条目当前档位无关。
  */
-const LEVEL_RADIUS: Record<ProceduralLevel, number> = { high: 2, mid: 1.92, low: 1.96 };
+const LEVEL_RADIUS: Record<RuntimeRepresentation, number> = {
+  high: 2,
+  mid: 1.92,
+  low: 1.96,
+  canopy: 2.02, // 冠层代理包络 ≥ high（Union 剔除的判别应力位）
+};
 /** 相机定标基准半径（= High 档；cameraForM 的机位口径） */
 const SOURCE_RADIUS = LEVEL_RADIUS.high;
 
@@ -95,7 +103,7 @@ function makeModel(
 }
 
 /** (assetId × 槽 × 档) 源：几何身份即桶标签（按调用现场 key 缓存于 provider）；包围按档钉死 */
-function leveledSource(level: ProceduralLevel): InstanceSource {
+function leveledSource(level: RuntimeRepresentation): InstanceSource {
   const geometry = new THREE.BoxGeometry(2, 2, 2);
   geometry.boundingSphere = new THREE.Sphere(LEVEL_CENTER[level].clone(), LEVEL_RADIUS[level]);
   return { geometry, material: new THREE.MeshStandardMaterial({ color: 0x2e8b57 }) };
@@ -109,7 +117,7 @@ const slotPoolKey = (assetId: string, seed?: number): string =>
 function makeLeveledProvider() {
   const sources = new Map<string, InstanceSource>();
   const provider = vi.fn(
-    async (assetId: string, seed?: number, level?: ProceduralLevel): Promise<InstanceSource> => {
+    async (assetId: string, seed?: number, level?: RuntimeRepresentation): Promise<InstanceSource> => {
       const key = `${assetId}::slot-${(seed ?? 0) % SLOTS}::${level ?? 'high'}`;
       let source = sources.get(key);
       if (!source) {
@@ -165,6 +173,11 @@ function cameraForM(m: number): THREE.PerspectiveCamera {
 
 /** 三档距离环的目标 m（相对阈值构造；T021.2 新链字段名——候选值同 legacy 直承，对象
  *  z=0、scale=1 → m = (z − camZ)/R 恒定；low 环 = canopy 名义带经跳档承接） */
+/** fade-out 退场带终态线（canopyToCulled × (1 + W)——T021.3 metric 过渡带） */
+function cullTerminalM(): number {
+  return LOD_THRESHOLDS.canopyToCulled * (1 + TRANSITION_BAND_RATIO) * 1.02;
+}
+
 function ringM(): { high: number; mid: number; low: number } {
   const t = LOD_THRESHOLDS;
   return {
@@ -174,21 +187,39 @@ function ringM(): { high: number; mid: number; low: number } {
   };
 }
 
-/** 找持有指定源几何的渲染网格（桶按几何身份定位） */
+/** 同源几何判（fade 包装后 mesh.geometry ≠ 源几何——position 属性对象身份判） */
+function holdsSource(
+  mesh: THREE.InstancedMesh,
+  geometry: THREE.BufferGeometry,
+): boolean {
+  return (
+    mesh.geometry === geometry ||
+    mesh.geometry.attributes.position === geometry.attributes.position
+  );
+}
+
+/** 找持有指定源几何的渲染网格（桶按几何身份定位；T021.3 起 fade 包装安全） */
 function meshHolding(
   pool: InstancedAssetPool,
   geometry: THREE.BufferGeometry,
 ): THREE.InstancedMesh | undefined {
   return pool.root.children.find(
-    (c) => (c as THREE.InstancedMesh).isInstancedMesh && (c as THREE.InstancedMesh).geometry === geometry,
+    (c) => (c as THREE.InstancedMesh).isInstancedMesh && holdsSource(c as THREE.InstancedMesh, geometry),
   ) as THREE.InstancedMesh | undefined;
+}
+
+/** 桶网格的 aFadeOut 槽值（无缓冲 → undefined——硬切位不建缓冲的断言依据） */
+function fadeOf(mesh: THREE.InstancedMesh, slot: number): number | undefined {
+  const attr = mesh.geometry.getAttribute('aFadeOut') as THREE.InstancedBufferAttribute | undefined;
+  if (!attr || !attr.isInstancedBufferAttribute) return undefined;
+  return (attr.array as Float32Array)[slot];
 }
 
 function sourceOf(
   sources: Map<string, InstanceSource>,
   assetId: string,
   slot: number,
-  level: ProceduralLevel,
+  level: RuntimeRepresentation,
 ): InstanceSource {
   const source = sources.get(`${assetId}::slot-${slot}::${level}`);
   expect(source).toBeDefined();
@@ -436,17 +467,18 @@ describe('InstancedAssetPool LOD：选档稳定基准（High 档派生）', () =
 
     // 到达器：把实例置于指定当前档（从任意档出发确定性收敛——名义线方向性 + 单边
     // 迟滞保证；跨步升档直达 resolved，无逐档爬）
-    const reach = async (tier: ProceduralLevel): Promise<void> => {
-      const cameraOf: Record<ProceduralLevel, THREE.PerspectiveCamera> = {
+    const reach = async (tier: RuntimeRepresentation): Promise<void> => {
+      const cameraOf: Record<RuntimeRepresentation, THREE.PerspectiveCamera> = {
         high: cameraForM(t.highToMid * 0.5),
         mid: cameraForM(t.highToMid * 1.5),
         low: cameraForM(t.midToCanopy * 1.25),
+        canopy: cameraForM(t.midToCanopy * 1.25), // 本测试资产无 canopy——占位不可达
       };
       pool.frameLod(cameraOf[tier], true);
       await flush();
     };
     /** 实例当前所在档（桶按几何身份反查——恰一桶持有实例） */
-    const tierOf = (): ProceduralLevel | undefined => {
+    const tierOf = (): RuntimeRepresentation | undefined => {
       for (const level of ['high', 'mid', 'low'] as const) {
         if (meshHolding(pool, sourceOf(sources, 'asset_tree', 6, level).geometry)) return level;
       }
@@ -455,7 +487,7 @@ describe('InstancedAssetPool LOD：选档稳定基准（High 档派生）', () =
     // 机位站（期望档只依赖机位）：high 带 / mid 带 / low→mid 升档线内侧（low 档半径
     // 泄漏判别位：若基准随档换源，low 档读数 ≈ 13.83 > 13.6 会停留 low，与其他起径
     // 的结果分裂）/ low 带
-    const stations: { m: number; tier: ProceduralLevel }[] = [
+    const stations: { m: number; tier: RuntimeRepresentation }[] = [
       { m: t.highToMid * 0.5, tier: 'high' },
       { m: t.highToMid + 0.5, tier: 'mid' },
       { m: t.midToCanopy * (1 - t.hysteresisBand) - 0.05, tier: 'mid' },
@@ -476,7 +508,7 @@ describe('InstancedAssetPool LOD：选档稳定基准（High 档派生）', () =
 // ── culled（超远调度结果）──────────────────────────────────
 
 describe('InstancedAssetPool LOD：culled', () => {
-  it('超远实例槽写零缩放（真值保留）、回视恢复原矩阵；单例 Mesh visible=false', async () => {
+  it('Low 退场 fade：决策线到终态线间正常渲染 + aFadeOut 渐进；终态零缩放、回视经退场带自然回升', async () => {
     const { provider, sources } = makeLeveledProvider();
     const pool = makeLodPool(provider);
     const model = makeModel('far', 'asset_tree', transformAt(0, 0, 0), 7); // slot-7（seed 池恒实例化）
@@ -484,25 +516,49 @@ describe('InstancedAssetPool LOD：culled', () => {
     await flush();
     const t = LOD_THRESHOLDS;
 
-    // 先经 low 带（换档迁移到 low 桶），再推超远 → culled（实例留在 low 桶）
+    // 先经 low 带（换档迁移到 low 桶），再推过 cull 名义线 → fade-out 退场带内（T021.3：
+    // Low→Culled 走 fade out——既有链 fade 机制验证载体）
     pool.frameLod(cameraForM(t.midToCanopy + (t.canopyToCulled - t.midToCanopy) * 0.5), true);
     await flush();
     pool.frameLod(cameraForM(t.canopyToCulled * 1.1), true);
     await flush();
-    // culled：实例留在 low 桶
+    // 退场带内（f = (66−60)/(60×W)）：实例留在 low 桶、矩阵真值（非零缩放）、
+    // aFadeOut = f（退场度——呈现度 1−f）
     const lowMesh = meshHolding(pool, sourceOf(sources, 'asset_tree', 7, 'low').geometry)!;
     const probe = new THREE.Matrix4();
     lowMesh.getMatrixAt(0, probe);
+    expect(probe.equals(new THREE.Matrix4().makeScale(0, 0, 0))).toBe(false); // 未终态
+    expect(lowMesh.count).toBe(1);
+    expect(fadeOf(lowMesh, 0)).toBeCloseTo(
+      (t.canopyToCulled * 1.1 - t.canopyToCulled) /
+        (t.canopyToCulled * TRANSITION_BAND_RATIO),
+      6,
+    );
+    expect(lowMesh.visible).toBe(true); // 退场带内正常提交
+
+    // 终态线（canopyToCulled × (1+W) 之上）：零缩放提交（真值保留）
+    pool.frameLod(cameraForM(cullTerminalM()), true);
+    await flush();
+    lowMesh.getMatrixAt(0, probe);
     expect(probe.equals(new THREE.Matrix4().makeScale(0, 0, 0))).toBe(true); // 槽零缩放
+    expect(fadeOf(lowMesh, 0)).toBe(1); // 完全退场
     expect(lowMesh.count).toBe(1); // 实例仍登记（真值在 entry）
 
-    // 回视（越过 culled 升档线）：恢复可见且矩阵 = 真值
-    pool.frameLod(cameraForM(t.midToCanopy + (t.canopyToCulled - t.midToCanopy) * 0.5), true);
+    // 回视：退场带内 fade 自然回升（无独立锁存）、名义线下侧满呈现、矩阵恢复真值
+    pool.frameLod(cameraForM(t.canopyToCulled * 1.05), true);
     await flush();
     lowMesh.getMatrixAt(0, probe);
     expect(probe.equals(expectedMatrix(model.transform))).toBe(true);
+    expect(fadeOf(lowMesh, 0)).toBeCloseTo(
+      (t.canopyToCulled * 1.05 - t.canopyToCulled) /
+        (t.canopyToCulled * TRANSITION_BAND_RATIO),
+      6,
+    );
+    pool.frameLod(cameraForM(t.midToCanopy + (t.canopyToCulled - t.midToCanopy) * 0.5), true);
+    await flush();
+    expect(fadeOf(lowMesh, 0)).toBe(0); // 迟滞线下侧恒满呈现（无跳变回退）
 
-    // 单例路径（无 seed 池单实例退化普通 Mesh）：culled → visible=false
+    // 单例路径（无 seed 池单实例退化普通 Mesh）：high 起点 cull = 硬切 → 瞬时 visible=false
     const single = makeModel('solo', 'asset_tree', transformAt(0, 0, 0)); // 无 seed
     pool.attach(single);
     await flush();
@@ -539,12 +595,17 @@ describe('InstancedAssetPool LOD：桶级提交跳过', () => {
     expect(lowMesh.count).toBe(2);
     expect(lowMesh.visible).toBe(true); // 部分渲染中（都未 culled）
 
+    // T021.3：决策线内退场带（1.1×名义线）→ fade 中不整桶跳过；终态线外 → 全 culled
     pool.frameLod(cameraForM(t.canopyToCulled * 1.1), true);
+    await flush();
+    expect(lowMesh.count).toBe(2);
+    expect(lowMesh.visible).toBe(true); // 退场带内正常提交（fade 渐进，非零提交）
+    pool.frameLod(cameraForM(cullTerminalM()), true);
     await flush();
     expect(lowMesh.count).toBe(2); // 实例仍登记（真值在 entry）
     expect(lowMesh.visible).toBe(false); // 全 culled → 整桶零提交（T006.4）
 
-    // 回视：越过 culled 升档线 → 同帧恢复提交与真值矩阵
+    // 回视：越过退场带 → 同帧恢复提交与真值矩阵
     pool.frameLod(cameraForM(t.midToCanopy + (t.canopyToCulled - t.midToCanopy) * 0.5), true);
     await flush();
     expect(lowMesh.visible).toBe(true);
@@ -666,74 +727,292 @@ describe('InstancedAssetPool LOD：单档资产', () => {
     expect(meshHolding(pool, sourceOf(sources, 'asset_tree', 2, 'high').geometry)).toBeDefined();
     expect(provider).toHaveBeenCalledTimes(1);
 
-    pool.frameLod(cameraForM(t.canopyToCulled * 1.1), true);
+    pool.frameLod(cameraForM(cullTerminalM()), true);
     await flush();
     const mesh = meshHolding(pool, sourceOf(sources, 'asset_tree', 2, 'high').geometry)!;
     const probe = new THREE.Matrix4();
     mesh.getMatrixAt(0, probe);
     expect(probe.equals(new THREE.Matrix4().makeScale(0, 0, 0))).toBe(true); // culled（非声明档位也可裁）
+    expect(fadeOf(mesh, 0)).toBeUndefined(); // 硬切 cull 零 fade 缓冲（GLB 同路径）
     pool.dispose();
   });
 });
 
-// ── canopy 产出持有（T021.2：假想声明 canopy 能力资产，021.7 接线前的现状）──
+// ── canopy 目标位过渡执行（T021.3：假想声明资产——真实 canopy 表示 021.7 前不可达）──
 
-describe('InstancedAssetPool LOD：canopy 产出持有', () => {
-  it('假想 canopy 链资产在 canopy 名义带：持有 mid 桶不迁移、canopy 源零请求、迟滞参考生效', async () => {
-    const { provider, sources } = makeLeveledProvider();
-    const pool = new InstancedAssetPool({
+describe('InstancedAssetPool LOD：canopy dither 执行（假想声明资产）', () => {
+  /** 假想 canopy 池（representations 声明优先——真实 13 树种未声明 canopy） */
+  function makeCanopyPool(provider: ReturnType<typeof makeLeveledProvider>['provider']) {
+    return new InstancedAssetPool({
       provideSource: provider,
       resolvePoolKey: slotPoolKey,
-      // 假想声明：representations 声明优先（真实 13 树种未声明 canopy——domain 级
-      // 组合测试已锁「levels 派生分支 canopy 不可达」）
       getRepresentationCapability: (assetId) =>
         assetId === 'asset_canopy_tree'
           ? { representations: ['high', 'mid', 'canopy'] }
           : { levels: ['high', 'mid', 'low'] },
     });
+  }
+
+  it('降档 dither：canopy 带内双表示共存（属主留 mid + canopy 客座）、双侧 aFadeOut 互补、带末完成迁移', async () => {
+    const { provider, sources } = makeLeveledProvider();
+    const pool = makeCanopyPool(provider);
     pool.attach(makeModel('hypo', 'asset_canopy_tree', transformAt(0, 0, 0), 1));
     await flush();
     const t = LOD_THRESHOLDS;
 
-    // mid 带 → 正常迁移 mid 桶（canopy 链的 mid 与 legacy 相同路径）
+    // mid 带 → 硬切迁移 mid 桶
     pool.frameLod(cameraForM(t.highToMid * 1.1), true);
     await flush();
     const midMesh = meshHolding(pool, sourceOf(sources, 'asset_canopy_tree', 1, 'mid').geometry)!;
     expect(midMesh.count).toBe(1);
 
-    // canopy 名义带：调度产出 canopy → 021.7 接线前持有（不迁移、mid 桶持续渲染）
-    const canopyBand = t.midToCanopy + (t.canopyToCulled - t.midToCanopy) * 0.5;
-    pool.frameLod(cameraForM(canopyBand), true);
+    // canopy 带内（f = 0.25）：dither 双表示——canopy 客座桶建立（冷源：首帧排队，
+    // flush 到达后下一帧建客座）
+    const m1 = t.midToCanopy + t.midToCanopy * TRANSITION_BAND_RATIO * 0.25;
+    pool.frameLod(cameraForM(m1), true);
     await flush();
-    expect(meshHolding(pool, sourceOf(sources, 'asset_canopy_tree', 1, 'mid').geometry)).toBeDefined();
-    // canopy 源零请求（canopy 桶接线归 021.7——provider 只收过 high/mid）
-    for (const call of provider.mock.calls) {
-      expect(call[2]).not.toBe('canopy');
-    }
-    // 持有不设 culled/零缩放：canopy 目标仍是「要渲染的表示」
+    pool.frameLod(cameraForM(m1), true);
+    await flush();
+    const canopyMesh = meshHolding(
+      pool,
+      sourceOf(sources, 'asset_canopy_tree', 1, 'canopy').geometry,
+    )!;
+    expect(canopyMesh).toBeDefined(); // 客座桶（canopy 源已请求——执行路径落代码）
+    expect(canopyMesh.count).toBe(1);
+    // 属主留 mid（未迁移）：mid 桶仍在、实例矩阵真值
+    expect(midMesh.count).toBe(1);
     const probe = new THREE.Matrix4();
     midMesh.getMatrixAt(0, probe);
-    expect(probe.equals(expectedMatrix(makeModel('hypo', 'asset_canopy_tree', transformAt(0, 0, 0), 1).transform))).toBe(true);
+    expect(probe.equals(expectedMatrix(makeModel('hypo', '', transformAt(0, 0, 0)).transform))).toBe(true);
+    // 双侧 aFadeOut 互补：mid 退场度 = f、canopy 退场度 = 1 − f
+    expect(fadeOf(midMesh, 0)).toBeCloseTo(0.25, 6);
+    expect(fadeOf(canopyMesh, 0)).toBeCloseTo(0.75, 6);
+    // 拾取：客座命中 → 同一业务 id（fade 期仍可拾取 §12）
+    expect(
+      pool.resolvePick({ object: canopyMesh, instanceId: 0 } as unknown as THREE.Intersection),
+    ).toBe('hypo');
+    // 分布计数面：过渡实例 1、双表示客座桶 1（DC 增量可观测）
+    const dist = pool.getLodDistribution();
+    expect(dist.transition.instances).toBe(1);
+    expect(dist.transition.dualSubmitBuckets).toBe(1);
+    expect(dist.instances.canopy).toBe(0); // 实例不双计：属主单计展示表示（current=mid）
+    expect(dist.instances.mid).toBe(1);
+    expect(dist.buckets.canopy).toBe(1); // 客座桶按 canopy 计（桶口径）
 
-    // 迟滞参考已记录 canopy：回落带内（midToCanopy ×(1−band) ~ midToCanopy）仍持有
-    // mid 桶；越过带线回 mid 带 → 恢复正常调度（仍在 mid 桶，零迁移 churn）
-    const callsAtHold = provider.mock.calls.length;
+    // 带末（f=1）：完成迁移——客座拆除、属主入 canopy 桶、mid 桶拆空
+    const m2 = t.midToCanopy * (1 + TRANSITION_BAND_RATIO) * 1.01;
+    pool.frameLod(cameraForM(m2), true);
+    await flush();
+    const canopyAfter = meshHolding(
+      pool,
+      sourceOf(sources, 'asset_canopy_tree', 1, 'canopy').geometry,
+    )!;
+    expect(canopyAfter.count).toBe(1); // 属主在 canopy 桶
+    expect(
+      meshHolding(pool, sourceOf(sources, 'asset_canopy_tree', 1, 'mid').geometry),
+    ).toBeUndefined(); // mid 桶拆空
+    expect(fadeOf(canopyAfter, 0)).toBe(0); // 完成后满呈现
+    const distAfter = pool.getLodDistribution();
+    expect(distAfter.transition.instances).toBe(0);
+    expect(distAfter.transition.dualSubmitBuckets).toBe(0);
+    expect(distAfter.instances.canopy).toBe(1);
+    expect(distAfter.instances.mid).toBe(0);
+    pool.dispose();
+  });
+
+  it('带内回退：f 回落至 0 → 客座拆除、属主留 mid 满呈现（迟滞带内无迁移 churn）', async () => {
+    const { provider, sources } = makeLeveledProvider();
+    const pool = makeCanopyPool(provider);
+    pool.attach(makeModel('hypo', 'asset_canopy_tree', transformAt(0, 0, 0), 1));
+    await flush();
+    const t = LOD_THRESHOLDS;
+
+    pool.frameLod(cameraForM(t.highToMid * 1.1), true);
+    await flush();
+    // 进带（f=0.5）建客座，再回退名义线下侧（f=0）
+    const half = t.midToCanopy * (1 + TRANSITION_BAND_RATIO * 0.5);
+    pool.frameLod(cameraForM(half), true);
+    await flush();
+    pool.frameLod(cameraForM(half), true);
+    await flush();
+    expect(
+      meshHolding(pool, sourceOf(sources, 'asset_canopy_tree', 1, 'canopy').geometry),
+    ).toBeDefined();
+    const callsInTransition = provider.mock.calls.length;
+
     pool.frameLod(cameraForM(t.midToCanopy * 0.99), true);
     await flush();
-    expect(meshHolding(pool, sourceOf(sources, 'asset_canopy_tree', 1, 'mid').geometry)).toBeDefined();
-    pool.frameLod(cameraForM(t.midToCanopy * (1 - t.hysteresisBand) * 0.97), true);
-    await flush();
-    expect(meshHolding(pool, sourceOf(sources, 'asset_canopy_tree', 1, 'mid').geometry)).toBeDefined();
-    expect(provider.mock.calls.length).toBe(callsAtHold); // 全程零新源请求
+    expect(
+      meshHolding(pool, sourceOf(sources, 'asset_canopy_tree', 1, 'canopy').geometry),
+    ).toBeUndefined(); // 客座拆除（f=0）
+    const midMesh = meshHolding(pool, sourceOf(sources, 'asset_canopy_tree', 1, 'mid').geometry)!;
+    expect(fadeOf(midMesh, 0)).toBe(0); // 满呈现
+    expect(midMesh.count).toBe(1);
+    expect(provider.mock.calls.length).toBe(callsInTransition); // 零新源请求（无 churn）
+    pool.dispose();
+  });
 
-    // 对照：同机位下 legacy 链资产已迁 low 桶（canopy 名义带跳档承接）——证明假想
-    // 资产的「持有 mid」确为 canopy 产出所致（而非 canopy 带选档本身失效）
-    pool.attach(makeModel('legacy', 'asset_tree', transformAt(0, 0, 0), 1));
+  it('升档 dither：canopy 承诺后靠近——迟滞线下客座（mid 侧）渐入、深入完成迁回 mid', async () => {
+    const { provider, sources } = makeLeveledProvider();
+    const pool = makeCanopyPool(provider);
+    pool.attach(makeModel('hypo', 'asset_canopy_tree', transformAt(0, 0, 0), 1));
     await flush();
-    pool.frameLod(cameraForM(canopyBand), true);
+    const t = LOD_THRESHOLDS;
+
+    // 到达 canopy 承诺（带末完成迁移；canopy 源冷：首帧排队 → flush 到达 → 次帧完成）
+    pool.frameLod(cameraForM(t.highToMid * 1.1), true);
     await flush();
-    expect(meshHolding(pool, sourceOf(sources, 'asset_tree', 1, 'low').geometry)).toBeDefined();
-    expect(meshHolding(pool, sourceOf(sources, 'asset_canopy_tree', 1, 'mid').geometry)).toBeDefined();
+    const bandEnd = t.midToCanopy * (1 + TRANSITION_BAND_RATIO) * 1.01;
+    pool.frameLod(cameraForM(bandEnd), true);
+    await flush();
+    pool.frameLod(cameraForM(bandEnd), true);
+    await flush();
+    const canopyMesh = meshHolding(
+      pool,
+      sourceOf(sources, 'asset_canopy_tree', 1, 'canopy').geometry,
+    )!;
+    expect(canopyMesh.count).toBe(1);
+
+    // 靠近过迟滞线（m < midToCanopy×(1−band)）：升档 dither——mid 客座建立、f = (线−m)/带宽
+    const upline = t.midToCanopy * (1 - t.hysteresisBand);
+    const m = upline - t.midToCanopy * TRANSITION_BAND_RATIO * 0.5;
+    pool.frameLod(cameraForM(m), true);
+    await flush();
+    pool.frameLod(cameraForM(m), true);
+    await flush();
+    const midGuest = meshHolding(pool, sourceOf(sources, 'asset_canopy_tree', 1, 'mid').geometry)!;
+    expect(midGuest).toBeDefined(); // mid 客座（目标桶）
+    expect(fadeOf(canopyMesh, 0)).toBeCloseTo(0.5, 6); // canopy 退场度 = f
+    expect(fadeOf(midGuest, 0)).toBeCloseTo(0.5, 6); // mid 退场度 = 1 − f
+    // canopy 属主未迁移
+    expect(canopyMesh.count).toBe(1);
+
+    // 深入（m 低于带底）：完成迁回 mid、canopy 桶拆空
+    const deep = upline - t.midToCanopy * TRANSITION_BAND_RATIO * 1.5;
+    pool.frameLod(cameraForM(deep), true);
+    await flush();
+    expect(
+      meshHolding(pool, sourceOf(sources, 'asset_canopy_tree', 1, 'mid').geometry),
+    ).toBeDefined();
+    expect(
+      meshHolding(pool, sourceOf(sources, 'asset_canopy_tree', 1, 'canopy').geometry),
+    ).toBeUndefined();
+    pool.dispose();
+  });
+
+  it('总开关 off：dither 双表示收敛拆除（客座清空、属主硬切回 high）', async () => {
+    const { provider, sources } = makeLeveledProvider();
+    const pool = makeCanopyPool(provider);
+    pool.attach(makeModel('hypo', 'asset_canopy_tree', transformAt(0, 0, 0), 1));
+    await flush();
+    const t = LOD_THRESHOLDS;
+
+    pool.frameLod(cameraForM(t.highToMid * 1.1), true);
+    await flush();
+    const half = t.midToCanopy * (1 + TRANSITION_BAND_RATIO * 0.5);
+    pool.frameLod(cameraForM(half), true);
+    await flush();
+    pool.frameLod(cameraForM(half), true);
+    await flush();
+    expect(
+      meshHolding(pool, sourceOf(sources, 'asset_canopy_tree', 1, 'canopy').geometry),
+    ).toBeDefined();
+
+    // off：同机位 → 决策恒 high → 硬切完成 → 客座拆除、属主迁回 high
+    pool.frameLod(cameraForM(half), false);
+    await flush();
+    expect(
+      meshHolding(pool, sourceOf(sources, 'asset_canopy_tree', 1, 'high').geometry),
+    ).toBeDefined();
+    expect(
+      meshHolding(pool, sourceOf(sources, 'asset_canopy_tree', 1, 'canopy').geometry),
+    ).toBeUndefined();
+    expect(pool.getLodDistribution().transition.dualSubmitBuckets).toBe(0);
+    pool.dispose();
+  });
+
+  it('拖拽中镜像：dither 期更新属主变换 → 客座矩阵所见即所得；detach 属主 → 客座随拆', async () => {
+    const { provider, sources } = makeLeveledProvider();
+    const pool = makeCanopyPool(provider);
+    const model = makeModel('hypo', 'asset_canopy_tree', transformAt(0, 0, 0), 1);
+    pool.attach(model);
+    await flush();
+    const t = LOD_THRESHOLDS;
+
+    pool.frameLod(cameraForM(t.highToMid * 1.1), true);
+    await flush();
+    const half = t.midToCanopy * (1 + TRANSITION_BAND_RATIO * 0.5);
+    pool.frameLod(cameraForM(half), true);
+    await flush();
+    pool.frameLod(cameraForM(half), true);
+    await flush();
+    const canopyMesh = meshHolding(
+      pool,
+      sourceOf(sources, 'asset_canopy_tree', 1, 'canopy').geometry,
+    )!;
+
+    // 过渡中拖拽：新变换镜像到客座槽
+    const moved = transformAt(3, 1, 2, 1.5);
+    pool.update('hypo', moved);
+    const probe = new THREE.Matrix4();
+    canopyMesh.getMatrixAt(0, probe);
+    expect(probe.equals(expectedMatrix(moved))).toBe(true);
+
+    // 过渡中删除属主：客座随拆（无残留、无孤儿桶）
+    pool.detach('hypo');
+    expect(
+      meshHolding(pool, sourceOf(sources, 'asset_canopy_tree', 1, 'canopy').geometry),
+    ).toBeUndefined();
+    pool.dispose();
+  });
+
+  it('硬切位不写 fade（High↔Mid / Mid↔Low 全程无 aFadeOut 缓冲——无消费者不写占位数据）', async () => {
+    const { provider, sources } = makeLeveledProvider();
+    const pool = makeLodPool(provider);
+    pool.attach(makeModel('a', 'asset_tree', transformAt(0, 0, 0), 5));
+    await flush();
+    const t = LOD_THRESHOLDS;
+
+    pool.frameLod(cameraForM(t.highToMid * 1.1), true); // high → mid（硬切）
+    await flush();
+    pool.frameLod(cameraForM(t.midToCanopy * 1.1), true); // mid → low（硬切）
+    await flush();
+    for (const level of ['high', 'mid', 'low'] as const) {
+      const mesh = meshHolding(pool, sourceOf(sources, 'asset_tree', 5, level).geometry);
+      if (mesh) expect(fadeOf(mesh, 0)).toBeUndefined(); // 无缓冲（硬切位零 fade）
+    }
+    pool.dispose();
+  });
+
+  it('逐实例 fade 独立（per-object 粒度，§5.3）：同桶两实例各处不同过渡进度', async () => {
+    const { provider, sources } = makeLeveledProvider();
+    const pool = makeLodPool(provider);
+    // 两对象同槽（合桶）、不同 z → 同机位下不同 m（远者退场更深）
+    const near = makeModel('near', 'asset_tree', transformAt(0, 0, 0), 5);
+    pool.attach(near);
+    const far = makeModel('far', 'asset_tree', transformAt(0, 0, 8), 5 + SLOTS);
+    pool.attach(far);
+    await flush();
+    const t = LOD_THRESHOLDS;
+
+    pool.frameLod(cameraForM(t.midToCanopy * 1.02), true); // 双双硬切到 low 桶
+    await flush();
+    // 推到退场带内：near 读数 = 63（fade 0.2）、far 读数 = 63 + 8/2 = 67（fade 0.47）
+    pool.frameLod(cameraForM(t.canopyToCulled * 1.05), true);
+    await flush();
+    const lowMesh = meshHolding(pool, sourceOf(sources, 'asset_tree', 5, 'low').geometry)!;
+    const nearFade = fadeOf(lowMesh, 0); // slot 0 = near（attach 序）
+    const farFade = fadeOf(lowMesh, 1); // slot 1 = far
+    expect(nearFade).toBeCloseTo(
+      (t.canopyToCulled * 1.05 - t.canopyToCulled) / (t.canopyToCulled * TRANSITION_BAND_RATIO),
+      6,
+    );
+    expect(farFade).toBeCloseTo(
+      (t.canopyToCulled * 1.05 + 8 / SOURCE_RADIUS - t.canopyToCulled) /
+        (t.canopyToCulled * TRANSITION_BAND_RATIO),
+      6,
+    );
+    expect(nearFade!).toBeLessThan(farFade!); // 同桶两槽值不同——逐实例 fade 独立
     pool.dispose();
   });
 });

@@ -521,12 +521,12 @@ describe('分档实装（level 参数；缺省 high = 显式 high）', () => {
       expect(material.customProgramCacheKey()).toBe(key);
       keys.add(material.customProgramCacheKey());
     };
-    expectKey(track(createLigustrumLeafMaterial()), 'ligustrum:leaf');
-    expectKey(track(createLigustrumLeafMaterial('mid')), 'ligustrum:leaf:mid');
-    expectKey(track(createLigustrumLeafMaterial('low')), 'ligustrum:leaf:low');
-    expectKey(track(createLigustrumBarkMaterial()), 'ligustrum:bark');
-    expectKey(track(createLigustrumBarkMaterial('mid')), 'ligustrum:bark:mid');
-    expectKey(track(createLigustrumBarkMaterial('low')), 'ligustrum:bark:low');
+    expectKey(track(createLigustrumLeafMaterial()), 'ligustrum:leaf+dither');
+    expectKey(track(createLigustrumLeafMaterial('mid')), 'ligustrum:leaf:mid+dither');
+    expectKey(track(createLigustrumLeafMaterial('low')), 'ligustrum:leaf:low+dither');
+    expectKey(track(createLigustrumBarkMaterial()), 'ligustrum:bark+dither');
+    expectKey(track(createLigustrumBarkMaterial('mid')), 'ligustrum:bark:mid+dither');
+    expectKey(track(createLigustrumBarkMaterial('low')), 'ligustrum:bark:low+dither');
     expectKey(track(createLigustrumLeafDepthMaterial()), 'ligustrum:leaf-depth');
     expectKey(track(createLigustrumLeafDepthMaterial('mid')), 'ligustrum:leaf-depth:mid');
     expectKey(track(createLigustrumLeafDepthMaterial('low')), 'ligustrum:leaf-depth:low');

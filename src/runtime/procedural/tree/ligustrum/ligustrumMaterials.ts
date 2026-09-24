@@ -235,6 +235,7 @@
 import * as THREE from 'three';
 import { FACILITY_GLSL_NOISE } from '../../materials/facilityGlsl';
 import type { ProceduralLevel } from '../../../../domain/assets';
+import { applyTreeFadeDither } from '../treeFadeDither';
 
 /**
  * 树高锚（T011.11 待裁决位 10：slot-0——form-d 单整树样木主锚〔双系统一致
@@ -577,6 +578,7 @@ ${leafRoughness}`,
     }
   };
   material.customProgramCacheKey = () => `ligustrum:leaf${levelKeySuffix(level)}`;
+  applyTreeFadeDither(material); // T021.3 dither fade（direct 侧；aFadeOut 缺省 0 = 行为逐位不变，键 +dither）
   return material;
 }
 
@@ -674,6 +676,7 @@ ${barkRoughness}`,
     );
   };
   material.customProgramCacheKey = () => `ligustrum:bark${levelKeySuffix(level)}`;
+  applyTreeFadeDither(material); // T021.3 dither fade（direct 侧；aFadeOut 缺省 0 = 行为逐位不变，键 +dither）
   return material;
 }
 

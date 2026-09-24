@@ -39,7 +39,8 @@ import { describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 import { BATCH_POLICY, keepThinnedInstance } from '../../../src/domain/lod/batchPolicy';
 import { LOD_THRESHOLDS } from '../../../src/domain/lod/lodPolicy';
-import type { ProceduralLevel } from '../../../src/domain/assets';
+import { TRANSITION_BAND_RATIO } from '../../../src/domain/lod/transition';
+import type { RuntimeRepresentation } from '../../../src/domain/lod/representation';
 import type { ScatterInstance, ScatterParams } from '../../../src/domain/scatter';
 import { scatterChunk } from '../../../src/domain/scatter';
 import type { Vec2 } from '../../../src/core/types';
@@ -55,7 +56,7 @@ import type { InstanceSource } from '../../../src/runtime/instancing/InstancedAs
  * 「基准不得随档平移」的应力输入：机位一律按 High 半径定标（cameraAtM），读数与
  * 块当前档位无关。散布链代表点 = 块盒最近点（与几何球心无关——稳定基准只涉半径）。
  */
-const LEVEL_RADIUS: Record<ProceduralLevel, number> = { high: 5, mid: 4.8, low: 4.9 };
+const LEVEL_RADIUS: Record<RuntimeRepresentation, number> = { high: 5, mid: 4.8, low: 4.9, canopy: 5.05 };
 /** 相机定标基准半径（= High 档；cameraAtM 的机位口径），fov 90° 下 m = 视距 / R */
 const SOURCE_RADIUS = LEVEL_RADIUS.high;
 /** 全部档位几何共享同一 Y 包围 [-1,1]（实例 scale=1、baseY=0 → 块盒 Y 顶 = 1） */
@@ -82,7 +83,7 @@ function baseParams(overrides: Partial<ScatterParams> = {}): ScatterParams {
 }
 
 /** 当档源：几何身份即 (assetId × level) 标签（按调用现场 key 缓存于 provider）；包围按档钉死（惰性计算被预设短路） */
-function leveledSource(level: ProceduralLevel): InstanceSource {
+function leveledSource(level: RuntimeRepresentation): InstanceSource {
   const geometry = new THREE.BoxGeometry(2, 2, 2);
   geometry.boundingBox = new THREE.Box3(
     new THREE.Vector3(-GEO_HALF, -GEO_HALF, -GEO_HALF),
@@ -99,7 +100,7 @@ function leveledSource(level: ProceduralLevel): InstanceSource {
 /** fake 源提供者：每 (assetId × level) 一份共享源（镜像缓存 sourceKey::level 去重语义） */
 function makeLeveledProvider() {
   const sources = new Map<string, InstanceSource>();
-  const provider = vi.fn(async (assetId: string, level?: ProceduralLevel): Promise<InstanceSource> => {
+  const provider = vi.fn(async (assetId: string, level?: RuntimeRepresentation): Promise<InstanceSource> => {
     const key = `${assetId}::${level ?? 'high'}`;
     let source = sources.get(key);
     if (!source) {
@@ -114,7 +115,7 @@ function makeLeveledProvider() {
 function sourceOf(
   sources: Map<string, InstanceSource>,
   assetId: string,
-  level: ProceduralLevel,
+  level: RuntimeRepresentation,
 ): InstanceSource {
   const source = sources.get(`${assetId}::${level}`);
   expect(source).toBeDefined();
@@ -122,6 +123,12 @@ function sourceOf(
 }
 
 const flush = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
+
+/** fade-out 退场带终态线（canopyToCulled × (1+W) 之上一点——T021.3 metric 过渡带；
+ *  决策线（canopyToCulled）到终态线之间 = 退场带：正常渲染 + aFadeOut 渐进） */
+function cullTerminalM(factor = 1.01): number {
+  return LOD_THRESHOLDS.canopyToCulled * (1 + TRANSITION_BAND_RATIO) * factor;
+}
 
 /**
  * 目标读数 m 处的俯视相机（High 档基准定标；fov 90° → tan(fovY/2)=1 →
@@ -142,18 +149,29 @@ function activeMeshOf(
   m: ScatterChunkManager,
   sources: Map<string, InstanceSource>,
   assetId: string,
-  levels: readonly ProceduralLevel[] = ['high', 'mid', 'low'],
-): { mesh: THREE.InstancedMesh; level: ProceduralLevel } | undefined {
+  levels: readonly RuntimeRepresentation[] = ['high', 'mid', 'low'],
+): { mesh: THREE.InstancedMesh; level: RuntimeRepresentation } | undefined {
   const group = m.root.children.find((c) => c.name === 'chunk:0:0');
   if (!group) return undefined;
   for (const level of levels) {
     const geometry = sources.get(`${assetId}::${level}`)?.geometry;
     const hit = group.children.find(
-      (c) => (c as THREE.InstancedMesh).isInstancedMesh && (c as THREE.InstancedMesh).geometry === geometry,
+      (c) =>
+        (c as THREE.InstancedMesh).isInstancedMesh &&
+        geometry &&
+        ((c as THREE.InstancedMesh).geometry === geometry ||
+          (c as THREE.InstancedMesh).geometry.attributes.position === geometry.attributes.position),
     );
     if (hit) return { mesh: hit as THREE.InstancedMesh, level };
   }
   return undefined;
+}
+
+/** 桶网格的 aFadeOut 槽值（无缓冲 → undefined）；wrapper 安全 */
+function fadeOf(mesh: THREE.InstancedMesh, slot: number): number | undefined {
+  const attr = mesh.geometry.getAttribute('aFadeOut') as THREE.InstancedBufferAttribute | undefined;
+  if (!attr || !attr.isInstancedBufferAttribute) return undefined;
+  return (attr.array as Float32Array)[slot];
 }
 
 /** 期望实例列表（domain scatterChunk 作对照真相源；块 (0,0)、32m 块） */
@@ -175,7 +193,7 @@ function colorSnapshot(mesh: THREE.InstancedMesh): Float32Array | null {
 }
 
 /** 换档评估 + 冷源落地（frame 触发调度，微任务冲刷后断档） */
-async function settleAt(m: ScatterChunkManager, camera: THREE.PerspectiveCamera, lodEnabled = true) {
+async function settleAt(m: ScatterChunkManager, camera: THREE.Camera, lodEnabled = true) {
   m.frame(camera, lodEnabled);
   await flush();
 }
@@ -203,13 +221,33 @@ describe('ScatterChunkManager LOD：选档带与换档', () => {
     await settleAt(m, cameraAtM(farM));
     expect(activeMeshOf(m, sources, 'asset_tree')?.level).toBe('low');
 
-    // 超远：culled = 网格 visible=false（块组与桶保留——回视即时恢复）
+    // 超远（退场带内 1.1×名义线）：Low→Cull fade-out——正常渲染 + aFadeOut 渐进（T021.3：
+    // 决策线到终态线之间不整桶消失——fade 机制在 canopy 接入前的验证载体）
     await settleAt(m, cameraAtM(t.canopyToCulled * 1.1));
+    const fading = activeMeshOf(m, sources, 'asset_tree');
+    expect(fading?.level).toBe('low');
+    expect(fading?.mesh.visible).toBe(true); // 退场带内正常提交
+    expect(fadeOf(fading!.mesh, 0)).toBeCloseTo(
+      (t.canopyToCulled * 1.1 - t.canopyToCulled) /
+        (t.canopyToCulled * TRANSITION_BAND_RATIO),
+      6,
+    );
+
+    // 终态线外：culled = 网格 visible=false（块组与桶保留）
+    await settleAt(m, cameraAtM(cullTerminalM()));
     const culled = activeMeshOf(m, sources, 'asset_tree');
     expect(culled?.level).toBe('low'); // 桶保留在最后档
     expect(culled?.mesh.visible).toBe(false);
 
-    // 回视（升档越过 culled 名义界 ×(1−band)）：恢复可见
+    // 回视：经退场带自然回升（fade 减、可见恢复），带内满呈现
+    await settleAt(m, cameraAtM(t.canopyToCulled * 1.05));
+    const unFading = activeMeshOf(m, sources, 'asset_tree');
+    expect(unFading?.mesh.visible).toBe(true);
+    expect(fadeOf(unFading!.mesh, 0)).toBeCloseTo(
+      (t.canopyToCulled * 1.05 - t.canopyToCulled) /
+        (t.canopyToCulled * TRANSITION_BAND_RATIO),
+      6,
+    );
     await settleAt(m, cameraAtM(farM));
     const restored = activeMeshOf(m, sources, 'asset_tree');
     expect(restored?.mesh.visible).toBe(true);
@@ -393,18 +431,19 @@ describe('ScatterChunkManager LOD：选档稳定基准（High 档派生）', () 
 
     // 到达器：把 (块×资产) 置于指定当前档（从任意档出发确定性收敛——名义线方向性 +
     // 单边迟滞保证；跨步升档直达 resolved，无逐档爬）
-    const reach = async (tier: ProceduralLevel): Promise<void> => {
-      const cameraOf: Record<ProceduralLevel, THREE.PerspectiveCamera> = {
+    const reach = async (tier: RuntimeRepresentation): Promise<void> => {
+      const cameraOf: Record<RuntimeRepresentation, THREE.PerspectiveCamera> = {
         high: cameraAtM(t.highToMid * 0.5),
         mid: cameraAtM(t.highToMid * 1.5),
         low: cameraAtM(t.midToCanopy * 1.25),
+        canopy: cameraAtM(t.midToCanopy * 1.25), // 本测试资产无 canopy——占位不可达
       };
       await settleAt(m, cameraOf[tier]);
     };
     // 机位站（期望档只依赖机位）：high 带 / mid 带 / low→mid 升档线内侧（low 档半径
     // 泄漏判别位：若基准随档换源，low 档读数 ≈ 13.83 > 13.6 会停留 low，与其他起径
     // 的结果分裂）/ low 带
-    const stations: { m: number; tier: ProceduralLevel }[] = [
+    const stations: { m: number; tier: RuntimeRepresentation }[] = [
       { m: t.highToMid * 0.5, tier: 'high' },
       { m: t.highToMid + 0.5, tier: 'mid' },
       { m: t.midToCanopy * (1 - t.hysteresisBand) - 0.05, tier: 'mid' },
@@ -530,8 +569,11 @@ describe('ScatterChunkManager LOD：拾取跨档一致', () => {
     await settleAt(m, cameraAtM(t.midToCanopy * 1.1));
     expect(m.resolvePick(hitOf(activeMeshOf(m, sources, 'asset_tree')!.mesh))).toBe('region_a');
 
-    // culled：网格 visible=false → 挡板拦截（r186 raycaster 不跳 visible=false）
+    // 终态 culled：网格 visible=false → 挡板拦截（r186 raycaster 不跳 visible=false）；
+    // 退场带内（1.1×名义线）网格仍可见可拾取（§12 fade 期拾取）
     await settleAt(m, cameraAtM(t.canopyToCulled * 1.1));
+    expect(m.resolvePick(hitOf(activeMeshOf(m, sources, 'asset_tree')!.mesh))).toBe('region_a');
+    await settleAt(m, cameraAtM(cullTerminalM()));
     expect(m.resolvePick(hitOf(activeMeshOf(m, sources, 'asset_tree')!.mesh))).toBeNull();
     m.dispose();
   });
@@ -679,8 +721,10 @@ describe('ScatterChunkManager LOD：单档资产', () => {
     expect(activeMeshOf(m, sources, 'asset_tree')?.level).toBe('high');
     expect(provider).toHaveBeenCalledTimes(1); // 只有 high 源
 
-    await settleAt(m, cameraAtM(t.canopyToCulled * 1.1));
-    expect(activeMeshOf(m, sources, 'asset_tree')?.mesh.visible).toBe(false); // culled 非声明档位，单档也可裁
+    await settleAt(m, cameraAtM(cullTerminalM()));
+    const culledMesh = activeMeshOf(m, sources, 'asset_tree');
+    expect(culledMesh?.mesh.visible).toBe(false); // culled 非声明档位，单档也可裁
+    expect(fadeOf(culledMesh!.mesh, 0)).toBeUndefined(); // 硬切 cull 零 fade 缓冲
     m.dispose();
   });
 });
@@ -743,7 +787,7 @@ describe('ScatterChunkManager LOD：region × chunk × asset 四维粒度', () =
   it('asset 维度：同 region 同块跨资产独立选档（基准半径差异驱动）', async () => {
     // per-asset 差异化 high 基准半径（真实资产尺寸不同——选档输入按 assetId 独立）
     const sources = new Map<string, InstanceSource>();
-    const provider = vi.fn(async (assetId: string, level?: ProceduralLevel): Promise<InstanceSource> => {
+    const provider = vi.fn(async (assetId: string, level?: RuntimeRepresentation): Promise<InstanceSource> => {
       const key = `${assetId}::${level ?? 'high'}`;
       let source = sources.get(key);
       if (!source) {
@@ -851,13 +895,161 @@ describe('ScatterChunkManager LOD：代表 scale 全集口径（桶内最大实�
     expect(low?.level).toBe('low'); // 全集口径：55 ∈ low 带内
     expect(low?.mesh.visible).toBe(true); // 未误裁（误用抽稀后最大 → 读数 > 60 → culled）
 
-    // 边界 sanity：更远机位（正确口径读数 65 > canopyToCulled）→ culled
-    const farY = thinMax + 65 * SOURCE_RADIUS * rawMax;
+    // 边界 sanity：更远机位（正确口径读数越过退场带终态线 > canopyToCulled×(1+W)）
+    // → 终态 culled；决策线与终态线之间（如读数 65）为退场带——可见 + fade 渐进
+    const bandY = thinMax + 65 * SOURCE_RADIUS * rawMax;
+    const bandCamera = new THREE.PerspectiveCamera(90, 1, 0.5, 100000);
+    bandCamera.position.set(10, bandY, 10);
+    bandCamera.lookAt(10, 0, 10);
+    await settleAt(m, bandCamera);
+    const inBand = activeMeshOf(m, sources, 'asset_tree');
+    expect(inBand?.mesh.visible).toBe(true); // 退场带内不整桶消失（T021.3）
+    expect(fadeOf(inBand!.mesh, 0)).toBeGreaterThan(0);
+    const farY = thinMax + cullTerminalM(1.05) * SOURCE_RADIUS * rawMax;
     const farCamera = new THREE.PerspectiveCamera(90, 1, 0.5, 100000);
     farCamera.position.set(10, farY, 10);
     farCamera.lookAt(10, 0, 10);
     await settleAt(m, farCamera);
     expect(activeMeshOf(m, sources, 'asset_tree')?.mesh.visible).toBe(false);
+    m.dispose();
+  });
+});
+
+// ── canopy 目标位过渡执行（T021.3：假想声明资产——真实 canopy 表示 021.7 前不可达）──
+
+describe('ScatterChunkManager LOD：canopy dither 执行（假想声明资产）', () => {
+  /** 假想 canopy 源：几何包围 ±2（大于 mid/low 的 ±1——Union 剔除判别位） */
+  function canopyHeavySource(level: RuntimeRepresentation): InstanceSource {
+    const source = leveledSource(level);
+    if (level === 'canopy') {
+      const geometry = new THREE.BoxGeometry(4, 4, 4);
+      geometry.boundingBox = new THREE.Box3(new THREE.Vector3(-2, -2, -2), new THREE.Vector3(2, 2, 2));
+      geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), LEVEL_RADIUS.canopy);
+      return { geometry, material: source.material };
+    }
+    return source;
+  }
+
+  /** Union 剔除差分相机（正交）：视锥 Y ∈ [1.3, 181.3]——±1 盒（mid/low）整盒在视锥外、
+   *  ±2 盒（canopy 客座）与视锥相交；ortho m = 181.3−1.3)/10 = 18 ∈ dither 带（过渡稳定） */
+  function unionCamera(): THREE.OrthographicCamera {
+    const camera = new THREE.OrthographicCamera(-25, 25, 181.3, 1.3, 1, 400);
+    camera.position.set(10, 0, 200);
+    camera.lookAt(10, 0, 0);
+    return camera;
+  }
+
+  function chunkGroupOf(m: ScatterChunkManager): THREE.Group | undefined {
+    return m.root.children.find((c) => c.name === 'chunk:0:0') as THREE.Group | undefined;
+  }
+
+  /** 块内 incoming 客座网格（name 前缀 incoming: 定位） */
+  function incomingMeshOf(m: ScatterChunkManager): THREE.InstancedMesh | undefined {
+    const group = chunkGroupOf(m);
+    return group?.children.find(
+      (c) => (c as THREE.InstancedMesh).isInstancedMesh && c.name.startsWith('incoming:'),
+    ) as THREE.InstancedMesh | undefined;
+  }
+
+  it('canopy 带内双表示：incoming 客座桶 + 双侧 fade + Union 剔除 + 完成迁移 + 回退拆除 + 计数面', async () => {
+    const sources = new Map<string, InstanceSource>();
+    const provider = vi.fn(async (assetId: string, level?: RuntimeRepresentation): Promise<InstanceSource> => {
+      const key = `${assetId}::${level ?? 'high'}`;
+      let source = sources.get(key);
+      if (!source) {
+        source = canopyHeavySource(level ?? 'high');
+        sources.set(key, source);
+      }
+      return source;
+    });
+    const m = new ScatterChunkManager({
+      provideSource: provider,
+      getRepresentationCapability: (assetId) =>
+        assetId === 'asset_canopy_tree'
+          ? { representations: ['high', 'mid', 'canopy'] }
+          : { levels: ['high', 'mid', 'low'] },
+    });
+    m.setSource('s', baseParams({ assets: [{ assetId: 'asset_canopy_tree', weight: 1 }] }));
+    await flush();
+    const t = LOD_THRESHOLDS;
+
+    // mid 带硬切迁移 mid 桶（canopy 链的 mid 与 legacy 相同路径）
+    await settleAt(m, cameraAtM(t.highToMid * 1.1));
+    expect(activeMeshOf(m, sources, 'asset_canopy_tree')?.level).toBe('mid');
+
+    // canopy 带内（f=0.25）：dither——incoming 客座桶建立（冷源：首帧排队，到达回调建桶，
+    // 次帧写 fade）。Union 并集：块盒顶自 ±1 抬至 ±2
+    const m1 = t.midToCanopy * (1 + TRANSITION_BAND_RATIO * 0.25);
+    await settleAt(m, cameraAtM(m1));
+    await settleAt(m, cameraAtM(m1)); // 第二帧：fade 写出（块盒已含客座 ±2 → m 折算微移）
+    const incoming = incomingMeshOf(m);
+    expect(incoming).toBeDefined();
+    expect(incoming!.count).toBe(truthInstances(baseParams({ assets: [{ assetId: 'asset_canopy_tree', weight: 1 }] }), 'asset_canopy_tree').length); // canopy keep=1 全保真
+    const midMesh = activeMeshOf(m, sources, 'asset_canopy_tree')!.mesh;
+    // 双侧 fade 互补（f = (m−B)/带宽，m 按 Union 后块盒顶 ±2 折算：m = (86−2)/5 = 16.8）
+    const fExpected = (cameraAtM(m1).position.y - 2) / SOURCE_RADIUS;
+    const f = (fExpected - t.midToCanopy) / (t.midToCanopy * TRANSITION_BAND_RATIO);
+    expect(fadeOf(midMesh, 0)).toBeCloseTo(f, 6);
+    expect(fadeOf(incoming!, 0)).toBeCloseTo(1 - f, 6);
+    // 拾取：客座命中 → 源 id（fade 期仍可拾取 §12）
+    expect(
+      m.resolvePick({ object: incoming!, instanceId: 0 } as unknown as THREE.Intersection),
+    ).toBe('s');
+    // 计数面：过渡实例 = 当档实例数、客座桶计 canopy、dualSubmitBuckets = 1（DC 增量）
+    const dist = m.getLodDistribution();
+    const count = truthInstances(baseParams({ assets: [{ assetId: 'asset_canopy_tree', weight: 1 }] }), 'asset_canopy_tree').length;
+    expect(dist.transition.instances).toBe(count);
+    expect(dist.transition.dualSubmitBuckets).toBe(1);
+    expect(dist.buckets.canopy).toBe(1);
+
+    // Union 剔除差分：视锥 Y ∈ [1.3, 181.3] 只含 ±2 盒——双表示期块可见（并集生效）
+    await settleAt(m, unionCamera());
+    expect(chunkGroupOf(m)!.visible).toBe(true);
+    await settleAt(m, unionCamera()); // 稳定帧（正交 m=18 ∈ 带，dither 保持）
+    expect(incomingMeshOf(m)).toBeDefined();
+
+    // 回退：名义线下侧 f=0 → 客座拆除、块盒回落 ±1（并集退出——同视锥下块被剔出）
+    await settleAt(m, cameraAtM(t.midToCanopy * 0.99));
+    await settleAt(m, cameraAtM(t.midToCanopy * 0.99));
+    expect(incomingMeshOf(m)).toBeUndefined();
+    expect(fadeOf(activeMeshOf(m, sources, 'asset_canopy_tree')!.mesh, 0)).toBe(0);
+    await settleAt(m, unionCamera());
+    expect(chunkGroupOf(m)!.visible).toBe(false); // ±1 盒整盒在视锥外（Union 已退出）
+
+    // 对照（legacy 资产同视锥恒不可见——证明可见性差异确由 canopy 客座并集所致）
+    const legacySources = new Map<string, InstanceSource>();
+    const legacyProvider = vi.fn(async (assetId: string, level?: RuntimeRepresentation): Promise<InstanceSource> => {
+      const key = `${assetId}::${level ?? 'high'}`;
+      let source = legacySources.get(key);
+      if (!source) {
+        source = leveledSource(level ?? 'high');
+        legacySources.set(key, source);
+      }
+      return source;
+    });
+    const legacy = new ScatterChunkManager({
+      provideSource: legacyProvider,
+      getRepresentationCapability: () => ({ levels: ['high', 'mid', 'low'] }),
+    });
+    legacy.setSource('s2', baseParams());
+    await flush();
+    await settleAt(legacy, cameraAtM(t.midToCanopy * 1.1)); // low 桶（±1 盒）
+    await settleAt(legacy, unionCamera());
+    expect(legacy.root.children.find((c) => c.name === 'chunk:0:0')!.visible).toBe(false);
+    legacy.dispose();
+
+    // 再推进带末（f=1）：完成迁移——incoming 拆、canopy 成当档桶（常规重建归位）
+    // 带裕量的带末（×1.05）：完成迁移——incoming 拆、canopy 成当档桶（常规重建归位）。
+    // 裕量原因（真实语义记档）：Union 抬高块盒顶（±1 → ±2）使代表点读数下移——完成
+    // 线按并集盒折算，恰在未并集带末上的机位 f 不足 1
+    const bandEnd = t.midToCanopy * (1 + TRANSITION_BAND_RATIO) * 1.05;
+    await settleAt(m, cameraAtM(bandEnd));
+    await settleAt(m, cameraAtM(bandEnd));
+    expect(incomingMeshOf(m)).toBeUndefined();
+    const canopyOwn = activeMeshOf(m, sources, 'asset_canopy_tree', ['high', 'mid', 'low', 'canopy']);
+    expect(canopyOwn?.level).toBe('canopy');
+    expect(canopyOwn?.mesh.count).toBe(count);
+    expect(fadeOf(canopyOwn!.mesh, 0)).toBe(0); // 完成后满呈现
     m.dispose();
   });
 });

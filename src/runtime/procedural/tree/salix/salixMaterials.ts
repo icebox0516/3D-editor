@@ -227,6 +227,7 @@
 import * as THREE from 'three';
 import { FACILITY_GLSL_NOISE } from '../../materials/facilityGlsl';
 import type { ProceduralLevel } from '../../../../domain/assets';
+import { applyTreeFadeDither } from '../treeFadeDither';
 
 /**
  * 树高锚（T011.12 待裁决位 4：slot-0 ≈10m 生产锚——喷泉冠体量感 + form-a
@@ -578,6 +579,7 @@ ${leafRoughness}`,
     }
   };
   material.customProgramCacheKey = () => `salix:leaf${levelKeySuffix(level)}`;
+  applyTreeFadeDither(material); // T021.3 dither fade（direct 侧；aFadeOut 缺省 0 = 行为逐位不变，键 +dither）
   return material;
 }
 
@@ -653,6 +655,7 @@ ${barkRoughness}`,
     );
   };
   material.customProgramCacheKey = () => `salix:bark${levelKeySuffix(level)}`;
+  applyTreeFadeDither(material); // T021.3 dither fade（direct 侧；aFadeOut 缺省 0 = 行为逐位不变，键 +dither）
   return material;
 }
 

@@ -328,12 +328,12 @@ describe('分档实装（level 参数；缺省 high = 显式 high）', () => {
       expect(material.customProgramCacheKey()).toBe(key);
       keys.add(material.customProgramCacheKey());
     };
-    expectKey(track(createZelkovaLeafMaterial()), 'zelkova:leaf');
-    expectKey(track(createZelkovaLeafMaterial('mid')), 'zelkova:leaf:mid');
-    expectKey(track(createZelkovaLeafMaterial('low')), 'zelkova:leaf:low');
-    expectKey(track(createZelkovaBarkMaterial()), 'zelkova:bark');
-    expectKey(track(createZelkovaBarkMaterial('mid')), 'zelkova:bark:mid');
-    expectKey(track(createZelkovaBarkMaterial('low')), 'zelkova:bark:low');
+    expectKey(track(createZelkovaLeafMaterial()), 'zelkova:leaf+dither');
+    expectKey(track(createZelkovaLeafMaterial('mid')), 'zelkova:leaf:mid+dither');
+    expectKey(track(createZelkovaLeafMaterial('low')), 'zelkova:leaf:low+dither');
+    expectKey(track(createZelkovaBarkMaterial()), 'zelkova:bark+dither');
+    expectKey(track(createZelkovaBarkMaterial('mid')), 'zelkova:bark:mid+dither');
+    expectKey(track(createZelkovaBarkMaterial('low')), 'zelkova:bark:low+dither');
     expectKey(track(createZelkovaLeafDepthMaterial()), 'zelkova:leaf-depth');
     expectKey(track(createZelkovaLeafDepthMaterial('mid')), 'zelkova:leaf-depth:mid');
     expectKey(track(createZelkovaLeafDepthMaterial('low')), 'zelkova:leaf-depth:low');

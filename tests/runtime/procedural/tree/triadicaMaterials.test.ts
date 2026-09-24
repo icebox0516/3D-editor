@@ -511,12 +511,12 @@ describe('分档实装（level 参数；缺省 high = 显式 high）', () => {
       expect(material.customProgramCacheKey()).toBe(key);
       keys.add(material.customProgramCacheKey());
     };
-    expectKey(track(createTriadicaLeafMaterial()), 'triadica:leaf');
-    expectKey(track(createTriadicaLeafMaterial('mid')), 'triadica:leaf:mid');
-    expectKey(track(createTriadicaLeafMaterial('low')), 'triadica:leaf:low');
-    expectKey(track(createTriadicaBarkMaterial()), 'triadica:bark');
-    expectKey(track(createTriadicaBarkMaterial('mid')), 'triadica:bark:mid');
-    expectKey(track(createTriadicaBarkMaterial('low')), 'triadica:bark:low');
+    expectKey(track(createTriadicaLeafMaterial()), 'triadica:leaf+dither');
+    expectKey(track(createTriadicaLeafMaterial('mid')), 'triadica:leaf:mid+dither');
+    expectKey(track(createTriadicaLeafMaterial('low')), 'triadica:leaf:low+dither');
+    expectKey(track(createTriadicaBarkMaterial()), 'triadica:bark+dither');
+    expectKey(track(createTriadicaBarkMaterial('mid')), 'triadica:bark:mid+dither');
+    expectKey(track(createTriadicaBarkMaterial('low')), 'triadica:bark:low+dither');
     expectKey(track(createTriadicaLeafDepthMaterial()), 'triadica:leaf-depth');
     expectKey(track(createTriadicaLeafDepthMaterial('mid')), 'triadica:leaf-depth:mid');
     expectKey(track(createTriadicaLeafDepthMaterial('low')), 'triadica:leaf-depth:low');

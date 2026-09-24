@@ -283,12 +283,12 @@ describe('分档实装（level 参数；缺省 high = 显式 high）', () => {
       expect(material.customProgramCacheKey()).toBe(key);
       keys.add(material.customProgramCacheKey());
     };
-    expectKey(track(createCeltisLeafMaterial()), 'celtis:leaf');
-    expectKey(track(createCeltisLeafMaterial('mid')), 'celtis:leaf:mid');
-    expectKey(track(createCeltisLeafMaterial('low')), 'celtis:leaf:low');
-    expectKey(track(createCeltisBarkMaterial()), 'celtis:bark');
-    expectKey(track(createCeltisBarkMaterial('mid')), 'celtis:bark:mid');
-    expectKey(track(createCeltisBarkMaterial('low')), 'celtis:bark:low');
+    expectKey(track(createCeltisLeafMaterial()), 'celtis:leaf+dither');
+    expectKey(track(createCeltisLeafMaterial('mid')), 'celtis:leaf:mid+dither');
+    expectKey(track(createCeltisLeafMaterial('low')), 'celtis:leaf:low+dither');
+    expectKey(track(createCeltisBarkMaterial()), 'celtis:bark+dither');
+    expectKey(track(createCeltisBarkMaterial('mid')), 'celtis:bark:mid+dither');
+    expectKey(track(createCeltisBarkMaterial('low')), 'celtis:bark:low+dither');
     expectKey(track(createCeltisLeafDepthMaterial()), 'celtis:leaf-depth');
     expectKey(track(createCeltisLeafDepthMaterial('mid')), 'celtis:leaf-depth:mid');
     expectKey(track(createCeltisLeafDepthMaterial('low')), 'celtis:leaf-depth:low');

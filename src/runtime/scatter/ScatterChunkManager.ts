@@ -72,22 +72,39 @@
  *    重算/摘源重建/撤销重做经同一确定性路径自然一致（合并组随源生灭）。
  *  - LOD 分布双口径（D27.9）：getLodDistribution 只读快照——自有桶 + 合并桶各档实例数
  *    与桶数（提交口径；culled 成员实例计 culled），经 runtime/lodDistribution 纯计数器。
+ *
+ * 表示过渡执行（T021.3，D41 §五；桶维度宽化 region × chunk × asset × representation）：
+ *  - domain/lod/transition 状态机（纯函数）逐 (块×资产) 步进——ChunkLodState 持有
+ *    SelectionState（transition 字段，D41 §10.1 五字段原形），执行提交决策：
+ *    硬切位（High↔Mid / Mid↔Low / 多级跳档）= 确定性重撒重建（源就绪即重建、未就绪
+ *    lod.pending 排队——沿既有语义）；dither 位（{mid|low}↔canopy）= 双表示共存——
+ *    当档桶保留 + chunk.incoming 客座桶（同块同资产的目标表示桶，**过渡期免合并**——
+ *    客座桶走自有细块，避免合并组重建 churn；完成迁移后经常规重建归并）；
+ *    fade-out 退场（Low/Canopy → Culled）= 当档桶逐实例 aFadeOut 退场度写出
+ *    （chunk × asset 粒度桶内均匀值）、终态零提交（自有桶 mesh.visible=false /
+ *    合并成员 memberCulled 退组——沿既有 culled 机制，决策线到终态间的退场带内
+ *    正常渲染）。fade 属性缝契约见 runtime/instancing/fadeGeometry（aFadeOut 包装
+ *    几何——散布多桶共享源几何，逐桶 fade 不能直挂，见彼头注）。
+ *  - 过渡期剔除并集（D41 §四.3）：lod.box（块盒基）在双表示期并入客座表示的实例
+ *    盒（writeInstanceRange 同一累积路径）；客座拆除后从当档集确定性重算。
  */
 import type { ProceduralVariants } from '../../domain/assets';
 import { applyAssetVariants } from '../../domain/assets';
-import type { ProceduralLevel } from '../../domain/assets';
 import { keepThinnedInstance } from '../../domain/lod/batchPolicy';
 import { BATCH_POLICY } from '../../domain/lod/batchPolicy';
 import type {
   LodSelectionOutcome,
   RepresentationCapability,
   RuntimeRepresentation,
+  SelectionState,
 } from '../../domain/lod/representation';
 import { effectiveRepresentationChain } from '../../domain/lod/representation';
-import { evaluateLodRepresentation } from '../../domain/lod/lodEvaluation';
+import { evaluateLodRepresentation, normalizedViewDistance } from '../../domain/lod/lodEvaluation';
+import { steadySelectionState, stepTransition, transitionKindOf } from '../../domain/lod/transition';
 import type { ScatterChunk, ScatterInstance, ScatterParams } from '../../domain/scatter';
 import { scatterChunk, scatterInfluenceRadius } from '../../domain/scatter';
 import type { InstanceSource } from '../instancing/InstancedAssetPool';
+import { FadeGeometryPool, writeFadeRange } from '../instancing/fadeGeometry';
 import { hueOffsetToMultiplier } from '../instancing/instanceTint';
 import { lodViewOfCamera } from '../instancing/lodView';
 import type { LodDistribution } from '../lodDistribution';
@@ -104,9 +121,14 @@ export interface ScatterChunkKey {
 
 /** 依赖注入窄接口（仿 AssetSourceRouter：Renderer 注入真实路由，测试注 fake 工厂） */
 export interface ScatterChunkManagerOptions {
-  /** assetId + 档位 → 实例化源（与 InstancedAssetPool 同源路由；level 为档位维度，
-   *  缺省 'high'——无档资产的源路由行为与现状逐位一致；几何/材质共享，本管绝不 dispose） */
-  provideSource: (assetId: string, level?: ProceduralLevel) => Promise<InstanceSource>;
+  /** assetId + 表示 → 实例化源（与 InstancedAssetPool 同源路由；表示为桶维度，
+   *  缺省 'high'——无档资产的源路由行为与现状逐位一致；T021.3 起宽化到
+   *  RuntimeRepresentation——canopy 目标位执行路径落代码，真实资产 021.7 接线前
+   *  不可达；几何/材质共享，本管绝不 dispose） */
+  provideSource: (
+    assetId: string,
+    representation?: RuntimeRepresentation,
+  ) => Promise<InstanceSource>;
   /** assetId → 程序化 meta 的变体声明（hueJitter>0 时逐实例色相微差；缺省无色） */
   getAssetVariants?: (assetId: string) => ProceduralVariants | undefined;
   /**
@@ -132,15 +154,15 @@ export interface ScatterChunkManagerOptions {
 export const CHUNK_SIZE_M = 32;
 
 /** (块×资产) 自有桶网格运行态（容量翻倍扩容、缩容保留、mesh 对象引用稳定——仿池）。
- *  T006.3：entry 即「当档桶」——level 为桶维度（换档 = 拆旧桶建新桶，Mesh 对象与
- *  geometry/material 绑定创建，不做桶内换 Source）。T006.4：实例紧致 AABB 迁至
- *  ChunkLodState.box（自有桶 / 合并桶两路径同源更新——选档代表点与块剔除盒跨桶形态
- *  稳定，合并/拆出不改块盒）。 */
+ *  T006.3：entry 即「当档桶」——level（T021.3 宽化 RuntimeRepresentation）为桶维度
+ *  （换表示 = 拆旧桶建新桶，Mesh 对象与 geometry/material 绑定创建，不做桶内换
+ *  Source）。T006.4：实例紧致 AABB 迁至 ChunkLodState.box（自有桶 / 合并桶两路径
+ *  同源更新——选档代表点与块剔除盒跨桶形态稳定，合并/拆出不改块盒）。 */
 interface MeshEntry {
   readonly mesh: THREE.InstancedMesh<THREE.BufferGeometry, THREE.Material | THREE.Material[]>;
   capacity: number;
-  /** 桶档位（创建时绑定；与 chunk.lod 的目标档比对判定换档） */
-  readonly level: ProceduralLevel;
+  /** 桶表示（创建时绑定；与 chunk.lod 的目标表示比对判定换档） */
+  readonly level: RuntimeRepresentation;
 }
 
 /**
@@ -157,7 +179,7 @@ interface MergedBucket {
   /** 超块键（成员块 key = floor(key.i / factor), floor(key.j / factor) 同组） */
   readonly superKey: ScatterChunkKey;
   readonly assetId: string;
-  readonly level: ProceduralLevel;
+  readonly level: RuntimeRepresentation;
   /** 成员块键集（`${i}:${j}`；重建时升序遍历——确定性） */
   readonly members: Set<string>;
   mesh: THREE.InstancedMesh<THREE.BufferGeometry, THREE.Material | THREE.Material[]> | null;
@@ -182,9 +204,9 @@ interface MergedBucket {
  */
 interface ChunkLodState {
   current: LodSelectionOutcome | undefined;
-  level: ProceduralLevel;
+  level: RuntimeRepresentation;
   maxScale: number;
-  pending?: ProceduralLevel;
+  pending?: RuntimeRepresentation;
   /** (块×资产) 实例紧致世界 AABB（写实例路径顺带累积；块盒 = ∪ 各资产 box） */
   readonly box: THREE.Box3;
   /** 当档（抽稀后）实例数（含 memberCulled 排除中的真值——分布/合并判定口径） */
@@ -193,6 +215,20 @@ interface ChunkLodState {
   mergedBucket?: MergedBucket;
   /** 合并成员被 culled 排除中（自有桶口径用 mesh.visible，不用本标记） */
   memberCulled: boolean;
+  /**
+   * 表示过渡状态机持有（T021.3，D41 §10.1 五字段原形；null = 首评前）。首评以
+   * steadySelectionState(level) 起步，每帧 frame 经 domain stepTransition 推进。
+   */
+  transition: SelectionState | null;
+  /** 展示表示缓存（提交口径：终态 cull → 'culled'，否则 SelectionState.current——
+   *  分布计数与诊断消费；undefined = 未评估（回退 current ?? level） */
+  display: LodSelectionOutcome | undefined;
+  /** 过渡中标记缓存（transitionActive 透传——分布过渡计数面消费） */
+  transitionActive: boolean;
+  /** 当桶 aFadeOut 退场度缓存（0 = 完整呈现；写出判重——稳态零写零缓冲） */
+  fadeOut: number;
+  /** 合并桶内本成员写入区起点（rebuildMergedBucket 顺序分配；fade 区间写出用） */
+  mergedOffset: number;
 }
 
 /** 单块运行态：块 Group（视锥剔除的开关单元）+ AABB + 合批网格 + 未就绪登记 */
@@ -206,6 +242,11 @@ interface ChunkState {
   readonly box: THREE.Box3;
   /** assetId → 合批网格（已就绪源） */
   readonly meshes: Map<string, MeshEntry>;
+  /**
+   * assetId → 过渡客座桶（T021.3 dither 双表示的目标表示侧——canopy 目标位；
+   * 建立于 fade>0 且目标源就绪、拆除于完成迁移 / 回退 / 决策改向。过渡期免合并）
+   */
+  readonly incoming: Map<string, MeshEntry>;
   /** assetId → 实例数据（源未就绪/失败时登记；源到达后建网格。T006.4：列表为原始
    *  未抽稀集——到达写入时按当档裁定，只读消费不二次掷骰） */
   readonly pending: Map<string, readonly ScatterInstance[]>;
@@ -263,9 +304,9 @@ function chunkKeyString(key: ScatterChunkKey): string {
   return `${key.i}:${key.j}`;
 }
 
-/** (assetId × level) 源缓存键（档位维度后缀——与池桶/ProceduralSourceCache 同构口径） */
-function assetStateKey(assetId: string, level: ProceduralLevel): string {
-  return `${assetId}::${level}`;
+/** (assetId × representation) 源缓存键（表示维度后缀——与池桶/ProceduralSourceCache 同构口径） */
+function assetStateKey(assetId: string, representation: RuntimeRepresentation): string {
+  return `${assetId}::${representation}`;
 }
 
 /** 块矩形（半开 [min,max)；与撒点 chunk 语义同构） */
@@ -418,7 +459,10 @@ export class ScatterChunkManager {
   private readonly assetStates = new Map<string, AssetSourceState>();
   /** 实例网格 → 所属源 id（拾取反查，D18.7；网格 dispose 时同步摘除，与源共生命周期） */
   private readonly meshOwners = new Map<THREE.InstancedMesh<THREE.BufferGeometry, THREE.Material | THREE.Material[]>, string>();
-  private readonly provideSource: (assetId: string, level?: ProceduralLevel) => Promise<InstanceSource>;
+  private readonly provideSource: (
+    assetId: string,
+    representation?: RuntimeRepresentation,
+  ) => Promise<InstanceSource>;
   private readonly getAssetVariants: (assetId: string) => ProceduralVariants | undefined;
   private readonly getRepresentationCapability: (assetId: string) => RepresentationCapability | undefined;
   /** 有效表示链缓存（assetId → effectiveRepresentationChain 产物，T021.2；帧路径零重复归一） */
@@ -429,6 +473,8 @@ export class ScatterChunkManager {
    * （requestAsset）。
    */
   private readonly referenceSpheres = new LodReferenceSphereCache();
+  /** aFadeOut 包装几何池（T021.3）：散布桶网格过渡期换装共享源几何顶点属性的包装几何 */
+  private readonly fadeGeometries = new FadeGeometryPool();
   private readonly chunkSize: number;
   /** T006.4 合并策略（factor 语义化为每轴块数取整除；maxInstances ≤ 0 或 factor < 2 = 关闭） */
   private readonly mergeMaxInstances: number;
@@ -574,51 +620,21 @@ export class ScatterChunkManager {
           // 源球过渡（确定性、不冻结）
           const radius = this.referenceRadiusOf(assetId, lod.level);
           if (radius <= 0 || lod.maxScale <= 0) continue; // 基准未就绪/零尺度：评估缺输入，跳过
+          const subject = {
+            point: { x: _nearestPoint.x, y: _nearestPoint.y, z: _nearestPoint.z },
+            radius,
+            scale: lod.maxScale,
+          };
           const target = evaluateLodRepresentation({
             view,
-            subject: {
-              point: { x: _nearestPoint.x, y: _nearestPoint.y, z: _nearestPoint.z },
-              radius,
-              scale: lod.maxScale,
-            },
+            subject,
             representations: this.representationChainOf(assetId),
             current: lod.current,
             lodEnabled,
           });
+          const metric = normalizedViewDistance(view, subject);
           lod.current = target;
-          const entry = chunk.meshes.get(assetId);
-          if (target === 'culled') {
-            lod.pending = undefined;
-            if (lod.mergedBucket) {
-              // T006.4 合并成员 culled：实例退出合并桶当帧写入（自有桶 mesh.visible 的等价物）
-              if (!lod.memberCulled) {
-                lod.memberCulled = true;
-                this.rebuildMergedBucket(state, lod.mergedBucket);
-              }
-            } else if (entry) {
-              entry.mesh.visible = false;
-            }
-            continue;
-          }
-          // canopy 产出持有（T021.2）：选档自本任务起可产出 'canopy'（声明 canopy 能力的
-          // 资产，名义区间 (midToCanopy, canopyToCulled]）——lod.current 已记录 canopy
-          // （迟滞参考正确），但 canopy 源/桶接线（provideSource 档位维度、散布桶键
-          // region × chunk × asset × representation）归 021.7；此前 canopy 产出持有现状
-          // （不重建、当档桶持续渲染——真实资产未声明 canopy 故不可达，假想声明资产
-          // 测试锁定本持有语义）。
-          if (target === 'canopy') continue;
-          if (entry) entry.mesh.visible = true;
-          if (lod.mergedBucket && lod.memberCulled) {
-            // 回视恢复：实例重入合并桶（确定性重建，矩阵同源——无跳变）
-            lod.memberCulled = false;
-            this.rebuildMergedBucket(state, lod.mergedBucket);
-          }
-          if (target === lod.level) {
-            if (lod.pending !== undefined) lod.pending = undefined;
-            continue;
-          }
-          if (lod.pending === target) continue; // 重建在途（冷源），不重复登记
-          this.scheduleChunkAssetRelevel(state, chunk, assetId, target);
+          this.stepChunkAssetTransition(state, chunk, assetId, lod, target, metric);
         }
       }
       // T006.4 合并桶提交态归一（源显隐 ∧ 有实例；成员 culled 排除后 count=0 → 零提交）
@@ -626,6 +642,282 @@ export class ScatterChunkManager {
         if (bucket.mesh) bucket.mesh.visible = state.visible && bucket.mesh.count > 0;
       }
     }
+  }
+
+  /**
+   * (块×资产) 过渡步进与提交执行（T021.3）：domain 状态机（stepTransition 纯函数）
+   * 产出 SelectionState 推进 + 提交决策，映射到本管机制——
+   *  - 硬切位（含多级跳档 / 非 {low,canopy} 起点的 cull）：完成即既有确定性重撒重建
+   *    （源就绪即时；冷源 lod.pending 排队、到达回调 applyPendingLevelRebuilds 重建）；
+   *  - dither 位：incoming 客座桶生命周期（fade>0 且目标源就绪时建立，完成 / 回退 /
+   *    决策改向拆除——过渡期免合并记档见类头）+ 双侧 aFadeOut 写出 + 客座提交门控；
+   *  - fade-out 退场位：当档桶逐实例 aFadeOut 写出（自有桶全槽 / 合并桶成员区间）+
+   *    终态可见性（mesh.visible / memberCulled——沿既有 culled 机制，退场带内正常渲染）；
+   *  - 完成迁移（硬切即时 / dither 带末）：拆客座 → rebuildChunkAsset（确定性重撒，
+   *    常规合并裁定归位）→ 状态机 steady 归位。
+   */
+  private stepChunkAssetTransition(
+    state: SourceState,
+    chunk: ChunkState,
+    assetId: string,
+    lod: ChunkLodState,
+    selection: LodSelectionOutcome,
+    metric: number,
+  ): void {
+    // 目标表示源就绪度（'culled' 无目标源恒就绪）；发起/取源（冷源排队语义）
+    let sourceReady = true;
+    if (selection !== 'culled' && selection !== lod.level) {
+      sourceReady = this.requestAsset(assetId, selection).source !== null;
+    }
+    const prev = lod.transition ?? steadySelectionState(lod.level);
+    const { state: next, commit } = stepTransition({
+      state: prev,
+      selection,
+      metric,
+      sourceReady,
+    });
+    lod.transition = next;
+    lod.display = commit.culled ? 'culled' : next.current;
+    lod.transitionActive = next.transitionActive;
+
+    const kind = transitionKindOf(prev.current, selection);
+
+    // 表示目标硬切：完成即重建；冷源排队（lod.pending——到达回调重建，沿既有语义）
+    if (kind === 'hard-cut' && selection !== 'culled' && selection !== lod.level) {
+      if (commit.completed) {
+        lod.pending = undefined;
+        this.disposeIncomingBucket(state, chunk, assetId);
+        this.rebuildChunkAsset(state, chunk, assetId, selection);
+        if (lod.transition) lod.transition = steadySelectionState(selection);
+        lod.display = selection;
+        return;
+      }
+      if (lod.pending !== selection) lod.pending = selection;
+      this.applyCulledCommit(state, chunk, assetId, lod, commit);
+      return;
+    }
+
+    // dither 双表示：客座桶生命周期 + 双侧 fade（dither 型 selection 必为表示）
+    if (kind === 'dither' && selection !== 'culled') {
+      if (commit.submitTarget) {
+        this.writeIncomingBucket(state, chunk, assetId, selection);
+        const incoming = chunk.incoming.get(assetId);
+        if (incoming) {
+          writeFadeRange(
+            incoming.mesh,
+            this.sourceGeometryOf(assetId, selection)!,
+            this.fadeGeometries,
+            0,
+            incoming.mesh.count,
+            1 - commit.fadeTarget,
+            incoming.capacity,
+          );
+          incoming.mesh.visible = commit.fadeTarget > 0; // fade 0 客座零提交（省 DC）
+        }
+        this.writeOwnFade(chunk, assetId, lod, commit);
+      } else {
+        this.disposeIncomingBucket(state, chunk, assetId);
+        this.writeOwnFade(chunk, assetId, lod, commit);
+      }
+      if (commit.completed) {
+        this.disposeIncomingBucket(state, chunk, assetId);
+        lod.pending = undefined;
+        this.rebuildChunkAsset(state, chunk, assetId, selection);
+        if (lod.transition) lod.transition = steadySelectionState(selection);
+        lod.display = selection;
+        return;
+      }
+      this.applyCulledCommit(state, chunk, assetId, lod, commit);
+      return;
+    }
+
+    // fade-out 退场（kind === 'fade-out'，selection === 'culled'）：当档桶逐实例退场写出
+    if (kind === 'fade-out') {
+      this.writeOwnFade(chunk, assetId, lod, commit);
+      this.applyCulledCommit(state, chunk, assetId, lod, commit);
+      return;
+    }
+
+    // 稳态 / 决策回落（kind === 'none'）：清残客座、fade 归零
+    this.disposeIncomingBucket(state, chunk, assetId);
+    this.writeOwnFade(chunk, assetId, lod, commit);
+    this.applyCulledCommit(state, chunk, assetId, lod, commit);
+  }
+
+  /**
+   * 终态 cull 可见性执行（沿既有机制，T021.3 改为 commit.culled 驱动——fade-out 型
+   * 在退场带末才触发、硬切型瞬时；恢复路径同帧回 true / 重入合并组）：自有桶
+   * mesh.visible 开关（桶保留，回视即时恢复）；合并成员 memberCulled 退组重建。
+   */
+  private applyCulledCommit(
+    state: SourceState,
+    chunk: ChunkState,
+    assetId: string,
+    lod: ChunkLodState,
+    commit: { culled: boolean },
+  ): void {
+    const entry = chunk.meshes.get(assetId);
+    if (commit.culled) {
+      lod.pending = undefined;
+      if (lod.mergedBucket) {
+        if (!lod.memberCulled) {
+          lod.memberCulled = true;
+          this.rebuildMergedBucket(state, lod.mergedBucket);
+        }
+      } else if (entry) {
+        entry.mesh.visible = false;
+      }
+      return;
+    }
+    if (entry) entry.mesh.visible = true;
+    if (lod.mergedBucket && lod.memberCulled) {
+      // 回视恢复：实例重入合并桶（确定性重建，矩阵同源——无跳变）
+      lod.memberCulled = false;
+      this.rebuildMergedBucket(state, lod.mergedBucket);
+    }
+  }
+
+  /**
+   * 当档桶 fade 写出（fade-out 退场 / dither 旧侧）：退场度 = 1 − fadeCurrent；值缓存
+   * 判重（稳态 0 零写零缓冲）。自有桶全槽均匀值（chunk × asset 粒度过渡态）；合并桶
+   * 按成员写入区间分写。
+   */
+  private writeOwnFade(
+    chunk: ChunkState,
+    assetId: string,
+    lod: ChunkLodState,
+    commit: { fadeCurrent: number },
+  ): void {
+    const fadeOut = 1 - commit.fadeCurrent;
+    if (lod.fadeOut === fadeOut) return;
+    lod.fadeOut = fadeOut;
+    const sourceGeometry = this.sourceGeometryOf(assetId, lod.level);
+    if (!sourceGeometry) return;
+    const merged = lod.mergedBucket?.mesh;
+    if (merged) {
+      writeFadeRange(
+        merged,
+        sourceGeometry,
+        this.fadeGeometries,
+        lod.mergedOffset,
+        lod.instanceCount,
+        fadeOut,
+        (lod.mergedBucket?.capacity ?? 0),
+      );
+      return;
+    }
+    const entry = chunk.meshes.get(assetId);
+    if (entry) {
+      writeFadeRange(
+        entry.mesh,
+        sourceGeometry,
+        this.fadeGeometries,
+        0,
+        entry.mesh.count,
+        fadeOut,
+        entry.capacity,
+      );
+    }
+  }
+
+  /** (assetId × representation) 源几何（fade 缓冲包装的源身份；未就绪 → undefined） */
+  private sourceGeometryOf(assetId: string, representation: RuntimeRepresentation): THREE.BufferGeometry | undefined {
+    return this.assetStates.get(assetStateKey(assetId, representation))?.source?.geometry;
+  }
+
+  /**
+   * 写/建 (块×资产) 过渡客座桶（dither 目标表示侧；调用前提 = 目标源就绪）：确定性
+   * 重撒同规则实例（canopy keep=1 全保真——§八 Density），写矩阵 + lod.box 并入客座
+   * 实例盒（Union 剔除，§四.3）。容量翻倍、桶对象复用（同目标表示）；**过渡期免合并**
+   * （完成迁移后 rebuildChunkAsset 常规裁定归并）。fade 值由调用方随后写出。
+   */
+  private writeIncomingBucket(
+    state: SourceState,
+    chunk: ChunkState,
+    assetId: string,
+    target: RuntimeRepresentation,
+  ): void {
+    const asset = this.assetStates.get(assetStateKey(assetId, target));
+    if (!asset?.source) return; // 防御：调用前提（submitTarget 隐含就绪）
+    const lod = chunk.lod.get(assetId);
+    if (!lod) return;
+    const list = this.thinForLevel(this.memberInstances(state, chunk, assetId), target);
+    let entry = chunk.incoming.get(assetId);
+    if (!entry || entry.level !== target) {
+      if (entry) this.disposeIncomingBucketEntry(chunk, entry, assetId);
+      const capacity = capacityFor(list.length);
+      const mesh = new THREE.InstancedMesh(asset.source.geometry, asset.source.material, capacity);
+      mesh.name = `incoming:${state.id}:${chunk.key.i}:${chunk.key.j}:${assetId}:${target}`;
+      mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      mesh.castShadow = true; // 块组可见性管辖影 pass 同零提交
+      chunk.group.add(mesh);
+      this.meshOwners.set(mesh, chunk.sourceId); // 拾取反查（fade 期命中 → 源 id，§12）
+      entry = { mesh, capacity, level: target };
+      chunk.incoming.set(assetId, entry);
+    } else if (entry.capacity < list.length) {
+      entry.capacity = capacityFor(list.length);
+      const attribute = new THREE.InstancedBufferAttribute(
+        new Float32Array(entry.capacity * 16),
+        16,
+      );
+      attribute.setUsage(THREE.DynamicDrawUsage);
+      entry.mesh.instanceMatrix = attribute;
+    }
+    const mesh = entry.mesh;
+    mesh.count = list.length;
+    const geoExtent = geometryAbsExtentOf(asset.source.geometry);
+    // Union 剔除：lod.box 不清空——客座实例盒并入当档盒之上（§四.3 并集语义）
+    const variants = this.getAssetVariants(assetId);
+    const tint = variants && (variants.hueJitter ?? 0) > 0 ? variants : null;
+    if (tint && list.length > 0) this.ensureColorBuffer(mesh, entry.capacity);
+    this.writeInstanceRange(mesh, 0, list, state.baseY, geoExtent, tint, lod);
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    mesh.computeBoundingSphere();
+    this.refreshChunkBox(chunk, state.baseY);
+  }
+
+  /**
+   * 拆客座桶（完成迁移 / 回退 / 决策改向 / 资产退出块）：包装几何归还池、lod.box 从
+   * 当档集确定性重算（客座盒退出并集）、块盒刷新。
+   */
+  private disposeIncomingBucket(state: SourceState, chunk: ChunkState, assetId: string): void {
+    const entry = chunk.incoming.get(assetId);
+    if (!entry) return;
+    this.disposeIncomingBucketEntry(chunk, entry, assetId);
+    const lod = chunk.lod.get(assetId);
+    if (lod) {
+      this.recomputeLodBoxFromCurrent(state, chunk, assetId, lod);
+      this.refreshChunkBox(chunk, state.baseY);
+    }
+  }
+
+  /** 客座桶网格拆除（矩阵缓冲释放；共享模板不动；fade 包装几何归还池） */
+  private disposeIncomingBucketEntry(chunk: ChunkState, entry: MeshEntry, assetId: string): void {
+    const sourceGeometry = this.sourceGeometryOf(assetId, entry.level);
+    if (sourceGeometry && entry.mesh.geometry !== sourceGeometry) {
+      this.fadeGeometries.release(entry.mesh.geometry);
+    }
+    entry.mesh.removeFromParent();
+    entry.mesh.dispose(); // 只释放实例矩阵/颜色缓冲（共享 geometry/material 不动）
+    this.meshOwners.delete(entry.mesh);
+    chunk.incoming.delete(assetId);
+  }
+
+  /** lod.box 从当档（抽稀后）集确定性重算（客座拆除后退出 Union；mesh=null 只累积盒） */
+  private recomputeLodBoxFromCurrent(
+    state: SourceState,
+    chunk: ChunkState,
+    assetId: string,
+    lod: ChunkLodState,
+  ): void {
+    lod.box.makeEmpty();
+    const sourceGeometry = this.sourceGeometryOf(assetId, lod.level);
+    if (!sourceGeometry) return;
+    const list = this.thinForLevel(this.memberInstances(state, chunk, assetId), lod.level);
+    if (list.length === 0) return;
+    const geoExtent = geometryAbsExtentOf(sourceGeometry);
+    this.writeInstanceRange(null, 0, list, state.baseY, geoExtent, null, lod);
   }
 
   /**
@@ -646,19 +938,19 @@ export class ScatterChunkManager {
    * 路径：新资产 high 起步、块首评前基准必已派生）= 当前档源球半径过渡——确定性、
    * 不冻结，基准就绪即被取代（保证评估输入恒为正、不阻塞不报错）。
    */
-  private referenceRadiusOf(assetId: string, level: ProceduralLevel): number {
+  private referenceRadiusOf(assetId: string, representation: RuntimeRepresentation): number {
     const reference = this.referenceSpheres.get(assetId);
     if (reference) return reference.radius;
     return (
-      this.assetStates.get(assetStateKey(assetId, level))?.source?.geometry.boundingSphere
+      this.assetStates.get(assetStateKey(assetId, representation))?.source?.geometry.boundingSphere
         ?.radius ?? 0
     );
   }
 
   /**
    * 运行态快照（DEV 冒烟 stats：drawCalls/triangles 由 Renderer.getViewportStats 补齐）。
-   * instances = 登记口径（自有桶 count——含 culled 隐藏桶的缓冲实例 + 合并桶当帧写入集）；
-   * 提交口径（各档渲染中实例）见 getLodDistribution 的各档实例数。
+   * instances = 登记口径（自有桶 count——含 culled 隐藏桶的缓冲实例 + 合并桶当帧写入集
+   * + 过渡客座桶 count，T021.3）；提交口径（各档渲染中实例）见 getLodDistribution。
    */
   getStats(): { totalChunks: number; visibleChunks: number; instances: number } {
     let totalChunks = 0;
@@ -669,6 +961,7 @@ export class ScatterChunkManager {
         totalChunks += 1;
         if (chunk.group.visible) visibleChunks += 1;
         for (const entry of chunk.meshes.values()) instances += entry.mesh.count;
+        for (const entry of chunk.incoming.values()) instances += entry.mesh.count; // T021.3 客座
       }
       for (const bucket of state.merged.values()) {
         if (bucket.mesh) instances += bucket.mesh.count;
@@ -692,8 +985,17 @@ export class ScatterChunkManager {
           if (lod.mergedBucket) continue; // 合并成员经合并桶口径（下行循环），不双计
           const entry = chunk.meshes.get(assetId);
           if (!entry) continue; // 源未就绪（pending 登记）：无桶无实例
-          const rep = lod.current ?? lod.level;
+          const rep = lod.display ?? lod.current ?? lod.level;
           counter.add(rep, entry.mesh.count, 1);
+          if (lod.transitionActive) {
+            counter.addTransition(lod.instanceCount, 1, 0);
+          }
+        }
+        // T021.3 过渡客座桶（dither 目标侧；count=0 零提交计 culled）
+        for (const entry of chunk.incoming.values()) {
+          const rep = entry.mesh.count > 0 ? entry.level : 'culled';
+          counter.add(rep, entry.mesh.count, 1);
+          if (entry.mesh.count > 0) counter.addTransition(0, 1, 1);
         }
       }
       for (const bucket of state.merged.values()) {
@@ -704,9 +1006,12 @@ export class ScatterChunkManager {
         for (const memberKey of bucket.members) {
           const chunk = state.chunks.get(memberKey);
           const lod = chunk?.lod.get(bucket.assetId);
-          if (lod?.mergedBucket === bucket && lod.memberCulled) {
+          if (!lod || lod.mergedBucket !== bucket) continue;
+          if (lod.memberCulled) {
             counter.add('culled', lod.instanceCount, 0);
+            continue;
           }
+          if (lod.transitionActive) counter.addTransition(lod.instanceCount, 1, 0);
         }
       }
     }
@@ -720,6 +1025,7 @@ export class ScatterChunkManager {
     for (const id of [...this.sources.keys()]) this.teardownSource(id);
     this.assetStates.clear(); // 只清缓存条目（源端资源归 loader/缓存统一释放）
     this.referenceSpheres.clear();
+    this.fadeGeometries.clear(); // T021.3：包装几何池清空（GL 缓冲随上下文消亡）
     this.meshOwners.clear();
     this.root.removeFromParent();
   }
@@ -727,36 +1033,20 @@ export class ScatterChunkManager {
   // ── 内部：块计算与网格维护 ───────────────────────────────
 
   /**
-   * (块×资产) 换档重建调度（T006.3）：登记在途目标档 → 目标档源就绪即同步重建；
-   * 冷源（首次加载）经微任务到达后由 applyPendingLevelRebuilds 回调重建——期间旧档
-   * 桶持续渲染，换档点无 pop。重复调度同一目标幂等跳过（frame 路径已过滤）。
-   */
-  private scheduleChunkAssetRelevel(
-    state: SourceState,
-    chunk: ChunkState,
-    assetId: string,
-    level: ProceduralLevel,
-  ): void {
-    const lod = chunk.lod.get(assetId);
-    if (!lod || lod.pending === level) return;
-    lod.pending = level;
-    const asset = this.requestAsset(assetId, level);
-    if (asset.source) this.rebuildChunkAsset(state, chunk, assetId, level);
-  }
-
-  /**
-   * 换档重建执行：确定性重撒（同 seed 同结果——scatterChunk 纯函数，实例集合与旧档
-   * 在「同保真档」下逐位一致；T006.4 抽稀只作用于降档方向——远档实例数合法少于近档）
-   * → 拆旧档桶（自有桶实例缓冲释放 / 合并桶退组重建，共享模板资源不动）→ 以目标档
-   * InstanceSource 成套建新桶（自有细块或合并桶——writeChunkAssetBuckets 统一裁定，
-   * D27.4「不做桶内换 Source」两形态同守）。同步完成拆旧建新（单 JS 块内无渲染观测点
-   * ——无缺帧闪烁）。目标档实例为零（参数在途变更的防御路径）→ 摘桶按空资产语义回收。
+   * 换档重建执行（T006.3；T021.3 过渡状态机化——调度归 stepChunkAssetTransition）：
+   * 确定性重撒（同 seed 同结果——scatterChunk 纯函数，实例集合与旧档在「同保真档」
+   * 下逐位一致；T006.4 抽稀只作用于降档方向——远档实例数合法少于近档；T021.3 canopy
+   * keep=1 全保真）→ 拆旧档桶（自有桶实例缓冲释放 / 合并桶退组重建，共享模板资源
+   * 不动）→ 以目标表示 InstanceSource 成套建新桶（自有细块或合并桶——
+   * writeChunkAssetBuckets 统一裁定，D27.4「不做桶内换 Source」两形态同守）。同步完成
+   * 拆旧建新（单 JS 块内无渲染观测点——无缺帧闪烁）。目标档实例为零（参数在途变更的
+   * 防御路径）→ 摘桶按空资产语义回收。
    */
   private rebuildChunkAsset(
     state: SourceState,
     chunk: ChunkState,
     assetId: string,
-    level: ProceduralLevel,
+    level: RuntimeRepresentation,
   ): void {
     const asset = this.assetStates.get(assetStateKey(assetId, level));
     if (!asset?.source) return; // 未就绪：lod.pending 已登记，到达回调重建
@@ -781,11 +1071,42 @@ export class ScatterChunkManager {
    * 冷源到达后的在途换档收敛：全部源 × 块中 lod.pending 指向 (assetId, level) 的
    * (块×资产) 逐个确定性重建（块/源可能已在等待期间被拆——按 Map 现存态自然跳过）。
    */
-  private applyPendingLevelRebuilds(assetId: string, level: ProceduralLevel): void {
+  private applyPendingLevelRebuilds(assetId: string, level: RuntimeRepresentation): void {
     for (const state of this.sources.values()) {
       for (const chunk of state.chunks.values()) {
         const lod = chunk.lod.get(assetId);
-        if (lod?.pending === level) this.rebuildChunkAsset(state, chunk, assetId, level);
+        if (lod?.pending === level) {
+          this.rebuildChunkAsset(state, chunk, assetId, level);
+          // 排队收敛后状态机归位 + 展示缓存同步（迁移已完成——防陈旧 queued current
+          // 卡住后续决策分支、防分布计数残留排队期旧值）
+          lod.transition = steadySelectionState(level);
+          lod.display = level;
+        }
+      }
+    }
+  }
+
+  /**
+   * 冷源到达后的 dither 排队客座收敛（T021.3）：全部源 × 块中过渡状态机 target 指向
+   * 本表示且源未就绪（排队中）的 (块×资产) 建客座桶（fade 值下一帧 frame 续写——
+   * 到达即建桶使 flush 语义与硬切重建对齐）。
+   */
+  private applyPendingIncoming(assetId: string, representation: RuntimeRepresentation): void {
+    for (const state of this.sources.values()) {
+      for (const chunk of state.chunks.values()) {
+        const lod = chunk.lod.get(assetId);
+        const transition = lod?.transition;
+        if (
+          !lod ||
+          !transition ||
+          transition.target !== representation ||
+          transition.sourceReady ||
+          transition.current === representation
+        ) {
+          continue;
+        }
+        if (transitionKindOf(transition.current, representation) !== 'dither') continue;
+        this.writeIncomingBucket(state, chunk, assetId, representation);
       }
     }
   }
@@ -813,6 +1134,7 @@ export class ScatterChunkManager {
         group: new THREE.Group(),
         box: new THREE.Box3(),
         meshes: new Map(),
+        incoming: new Map(),
         pending: new Map(),
         lod: new Map(),
       };
@@ -824,14 +1146,22 @@ export class ScatterChunkManager {
     }
 
     // 资产退出本块：合批网格释放（实例归零即拆，容量不保留——块空回收语义）；
-    // T006.4：合并成员先退组（组无成员即拆、余组确定性重建）
+    // T006.4：合并成员先退组（组无成员即拆、余组确定性重建）；T021.3：过渡客座桶
+    // 随资产进出块成对拆除
     for (const assetId of [...chunk.meshes.keys()]) {
       if (byAsset.has(assetId)) continue;
       const entry = chunk.meshes.get(assetId)!;
+      const sourceGeometry = this.sourceGeometryOf(assetId, entry.level);
+      if (sourceGeometry && entry.mesh.geometry !== sourceGeometry) {
+        this.fadeGeometries.release(entry.mesh.geometry); // T021.3：fade 包装归还池
+      }
       entry.mesh.removeFromParent();
       entry.mesh.dispose(); // 只释放实例矩阵/颜色缓冲（共享 geometry/material 不动）
       this.meshOwners.delete(entry.mesh); // 拾取反查表同步摘除（网格已不可命中）
       chunk.meshes.delete(assetId);
+    }
+    for (const assetId of [...chunk.incoming.keys()]) {
+      if (!byAsset.has(assetId)) this.disposeIncomingBucket(state, chunk, assetId);
     }
     for (const assetId of [...chunk.pending.keys()]) {
       if (!byAsset.has(assetId)) chunk.pending.delete(assetId);
@@ -853,10 +1183,25 @@ export class ScatterChunkManager {
           box: new THREE.Box3(),
           instanceCount: 0,
           memberCulled: false,
+          transition: null,
+          display: undefined,
+          transitionActive: false,
+          fadeOut: 0,
+          mergedOffset: 0,
         };
       chunk.lod.set(assetId, lod);
       this.requestAsset(assetId, lod.level); // 发起/取源（未就绪 → writeChunkAssetBuckets 登记 pending）
       this.writeChunkAssetBuckets(state, chunk, assetId, list, lod.level);
+      // T021.3：参数变更期在途 dither 客座桶按新参数确定性刷新（fade 值下一帧续写）；
+      // 硬切排队/稳态残留客座即拆
+      if (chunk.incoming.has(assetId)) {
+        const st = lod.transition;
+        if (st && st.target !== lod.level && transitionKindOf(lod.level, st.target) === 'dither') {
+          this.writeIncomingBucket(state, chunk, assetId, st.target);
+        } else {
+          this.disposeIncomingBucket(state, chunk, assetId);
+        }
+      }
     }
 
     this.recycleChunkIfEmpty(state, chunk);
@@ -880,22 +1225,23 @@ export class ScatterChunkManager {
   }
 
   /** 取或发起源加载（同 (assetId × level) 管理器内只一次；失败告警一次不重试——仿池） */
-  private requestAsset(assetId: string, level: ProceduralLevel): AssetSourceState {
-    const key = assetStateKey(assetId, level);
+  private requestAsset(assetId: string, representation: RuntimeRepresentation): AssetSourceState {
+    const key = assetStateKey(assetId, representation);
     const existing = this.assetStates.get(key);
     if (existing) return existing;
     const asset: AssetSourceState = { source: null, failed: false };
     this.assetStates.set(key, asset);
-    this.provideSource(assetId, level)
+    this.provideSource(assetId, representation)
       .then((source) => {
         asset.source = source;
         if (!source.geometry.boundingSphere) source.geometry.computeBoundingSphere();
         // T006.6：high 源到达即派生选档稳定基准（assetId 冻结一次——选档自此与当前
         // 档位解耦，换档不换选档输入；同 key 几何确定性恒等，冻结幂等）
-        if (level === 'high') this.referenceSpheres.freezeFromHighSource(assetId, source);
+        if (representation === 'high') this.referenceSpheres.freezeFromHighSource(assetId, source);
         if (this.disposed) return; // dispose 后迟到的源：只记录不建网格
-        this.buildPendingMeshes(assetId, level);
-        this.applyPendingLevelRebuilds(assetId, level);
+        this.buildPendingMeshes(assetId, representation);
+        this.applyPendingLevelRebuilds(assetId, representation);
+        this.applyPendingIncoming(assetId, representation); // T021.3：dither 排队客座收敛
       })
       .catch((err: unknown) => {
         if (!asset.failed) {
@@ -912,7 +1258,7 @@ export class ScatterChunkManager {
    * 换档在途不走 pending 路径），到达的正是该档源时才建。T006.4：写入统一走
    * writeChunkAssetBuckets（自有细块 / 合并桶 / 抽稀统一裁定路径）。
    */
-  private buildPendingMeshes(assetId: string, level: ProceduralLevel): void {
+  private buildPendingMeshes(assetId: string, level: RuntimeRepresentation): void {
     const asset = this.assetStates.get(assetStateKey(assetId, level));
     if (!asset?.source) return;
     for (const state of this.sources.values()) {
@@ -939,7 +1285,7 @@ export class ScatterChunkManager {
     chunk: ChunkState,
     assetId: string,
     rawList: readonly ScatterInstance[],
-    level: ProceduralLevel,
+    level: RuntimeRepresentation,
   ): void {
     const lod = chunk.lod.get(assetId);
     if (!lod) return; // 防御：调用前提（资产必在 chunk.lod）
@@ -968,13 +1314,15 @@ export class ScatterChunkManager {
     this.refreshChunkBox(chunk, state.baseY);
   }
 
-  /** 远距密度降级（T006.4）：按档位保留比例对实例稳定序过滤（domain keepThinnedInstance
-   *  ——确定性，同 seed 同块同档逐位一致）；比例 ≥ 1 原样返回（零拷贝——high/mid 全保真） */
+  /** 远距密度降级（T006.4；T021.3 宽化）：按表示保留比例对实例稳定序过滤（domain
+   *  keepThinnedInstance——确定性，同 seed 同块同表示逐位一致）；比例 ≥ 1 原样返回
+   *  （零拷贝）。canopy keep=1 全保真（§八 Density：High/Mid/Canopy 默认 100%——
+   *  levelInstanceKeep 是 T006.5 锁定值不动，canopy 份额本地派生不入 BATCH_POLICY） */
   private thinForLevel(
     list: readonly ScatterInstance[],
-    level: ProceduralLevel,
+    representation: RuntimeRepresentation,
   ): readonly ScatterInstance[] {
-    const keep = BATCH_POLICY.levelInstanceKeep[level];
+    const keep = this.keepRatioOf(representation);
     if (keep >= 1) return list;
     const kept: ScatterInstance[] = [];
     for (let i = 0; i < list.length; i++) {
@@ -983,9 +1331,17 @@ export class ScatterChunkManager {
     return kept;
   }
 
-  /** 合并裁定（T006.4）：注入开启 ∧ 粗档（high 恒不合并——近处全保真）∧ 稀疏（≤ 阈值） */
-  private shouldMergeBucket(level: ProceduralLevel, count: number): boolean {
-    return this.mergeMaxInstances > 0 && level !== 'high' && count <= this.mergeMaxInstances;
+  /** 表示 → 抽稀保留比例（canopy = 1 全保真 §八；其余查 BATCH_POLICY.levelInstanceKeep） */
+  private keepRatioOf(representation: RuntimeRepresentation): number {
+    return representation === 'canopy' ? 1 : BATCH_POLICY.levelInstanceKeep[representation];
+  }
+
+  /** 合并裁定（T006.4；T021.3 宽化）：注入开启 ∧ 粗档（high 恒不合并——近处全保真；
+   *  canopy 天然适合远景合批 §九）∧ 稀疏（≤ 阈值）。过渡客座桶不经本裁定（免合并记档） */
+  private shouldMergeBucket(representation: RuntimeRepresentation, count: number): boolean {
+    return (
+      this.mergeMaxInstances > 0 && representation !== 'high' && count <= this.mergeMaxInstances
+    );
   }
 
   /** 块键 → 合并组超块键（floor 整除；groupFactor=2 即 (i>>1, j>>1) 的 2×2 超块） */
@@ -998,7 +1354,7 @@ export class ScatterChunkManager {
     state: SourceState,
     superKey: ScatterChunkKey,
     assetId: string,
-    level: ProceduralLevel,
+    level: RuntimeRepresentation,
   ): MergedBucket {
     const key = `${superKey.i}:${superKey.j}::${assetId}::${level}`;
     let bucket = state.merged.get(key);
@@ -1024,6 +1380,10 @@ export class ScatterChunkManager {
   /** 拆合并桶：网格移除释放 + 表项摘除（源 teardown / 组空回收路径） */
   private teardownMergedBucket(state: SourceState, bucket: MergedBucket): void {
     if (bucket.mesh) {
+      const sourceGeometry = this.sourceGeometryOf(bucket.assetId, bucket.level);
+      if (sourceGeometry && bucket.mesh.geometry !== sourceGeometry) {
+        this.fadeGeometries.release(bucket.mesh.geometry); // T021.3：fade 包装归还池
+      }
       bucket.mesh.removeFromParent();
       bucket.mesh.dispose(); // 只释放实例矩阵/颜色缓冲（共享 geometry/material 不动）
       this.meshOwners.delete(bucket.mesh);
@@ -1097,6 +1457,7 @@ export class ScatterChunkManager {
     let offset = 0;
     for (const { chunk, lod, list } of parts) {
       lod.box.makeEmpty();
+      lod.mergedOffset = offset; // T021.3：成员写入区起点（fade 区间写出锚）
       this.writeInstanceRange(
         lod.memberCulled ? null : mesh,
         offset,
@@ -1106,6 +1467,18 @@ export class ScatterChunkManager {
         tint,
         lod,
       );
+      // T021.3：成员退场度随重建重写（fade-out 中的成员在全量重写后保持续写值）
+      if (!lod.memberCulled && lod.fadeOut !== 0) {
+        writeFadeRange(
+          mesh,
+          asset.source.geometry,
+          this.fadeGeometries,
+          offset,
+          list.length,
+          lod.fadeOut,
+          bucket.capacity,
+        );
+      }
       if (!lod.memberCulled) offset += list.length;
       this.refreshChunkBox(chunk, state.baseY);
     }
@@ -1150,7 +1523,7 @@ export class ScatterChunkManager {
     assetId: string,
     list: readonly ScatterInstance[],
     baseY: number,
-    level: ProceduralLevel,
+    level: RuntimeRepresentation,
   ): void {
     const asset = this.assetStates.get(assetStateKey(assetId, level));
     if (!asset?.source) return; // 防御：源必已就绪（登记路径不进此处）
@@ -1270,10 +1643,14 @@ export class ScatterChunkManager {
     }
   }
 
-  /** 拆自有桶（实例缓冲释放，共享模板资源不动；无桶幂等 no-op） */
+  /** 拆自有桶（实例缓冲释放，共享模板资源不动；无桶幂等 no-op；fade 包装归还池） */
   private disposeOwnMesh(chunk: ChunkState, assetId: string): void {
     const entry = chunk.meshes.get(assetId);
     if (!entry) return;
+    const sourceGeometry = this.sourceGeometryOf(assetId, entry.level);
+    if (sourceGeometry && entry.mesh.geometry !== sourceGeometry) {
+      this.fadeGeometries.release(entry.mesh.geometry); // T021.3：fade 包装归还池
+    }
     entry.mesh.removeFromParent();
     entry.mesh.dispose(); // 只释放实例矩阵/颜色缓冲（共享 geometry/material 不动）
     this.meshOwners.delete(entry.mesh);
@@ -1284,10 +1661,11 @@ export class ScatterChunkManager {
    *  （合并成员先退组——余组重建/空组即拆，见 leaveMergedBucket） */
   private teardownChunk(state: SourceState, chunk: ChunkState): void {
     for (const assetId of [...chunk.lod.keys()]) this.leaveMergedBucket(state, chunk, assetId);
-    for (const entry of chunk.meshes.values()) {
-      entry.mesh.removeFromParent();
-      entry.mesh.dispose();
-      this.meshOwners.delete(entry.mesh);
+    for (const assetId of [...chunk.incoming.keys()]) {
+      this.disposeIncomingBucketEntry(chunk, chunk.incoming.get(assetId)!, assetId); // T021.3 客座
+    }
+    for (const assetId of [...chunk.meshes.keys()]) {
+      this.disposeOwnMesh(chunk, assetId); // 复用释放语义（fade 包装归还池）
     }
     chunk.meshes.clear();
     chunk.pending.clear();

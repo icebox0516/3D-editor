@@ -81,7 +81,8 @@
 
 > Next 仅表示已排入路线图的后续任务，不代表执行顺序；实际启动顺序由任务文件中的依赖、当前项目状态及有效架构裁定决定（D31.8）。
 
-- [ ] T021 LOD → Representation 运行体系重构（021.0 / 021.1 / 021.2 / 021.6 done 2026-09-23；下一步 021.3——D41，运行面真相源 docs/procedural-assets/representation-runtime.md）→ [tasks/021-lod-representation.md](tasks/021-lod-representation.md)
+- [ ] T021 LOD → Representation 运行体系重构（021.0 / 021.1 / 021.2 / 021.3 / 021.6 done——021.3 done 2026-09-24；下一步 021.4，021.5 解禁——D41，运行面真相源 docs/procedural-assets/representation-runtime.md）→ [tasks/021-lod-representation.md](tasks/021-lod-representation.md)
+  - [x] T021.3 Transition Runtime（done 2026-09-24：metric 步进过渡状态机 / aFadeOut 属性缝 / 两链客座双表示 + Union 剔除 / dither×alphaTest 合成〔A2C 不吃 fade、IGN 镜像互补〕/ 中点切换钩子，4129 全绿）→ [tasks/021.3-transition-runtime.md](tasks/021.3-transition-runtime.md)
   - [x] T021.6 Broadleaf Canopy Proxy（done 2026-09-23：共享冠层场契约收编 / 统一工厂 487 面 / 材质与深度材质 drift-lock / 13 树种基线帧取证，与 021.2 并行）→ [tasks/021.6-canopy-proxy.md](tasks/021.6-canopy-proxy.md)
   - [x] T021.2 Selection Runtime（done 2026-09-23：新链候选阈值 / canopy 名义区间落位 / 散布四维粒度 + 代表 scale 全集口径，4073 全绿）→ [tasks/021.2-selection-runtime.md](tasks/021.2-selection-runtime.md)
   - [x] T021.1 Representation 契约层（done 2026-09-23：表示联合四值 / culled 转提交终态 / representations 声明 / bounds 契约，4041 全绿）→ [tasks/021.1-representation-contract.md](tasks/021.1-representation-contract.md)
