@@ -25,6 +25,10 @@
  *   ['high','mid','canopy']——真实 13 树种未声明、canopy 不可达是正确行为）在 canopy
  *   名义带的调度产出 canopy——021.7 接线前持有现状（不迁移、当档桶持续渲染、
  *   canopy 源零请求、迟滞参考已记录）。
+ * - 分布 §十三升级位（T021.4）：transitionInstances（顶层镜像）、transitionTargets
+ *   （目标表示口径——dither 期按 SelectionState.target 归档）、shadowCasterInstances
+ *   （021.5 前现值口径：cast 统一 true → renderable 实例数；零提交 = 0）。放置链
+ *   无密度抽稀消费面（T021.4 核实）——密度职责废止对本池零行为改动。
  *
  * T021.2 改写记档（原断言 → 新断言 → 为何等价）：
  * - getDeclaredLevels 直查 → getRepresentationCapability levels 投影（派生链
@@ -659,6 +663,7 @@ describe('InstancedAssetPool LOD：桶级提交跳过', () => {
     expect(dist.instances.culled).toBe(2);
     expect(dist.buckets.culled).toBe(2); // slot-0/slot-1 两 high 桶各自整桶跳过
     expect(dist.buckets.high).toBe(0);
+    expect(dist.shadowCasterInstances).toBe(0); // T021.4：零提交 = 零阴影投射（现值口径）
 
     // 回近：near 桶与 far 桶都恢复 high 提交
     pool.frameLod(cameraForM(t.highToMid * 0.5), true);
@@ -667,6 +672,7 @@ describe('InstancedAssetPool LOD：桶级提交跳过', () => {
     expect(dist.instances.high).toBe(2);
     expect(dist.buckets.high).toBe(2);
     expect(dist.buckets.culled).toBe(0);
+    expect(dist.shadowCasterInstances).toBe(2); // renderable 实例 = 阴影投射（cast 统一 true）
     pool.dispose();
   });
 });
@@ -798,6 +804,10 @@ describe('InstancedAssetPool LOD：canopy dither 执行（假想声明资产）'
     expect(dist.instances.canopy).toBe(0); // 实例不双计：属主单计展示表示（current=mid）
     expect(dist.instances.mid).toBe(1);
     expect(dist.buckets.canopy).toBe(1); // 客座桶按 canopy 计（桶口径）
+    // T021.4 §十三升级位：顶层镜像同值 + 目标表示口径 + 阴影投射现值口径
+    expect(dist.transitionInstances).toBe(1); // 镜像位 = transition.instances（存储单点）
+    expect(dist.transitionTargets.canopy).toBe(1); // 过渡中实例按 SelectionState.target 归档
+    expect(dist.shadowCasterInstances).toBe(2); // 属主 mid renderable + canopy 客座提交中（cast 统一 true 现值口径）
 
     // 带末（f=1）：完成迁移——客座拆除、属主入 canopy 桶、mid 桶拆空
     const m2 = t.midToCanopy * (1 + TRANSITION_BAND_RATIO) * 1.01;

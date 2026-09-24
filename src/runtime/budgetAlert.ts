@@ -1,10 +1,16 @@
 /**
- * runtime/budgetAlert —— draw call 预算超限节流告警（纯计数模块，node 可测；T006.4）。
+ * runtime/budgetAlert —— draw call 预算超限节流告警（纯计数模块，node 可测；T006.4；
+ * T021.4 预算降格标注，D41 §九）。
  *
  * 职责：为「超预算运行时告警（console 日志侧）」提供节流判定——每帧喂入最近一帧 draw call
  *      数（renderer.info.render.calls 口径），超预算且距上次告警 ≥ intervalMs 才触发一次
  *      告警回调（缺省 console.warn；首个超限帧立即告警）。不做任何运行时降级——预算是
- *      治理观测面，降级手段归档位策略（006.5 验收门裁定）。
+ *      治理观测面，降级手段归表示/密度策略（006.5 验收门裁定沿）。
+ * 预算语义降格记档（T021.4）：BATCH_POLICY.drawCallBudget = 650 现为 **Legacy
+ *      Baseline（对照基线）**——T006.5 实测锁定值沿用作对照，T021 加入 Canopy / 双表示 /
+ *      Shadow 表示后预算重测重锁归 021.8（连同 Frame Time p95 / Triangle Budget /
+ *      Shadow Cost）。**能力不删**：超限告警消费面保留（标注语义运行——重锁前告警文本
+ *      明示 legacy 对照口径），021.8 重锁后只换数值与记档、零结构改动。
  * 边界：零 THREE / 零 DOM（时间源与告警通道经构造注入；缺省 performance.now / console.warn
  *      ——测试注入假时钟与 spy）。行为契约由 tests/runtime/budgetAlert.test.ts 固定。
  *      沿 renderLoopStats 先例：Renderer 持有实例（会话私有，D17），绝不模块级单例。
@@ -39,7 +45,7 @@ export class BudgetAlert {
       options.warn ??
       ((drawCalls, budget) =>
         console.warn(
-          `[Renderer] draw calls 超预算：${drawCalls} > ${budget}（BATCH_POLICY.drawCallBudget，T006.5 已锁定值）——批次治理观测告警，非降级`,
+          `[Renderer] draw calls 超预算：${drawCalls} > ${budget}（BATCH_POLICY.drawCallBudget，Legacy Baseline——T006.5 锁定值沿用作对照基线，T021 加入 Canopy/双表示/Shadow 表示后重测重锁归 021.8，D41 §九）——批次治理观测告警，非降级`,
         ));
   }
 

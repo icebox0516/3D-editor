@@ -5,11 +5,10 @@
  * - 选档带：近 high → 中 mid → 远 low → 超远 culled（网格 visible=false、桶保留）→ 回视恢复；
  * - 迟滞防抖：降档过名义线立即执行；阈值带内往返不抖动换档（桶/源请求零churn）；
  *   升档越过 名义边界×(1−band) 才回档；
- * - 换档重建实例完整（T006.4 语义更新——抽稀只作用于降档方向）：确定性重撒（同 seed
- *   同档逐位一致）；high/mid 全保真（keep=1，count/矩阵/逐实例色跨档逐位一致）；low 档
- *   按 BATCH_POLICY.levelInstanceKeep.low 确定性抽稀（保留集 = 实例稳定序过滤，矩阵/色
- *   与真相源对应下标逐位一致——subset 断言不绕开）；桶 = 当档源 geometry/material
- *   成套（D27.4「不做桶内换 Source」）；
+ * - 换档重建实例完整（T021.4 语义更新——密度默认 100% 全表示全保真）：确定性重撒
+ *   （同 seed 同表示逐位一致）；high/mid/low count/矩阵/逐实例色跨档逐位一致（旧
+ *   BATCH_POLICY.levelInstanceKeep.low 抽稀联动废止——换表示零实例丢失）；
+ *   桶 = 当档源 geometry/material 成套（D27.4「不做桶内换 Source」）；
  * - 拾取跨档一致：任意档网格命中 → 同一源 id；culled 网格不可拾取；
  * - 总开关：off = 全 High（mid/low 桶确定性重建回 high）+ culled 旁路；
  * - 块生命周期：局部重算保档（内容编辑不改档位状态）、区域扩块新块评估收敛同档、
@@ -21,14 +20,21 @@
  *   不随档位平移）；换档后同机位零二次重建；临界推拉零 churn。
  * - 选档粒度与代表口径（T021.2，D41 §4.4）：粒度 = region × chunk × asset 四维——
  *   同块键同资产跨 region 独立选档（maxScale 维度驱动分裂）、同块跨资产独立选档；
- *   代表 scale = 桶内最大实例 scale **全集口径**（抽稀前撒点集）——low 档抽稀剔除
- *   最大实例后选档读数不漂移（误用抽稀后集合会跨 canopyToCulled 线误裁）。
+ *   代表 scale = 桶内最大实例 scale **全集口径**（撒点全集——T021.4 后当档集 ≡ 全集）。
  *
  * T021.2 改写记档（原断言 → 新断言 → 为何等价）：
  * - getAssetLevels 直查 → getRepresentationCapability levels 投影（派生链
  *   [high,mid,low] 等价；representations 声明优先分支归 domain 组合测试覆盖）；
  * - T.midToLow → T.midToCanopy、T.lowToCulled → T.canopyToCulled（候选初值同值直承
  *   16/60——全部数值断言与档位断言不变；canopy 名义带经跳档承接 low，逐位等价）。
+ * T021.4 改写记档：
+ * - 「low 档确定性抽稀」断言组 → 全表示全保真断言组（D41 §八密度职责废止——
+ *   levelInstanceKeep 消费面拆除，keptIndices/keepThinnedInstance 期望逻辑随删）；
+ * - **「代表 scale 全集口径」判别测试移除**：其判别前提 = low 档抽稀剔除桶内最大
+ *   实例（旧密度联动制造「全集 ≠ 当档集」不对称）；T021.4 抽稀通路拆除后当档集 ≡
+ *   撒点全集，fixture 前提结构性失效（无密度 < 1 通道可构造不对称）。不变量由
+ *   maxScaleOf(rawList) 结构承担（写入路径按密度过滤前列表计算）；021.8 Density
+ *   A/B 通道重开降密时须重立该判别测试。
  * 边界：fake 源提供者按 (assetId × level) 分源（几何身份即档位标签）；几何包围
  *      手工钉死（半径按档差异化 High 5 / Mid 4.8 / Low 4.9——真实档间轮廓差 2~5%
  *      量级，High ≥ Mid/Low；Y 顶 1）——选档输入确定性：T006.6 稳定基准下机位一律
@@ -37,7 +43,6 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
-import { BATCH_POLICY, keepThinnedInstance } from '../../../src/domain/lod/batchPolicy';
 import { LOD_THRESHOLDS } from '../../../src/domain/lod/lodPolicy';
 import { TRANSITION_BAND_RATIO } from '../../../src/domain/lod/transition';
 import type { RuntimeRepresentation } from '../../../src/domain/lod/representation';
@@ -462,8 +467,8 @@ describe('ScatterChunkManager LOD：选档稳定基准（High 档派生）', () 
 
 // ── 换档重建实例完整 ────────────────────────────────────────
 
-describe('ScatterChunkManager LOD：换档重建实例完整（确定性重撒 + T006.4 降档抽稀）', () => {
-  it('high/mid 全保真逐位一致；low 按 BATCH_POLICY 确定性抽稀（保留集 ⊂ 真相源、同档双跑逐位一致）', async () => {
+describe('ScatterChunkManager LOD：换档重建实例完整（确定性重撒 + T021.4 密度默认全量）', () => {
+  it('high/mid/low 全表示全保真逐位一致（密度 100% 默认——换表示零实例丢失，旧 low 抽稀废止）；同档双跑逐位一致', async () => {
     const { provider, sources } = makeLeveledProvider();
     const m = new ScatterChunkManager({
       provideSource: provider,
@@ -484,7 +489,7 @@ describe('ScatterChunkManager LOD：换档重建实例完整（确定性重撒 +
     expect(high.mesh.count).toBe(truth.length);
     expect(colors).not.toBeNull(); // hueJitter → instanceColor 存在
 
-    // high → mid：keep=1（BATCH_POLICY.levelInstanceKeep.mid 全保真）——count/矩阵/色逐位一致
+    // high → mid：全保真（密度与表示解耦——同 seed 实例集合不随表示变化）
     await settleAt(m, cameraAtM(t.highToMid * 1.1));
     const mid = activeMeshOf(m, sources, 'asset_tree')!;
     expect(mid.level).toBe('mid');
@@ -494,35 +499,24 @@ describe('ScatterChunkManager LOD：换档重建实例完整（确定性重撒 +
     expect(matrixSnapshot(mid.mesh)).toEqual(matrices);
     expect(colorSnapshot(mid.mesh)).toEqual(colors);
 
-    // mid → low：远档抽稀（T006.4 语义——密度降级只作用于降档方向）
+    // mid → low：T021.4——全保真（旧 levelInstanceKeep.low=0.5 抽稀联动废止）：count/
+    // 矩阵/色与 high/mid 逐位一致（「换表示不丢实例」的直接断言）
     await settleAt(m, cameraAtM(t.midToCanopy * 1.1));
     const low = activeMeshOf(m, sources, 'asset_tree')!;
     expect(low.level).toBe('low');
     expect(low.mesh.geometry).toBe(sourceOf(sources, 'asset_tree', 'low').geometry);
     expect(low.mesh.material).toBe(sourceOf(sources, 'asset_tree', 'low').material);
-    // 期望保留集：按实例稳定序的确定性规则（domain keepThinnedInstance——测试与实现共用
-    // 同一纯函数契约，规则本身的性质由 batchPolicy 测试锁定）
-    const keep = BATCH_POLICY.levelInstanceKeep.low;
-    const keptIndices: number[] = [];
-    for (let i = 0; i < truth.length; i++) if (keepThinnedInstance(i, keep)) keptIndices.push(i);
-    expect(low.mesh.count).toBe(keptIndices.length);
-    // 保留集实例 = 真相源对应下标（矩阵与色逐位一致——subset 断言，非绕开）
-    const keptMatrices = Float32Array.from(
-      keptIndices.flatMap((i) => Array.from(matrices.subarray(i * 16, (i + 1) * 16))),
-    );
-    const keptColors = Float32Array.from(
-      keptIndices.flatMap((i) => Array.from(colors!.subarray(i * 3, (i + 1) * 3))),
-    );
-    expect(matrixSnapshot(low.mesh)).toEqual(keptMatrices);
-    expect(colorSnapshot(low.mesh)).toEqual(keptColors);
+    expect(low.mesh.count).toBe(truth.length);
+    expect(matrixSnapshot(low.mesh)).toEqual(matrices);
+    expect(colorSnapshot(low.mesh)).toEqual(colors);
 
-    // 同档确定性：low → mid → low 双跑，抽稀结果逐位一致
+    // 同档确定性：low → mid → low 双跑，结果逐位一致
     await settleAt(m, cameraAtM(t.highToMid * 1.1));
     await settleAt(m, cameraAtM(t.midToCanopy * 1.1));
     const lowAgain = activeMeshOf(m, sources, 'asset_tree')!;
     expect(lowAgain.level).toBe('low');
-    expect(matrixSnapshot(lowAgain.mesh)).toEqual(keptMatrices);
-    expect(colorSnapshot(lowAgain.mesh)).toEqual(keptColors);
+    expect(matrixSnapshot(lowAgain.mesh)).toEqual(matrices);
+    expect(colorSnapshot(lowAgain.mesh)).toEqual(colors);
     m.dispose();
   });
 
@@ -838,66 +832,41 @@ describe('ScatterChunkManager LOD：region × chunk × asset 四维粒度', () =
   });
 });
 
-describe('ScatterChunkManager LOD：代表 scale 全集口径（桶内最大实例 scale，抽稀前）', () => {
+describe('ScatterChunkManager LOD：代表 scale 全集口径（T021.4 记档——判别测试移除）', () => {
   /**
-   * 构造判别 fixture：low 档抽稀（keep=0.5）剔除桶内最大实例后，代表 scale 仍取全集
-   * 最大（D41 §4.4——选档输入与密度解耦）。机位折算：low 桶块盒顶 = 抽稀后最大
-   * thinMax（lod.box 按当档集累积），代表 scale = rawMax → 正确读数 m = (camY−thinMax)/
-   * (R·rawMax) 落 low 带内；若误用抽稀后最大（m′ = 55·rawMax/thinMax）将跨
-   * canopyToCulled 线误裁。seed 搜索保证「最大实例恰被抽稀剔除且量级差充分」。
+   * T021.4 移除记档：原判别测试以「low 档抽稀（keep=0.5）剔除桶内最大实例」构造
+   * 「全集 ≠ 当档集」不对称（021.2 验收：代表 scale 恒按全集最大，读数不随密度平移）。
+   * 密度职责废止（D41 §八）拆除抽稀通路后当档集 ≡ 撒点全集，无密度 < 1 通道可构造
+   * 该不对称——fixture 前提结构性失效。不变量由 maxScaleOf(rawList) 结构承担（写入
+   * 路径按密度过滤前列表计算）；021.8 Density A/B 通道重开降密时须重立本判别测试
+   * （seed 搜索逻辑见 git 历史与本文件 T021.4 头注记档）。
    */
-  function searchFixture(): { seed: number; rawMax: number; thinMax: number } | undefined {
-    for (let seed = 100000; seed < 100600; seed++) {
-      const params = baseParams({ seed, densityPerM2: 0.05, scaleRange: { min: 0.3, max: 1.6 } });
-      const truth = truthInstances(params, 'asset_tree');
-      if (truth.length < 6) continue;
-      let argmax = 0;
-      for (let i = 1; i < truth.length; i++) {
-        if (truth[i]!.scale > truth[argmax]!.scale) argmax = i;
-      }
-      const keep = BATCH_POLICY.levelInstanceKeep.low;
-      if (keepThinnedInstance(argmax, keep)) continue; // 最大实例存活于 low 档——不判别
-      const rawMax = truth[argmax]!.scale;
-      let thinMax = 0;
-      for (let i = 0; i < truth.length; i++) {
-        if (keepThinnedInstance(i, keep) && truth[i]!.scale > thinMax) thinMax = truth[i]!.scale;
-      }
-      if (thinMax > 0 && rawMax / thinMax > 1.15) return { seed, rawMax, thinMax };
-    }
-    return undefined;
-  }
-
-  it('low 档抽稀剔除最大实例：读数仍按全集最大 scale（low 可见不误裁）', async () => {
-    const fixture = searchFixture();
-    expect(fixture).toBeDefined(); // fixture 搜索失败 = 撒点分布变化，需重搜 seed（记档）
-    const { seed, rawMax, thinMax } = fixture!;
-    const t = LOD_THRESHOLDS;
-    // 判别前提自证：错误口径（抽稀后最大）读数将跨 culled 线、正确口径（全集最大）落带内
-    const mThin = 55 * (rawMax / thinMax);
-    expect(mThin).toBeGreaterThan(t.canopyToCulled); // 误用会 culled
-    expect(55).toBeLessThanOrEqual(t.canopyToCulled); // 正确读数 55 ∈ (midToCanopy, canopyToCulled]
-
+  it('T021.4 现状锚点：low 桶当档集 = 撒点全集（无密度通道——全集口径与当档集恒等，选档读数无第二套来源）', async () => {
     const { provider, sources } = makeLeveledProvider();
     const m = new ScatterChunkManager({
       provideSource: provider,
       getRepresentationCapability: () => ({ levels: ['high', 'mid', 'low'] }),
     });
-    m.setSource('s', baseParams({ seed, densityPerM2: 0.05, scaleRange: { min: 0.3, max: 1.6 } }));
+    // 任意 scale 异构参数（原判别 fixture 同形——无需 seed 搜索：无抽稀即无不对称前提）
+    m.setSource('s', baseParams({ seed: 314159, densityPerM2: 0.05, scaleRange: { min: 0.3, max: 1.6 } }));
     await flush();
+    const truth = truthInstances(baseParams({ seed: 314159, densityPerM2: 0.05, scaleRange: { min: 0.3, max: 1.6 } }), 'asset_tree');
+    let rawMax = 0;
+    for (const inst of truth) if (inst.scale > rawMax) rawMax = inst.scale;
 
-    // 机位：low 桶盒顶 thinMax、读数 (camY − thinMax)/(R·rawMax) = 55
-    const camY = thinMax + 55 * SOURCE_RADIUS * rawMax;
+    // 机位按全集盒顶（= 当档集盒顶——两者恒等）与全集代表 scale 折算：读数 55 落 low 带
+    const camY = rawMax + 55 * SOURCE_RADIUS * rawMax;
     const camera = new THREE.PerspectiveCamera(90, 1, 0.5, 100000);
     camera.position.set(10, camY, 10);
     camera.lookAt(10, 0, 10);
     await settleAt(m, camera);
     const low = activeMeshOf(m, sources, 'asset_tree');
-    expect(low?.level).toBe('low'); // 全集口径：55 ∈ low 带内
-    expect(low?.mesh.visible).toBe(true); // 未误裁（误用抽稀后最大 → 读数 > 60 → culled）
+    expect(low?.level).toBe('low');
+    expect(low?.mesh.count).toBe(truth.length); // 全量（密度 100%）
+    expect(low?.mesh.visible).toBe(true);
 
-    // 边界 sanity：更远机位（正确口径读数越过退场带终态线 > canopyToCulled×(1+W)）
-    // → 终态 culled；决策线与终态线之间（如读数 65）为退场带——可见 + fade 渐进
-    const bandY = thinMax + 65 * SOURCE_RADIUS * rawMax;
+    // 边界 sanity（沿原测试）：读数 65 = 退场带——可见 + fade 渐进；终态线外 culled
+    const bandY = rawMax + 65 * SOURCE_RADIUS * rawMax;
     const bandCamera = new THREE.PerspectiveCamera(90, 1, 0.5, 100000);
     bandCamera.position.set(10, bandY, 10);
     bandCamera.lookAt(10, 0, 10);
@@ -905,7 +874,7 @@ describe('ScatterChunkManager LOD：代表 scale 全集口径（桶内最大实�
     const inBand = activeMeshOf(m, sources, 'asset_tree');
     expect(inBand?.mesh.visible).toBe(true); // 退场带内不整桶消失（T021.3）
     expect(fadeOf(inBand!.mesh, 0)).toBeGreaterThan(0);
-    const farY = thinMax + cullTerminalM(1.05) * SOURCE_RADIUS * rawMax;
+    const farY = rawMax + cullTerminalM(1.05) * SOURCE_RADIUS * rawMax;
     const farCamera = new THREE.PerspectiveCamera(90, 1, 0.5, 100000);
     farCamera.position.set(10, farY, 10);
     farCamera.lookAt(10, 0, 10);
@@ -984,7 +953,7 @@ describe('ScatterChunkManager LOD：canopy dither 执行（假想声明资产）
     await settleAt(m, cameraAtM(m1)); // 第二帧：fade 写出（块盒已含客座 ±2 → m 折算微移）
     const incoming = incomingMeshOf(m);
     expect(incoming).toBeDefined();
-    expect(incoming!.count).toBe(truthInstances(baseParams({ assets: [{ assetId: 'asset_canopy_tree', weight: 1 }] }), 'asset_canopy_tree').length); // canopy keep=1 全保真
+    expect(incoming!.count).toBe(truthInstances(baseParams({ assets: [{ assetId: 'asset_canopy_tree', weight: 1 }] }), 'asset_canopy_tree').length); // 密度默认 100% 全保真（T021.4 §八——与表示无关）
     const midMesh = activeMeshOf(m, sources, 'asset_canopy_tree')!.mesh;
     // 双侧 fade 互补（f = (m−B)/带宽，m 按 Union 后块盒顶 ±2 折算：m = (86−2)/5 = 16.8）
     const fExpected = (cameraAtM(m1).position.y - 2) / SOURCE_RADIUS;

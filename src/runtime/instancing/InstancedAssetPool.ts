@@ -82,7 +82,9 @@
  *      两侧网格独立判定（dimEntries / brightEntries 各自含 renderable 才提交）。
  * LOD 分布双口径（T006.4，D27.9）：getLodDistribution 只读快照——实例按当前展示表示
  *      （currentLod ?? 桶档）、桶按提交口径（提交中计桶档；整桶隐藏计 culled），
- *      经 runtime/lodDistribution 纯计数器聚合（Renderer 出口合并两链）。
+ *      经 runtime/lodDistribution 纯计数器聚合（Renderer 出口合并两链）。T021.4 增
+ *      transitionTargets / shadowCasterInstances 口径（§十三；放置链无密度抽稀消费面
+ *      ——实例数与表示无关，密度职责废止对本池零改动）。
  * 表示过渡执行（T021.3，D41 §五）：domain/lod/transition 状态机（纯函数）逐实例步进
  *      ——本池按 per-object 粒度持有 SelectionState（entry.lodTransition，D41 §10.1 五字段
  *      原形）、执行提交决策：硬切位（High↔Mid / Mid↔Low / 多级跳档）= 瞬时跨桶迁移
@@ -512,13 +514,19 @@ export class InstancedAssetPool {
   }
 
   /**
-   * LOD 分布双口径只读快照（T006.4，D27.9 归因数据；T021.3 过渡计数面升级）：
-   * 实例按当前展示表示（过渡期 = SelectionState.current——排队期按在渲染的旧表示、
-   * fade-out 退场期按退场中表示；终态 cull / 零提交计 culled；未评估回退桶档；客座
-   * 镜像不计数——属主单计），桶按提交口径（提交中的网格计其桶表示 + split 亮侧独立
-   * 一桶；整桶零提交计 culled——单例 Mesh visible 同判）。过渡计数：当档桶含
-   * transitionActive 实例计 buckets；客座桶提交中计 dualSubmitBuckets（DC 增量可观测
-   * 面，判定归 021.8）。O(桶+实例) 遍历，供验收报表/调试按需调用，不进帧路径。
+   * LOD 分布双口径只读快照（T006.4，D27.9 归因数据；T021.3 过渡计数面升级；T021.4
+   * 口径升级——D41 §十三）：实例按当前展示表示（过渡期 = SelectionState.current——
+   * 排队期按在渲染的旧表示、fade-out 退场期按退场中表示；终态 cull / 零提交计
+   * culled；未评估回退桶档；客座镜像不计数——属主单计），桶按提交口径（提交中的
+   * 网格计其桶表示 + split 亮侧独立一桶；整桶零提交计 culled——单例 Mesh visible
+   * 同判）。过渡计数：当档桶含 transitionActive 实例计 buckets；客座桶提交中计
+   * dualSubmitBuckets（DC 增量可观测面，判定归 021.8）。T021.4 增位：
+   * transitionTargets = 过渡中实例按 SelectionState.target 归档（客座不单列——目标
+   * 侧份额由属主表达，与 instances/transition 合流不重复计）；
+   * shadowCasterInstances = renderable 实例数（owner + 提交中客座）——**021.5 前现值
+   * 口径记档**：本池三个建网格点 castShadow 统一 true，renderable（提交中）即投
+   * 影；021.5 Shadow Policy 按表示驱动后改按 cast 策略计。O(桶+实例) 遍历，供验收
+   * 报表/调试按需调用，不进帧路径。
    */
   getLodDistribution(): LodDistribution {
     const counter = new LodDistributionCounter();
@@ -526,7 +534,9 @@ export class InstancedAssetPool {
       let transitioningInstances = 0;
       let ownTransitioning = false;
       let submittingGuests = 0;
+      let shadowCasters = 0;
       for (const entry of pool.entries) {
+        if (this.isRenderable(entry)) shadowCasters += 1; // cast 统一 true 现值口径（021.5 前记档）
         if (entry.isTransitionGuest) {
           if (this.isRenderable(entry)) submittingGuests += 1;
           continue;
@@ -538,6 +548,7 @@ export class InstancedAssetPool {
         if (entry.lodTransition?.transitionActive) {
           ownTransitioning = true;
           transitioningInstances += 1;
+          counter.addTransitionTarget(entry.lodTransition.target, 1);
         }
       }
       const mesh = pool.instancedMesh;
@@ -553,6 +564,7 @@ export class InstancedAssetPool {
         (ownTransitioning ? 1 : 0) + (submittingGuests > 0 ? 1 : 0),
         submittingGuests,
       );
+      counter.addShadowCasters(shadowCasters);
     }
     return counter.snapshot();
   }

@@ -1,6 +1,6 @@
 # T021 LOD → Representation 运行体系重构
 
-> 状态：**active（021.0 / 021.1 / 021.2 / 021.3 / 021.6 done——021.3 done 2026-09-24；下一步 021.4，021.5 解禁）** ｜ 前置：T018 收官（✅ 2026-09-23）+ T011 收官（✅ 基线资产库）+ T006.6 Step 1/2（✅ 稳定基准球基线）｜ 非程序化资产生产任务（Runtime 架构重构）——无 `workflow:` / `spec:` 声明；Research Gate 豁免（非新程序化资产：BroadleafCanopyProxy 从现有 T008/T011 族派生，现实事实源 = 既有各树 Reference Spec，D26 不触发，豁免记档于此）｜ **设计真相源 = `docs/procedural-assets/representation-runtime.md`（D41）**；声明面真相源 = `lod-spec.md` ｜ 编号说明：**T019 为颜色管线任务语义保留**（D29.3 / D39 引用），本 epic 顺延 T021。
+> 状态：**active（021.0–021.4 / 021.6 done——021.3/021.4 done 2026-09-24；下一步 021.5，其后 021.7 → 021.8）** ｜ 前置：T018 收官（✅ 2026-09-23）+ T011 收官（✅ 基线资产库）+ T006.6 Step 1/2（✅ 稳定基准球基线）｜ 非程序化资产生产任务（Runtime 架构重构）——无 `workflow:` / `spec:` 声明；Research Gate 豁免（非新程序化资产：BroadleafCanopyProxy 从现有 T008/T011 族派生，现实事实源 = 既有各树 Reference Spec，D26 不触发，豁免记档于此）｜ **设计真相源 = `docs/procedural-assets/representation-runtime.md`（D41）**；声明面真相源 = `lod-spec.md` ｜ 编号说明：**T019 为颜色管线任务语义保留**（D29.3 / D39 引用），本 epic 顺延 T021。
 
 ## Goal
 
@@ -50,7 +50,7 @@ T006 的 level 统一语义（单链 High→Mid→Low→Culled、几何档位与
 - [x] 021.1 Representation 契约层（done 2026-09-23：RuntimeRepresentation 四值 / culled 转提交终态 / representations 声明 / bounds 契约 / 有效链纯函数 / streetlamp 收编，4041 全绿）→ [021.1-representation-contract.md](021.1-representation-contract.md)
 - [x] 021.2 Selection Runtime（done 2026-09-23：新链候选阈值 {6,16,60}+band0.15 全候选化 / canopy 名义区间落位 / 有效链输入迁移 / 散布四维粒度核实 + 代表 scale 全集口径收紧，4073 全绿）→ [021.2-selection-runtime.md](021.2-selection-runtime.md)
 - [x] 021.3 Transition Runtime（done 2026-09-24：metric 步进过渡状态机 / aFadeOut 属性缝 + 包装几何池 / 两链客座双表示 + Union 剔除 / dither×alphaTest 合成必答题〔A2C 不吃 fade、IGN 镜像互补〕/ 中点切换钩子 / 计数面，视觉冒烟互补公式逐点吻合，4129 全绿）→ [021.3-transition-runtime.md](021.3-transition-runtime.md)
-- [ ] 021.4 Density / Batch 解耦 → [021.4-density-batch.md](021.4-density-batch.md)
+- [x] 021.4 Density / Batch 解耦（done 2026-09-24：levelInstanceKeep 废止 + 密度恒全量接缝 / 批次键迁移 representation / 分布 §十三口径〔transitionTargets + shadowCasterInstances 现值口径〕，low 桶恢复全量 ×2 性能结论归 021.8，4141 全绿）→ [021.4-density-batch.md](021.4-density-batch.md)
 - [ ] 021.5 Shadow Representation（**并行裁定 2026-09-23：延后至 021.3 后启动**——与 021.6 在 Canopy Depth Material〔工厂产出 vs 契约消费〕及 Source 契约面文件相交；其验收项「过渡中点切换钩子接通」消费 021.3 产物。仍满足本 epic 并行窗口〔与 021.2–021.4 并行〕，021.6 完成后无产出交叠）→ [021.5-shadow-representation.md](021.5-shadow-representation.md)
 - [x] 021.6 Broadleaf Canopy Proxy（done 2026-09-23：共享冠层场契约收编 13 文件 / 统一工厂恒 487 面 / 预算表回写 / 材质+深度材质工厂 drift-lock / 13 树种基线帧取证，与 021.2 并行，4073 全绿）→ [021.6-canopy-proxy.md](021.6-canopy-proxy.md)
 - [ ] 021.7 两链接线 + 编辑态 pin → [021.7-wiring-editing-pin.md](021.7-wiring-editing-pin.md)

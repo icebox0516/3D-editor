@@ -1,24 +1,31 @@
 /**
- * tests/runtime/scatter/ScatterChunkManager.batch.test.ts —— 批次控制测试（T006.4）。
+ * tests/runtime/scatter/ScatterChunkManager.batch.test.ts —— 批次控制测试（T006.4；
+ * T021.4 批次键迁移与密度解耦改写）。
  *
  * 覆盖（任务书工作项清单；阈值/比例一律经 LOD_THRESHOLDS / BATCH_POLICY 相对构造——
  * 后续锁值不碎测试）：
  * - 缺省关闭合并：无 sparseMerge 注入 = 既有「每 (块×资产) 一桶」行为（沿 frame
  *   lodEnabled 缺省 false 先例）；
- * - 稀疏合并触发：粗档（low）下 2×2 超块稀疏块并入一个合并桶（root 直下 merge:*），
+ * - 稀疏合并触发：允许合批表示下 2×2 超块稀疏块并入一个合并桶（root 直下 merge:*），
  *   块组内无自有网格；实例序 = 成员 (i,j) 升序 × 块内撒点序（确定性）；矩阵与逐块
  *   真相源逐位一致（合并 = 同批实例同矩阵重写——建立/拆除零像素变化）；
  * - 密集不合并：超阈值 (块×资产) 保持自有细块桶（无合并桶建立）；
- * - high 恒不合并（近处全保真 + 细粒度剔除）；
+ * - high 恒不合并（isBatchMergeAllowed('high') = false——近处全保真 + 细粒度剔除）；
+ * - canopy 合批允许面（T021.4 §九：批次键绑 representation）：canopy 桶稀疏并入合并桶
+ *   （假想声明资产——真实 canopy 表示 021.7 前不可达，执行路径同 021.3 先例）；
+ * - 密度与表示独立（T021.4 §八验收）：
+ *   · 同密度（默认 100%）不同表示——high/mid/low 桶实例数与真相源一致、矩阵跨表示
+ *     逐位一致（**换表示零实例丢失**：旧 low=0.5 抽稀联动拆除的运行时证明）；
+ *   · 同表示不同密度——经 domain thinInstances 注入面显式变化论证（运行时密度恒
+ *     DENSITY_FULL_KEEP，不实装旋钮——021.8 A/B 通道位）；
  * - 档位升降：合并组建立/拆除可逆（low 合并 → high 自有细桶全保真 → low 复建逐位一致）；
  * - 跨档混合：同超块不同档 → 按档分桶（mid 桶 + low 桶并存）；
  * - 合并成员 culled：实例退出合并桶当帧写入（count 不含该块）；回视恢复重入；全组
  *   culled → 合并桶零提交（count=0 / visible=false，桶保留）；
  * - 局部重算：合并成员块重撒 → 合并桶重建，实例与新参数一致（同档保档语义）；
  * - 摘源重建（撤销重做模型）：同参确定性复原 + 合并组重建一致（矩阵逐位）；
- * - 远距密度降级：low 抽稀确定性（双跑逐位一致）、high/mid 全保真（keep=1）、
- *   合并桶与自有桶同规则；
- * - LOD 分布双口径（D27.9）：各档实例数 + 桶数（提交口径；culled 成员实例计 culled）；
+ * - LOD 分布双口径 + §十三升级位（T021.4）：各档实例数 + 桶数（提交口径；culled 成员
+ *   实例计 culled）+ shadowCasterInstances（021.5 前现值口径 = 提交中实例数）；
  * - 拾取：合并桶命中 → 源 id。
  * 边界：fake 源提供者按 (assetId × level) 分源（几何身份即档位标签）；几何包围手工
  *      钉死（半径按档差异化 High 5 / Mid 4.8 / Low 4.9——真实档间轮廓差 2~5% 量级，
@@ -33,10 +40,16 @@
  * T021.2 改写记档：getAssetLevels 直查 → getRepresentationCapability levels 投影（派生链
  *      等价）；midToLow/lowToCulled → midToCanopy/canopyToCulled（候选初值同值直承 16/60，
  *      全部数值断言不变——canopy 名义带跳档承接 low）。
+ * T021.4 改写记档（原断言 → 新断言 → 为何等价/为何 mandated 变化）：
+ * - 抽稀期望 thinned(truth, level)（BATCH_POLICY.levelInstanceKeep 过滤）→ 全量真相源
+ *      truth（密度职责废止，D41 §八已定裁定——几何降档不触发实例抽稀，「远档实例数
+ *      合法少于近档」语义整体退场；合并桶/自有桶/分布计数期望随之全量化）；
+ * - keepThinnedInstance/BATCH_POLICY 域断言迁出（batchPolicy 域测试重写承接）；
+ * - 「远距密度降级」条目改为「密度与表示独立」双向验收（§八）。
  */
 import { describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
-import { BATCH_POLICY, keepThinnedInstance } from '../../../src/domain/lod/batchPolicy';
+import { DENSITY_FULL_KEEP, keepThinnedInstance, thinInstances } from '../../../src/domain/lod/batchPolicy';
 import { LOD_THRESHOLDS } from '../../../src/domain/lod/lodPolicy';
 import { TRANSITION_BAND_RATIO } from '../../../src/domain/lod/transition';
 import type { RuntimeRepresentation } from '../../../src/domain/lod/representation';
@@ -61,6 +74,8 @@ const GEO_HALF = 1;
 const MERGE = { maxInstancesPerChunk: 32, groupFactor: 2 };
 /** 全部四块同 low 带的均匀档位 m（带内中点——升档回视也安全：m < canopyToCulled·(1−band)） */
 const LOW_BAND_M = LOD_THRESHOLDS.midToCanopy + (LOD_THRESHOLDS.canopyToCulled - LOD_THRESHOLDS.midToCanopy) / 2;
+/** 全部四块同 mid 带的均匀档位 m（highToMid 与 midToCanopy 的中点） */
+const MID_BAND_M = LOD_THRESHOLDS.highToMid + (LOD_THRESHOLDS.midToCanopy - LOD_THRESHOLDS.highToMid) / 2;
 /** 全部四块同 high 带的均匀档位 m（< highToMid·(1−band)——升档迟滞安全） */
 const HIGH_BAND_M = LOD_THRESHOLDS.highToMid * 0.5;
 
@@ -191,20 +206,14 @@ function meshesHolding(
   return found;
 }
 
-/** 块 (i,j) 该资产的真相源实例（抽稀前） */
+/** 块 (i,j) 该资产的真相源实例（T021.4 密度默认 100% = 当档集即全集） */
 function truthOf(params: ScatterParams, i: number, j: number): ScatterInstance[] {
   return scatterChunk(params, {
     minX: i * 32,
     minZ: j * 32,
     maxX: (i + 1) * 32,
     maxZ: (j + 1) * 32,
-  }).filter((inst) => inst.assetId === 'asset_tree');
-}
-
-/** 档位抽稀后的期望保留集（domain 规则——与实现共用同一纯函数契约） */
-function thinned(list: ScatterInstance[], level: RuntimeRepresentation): ScatterInstance[] {
-  const keep = level === 'canopy' ? 1 : BATCH_POLICY.levelInstanceKeep[level];
-  return list.filter((_, index) => keepThinnedInstance(index, keep));
+  }).filter((inst) => inst.assetId === 'asset_tree' || inst.assetId === 'asset_canopy_tree');
 }
 
 const ALL_MEMBERS: [number, number][] = [
@@ -214,11 +223,11 @@ const ALL_MEMBERS: [number, number][] = [
   [1, 1],
 ];
 
-/** 期望合并桶实例序（成员 (i,j) 升序 × 块内撒点序 × 档位抽稀） */
-function expectedMerged(params: ScatterParams, members: [number, number][], level: RuntimeRepresentation): ScatterInstance[] {
+/** 期望合并桶实例序（成员 (i,j) 升序 × 块内撒点序——T021.4 全量，无密度过滤） */
+function expectedMerged(params: ScatterParams, members: [number, number][]): ScatterInstance[] {
   const out: ScatterInstance[] = [];
-  for (const [i, j] of members.sort((a, b) => a[0] - b[0] || a[1] - b[1])) {
-    out.push(...thinned(truthOf(params, i, j), level));
+  for (const [i, j] of [...members].sort((a, b) => a[0] - b[0] || a[1] - b[1])) {
+    out.push(...truthOf(params, i, j));
   }
   return out;
 }
@@ -264,10 +273,88 @@ describe('ScatterChunkManager 批次控制：缺省关闭合并', () => {
   });
 });
 
-// ── 稀疏合并 / 密集不合并 / high 不合并 ─────────────────────
+// ── 密度与表示独立（T021.4 §八验收）───────────────────────
+
+describe('ScatterChunkManager 批次控制：密度与表示独立（D41 §八）', () => {
+  it('【同密度不同表示】默认 100% 全保真：high/mid/low 桶实例数 = 真相源、矩阵跨表示逐位一致（换表示零实例丢失——抽稀触发键拆除的运行时证明）', async () => {
+    const { provider, sources } = makeLeveledProvider();
+    const m = makeManager(provider); // 不注入合并——各表示自有细桶，逐块可断言
+    const params = sparseParams();
+    m.setSource('s', params);
+    await flush();
+
+    /** 各块当前持有指定源几何的网格（按块组定位） */
+    const ownMeshOf = (level: RuntimeRepresentation, i: number, j: number) => {
+      const geometry = sourceOf(sources, 'asset_tree', level).geometry;
+      return meshesHolding(m, geometry).find(
+        (candidate) => candidate.parent!.name === `chunk:${i}:${j}`,
+      )!;
+    };
+    const totalTruth = ALL_MEMBERS.reduce((sum, [i, j]) => sum + truthOf(params, i, j).length, 0);
+
+    // high 带：4 自有桶全量
+    await settle(m, cameraAboveCenter(HIGH_BAND_M));
+    for (const [i, j] of ALL_MEMBERS) {
+      expectMeshInstances(ownMeshOf('high', i, j), truthOf(params, i, j));
+    }
+    const highSnapshot = ALL_MEMBERS.map(([i, j]) =>
+      Float32Array.from(
+        ownMeshOf('high', i, j).instanceMatrix.array.subarray(0, truthOf(params, i, j).length * 16),
+      ),
+    );
+
+    // mid 带（同密度 100%）：count/矩阵与 high 逐位一致——实例集合不随表示变化
+    await settle(m, cameraAboveCenter(MID_BAND_M));
+    expect(m.getStats().instances).toBe(totalTruth);
+    for (const [k, [i, j]] of ALL_MEMBERS.entries()) {
+      expectMeshInstances(ownMeshOf('mid', i, j), truthOf(params, i, j));
+      expect(
+        Float32Array.from(
+          ownMeshOf('mid', i, j).instanceMatrix.array.subarray(0, truthOf(params, i, j).length * 16),
+        ),
+      ).toEqual(highSnapshot[k]!);
+    }
+
+    // low 带（旧模型此处抽稀 50%——T021.4 废止）：全量 + 逐位一致
+    await settle(m, cameraAboveCenter(LOW_BAND_M));
+    expect(m.getStats().instances).toBe(totalTruth);
+    for (const [i, j] of ALL_MEMBERS) {
+      expectMeshInstances(ownMeshOf('low', i, j), truthOf(params, i, j));
+    }
+    m.dispose();
+  });
+
+  it('【同表示不同密度】注入面论证：thinInstances 密度输入 1/0.75/0.5 → 同一 low 全集实例数单调递减（运行时恒 DENSITY_FULL_KEEP——021.8 Density 专项 A/B 通道位，本管不实装旋钮）', async () => {
+    const { provider } = makeLeveledProvider();
+    const m = makeManager(provider);
+    const params = sparseParams();
+    m.setSource('s', params);
+    await flush();
+    await settle(m, cameraAboveCenter(LOW_BAND_M));
+
+    // 运行时消费面：low 桶实例数 = 全量真相源 = thinInstances(truth, DENSITY_FULL_KEEP)
+    const truth = expectedMerged(params, [...ALL_MEMBERS]);
+    expect(m.getStats().instances).toBe(truth.length);
+    expect(thinInstances(truth, DENSITY_FULL_KEEP)).toBe(truth); // 100% 零拷贝（默认 = 不抽稀）
+
+    // 密度独立可变（同一 low 表示下密度输入显式变化——仅注入面论证，不经运行时旋钮）：
+    // 75% = 021.8 A/B 通道值；50% = 旧 low=0.5 的被取代模型（历史对照，不再默认）。
+    // 期望集 = domain 规则同值（测试与实现共用同一纯函数契约，保留数性质由域测试锁定）
+    const threeQuarters = thinInstances(truth, 0.75);
+    const half = thinInstances(truth, 0.5);
+    expect(threeQuarters.length).toBe(truth.filter((_, i) => keepThinnedInstance(i, 0.75)).length);
+    expect(half.length).toBe(truth.filter((_, i) => keepThinnedInstance(i, 0.5)).length);
+    expect(half.length).toBeGreaterThan(0);
+    expect(threeQuarters.length).toBeLessThan(truth.length); // 密度维度仍真实可变（单调递减）
+    expect(threeQuarters.length).toBeGreaterThan(half.length);
+    m.dispose();
+  });
+});
+
+// ── 稀疏合并 / 密集不合并 / high 不合并 / canopy 允许 ────────
 
 describe('ScatterChunkManager 批次控制：块自适应合并', () => {
-  it('稀疏粗档块并入 2×2 合并桶：块组无自有网格、实例序确定性、矩阵与真相源逐位一致', async () => {
+  it('稀疏粗档块并入 2×2 合并桶：块组无自有网格、实例序确定性、矩阵与真相源逐位一致（全量——密度默认 100%）', async () => {
     const { provider, sources } = makeLeveledProvider();
     const m = makeManager(provider, { sparseMerge: MERGE });
     const params = sparseParams();
@@ -284,14 +371,14 @@ describe('ScatterChunkManager 批次控制：块自适应合并', () => {
       const group = m.root.children.find((c) => c.name === name)!;
       expect(group.children).toHaveLength(0); // 全部实例在合并桶
     }
-    // 实例序 = 成员 (i,j) 升序 × 撒点序 × low 抽稀；矩阵逐位一致
-    const expected = expectedMerged(params, [...ALL_MEMBERS], 'low');
+    // 实例序 = 成员 (i,j) 升序 × 撒点序（T021.4 全量）；矩阵逐位一致
+    const expected = expectedMerged(params, [...ALL_MEMBERS]);
     expectMeshInstances(merged[0]!, expected);
     expect(m.getStats().instances).toBe(expected.length); // stats 提交口径含合并实例
     m.dispose();
   });
 
-  it('密集块不合并：超阈值 (块×资产) 保持自有细块桶（无合并桶建立；抽稀仍生效）', async () => {
+  it('密集块不合并：超阈值 (块×资产) 保持自有细块桶（无合并桶建立；密度默认全量——换表示不丢实例）', async () => {
     const { provider, sources } = makeLeveledProvider();
     const m = makeManager(provider, { sparseMerge: MERGE });
     const params = denseParams();
@@ -302,15 +389,14 @@ describe('ScatterChunkManager 批次控制：块自适应合并', () => {
     const lowGeometry = sourceOf(sources, 'asset_tree', 'low').geometry;
     const own = meshesHolding(m, lowGeometry);
     expect(own).toHaveLength(4); // 密集 4 块各自有桶
-    // 抽稀与合并正交：低档密度降级照常（同规则确定性）
     for (const [i, j] of ALL_MEMBERS) {
       const mesh = own.find((candidate) => candidate.parent!.name === `chunk:${i}:${j}`)!;
-      expectMeshInstances(mesh, thinned(truthOf(params, i, j), 'low'));
+      expectMeshInstances(mesh, truthOf(params, i, j)); // T021.4：全量（旧模型抽稀 50% 废止）
     }
     m.dispose();
   });
 
-  it('high 档恒不合并：近处稀疏块仍自有细块桶且全保真（keep=1）', async () => {
+  it('high 表示恒不合并（isBatchMergeAllowed("high") = false）：近处稀疏块仍自有细块桶且全保真', async () => {
     const { provider, sources } = makeLeveledProvider();
     const m = makeManager(provider, { sparseMerge: MERGE });
     const params = sparseParams();
@@ -323,8 +409,33 @@ describe('ScatterChunkManager 批次控制：块自适应合并', () => {
     expect(own).toHaveLength(4);
     for (const [i, j] of ALL_MEMBERS) {
       const mesh = own.find((candidate) => candidate.parent!.name === `chunk:${i}:${j}`)!;
-      expectMeshInstances(mesh, truthOf(params, i, j)); // high 全保真（无抽稀）
+      expectMeshInstances(mesh, truthOf(params, i, j)); // 全保真（无抽稀）
     }
+    m.dispose();
+  });
+
+  it('canopy 表示合批允许面（§九 isBatchMergeAllowed("canopy") = true）：canopy 桶稀疏并入合并桶（假想声明资产，021.3 先例）', async () => {
+    const { provider, sources } = makeLeveledProvider();
+    const m = makeManager(provider, {
+      sparseMerge: MERGE,
+      getRepresentationCapability: (assetId) =>
+        assetId === 'asset_canopy_tree'
+          ? { representations: ['high', 'mid', 'canopy'] }
+          : { levels: ['high', 'mid', 'low'] },
+    });
+    const params = sparseParams({ assets: [{ assetId: 'asset_canopy_tree', weight: 1 }] });
+    m.setSource('s', params);
+    await flush();
+    // canopy 带（16 < 38 < 60）：high → canopy 硬切（非 {mid,low} 起点不经 dither），
+    // 源就绪重建 → 合并裁定允许（canopy 天然适合远景合批，§九）
+    await settle(m, cameraAboveCenter(LOW_BAND_M));
+    const merged = mergedMeshes(m);
+    expect(merged).toHaveLength(1);
+    expect(merged[0]!.name).toContain(':asset_canopy_tree:canopy'); // 合并桶表示段 = canopy
+    expect(merged[0]!.geometry).toBe(sourceOf(sources, 'asset_canopy_tree', 'canopy').geometry);
+    expect(merged[0]!.visible).toBe(true);
+    // 全量实例（密度 100%）+ 确定性序
+    expectMeshInstances(merged[0]!, expectedMerged(params, [...ALL_MEMBERS]));
     m.dispose();
   });
 });
@@ -351,8 +462,8 @@ describe('ScatterChunkManager 批次控制：档位升降', () => {
     expect(mergedMeshes(m)).toHaveLength(0);
     const highGeometry = sourceOf(sources, 'asset_tree', 'high').geometry;
     expect(meshesHolding(m, highGeometry)).toHaveLength(4);
-    const totalHigh = ALL_MEMBERS.reduce((sum, [i, j]) => sum + truthOf(params, i, j).length, 0);
-    expect(m.getStats().instances).toBe(totalHigh); // 全保真计数
+    const totalTruth = ALL_MEMBERS.reduce((sum, [i, j]) => sum + truthOf(params, i, j).length, 0);
+    expect(m.getStats().instances).toBe(totalTruth); // 全保真计数（= low 合并计数——零实例变化）
 
     // 回 low：合并组复建，矩阵与首次逐位一致（确定性——无可见跳变）
     await settle(m, lowCamera);
@@ -389,14 +500,14 @@ describe('ScatterChunkManager 批次控制：档位升降', () => {
     )!;
     expect(midMesh).toBeDefined();
     expect(lowMesh).toBeDefined();
-    expectMeshInstances(midMesh, expectedMerged(params, [[0, 0]], 'mid')); // mid keep=1 全保真
+    expectMeshInstances(midMesh, expectedMerged(params, [[0, 0]])); // mid 全量（同密度 100%）
     expectMeshInstances(
       lowMesh,
       expectedMerged(params, [
         [0, 1],
         [1, 0],
         [1, 1],
-      ], 'low'),
+      ]),
     );
     m.dispose();
   });
@@ -455,7 +566,7 @@ describe('ScatterChunkManager 批次控制：合并成员 culled', () => {
     // near 源合并桶：成员保留（未超线）、实例完整
     const nearKept = mergedMeshes(m).find((mesh) => mesh.name.includes(':near:'))!;
     expect(nearKept.count).toBe(nearFullCount);
-    expectMeshInstances(nearKept, expectedMerged(nearParams, [[0, 0], [1, 0]], 'low'));
+    expectMeshInstances(nearKept, expectedMerged(nearParams, [[0, 0], [1, 0]]));
     // 拾取：near 合并桶命中 → 源 id
     expect(
       m.resolvePick({ object: nearKept, instanceId: 0 } as unknown as THREE.Intersection),
@@ -506,13 +617,15 @@ describe('ScatterChunkManager 批次控制：块生命周期', () => {
     await flush();
     await settle(m, cameraAboveCenter(LOW_BAND_M));
     // 只列块 (0,0) 重算但 params 置换：合并组 = 组级重撒单元——未列成员按新源参数确定性
-    // 重撒（与全量重算终态一致，无陈旧实例；「未列块不触碰」粒度在合并态记档为组级）
-    const dense00 = sparseParams({ densityPerM2: 0.03 });
+    // 重撒（与全量重算终态一致，无陈旧实例；「未列块不触碰」粒度在合并态记档为组级）。
+    // 0.022 密度（实测 22~24/块 ≤ 32）：全体保持稀疏合并不拆组——T021.4 全量口径下
+    // 0.03 会使块 (0,0)=34 超阈值退组（旧 low 抽稀曾把它压回阈值内，废止后不再）
+    const dense00 = sparseParams({ densityPerM2: 0.022 });
     m.recomputeChunks('s', [{ i: 0, j: 0 }], dense00);
     await flush();
     const merged = mergedMeshes(m);
     expect(merged).toHaveLength(1);
-    expectMeshInstances(merged[0]!, expectedMerged(dense00, [...ALL_MEMBERS], 'low'));
+    expectMeshInstances(merged[0]!, expectedMerged(dense00, [...ALL_MEMBERS]));
     // 同参幂等：再全量重算一遍逐位不变
     m.recomputeChunks(
       's',
@@ -520,7 +633,7 @@ describe('ScatterChunkManager 批次控制：块生命周期', () => {
       dense00,
     );
     await flush();
-    expectMeshInstances(mergedMeshes(m)[0]!, expectedMerged(dense00, [...ALL_MEMBERS], 'low'));
+    expectMeshInstances(mergedMeshes(m)[0]!, expectedMerged(dense00, [...ALL_MEMBERS]));
     m.dispose();
   });
 
@@ -551,41 +664,47 @@ describe('ScatterChunkManager 批次控制：块生命周期', () => {
   });
 });
 
-// ── LOD 分布双口径（D27.9）─────────────────────────────────
+// ── LOD 分布双口径 + §十三升级位 ──────────────────────────
 
 describe('ScatterChunkManager 批次控制：LOD 分布双口径', () => {
-  it('各档实例数 + 桶数（提交口径）；culled 成员实例计 culled；自有/合并不双计', async () => {
+  it('各档实例数 + 桶数（提交口径）；culled 成员实例计 culled；自有/合并不双计；shadowCasterInstances 现值口径（cast 统一 true = 提交中实例数，021.5 前记档）', async () => {
     const { provider } = makeLeveledProvider();
     const m = makeManager(provider, { sparseMerge: MERGE });
     const params = sparseParams();
     m.setSource('s', params);
     await flush();
+    const totalTruth = ALL_MEMBERS.reduce((sum, [i, j]) => sum + truthOf(params, i, j).length, 0);
+
     // near high：4 自有桶全保真
     await settle(m, cameraAboveCenter(HIGH_BAND_M));
     let dist = m.getLodDistribution();
     expect(dist.buckets.high).toBe(4);
     expect(dist.buckets.mid + dist.buckets.low + dist.buckets.culled).toBe(0);
-    expect(dist.instances.high).toBe(
-      ALL_MEMBERS.reduce((sum, [i, j]) => sum + truthOf(params, i, j).length, 0),
-    );
+    expect(dist.instances.high).toBe(totalTruth);
+    expect(dist.shadowCasterInstances).toBe(totalTruth); // 提交中实例全 cast（现值口径）
+    expect(dist.transitionInstances).toBe(0);
+    expect(dist.transitionTargets).toEqual({ high: 0, mid: 0, low: 0, canopy: 0, culled: 0 });
 
-    // low 合并：1 合并桶 + 抽稀实例（提交口径）
+    // low 合并：1 合并桶 + 全量实例（T021.4——旧抽稀 50% 废止）
     await settle(m, cameraAboveCenter(LOW_BAND_M));
     dist = m.getLodDistribution();
     expect(dist.buckets.low).toBe(1);
     expect(dist.buckets.high + dist.buckets.mid).toBe(0);
-    expect(dist.instances.low).toBe(expectedMerged(params, [...ALL_MEMBERS], 'low').length);
+    expect(dist.instances.low).toBe(totalTruth);
+    expect(dist.shadowCasterInstances).toBe(totalTruth);
 
     // 全组 culled：桶计 culled（零提交口径）、实例计 culled（终态线外——退场带内
-    // 实例仍计 low 且 transition.instances 计过渡中）
+    // 实例仍计 low 且 transitionInstances 计过渡中）；阴影投射随提交归零
     await settle(
       m,
       cameraAboveCenter(LOD_THRESHOLDS.canopyToCulled * (1 + TRANSITION_BAND_RATIO) * 1.02),
     );
     dist = m.getLodDistribution();
     expect(dist.buckets.culled).toBe(1);
-    expect(dist.instances.culled).toBe(expectedMerged(params, [...ALL_MEMBERS], 'low').length);
-    expect(dist.transition.instances).toBe(0); // 终态后无过渡中实例
+    expect(dist.instances.culled).toBe(totalTruth);
+    expect(dist.transition.instances).toBe(0); // 终态后无过渡中实例（021.3 断言沿）
+    expect(dist.transitionInstances).toBe(0); // §十三顶层位镜像同值
+    expect(dist.shadowCasterInstances).toBe(0); // 零提交 = 零阴影投射
     m.dispose();
   });
 });

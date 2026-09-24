@@ -53,25 +53,31 @@
  *    桶保留（回视即时恢复）。LOD 总开关（Renderer 持有、逐帧传入）：off = 恒 High +
  *    culled 旁路（评估器语义）——非 high 桶全部确定性重建回 high。
  *
- * 批次控制（T006.4，006.3 遗留治理面——防「块 × 资产 × 档」批次数爆炸）：
- *  - 远距密度降级（抽稀）：档位写入路径按 BATCH_POLICY.levelInstanceKeep 对实例列表做
- *    确定性过滤（domain keepThinnedInstance：实例稳定序索引 × 保留比例，同 seed 同块同档
- *    逐位一致——绝不每帧随机）；high 恒 1（近处全保真硬约束）。抽稀在 runtime 消费侧做，
- *    不经 scatterChunk 参数扩展（撒点确定性契约不动——006.4 记档裁定）。语义协调：
- *    006.3「换档重建实例跨档逐位一致」更新为「同档同 seed 确定性 + high 全保真 + 抽稀
- *    只作用于降档方向」（远档实例数合法少于近档）。
- *  - 块自适应合并（稀疏粗档块合批）：构造注入 sparseMerge（缺省关闭 = 管线独立使用既有
- *    行为，沿 frame(lodEnabled=false) 缺省先例；Renderer 注入 BATCH_POLICY）后，粗档
- *    （mid/low）且 (块×资产) 实例数 ≤ 阈值的块并入「超块合并桶」= (源 × 超块 × 资产 ×
- *    档) 一个 InstancedMesh（groupFactor×groupFactor 个相邻块共享，挂 root 直下、由 three
- *    逐对象包围球自动视锥剔除——合并盒变大对远档可接受，§4.3 演进方向记档）。密集块
- *    （超阈值）与 high 档保持自有细块。合并/拆出 = 同批实例同矩阵重写（像素零变化——
- *    合并组建立/拆除不产生可见跳变）；合并组重建确定性 = 成员按 (i,j) 升序逐块重撒
- *    （scatterChunk 纯函数）。合并成员被 culled = 实例退出该帧合并桶写入（lod.memberCulled
- *    标记 + 组重建；回视恢复重入——自有桶口径的 mesh.visible 等价物）。块生命周期：局部
+ * 批次控制（T006.4 立项，006.3 遗留治理面——防「块 × 资产 × 表示」批次数爆炸；
+ * T021.4 键迁移与密度解耦，D41 §八/§九）：
+ *  - 密度（T021.4，D41 §八——Density Policy 与表示解耦）：全表示默认密度 100%
+ *    （DENSITY_FULL_KEEP），**几何降档不触发实例抽稀**（旧 BATCH_POLICY.
+ *    levelInstanceKeep.low=0.5 的档位联动废止——选档换表示不丢实例，同 seed 同块
+ *    跨表示实例集合逐位一致）。写入路径保留 Density 输入面（thinInstances +
+ *    keepThinnedInstance 确定性规则，domain）：100% 默认下行为 = 不抽稀（零拷贝）；
+ *    75%/50% 降密只存在于 021.8 Density 专项的独立 A/B 通道，本管不实装密度旋钮。
+ *    抽稀在 runtime 消费侧按实例稳定序过滤、撒点确定性契约不动（006.4 记档裁定沿）。
+ *  - 块自适应合并（稀疏块合批）：构造注入 sparseMerge（缺省关闭 = 管线独立使用既有
+ *    行为，沿 frame(lodEnabled=false) 缺省先例；Renderer 注入 BATCH_POLICY）后，
+ *    **允许合批的表示**（isBatchMergeAllowed——批次键绑 representation §九；第一版
+ *    = mid/low/canopy，high 恒否=近处全保真+细粒度视锥剔除）且 (块×资产) 实例数 ≤
+ *    阈值的块并入「超块合并桶」= (源 × 超块 × 资产 × 表示) 一个 InstancedMesh
+ *    （groupFactor×groupFactor 个相邻块共享，挂 root 直下、由 three 逐对象包围球自动
+ *    视锥剔除——合并盒变大对远档可接受，§4.3 演进方向记档）。密集块（超阈值）与
+ *    high 档保持自有细块。合并/拆出 = 同批实例同矩阵重写（像素零变化——合并组建立/
+ *    拆除不产生可见跳变）；合并组重建确定性 = 成员按 (i,j) 升序逐块重撒（scatterChunk
+ *    纯函数）。合并成员被 culled = 实例退出该帧合并桶写入（lod.memberCulled 标记 +
+ *    组重建；回视恢复重入——自有桶口径的 mesh.visible 等价物）。块生命周期：局部
  *    重算/摘源重建/撤销重做经同一确定性路径自然一致（合并组随源生灭）。
- *  - LOD 分布双口径（D27.9）：getLodDistribution 只读快照——自有桶 + 合并桶各档实例数
- *    与桶数（提交口径；culled 成员实例计 culled），经 runtime/lodDistribution 纯计数器。
+ *  - LOD 分布（D27.9 双口径 + D41 §十三升级）：getLodDistribution 只读快照——自有桶
+ *    + 合并桶各表示实例数与桶数（提交口径；culled 成员实例计 culled）+ 过渡计数面
+ *    （021.3）+ transitionTargets / shadowCasterInstances（021.4 接线），经
+ *    runtime/lodDistribution 纯计数器。
  *
  * 表示过渡执行（T021.3，D41 §五；桶维度宽化 region × chunk × asset × representation）：
  *  - domain/lod/transition 状态机（纯函数）逐 (块×资产) 步进——ChunkLodState 持有
@@ -90,8 +96,7 @@
  */
 import type { ProceduralVariants } from '../../domain/assets';
 import { applyAssetVariants } from '../../domain/assets';
-import { keepThinnedInstance } from '../../domain/lod/batchPolicy';
-import { BATCH_POLICY } from '../../domain/lod/batchPolicy';
+import { DENSITY_FULL_KEEP, isBatchMergeAllowed, thinInstances } from '../../domain/lod/batchPolicy';
 import type {
   LodSelectionOutcome,
   RepresentationCapability,
@@ -193,8 +198,9 @@ interface MergedBucket {
  * 已渲染档；culled 期间保持最后档）；maxScale = 桶内最大实例 scale（保守偏高档，
  * **全集口径**：抽稀前确定性撒点集，T021.2 收紧——抽稀不改变选档输入，重撒时更新）；
  * pending = 在途换档目标（源未就绪时登记，到达回调重建）。
- * T006.4 增补：box = 该 (块×资产) 全部实例（抽稀后当档集）的紧致世界 AABB（自有桶/
- * 合并桶同源维护，块盒与选档代表的稳定基）；instanceCount = 当档抽稀后实例数（分布
+ * T006.4 增补：box = 该 (块×资产) 全部实例（当档提交集——T021.4 密度默认 100% 下 =
+ * 全量撒点集；字段保留密度口径语义供 021.8 A/B 通道）的紧致世界 AABB（自有桶/
+ * 合并桶同源维护，块盒与选档代表的稳定基）；instanceCount = 当档实例数（分布
  * 与 stats 口径）；mergedBucket = 合并组成员态（undefined = 自有细块）；memberCulled =
  * 合并成员被 culled 排除中（实例退出合并桶当帧写入，回视重入——自有桶 culled 的
  * mesh.visible 等价物）。
@@ -209,7 +215,7 @@ interface ChunkLodState {
   pending?: RuntimeRepresentation;
   /** (块×资产) 实例紧致世界 AABB（写实例路径顺带累积；块盒 = ∪ 各资产 box） */
   readonly box: THREE.Box3;
-  /** 当档（抽稀后）实例数（含 memberCulled 排除中的真值——分布/合并判定口径） */
+  /** 当档实例数（含 memberCulled 排除中的真值——分布/合并判定口径；密度 100% 默认 = 全量） */
   instanceCount: number;
   /** 合并组所属桶（undefined = 自有细块桶 / 无桶） */
   mergedBucket?: MergedBucket;
@@ -248,7 +254,7 @@ interface ChunkState {
    */
   readonly incoming: Map<string, MeshEntry>;
   /** assetId → 实例数据（源未就绪/失败时登记；源到达后建网格。T006.4：列表为原始
-   *  未抽稀集——到达写入时按当档裁定，只读消费不二次掷骰） */
+   *  撒点全集——到达写入时按 Density 输入面裁定（100% 全量），只读消费不二次掷骰） */
   readonly pending: Map<string, readonly ScatterInstance[]>;
   /** assetId → LOD 运行态（T006.3；新资产初始 high、源就绪后评估接管） */
   readonly lod: Map<string, ChunkLodState>;
@@ -287,10 +293,10 @@ function capacityFor(count: number): number {
 
 /**
  * 桶代表 scale（T021.2 口径收紧，D41 §4.4）：region × chunk × asset 桶内最大实例
- * scale——保守偏高档（大树更晚降档）。**全集口径 = 抽稀前的确定性撒点集**：密度抽稀
- * （T006.4 levelInstanceKeep）不改变选档输入——同一桶任意档位/密度下代表 scale 恒定
- * （与 T006.6 稳定基准球同护栏：选档读数不随渲染表示平移）。空集回退占位 1（建桶
- * 路径列表恒非空——防御面）。
+ * scale——保守偏高档（大树更晚降档）。**全集口径 = 密度过滤前的确定性撒点集**
+ * （T021.4 后密度默认 100% 全量，021.8 A/B 通道降密时该口径保证选档读数不随密度
+ * 平移）：同一桶任意表示/密度下代表 scale 恒定（与 T006.6 稳定基准球同护栏——
+ * 选档读数不随渲染表示平移）。空集回退占位 1（建桶路径列表恒非空——防御面）。
  */
 function maxScaleOf(list: readonly ScatterInstance[]): number {
   let max = 0;
@@ -302,6 +308,18 @@ function maxScaleOf(list: readonly ScatterInstance[]): number {
 
 function chunkKeyString(key: ScatterChunkKey): string {
   return `${key.i}:${key.j}`;
+}
+
+/**
+ * 网格提交态判定（分布统计 shadowCasterInstances 口径用，T021.4）：块组可见（视锥
+ * 剔除 / 源显隐的写手）∧ 网格自身可见（LOD culled 的写手）——两开关共同决定主渲染
+ * 与影遍的零提交（resolvePick 可见性守卫同口径）。castShadow 由调用方另判（021.5
+ * 前建网格点统一 true）。
+ */
+function isSubmittedMesh(
+  mesh: THREE.InstancedMesh<THREE.BufferGeometry, THREE.Material | THREE.Material[]>,
+): boolean {
+  return (mesh.parent?.visible ?? true) && mesh.visible && mesh.count > 0;
 }
 
 /** (assetId × representation) 源缓存键（表示维度后缀——与池桶/ProceduralSourceCache 同构口径） */
@@ -827,9 +845,10 @@ export class ScatterChunkManager {
 
   /**
    * 写/建 (块×资产) 过渡客座桶（dither 目标表示侧；调用前提 = 目标源就绪）：确定性
-   * 重撒同规则实例（canopy keep=1 全保真——§八 Density），写矩阵 + lod.box 并入客座
-   * 实例盒（Union 剔除，§四.3）。容量翻倍、桶对象复用（同目标表示）；**过渡期免合并**
-   * （完成迁移后 rebuildChunkAsset 常规裁定归并）。fade 值由调用方随后写出。
+   * 重撒同规则实例（密度默认 100% 全保真——§八 Density，与表示无关），写矩阵 +
+   * lod.box 并入客座实例盒（Union 剔除，§四.3）。容量翻倍、桶对象复用（同目标
+   * 表示）；**过渡期免合并**（完成迁移后 rebuildChunkAsset 常规裁定归并）。fade 值
+   * 由调用方随后写出。
    */
   private writeIncomingBucket(
     state: SourceState,
@@ -841,7 +860,7 @@ export class ScatterChunkManager {
     if (!asset?.source) return; // 防御：调用前提（submitTarget 隐含就绪）
     const lod = chunk.lod.get(assetId);
     if (!lod) return;
-    const list = this.thinForLevel(this.memberInstances(state, chunk, assetId), target);
+    const list = this.densityThin(this.memberInstances(state, chunk, assetId));
     let entry = chunk.incoming.get(assetId);
     if (!entry || entry.level !== target) {
       if (entry) this.disposeIncomingBucketEntry(chunk, entry, assetId);
@@ -904,7 +923,8 @@ export class ScatterChunkManager {
     chunk.incoming.delete(assetId);
   }
 
-  /** lod.box 从当档（抽稀后）集确定性重算（客座拆除后退出 Union；mesh=null 只累积盒） */
+  /** lod.box 从当期提交集（密度 100% 默认 = 全量撒点集）确定性重算（客座拆除后退出
+   *  Union；mesh=null 只累积盒） */
   private recomputeLodBoxFromCurrent(
     state: SourceState,
     chunk: ChunkState,
@@ -914,7 +934,7 @@ export class ScatterChunkManager {
     lod.box.makeEmpty();
     const sourceGeometry = this.sourceGeometryOf(assetId, lod.level);
     if (!sourceGeometry) return;
-    const list = this.thinForLevel(this.memberInstances(state, chunk, assetId), lod.level);
+    const list = this.densityThin(this.memberInstances(state, chunk, assetId));
     if (list.length === 0) return;
     const geoExtent = geometryAbsExtentOf(sourceGeometry);
     this.writeInstanceRange(null, 0, list, state.baseY, geoExtent, null, lod);
@@ -971,11 +991,17 @@ export class ScatterChunkManager {
   }
 
   /**
-   * LOD 分布双口径只读快照（T006.4，D27.9 归因数据）：自有桶 + 合并桶各档实例数与
-   * 桶数。口径：实例按当前展示表示（lod.current ?? level；culled 实例含合并成员被排除
-   * 的真值集）；桶按提交口径（自有桶/合并桶各计 1——culled 中自有桶计 culled，合并桶
-   * 按 mesh 存在的档位计、其 culled 成员只计实例不另计桶）。O(块×资产) 遍历，供验收
-   * 报表/调试按需调用，不进帧路径。
+   * LOD 分布双口径只读快照（T006.4，D27.9 归因数据；T021.3 过渡计数面；T021.4 口径
+   * 升级——D41 §十三）：自有桶 + 合并桶各表示实例数与桶数 + 过渡计数面 + 目标表示
+   * 口径 + 阴影投射计数。口径：实例按当前展示表示（lod.display ?? current ?? level；
+   * culled 实例含合并成员被排除的真值集）；桶按提交口径（自有桶/合并桶各计 1——culled
+   * 中自有桶计 culled，合并桶按 mesh 存在的表示计、其 culled 成员只计实例不另计桶）；
+   * transitionTargets = 过渡中 (块×资产) 的实例按 SelectionState.target 归档（与
+   * instances/transition 计数面合流不重复计——非过渡单元不计、客座侧不单列）；
+   * shadowCasterInstances = 提交中网格（parent 可见 ∧ mesh 可见 ∧ castShadow）的实例
+   * 数合计——**021.5 前现值口径记档**：本管全部建网格点 castShadow 统一 true，故现值
+   * = 提交中实例数；021.5 Shadow Policy 按表示驱动 cast 后本字段自动跟随策略值。
+   * O(块×资产) 遍历，供验收报表/调试按需调用，不进帧路径。
    */
   getLodDistribution(): LodDistribution {
     const counter = new LodDistributionCounter();
@@ -987,14 +1013,17 @@ export class ScatterChunkManager {
           if (!entry) continue; // 源未就绪（pending 登记）：无桶无实例
           const rep = lod.display ?? lod.current ?? lod.level;
           counter.add(rep, entry.mesh.count, 1);
+          if (isSubmittedMesh(entry.mesh)) counter.addShadowCasters(entry.mesh.count);
           if (lod.transitionActive) {
             counter.addTransition(lod.instanceCount, 1, 0);
+            counter.addTransitionTarget(lod.transition?.target ?? lod.level, lod.instanceCount);
           }
         }
         // T021.3 过渡客座桶（dither 目标侧；count=0 零提交计 culled）
         for (const entry of chunk.incoming.values()) {
           const rep = entry.mesh.count > 0 ? entry.level : 'culled';
           counter.add(rep, entry.mesh.count, 1);
+          if (isSubmittedMesh(entry.mesh)) counter.addShadowCasters(entry.mesh.count);
           if (entry.mesh.count > 0) counter.addTransition(0, 1, 1);
         }
       }
@@ -1003,6 +1032,7 @@ export class ScatterChunkManager {
         // 桶按提交口径：提交中计桶档；整桶零提交（源隐藏/全成员 culled → count=0）计 culled
         const rep = bucket.mesh.visible && bucket.mesh.count > 0 ? bucket.level : 'culled';
         counter.add(rep, bucket.mesh.count, 1);
+        if (rep !== 'culled' && bucket.mesh.castShadow) counter.addShadowCasters(bucket.mesh.count);
         for (const memberKey of bucket.members) {
           const chunk = state.chunks.get(memberKey);
           const lod = chunk?.lod.get(bucket.assetId);
@@ -1011,7 +1041,10 @@ export class ScatterChunkManager {
             counter.add('culled', lod.instanceCount, 0);
             continue;
           }
-          if (lod.transitionActive) counter.addTransition(lod.instanceCount, 1, 0);
+          if (lod.transitionActive) {
+            counter.addTransition(lod.instanceCount, 1, 0);
+            counter.addTransitionTarget(lod.transition?.target ?? lod.level, lod.instanceCount);
+          }
         }
       }
     }
@@ -1034,13 +1067,12 @@ export class ScatterChunkManager {
 
   /**
    * 换档重建执行（T006.3；T021.3 过渡状态机化——调度归 stepChunkAssetTransition）：
-   * 确定性重撒（同 seed 同结果——scatterChunk 纯函数，实例集合与旧档在「同保真档」
-   * 下逐位一致；T006.4 抽稀只作用于降档方向——远档实例数合法少于近档；T021.3 canopy
-   * keep=1 全保真）→ 拆旧档桶（自有桶实例缓冲释放 / 合并桶退组重建，共享模板资源
-   * 不动）→ 以目标表示 InstanceSource 成套建新桶（自有细块或合并桶——
-   * writeChunkAssetBuckets 统一裁定，D27.4「不做桶内换 Source」两形态同守）。同步完成
-   * 拆旧建新（单 JS 块内无渲染观测点——无缺帧闪烁）。目标档实例为零（参数在途变更的
-   * 防御路径）→ 摘桶按空资产语义回收。
+   * 确定性重撒（同 seed 同结果——scatterChunk 纯函数，实例集合跨表示逐位一致；
+   * T021.4 密度默认 100% 全保真——换表示零实例丢失）→ 拆旧档桶（自有桶实例缓冲释放 /
+   * 合并桶退组重建，共享模板资源不动）→ 以目标表示 InstanceSource 成套建新桶（自有
+   * 细块或合并桶——writeChunkAssetBuckets 统一裁定，D27.4「不做桶内换 Source」两形态
+   * 同守）。同步完成拆旧建新（单 JS 块内无渲染观测点——无缺帧闪烁）。目标档实例为零
+   * （参数在途变更的防御路径）→ 摘桶按空资产语义回收。
    */
   private rebuildChunkAsset(
     state: SourceState,
@@ -1276,9 +1308,11 @@ export class ScatterChunkManager {
   /**
    * (块×资产) 当档桶统一写入路径（T006.4 自 recomputeChunk / buildPendingMeshes /
    * rebuildChunkAsset 三入口收敛）：源未就绪 → pending 登记（原始列表，到达后经本路径
-   * 再裁定）；就绪 → 抽稀（BATCH_POLICY.levelInstanceKeep——确定性，high 恒全保真）→
-   * 合并裁定（粗档 ∧ 稀疏 → 合并桶；否则自有细块桶——leaveMergedBucket 先行保证组员
-   * 态与桶态一致）。两形态同源写实例（writeInstanceRange），块盒统一由 lod.box 汇聚。
+   * 再裁定）；就绪 → 密度过滤（thinInstances——Density 输入面恒全量 DENSITY_FULL_KEEP
+   * 100%，§八：换表示不丢实例；100% 下零拷贝）→ 合并裁定（允许合批表示
+   * （isBatchMergeAllowed）∧ 稀疏 → 合并桶；否则自有细块桶——leaveMergedBucket 先行
+   * 保证组员态与桶态一致）。两形态同源写实例（writeInstanceRange），块盒统一由
+   * lod.box 汇聚。
    */
   private writeChunkAssetBuckets(
     state: SourceState,
@@ -1294,9 +1328,9 @@ export class ScatterChunkManager {
       chunk.pending.set(assetId, rawList); // 未就绪/失败均登记（失败渲染不可能，数据不崩不弃）
       return;
     }
-    const list = this.thinForLevel(rawList, level);
+    const list = this.densityThin(rawList);
     lod.instanceCount = list.length;
-    lod.maxScale = maxScaleOf(rawList); // T021.2 代表 scale 全集口径（抽稀前——选档输入与档位/密度解耦）
+    lod.maxScale = maxScaleOf(rawList); // T021.2 代表 scale 全集口径（密度过滤前——选档输入与表示/密度解耦）
     if (this.shouldMergeBucket(level, list.length)) {
       const superKey = this.superKeyOf(chunk.key);
       const target = this.mergedBucketFor(state, superKey, assetId, level);
@@ -1314,33 +1348,22 @@ export class ScatterChunkManager {
     this.refreshChunkBox(chunk, state.baseY);
   }
 
-  /** 远距密度降级（T006.4；T021.3 宽化）：按表示保留比例对实例稳定序过滤（domain
-   *  keepThinnedInstance——确定性，同 seed 同块同表示逐位一致）；比例 ≥ 1 原样返回
-   *  （零拷贝）。canopy keep=1 全保真（§八 Density：High/Mid/Canopy 默认 100%——
-   *  levelInstanceKeep 是 T006.5 锁定值不动，canopy 份额本地派生不入 BATCH_POLICY） */
-  private thinForLevel(
-    list: readonly ScatterInstance[],
-    representation: RuntimeRepresentation,
-  ): readonly ScatterInstance[] {
-    const keep = this.keepRatioOf(representation);
-    if (keep >= 1) return list;
-    const kept: ScatterInstance[] = [];
-    for (let i = 0; i < list.length; i++) {
-      if (keepThinnedInstance(i, keep)) kept.push(list[i]!);
-    }
-    return kept;
+  /**
+   * 密度过滤（T021.4，D41 §八——Density 与表示解耦）：domain thinInstances 确定性
+   * 过滤，密度输入恒 DENSITY_FULL_KEEP（全表示默认 100%——**选档换表示不丢实例**；
+   * 100% 下零拷贝返回）。旧 thinForLevel（按表示查 levelInstanceKeep）随密度职责
+   * 废止拆除；75%/50% 降密归 021.8 Density 专项 A/B 通道（本管不实装密度旋钮）。
+   */
+  private densityThin(list: readonly ScatterInstance[]): readonly ScatterInstance[] {
+    return thinInstances(list, DENSITY_FULL_KEEP);
   }
 
-  /** 表示 → 抽稀保留比例（canopy = 1 全保真 §八；其余查 BATCH_POLICY.levelInstanceKeep） */
-  private keepRatioOf(representation: RuntimeRepresentation): number {
-    return representation === 'canopy' ? 1 : BATCH_POLICY.levelInstanceKeep[representation];
-  }
-
-  /** 合并裁定（T006.4；T021.3 宽化）：注入开启 ∧ 粗档（high 恒不合并——近处全保真；
-   *  canopy 天然适合远景合批 §九）∧ 稀疏（≤ 阈值）。过渡客座桶不经本裁定（免合并记档） */
+  /** 合并裁定（T006.4；T021.4 批次键迁移）：注入开启 ∧ 允许合批的表示
+   *  （isBatchMergeAllowed——§九绑 representation；high 恒否=近处全保真+细粒度剔除，
+   *  mid/low/canopy 允许）∧ 稀疏（≤ 阈值）。过渡客座桶不经本裁定（免合并记档） */
   private shouldMergeBucket(representation: RuntimeRepresentation, count: number): boolean {
     return (
-      this.mergeMaxInstances > 0 && representation !== 'high' && count <= this.mergeMaxInstances
+      this.mergeMaxInstances > 0 && isBatchMergeAllowed(representation) && count <= this.mergeMaxInstances
     );
   }
 
@@ -1394,17 +1417,18 @@ export class ScatterChunkManager {
   }
 
   /**
-   * 合并桶整桶重建（T006.4 唯一写路径——成员进出/换档/culled 排除/局部重算全部经此）：
-   * 成员按 (i,j) 升序逐块确定性重撒（scatterChunk 纯函数 + 抽稀同规则）→ 顺序写入同一
-   * InstancedMesh（实例序 = 成员块序 × 块内撒点序——确定性）；memberCulled 成员的实例
-   * 退出当帧写入（lod.box/maxScale 仍按全集累积——选档输入与块盒稳定）。容量翻倍、
-   * mesh 引用组内稳定（拆组建新除外）；收尾 computeBoundingSphere（three 逐对象视锥
-   * 剔除用——合并桶直挂 root，不占块组剔除）。
+   * 合并桶整桶重建（T006.4 唯一写路径——成员进出/换表示/culled 排除/局部重算全部经此）：
+   * 成员按 (i,j) 升序逐块确定性重撒（scatterChunk 纯函数 + 密度过滤同规则 100% 全量）
+   * → 顺序写入同一 InstancedMesh（实例序 = 成员块序 × 块内撒点序——确定性）；
+   * memberCulled 成员的实例退出当帧写入（lod.box/maxScale 仍按全集累积——选档输入与
+   * 块盒稳定）。容量翻倍、mesh 引用组内稳定（拆组建新除外）；收尾
+   * computeBoundingSphere（three 逐对象视锥剔除用——合并桶直挂 root，不占块组剔除）。
    */
   private rebuildMergedBucket(state: SourceState, bucket: MergedBucket): void {
     const asset = this.assetStates.get(assetStateKey(bucket.assetId, bucket.level));
     if (!asset?.source) return; // 源未就绪：组员态已登记，源到达路径再收敛（防御）
-    // 成员收集（升序确定性）：逐块重撒 + 抽稀，instanceCount/box/maxScale 全集口径刷新
+    // 成员收集（升序确定性）：逐块重撒 + 密度过滤（100% 全量），instanceCount/box/
+    // maxScale 全集口径刷新
     const parts: { chunk: ChunkState; lod: ChunkLodState; list: readonly ScatterInstance[] }[] = [];
     let total = 0;
     for (const memberKey of this.sortedMemberKeys(bucket)) {
@@ -1415,9 +1439,9 @@ export class ScatterChunkManager {
         continue;
       }
       const raw = this.memberInstances(state, chunk, bucket.assetId);
-      const list = this.thinForLevel(raw, bucket.level);
+      const list = this.densityThin(raw);
       lod.instanceCount = list.length;
-      lod.maxScale = maxScaleOf(raw); // T021.2 代表 scale 全集口径（抽稀前）
+      lod.maxScale = maxScaleOf(raw); // T021.2 代表 scale 全集口径（密度过滤前）
       if (!lod.memberCulled) total += list.length;
       parts.push({ chunk, lod, list });
     }
@@ -1499,7 +1523,7 @@ export class ScatterChunkManager {
     return keys.map((k) => k.str);
   }
 
-  /** 成员块实例（重撒 + 资产过滤——抽稀前全集；同 seed 确定性，与自有桶路径同规则） */
+  /** 成员块实例（重撒 + 资产过滤——密度过滤前全集；同 seed 确定性，与自有桶路径同规则） */
   private memberInstances(
     state: SourceState,
     chunk: ChunkState,
@@ -1577,7 +1601,7 @@ export class ScatterChunkManager {
    * rotationY + uniform scale；mesh 为 null = 只累积运行态不写矩阵（合并成员 culled
    * 排除——lod.box 按当档集累积）。顺带累积实例紧致世界 AABB（逐轴最大绝对角偏移对
    * 任意 Y 旋转恒为有效包围）。代表 scale（lod.maxScale）不在此累积——T021.2 起按
-   * 抽稀前全集口径由写入路径统一计算（maxScaleOf，选档输入与密度解耦）。
+   * 密度过滤前全集口径由写入路径统一计算（maxScaleOf，选档输入与表示/密度解耦）。
    */
   private writeInstanceRange(
     mesh: THREE.InstancedMesh<THREE.BufferGeometry, THREE.Material | THREE.Material[]> | null,
