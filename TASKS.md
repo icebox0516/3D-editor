@@ -97,10 +97,10 @@
 - [ ] T013 花木族【占位；候选池（D34 摘要，§3/§4）：乔木型观花强 8——东京樱花/紫叶李/碧桃/梅花/海棠花/西府海棠/紫薇/桂花 + 灌木型观花强 8——月季/杜鹃/山茶/栀子/木槿/紫荆/紫丁香/夹竹桃 + D34 自阔叶候选分流 7（玉兰/广玉兰/合欢/凤凰木/蓝花楹/羊蹄甲/洋紫荆——乔木观花为纲）】
 - [ ] T014 灌木族【占位；候选池（D34 摘要，§5）：强 4——冬青卫矛（「大叶黄杨」口径立项须钉死 Euonymus japonicus）/海桐/珊瑚树/南天竹，中 2（金森女贞/红花檵木），弱 2（小叶女贞/Buxus 口径大叶黄杨），Unknown 1（红叶石楠立项须补园艺权威来源）】
 - [ ] T015 地被/草本族【占位；候选池（D34 摘要，§6）：强 4——狗牙根（暖季草坪）/草地早熟禾（冷季草坪）/鸢尾/萱草，中 1（麦冬——园林地被用途无志书明文），弱 3（结缕草/高羊茅——学名口径立项须钉死/二月兰）】
-- [ ] T022 资产库清理【占位；2026-09-24 共识：浏览器删 ed-browser__tags（含排序下拉）+ ed-browser__rail、保留 bar（键维持 meta.category + GLB 目录 slug 现状，共用持久化 category 态留给 bar）；四低模植物删除（oak/pine/shrub/flower，src 产品代码零消费）+ 测试/文档收尾；记档 T016 取消 / D19 废止 / taxonomy 降位纯元数据；asset-research §3 照片槽标注「树族当前值」】→ [tasks/022-asset-library-cleanup.md](tasks/022-asset-library-cleanup.md)
-- [ ] T023 生产脊柱 spine 提取【占位；2026-09-24 共识：tree.md → spine.md 保守提取（Step 角色槽规则 / read-set 消费链 / 测试纪律 / 同步机制 / 抽象版三必做 / 带适用性族门骨架）+ tree.md 剖面化 + SKILL.md 路由升级（生产复杂度 = 路由判据，不建全局枚举）+ D36/D30 增补记档；simple-asset.md 等新 workflow 不预建、首例批次触发】→ [tasks/023-spine-extraction.md](tasks/023-spine-extraction.md)
-- [ ] T024 资产色卡预设【占位；2026-09-24 共识：激活 D17.2 preset 扩展位（材质基调切换，冠变干不变；instanceColor 继续管 hueJitter 群内微差）；声明契约 + 浏览器名旁色点切换 + 手动放置带 preset；存量 13 种乔木全量回补（色卡以各 Spec 季相记录为证据）；配方 schema 预留 preset 字段位，散布份额消费归散布任务；后续各族与车辆出生即带 preset】
-- [ ] T025 园区设施扩充【占位；花箱/防撞柱/护栏/停车设施/充电桩等；轻量批量任务制（T002.4 先例：同方法一批 3–5 个一会话，共用方法与测试基建）；首例批次触发创建 simple-asset workflow（引用 spine 只写差异剖面）；充电桩按复杂度路由可能中等】
+- [ ] T022 资产库清理（浏览器一行大分类化 + 四低模植物删除 + plantMaterials 模块整体删除；记档：T016 取消 / **D19 第 1 条四植物子句废止** / taxonomy 口径修正 + metadata-taxonomy 失真面同步）→ [tasks/022-asset-library-cleanup.md](tasks/022-asset-library-cleanup.md)
+- [ ] T023 生产脊柱 spine 提取（spine + 方法剖面两层 / D36 边界句 + D30 最低可信证据原则记档 / **AGENTS「首例完整 SOP」两句同步**〔P0〕/ 新 workflow 创建纪律与 read-set 体积约束）→ [tasks/023-spine-extraction.md](tasks/023-spine-extraction.md)
+- [ ] T024 资产色卡预设【占位；2026-09-24 共识：激活 D17.2 preset 扩展位（材质基调切换，冠变干不变；instanceColor 继续管 hueJitter 群内微差）；声明契约 + 浏览器名旁色点切换 + 手动放置带 preset；存量 13 种乔木全量回补（色卡以各 Spec 季相记录为证据）；配方 schema 预留 preset 字段位，散布份额消费归散布任务；后续各族与车辆出生即带 preset；**立项必答**：preset 声明硬钩子（契约测试整表锁或 meta 必填 + typecheck 闸）/ D19.2「preset 不启用」子句修订记档 / sourceKey×preset 缓存增殖裁定（lod-spec sourceKey 语义下 13 树 × 槽 × N 色卡的 Source 增殖）】
+- [ ] T025 园区设施扩充【占位；花箱/防撞柱/护栏/停车设施/充电桩等；轻量批量任务制（T002.4 先例：同方法一批 3–5 个一会话，共用方法与测试基建）；首例批次触发创建 simple-asset workflow（引用 spine 只写差异剖面）；充电桩按复杂度路由可能中等；**立项必答**：批次 Spec 口径（建议一批一合并 Spec + 逐资产 Gate 留痕——T002.4 为 pre-Gate 时代先例不可直接沿用）/ category 值收敛策略（程序化 facility 单栏 vs GLB 细分 slug 分栏终态裁定）】
 - [ ] T026 人物与车辆【占位；行人/工作人员 + 轿车/SUV/接驳车/货车/自行车，少量高复用变体；车辆复用 preset 车身色；全新资产域，立项过 Research Gate + Family 判定】
 - [ ] T027 自然小物【占位；景观石/岩石/树桩等】
 - [ ] T028 建筑/设备【占位；扩充终段】

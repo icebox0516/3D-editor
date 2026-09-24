@@ -19,8 +19,8 @@ Status: waived — Reason: 清理任务，非程序化资产生产，无现实�
 1. 浏览器只保留 `ed-browser__bar`；`ed-browser__tags`（含排序下拉，排序能力一并移除不保留）与 `ed-browser__rail` 全删
 2. bar 分类键维持现状：程序化 `meta.category` + GLB 目录 slug 混排自动派生、零手写表；不迁移 taxonomy 八大类值域
 3. rail 与 bar 共用的持久化 `workspaceStore.browser.category` + `selectCategory` 保留给 bar；`browser.search / browser.expanded` 不动
-4. T016 资产管理器取消（浏览器一行大分类即终态）；taxonomy 契约降位纯元数据（family 值随各族落地继续补，不驱动任何导航）
-5. 四低模植物纯删除不留替补（13 种乔木四档表示已覆盖用途）；D19「v1 四植物不动」废止
+4. T016 资产管理器取消（浏览器一行大分类即终态；混排分栏不一致为**接受终态**显式记档：程序化 facility 单栏 vs GLB 细分三栏并存、英文 slug 与中文 label 同排、首现序排序均接受）；taxonomy 口径修正：大类仍经 meta.category 约束浏览器分栏值域，family 降为纯元数据（消费者 = 契约测试 + 必填声明，值随各族落地继续补）
+5. 四低模植物纯删除不留替补（13 种乔木四档表示已覆盖用途）；**D19 第 1 条「v1 四植物不动」子句废止**（第 1 条「设施资产不动」与 D19 其余条款——build 参数化 / 三流域 seed / sourceKey 锁定链——均不变，不作整条废止表述）
 6. `.ed-chip` 共享样式（RegionQuickApply / BatchRenameDialog / ContextToolbar / ContextActions 共用）不动
 7. asset-research SKILL.md §3 照片槽示例标注「树族当前值」（本任务一并收口）
 
@@ -29,14 +29,14 @@ Status: waived — Reason: 清理任务，非程序化资产生产，无现实�
 ### A. 浏览器简化
 
 - `src/ui/panels/ContentBrowser.tsx`：删 `RailSelection` 类型、`rail` 变量、`tagFilter`/`sortKey` state、`tagChips` memo、`railItem()` 工厂、`sortAssets`/`buildTagChips`/`AssetSortKey` 导入；`visible` memo 收窄（收藏过滤分支改读共用分类值，移除 tag/sort 依赖）；文件头注释与展开态结构同步
-- `src/ui/panels/browserModel.ts`：删 `buildTagChips` / `sortAssets` / `AssetSortKey` / `filterAssets` 的 `tag` 参数；`categoryMarkColor`（rail 分类色点）确认 bar 无消费后删；`buildCategories` / `favoriteCount` / 排序档保留给 bar
+- `src/ui/panels/browserModel.ts`：删 `buildTagChips` / `sortAssets` / `AssetSortKey` / `filterAssets` 的 `tag` 参数；`categoryMarkColor` **保留**（资产卡片 `__cat-dot` 仍消费——ContentBrowser.tsx ≈:364；仅 rail 调用点随 railItem 删）；`buildCategories` / `favoriteCount` / 排序档保留给 bar
 - `src/ui/styles/app.css`：删 rail 整块（≈:2065-2130）与 tags/sort 整块（≈:3761-3784）；`ed-browser__body` flex 布局收窄为纯 grid
 - `src/ui/styles/DESIGN.md`（≈:163-165）：三行规格改一行 bar 规格
 - workspaceStore / layoutPresets：零改动（`browser.category` 保留给 bar）
 
 ### B. 浏览器测试
 
-- `tests/ui/panels/browserModel.test.ts`：删 `buildTagChips` / `sortAssets` / `filterAssets` tag 分支用例；`categoryMarkColor` 用例随实现处置；`buildCategories` 与收藏分支（经 bar）保留
+- `tests/ui/panels/browserModel.test.ts`：删 `buildTagChips` / `sortAssets` / `filterAssets` tag 分支用例；`categoryMarkColor` 用例**保留**（实现保留）；`buildCategories` 与收藏分支（经 bar）保留
 - `tests/ui/layout/workspaceStore.test.ts`：保留（状态未删）
 
 ### C. 四低模植物删除
@@ -44,8 +44,8 @@ Status: waived — Reason: 清理任务，非程序化资产生产，无现实�
 - 删 `src/runtime/procedural/assets/` 下 `asset_oak` / `asset_pine` / `asset_shrub` / `asset_flower` 四个 `.asset.ts`
 - `tests/app/bootstrap.test.ts`：注册账目 23→19（glob 字典序同步）
 - `tests/app/phase1.acceptance.test.ts`：数量断言 + procedural id 清单去四者（注释一并更新）
-- `tests/runtime/procedural/assets/plantAssets.test.ts` / `plantMaterials.test.ts`：四资产专属用例删除；若文件承载公共工具测试则换现役 id fixture（按实际覆盖裁定）
-- `tests/runtime/procedural/assets/assetTaxonomy.test.ts`：删 4 行声明锁定
+- 删 `src/runtime/procedural/materials/plantMaterials.ts`（七配方消费者 = 且仅 = 四个将删资产，删后零消费者孤儿）；`tests/runtime/procedural/assets/plantAssets.test.ts` / `plantMaterials.test.ts` **整文件删除**（用例对象全部为该模块 + 四资产，无公共工具测试可 salvage——现役树走 `tree/<asset>/*Materials` 独立配方键系，fixture 替换不可行）
+- `tests/runtime/procedural/assets/assetTaxonomy.test.ts`：删 4 行声明锁定 + 头注「23 资产」计数同步 19
 - `tests/domain/assets/shapeFamily.test.ts`：`asset_shrub` fixture 换现役资产 id
 - `tests/io/sceneSerializer.region-seed.test.ts`（oak/pine）、`tests/registries/StylePresetRegistry.test.ts`（oak）、`tests/ui/panels/ScatterParamsForm.test.ts`（oak/pine/flower）：fixture 换现役 id
 - 注释清理：`asset_tree_3a.asset.ts` ≈:71、`asset_tree_3a.test.ts` ≈:74「参照 asset_oak 量级」改现役口径
@@ -54,13 +54,15 @@ Status: waived — Reason: 清理任务，非程序化资产生产，无现实�
 
 - TASKS.md：T003.4 行终态收口（资产已删）；本任务勾选
 - `tasks/003-scatter-styles.md`（≈:44/:57）：引用行加删除记注
-- `docs/procedural-assets/metadata-taxonomy.md`（≈:68/:74-77）：taxonomy 表删 4 行
-- DECISIONS.md 新条：浏览器简化 + T016 取消 + D19 废止 + taxonomy 降位（一次记档，注明 2026-09-24 共识会话用户裁定）
+- `docs/procedural-assets/metadata-taxonomy.md`：taxonomy 表删 4 行（≈:68/:74-77）+ **T016 失真面同步**（≈:3 头注「T016 预留」/ ≈:12 消费者列 / ≈:66 / §6 ≈:88-98 / ≈:117——标注 T016 已取消、无三级浏览消费者；§3 plant 行计数随动）
+- `docs/procedural-assets/organization.md` §2.1（≈:26/:29）：简单资产计数 10→6、plantMaterials 引用删除
+- DECISIONS.md 新条（一次记档，注明 2026-09-24 共识会话用户裁定 + 本日审计修订）：浏览器简化 + T016 取消（含混排分栏不一致接受终态）+ **D19 第 1 条「v1 四植物不动」子句废止**（其余条款不变）+ taxonomy 口径修正（大类仍经 meta.category 约束分栏值域 / family 纯元数据、消费者 = 契约测试）
 
 ## 特殊 Acceptance
 
 - 触代码执行面 → `npm test` 全量零回归（注册账目更新后基线随动）；`check:layers` / `typecheck` 恒跑
 - 视觉冒烟：浏览器展开态截图——bar 一行可切换分类（含全部/收藏）、无左栏无标签行、资产网格占满 body；console 零错误零警告
+- 含 asset_oak 等四资产 id 的存量场景加载冒烟（引用降级不崩溃、console 干净）
 - `ed-browser__tags` / `ed-browser__rail` 在 src 全域零残留（DESIGN.md 同步后含样式文档）
 
 ## 取证路径
