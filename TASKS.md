@@ -100,10 +100,10 @@
 - [ ] T022 资产库清理（浏览器一行大分类化 + 四低模植物删除 + plantMaterials 模块整体删除；记档：T016 取消 / **D19 第 1 条四植物子句废止** / taxonomy 口径修正 + metadata-taxonomy 失真面同步）→ [tasks/022-asset-library-cleanup.md](tasks/022-asset-library-cleanup.md)
 - [ ] T023 生产脊柱 spine 提取（spine + 方法剖面两层 / D36 边界句 + D30 最低可信证据原则记档 / **AGENTS「首例完整 SOP」两句同步**〔P0〕/ 新 workflow 创建纪律与 read-set 体积约束）→ [tasks/023-spine-extraction.md](tasks/023-spine-extraction.md)
 - [ ] T024 资产色卡预设【占位；2026-09-24 共识：激活 D17.2 preset 扩展位（材质基调切换，冠变干不变；instanceColor 继续管 hueJitter 群内微差）；声明契约 + 浏览器名旁色点切换 + 手动放置带 preset；存量 13 种乔木全量回补（色卡以各 Spec 季相记录为证据）；配方 schema 预留 preset 字段位，散布份额消费归散布任务；后续各族与车辆出生即带 preset；**立项必答**：preset 声明硬钩子（契约测试整表锁或 meta 必填 + typecheck 闸）/ D19.2「preset 不启用」子句修订记档 / sourceKey×preset 缓存增殖裁定（lod-spec sourceKey 语义下 13 树 × 槽 × N 色卡的 Source 增殖）】
-- [ ] T025 园区设施扩充【占位；花箱/防撞柱/护栏/停车设施/充电桩等；轻量批量任务制（T002.4 先例：同方法一批 3–5 个一会话，共用方法与测试基建）；首例批次触发创建 simple-asset workflow（引用 spine 只写差异剖面）；充电桩按复杂度路由可能中等；**立项必答**：批次 Spec 口径（建议一批一合并 Spec + 逐资产 Gate 留痕——T002.4 为 pre-Gate 时代先例不可直接沿用）/ category 值收敛策略（程序化 facility 单栏 vs GLB 细分 slug 分栏终态裁定）】
+- [ ] T025 园区设施扩充【占位；花箱/防撞柱/护栏/停车设施/充电桩等；轻量批量任务制（T002.4 先例：同方法一批 3–5 个一会话，共用方法与测试基建）；首例批次触发创建 simple-asset workflow（引用 spine 只写差异剖面）；候选清单见 docs/research/facility-device-candidates.md §1（P1 骨架件 + 四批切分建议，规划级枚举、逐资产立项时过 Research Gate）；**立项必答**：批次 Spec 口径（建议一批一合并 Spec + 逐资产 Gate 留痕——T002.4 为 pre-Gate 时代先例不可直接沿用）/ category 值收敛策略（程序化 facility 单栏 vs GLB 细分 slug 分栏终态裁定）】
 - [ ] T026 人物与车辆【占位；行人/工作人员 + 轿车/SUV/接驳车/货车/自行车，少量高复用变体；车辆复用 preset 车身色；全新资产域，立项过 Research Gate + Family 判定】
 - [ ] T027 自然小物【占位；景观石/岩石/树桩等】
-- [ ] T028 建筑/设备【占位；扩充终段】
+- [ ] T028 建筑/设备【占位；扩充终段；设备候选清单见 docs/research/facility-device-candidates.md §2（生产时机可按需提前——穿插排期 Q13 待定；偏建筑候选廊架/岗亭/配电柜届时重裁归属）】
 - [ ] T017 多边形区域生成重构 · Feature Generator 体系（启动前独立拷问门 D21）【占位】
 
 ## Done
