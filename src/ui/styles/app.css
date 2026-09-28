@@ -2053,80 +2053,14 @@ body.ed-dragging .ed-app {
   flex: none;
 }
 
-/* 展开态主体：左分类纵栏 + 右资产网格（紧凑态整块 display:none 挂起） */
+/* 展开态主体：资产网格占满（T022 删左分类纵栏后单子项，紧凑态整块 display:none 挂起） */
 .ed-browser__body {
   flex: 1 1 0;
   min-height: 0;
   display: none;
 }
 .ed-browser--expanded .ed-browser__body {
-  display: flex;
-}
-.ed-browser__rail {
-  flex: none;
-  width: 148px;
-  min-height: 0;
-  overflow-y: auto;
-  padding: var(--sp-2) var(--sp-2) var(--sp-4);
-  border-right: 1px solid var(--line-1);
-}
-.ed-browser__rail-item {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  width: 100%;
-  height: var(--row-h);
-  padding: 0 var(--sp-2);
-  background: transparent;
-  border: none;
-  border-left: 2px solid transparent;
-  border-radius: 0 var(--radius-1) var(--radius-1) 0;
-  color: var(--ink-2);
-  font-size: var(--text-xs);
-  text-align: left;
-  cursor: pointer;
-  transition:
-    background-color var(--dur-1) var(--ease),
-    color var(--dur-1) var(--ease),
-    border-color var(--dur-1) var(--ease);
-}
-.ed-browser__rail-item:hover {
-  background: var(--surface-3);
-  color: var(--ink-1);
-}
-.ed-browser__rail-item:focus-visible {
-  outline: none;
-  box-shadow: var(--accent-glow);
-}
-/* 当前分类 = 琥珀左线 + soft 底（「正在被操作」，与树行/芯片同语义） */
-.ed-browser__rail-item--active,
-.ed-browser__rail-item--active:hover {
-  background: var(--accent-soft);
-  border-left-color: var(--accent);
-  color: var(--ink-1);
-}
-.ed-browser__rail-dot {
-  flex: none;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-}
-.ed-browser__rail-label {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.ed-browser__rail-count {
-  flex: none;
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  font-size: 9px;
-  color: var(--ink-3);
-}
-.ed-browser__rail-item--active .ed-browser__rail-count {
-  color: var(--accent);
+  display: grid;
 }
 .ed-browser__grid {
   flex: 1 1 0;
@@ -3755,32 +3689,6 @@ body.ed-dragging .ed-app {
 .ed-layer__merge-targets .ed-btn--ghost:hover {
   color: var(--accent);
   border-color: var(--accent-line);
-}
-
-/* 内容浏览器展开态标签/排序工具行（紧凑态不渲染） */
-.ed-browser__tags {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  padding: 0 var(--sp-4) var(--sp-2);
-  border-bottom: 1px solid var(--line-1);
-}
-.ed-browser__tags .ed-browser__chips {
-  flex: 1;
-  min-width: 0;
-}
-.ed-browser__tags .ed-chip {
-  cursor: pointer;
-}
-.ed-browser__sort {
-  display: flex;
-  flex: none;
-  align-items: center;
-  gap: var(--sp-2);
-}
-.ed-browser__sort .ed-select {
-  width: auto;
-  min-width: 72px;
 }
 
 /* 模板清单行（管理弹层）：名称 + 等宽计数 meta + 行尾图标按钮 */

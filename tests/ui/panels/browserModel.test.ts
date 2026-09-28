@@ -12,7 +12,8 @@
  *   text/plain 兜底、空白与缺失 → null）；
  * - 分类色标：categoryMarkColor 确定性（同输入同输出、不同分类可区分、任意 slug 不抛错）；
  * - DEV 分类过滤（T008.1）：visibleBrowserAssets 排除 category=dev（管线验证资产
- *   不进产品栏；分类/标签芯片随过滤上游同步排除）。
+ *   不进产品栏；分类芯片随过滤上游同步排除）。T022：标签芯片聚合与排序档随浏览器
+ *   简化删除（用例同删）。
  * 边界：纯函数 + 注入 storage，不渲染 DOM（vitest node 环境）；组件壳归浏览器目检。
  */
 import { describe, expect, it } from 'vitest';
@@ -23,7 +24,6 @@ import {
   BROWSER_CATEGORY_FAVORITES,
   FAVORITES_STORAGE_KEY,
   buildCategories,
-  buildTagChips,
   categoryMarkColor,
   filterAssets,
   isAssetDrag,
@@ -31,7 +31,6 @@ import {
   loadFavoriteIds,
   parseAssetDragId,
   saveFavoriteIds,
-  sortAssets,
   toggleFavorite,
   visibleBrowserAssets,
 } from '../../../src/ui/panels/browserModel';
@@ -260,99 +259,6 @@ describe('categoryMarkColor：分类色标（确定性）', () => {
   });
 });
 
-// ── T8.3：标签芯片筛选 + 排序 ─────────────────────────────
-
-describe('filterAssets：标签筛选（T8.3，与分类/搜索 AND 叠加）', () => {
-  const pavilion = makeAsset({ id: 'a1', name: '凉亭', category: 'building', tags: ['建筑', '亭'] });
-  const tree = makeAsset({ id: 'a2', name: '行道树', category: 'plant', tags: ['植物', '行道'] });
-  const bench = makeAsset({ id: 'a3', name: '长椅', category: 'furniture', tags: ['设施', '座椅'] });
-
-  it('单标签：命中含该标签的全部资产（跨分类）', () => {
-    const hits = filterAssets([pavilion, tree, bench], { tag: '建筑' });
-    expect(hits.map((a) => a.id)).toEqual(['a1']);
-  });
-
-  it('标签 × 分类 AND 叠加', () => {
-    const hits = filterAssets([pavilion, tree], { tag: '植物', category: 'plant' });
-    expect(hits.map((a) => a.id)).toEqual(['a2']);
-    expect(filterAssets([pavilion, tree], { tag: '植物', category: 'building' })).toEqual([]);
-  });
-
-  it('标签 × 搜索 AND 叠加（搜索仍命中 name/tags）', () => {
-    const hits = filterAssets([pavilion, tree], { tag: '亭', query: '凉' });
-    expect(hits.map((a) => a.id)).toEqual(['a1']);
-    expect(filterAssets([pavilion, tree], { tag: '亭', query: '树' })).toEqual([]);
-  });
-
-  it('未指定标签 → 不过滤（向后兼容）', () => {
-    expect(filterAssets([pavilion, tree], {})).toHaveLength(2);
-  });
-
-  it('无命中标签 → 空结果（不抛错）', () => {
-    expect(filterAssets([pavilion], { tag: '不存在' })).toEqual([]);
-  });
-});
-
-describe('buildTagChips：标签聚合（T8.3）', () => {
-  it('全资产 tags 聚合去重 + 计数，顺序 = 首次出现序', () => {
-    const a = makeAsset({ id: 'a1', tags: ['建筑', '亭'] });
-    const b = makeAsset({ id: 'a2', tags: ['植物', '建筑'] });
-    const chips = buildTagChips([a, b]);
-    expect(chips).toEqual([
-      { tag: '建筑', count: 2 },
-      { tag: '亭', count: 1 },
-      { tag: '植物', count: 1 },
-    ]);
-  });
-
-  it('同一资产内重复标签只计一次；空标签串不产出芯片', () => {
-    const a = makeAsset({ id: 'a1', tags: ['灯', '灯', ''] });
-    expect(buildTagChips([a])).toEqual([{ tag: '灯', count: 1 }]);
-  });
-
-  it('空清单 / 全空 tags → 空芯片集', () => {
-    expect(buildTagChips([])).toEqual([]);
-    expect(buildTagChips([makeAsset({ id: 'a1', tags: [] })])).toEqual([]);
-  });
-});
-
-describe('sortAssets：排序下拉（T8.3，面板会话态）', () => {
-  const pavilion = makeAsset({ id: 'a1', name: '凉亭', category: 'building' });
-  const tree = makeAsset({ id: 'a2', name: '行道树', category: 'plant' });
-  const bench = makeAsset({ id: 'a3', name: '长椅', category: 'furniture' });
-
-  it('default → 保持传入顺序（现状序）', () => {
-    expect(sortAssets([pavilion, tree, bench], 'default').map((a) => a.id)).toEqual([
-      'a1',
-      'a2',
-      'a3',
-    ]);
-  });
-
-  it('name → 按名称字典序（码点序，跨环境确定性；不依赖 ICU 整理数据）', () => {
-    // 输入打乱（长椅/行道树/凉亭）→ 码点序：凉(U+51C9) < 行(U+884C) < 长(U+957F)
-    expect(sortAssets([bench, tree, pavilion], 'name').map((a) => a.id)).toEqual([
-      'a1',
-      'a2',
-      'a3',
-    ]);
-    // ASCII 大小写：大写码点在前（确定性）
-    const upper = makeAsset({ id: 'u', name: 'Zeta' });
-    const lower = makeAsset({ id: 'l', name: 'alpha' });
-    expect(sortAssets([lower, upper], 'name').map((a) => a.id)).toEqual(['u', 'l']);
-  });
-
-  it('category → 按分类首现序归组，组内保持原序（稳定）', () => {
-    // 传入顺序 plant 在前、building 其次、furniture 最后 → 组间按首现序
-    expect(sortAssets([tree, pavilion, bench, tree], 'category').map((a) => a.id)).toEqual([
-      'a2',
-      'a2',
-      'a1',
-      'a3',
-    ]);
-  });
-});
-
 describe('混排（T002.2，D7/D13）：GLB 与程序化条目一视同仁', () => {
   /** 混排夹具：2 GLB（makeAsset，带 categoryLabel）+ 2 程序化（BrowserAsset 字面量——D17 meta 形态：无 file/metadata/thumbnail） */
   const MIXED: BrowserAsset[] = [
@@ -400,13 +306,6 @@ describe('混排（T002.2，D7/D13）：GLB 与程序化条目一视同仁', () 
     ]);
   });
 
-  it('标签筛选跨 kind 聚合命中（GLB 与程序化共享标签空间）', () => {
-    expect(filterAssets(MIXED, { tag: '设施' }).map((a) => a.id)).toEqual([
-      'asset_trashbin',
-      'asset_bench',
-    ]);
-  });
-
   it('收藏过滤：程序化 id 与 GLB id 同一收藏集合', () => {
     const favoriteIds = new Set(['asset_trashbin', 'asset_car']);
     expect(filterAssets(MIXED, { favoritesOnly: true, favoriteIds }).map((a) => a.id)).toEqual([
@@ -420,22 +319,6 @@ describe('混排（T002.2，D7/D13）：GLB 与程序化条目一视同仁', () 
       { key: 'building', label: '建筑', count: 1 },
       { key: 'facility', label: 'facility', count: 2 },
       { key: 'vehicle', label: '车辆', count: 1 },
-    ]);
-  });
-
-  it('buildTagChips：程序化 tags 与 GLB tags 同一聚合（首现序）', () => {
-    const chips = buildTagChips(MIXED);
-    expect(chips.find((c) => c.tag === '设施')).toEqual({ tag: '设施', count: 2 });
-    expect(chips.map((c) => c.tag)).toEqual(['建筑', 'pavilion', '设施', 'trashbin', '车辆']);
-  });
-
-  it('sortAssets：name 字典序混排生效（两种 kind 交错归位）', () => {
-    // 码点序：凉(U+51C9) < 垃(U+5783) < 轿(U+8F7C) < 长(U+957F)——GLB/程序化交错
-    expect(sortAssets(MIXED, 'name').map((a) => a.id)).toEqual([
-      'asset_pavilion',
-      'asset_trashbin',
-      'asset_car',
-      'asset_bench',
     ]);
   });
 });
@@ -460,9 +343,8 @@ describe('DEV 分类过滤（T008.1：管线验证资产不进产品栏）', () 
     ]);
   });
 
-  it('过滤上游一处生效：分类芯片与标签芯片均不含 dev 条目', () => {
+  it('过滤上游一处生效：分类芯片不含 dev 条目', () => {
     const visible = visibleBrowserAssets(WITH_DEV);
     expect(buildCategories(visible).map((c) => c.key)).not.toContain('dev');
-    expect(buildTagChips(visible).map((c) => c.tag)).not.toContain('seedstack');
   });
 });

@@ -20,13 +20,13 @@
 
 ### 2.1 两档结构（推荐结构不是契约，D20.3）
 
-**最小结构 = 单文件**（现行 10 个简单资产均为此档）：
+**最小结构 = 单文件**（现行 6 个简单资产均为此档；T022 删 v1 四低模植物后 10→6）：
 
 ```
 src/runtime/procedural/assets/<name>.asset.ts   // meta + build 同文件（~65–130 行）
 ```
 
-材质可直接复用共享配方库 `procedural/materials/`（plantMaterials / facilityMaterials），不必自建。
+材质可直接复用共享配方库 `procedural/materials/`（facilityMaterials；原 plantMaterials 已随 T022 四低模植物删除——植物族走各族 `tree/<asset>/*Materials` 独立配方键系），不必自建。
 
 **推荐结构 = 四文件**（复杂资产：多级结构生成器、专属 Shader 配方、形态参数面、LOD 派生——以夏栎为第一实例）：
 

@@ -16,10 +16,10 @@ import {
 
 const RECIPE: ScatterRecipe = {
   assets: [
-    { assetId: 'asset_oak', weight: 40 },
-    { assetId: 'asset_pine', weight: 30 },
+    { assetId: 'asset_tree_3a', weight: 40 },
+    { assetId: 'asset_tree_celtis', weight: 30 },
     { assetId: 'asset_bush', weight: 20 },
-    { assetId: 'asset_flower', weight: 10 },
+    { assetId: 'asset_tree_zelkova', weight: 10 },
   ],
   densityPerM2: 0.02,
   clustering: 0.3,
@@ -91,11 +91,11 @@ describe('scatterAssetShares：配比折算百分比', () => {
   it('覆写配比整表替换 → 按新表折算', () => {
     const shares = scatterAssetShares(RECIPE, {
       'scatter.assets': [
-        { assetId: 'asset_oak', weight: 3 },
+        { assetId: 'asset_tree_3a', weight: 3 },
         { assetId: 'asset_bush', weight: 1 },
       ],
     });
-    expect(shares.map((s) => `${s.assetId}:${s.percent}`)).toEqual(['asset_oak:75', 'asset_bush:25']);
+    expect(shares.map((s) => `${s.assetId}:${s.percent}`)).toEqual(['asset_tree_3a:75', 'asset_bush:25']);
   });
 
   it('全无效配比 → 空行（与撒点空结果同口径）', () => {

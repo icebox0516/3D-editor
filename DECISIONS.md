@@ -32,10 +32,10 @@ Status 四值：**有效**（当前依据；条内自足的行内修订仍属有
 | D16 | 部分取代 | 会话粒度 / 进度记录不变；验收分级「三重门槛全绿」子句经 D40 改判据式触发（历史原文保留）；验收口径另经 D23.7 人工门例外 + D30 分层细化 | 任务粒度 = 会话粒度 | `2026-09-16 · D16 任务粒度 = 会话粒度（grilling 会话裁定）` |
 | D17 | 部分取代 | 第 2 项 build 签名已由 D19.2 扩为可选参（缓存键升 sourceKey）——实由 D19 修订；其余条款仍有效 | 资产注册与生成契约 | `2026-09-16 · D17 程序化资产注册与生成契约（T002.1 grill 拷问门裁定）` |
 | D18 | 有效 | 四项议题未获用户应答，按推荐默认执行、可否决后修订 | Style 配方结构与序列化 | `2026-09-16 · D18 Style 配方结构与序列化（T003.3 grill 拷问门裁定）` |
-| D19 | 有效 | 裁 003.4 返工分叉作废 / T003 冻结；修订 D17.2 与 D12；008.5 定位经 D20 修订 | 形态变体契约与 3A 树木路线 | `2026-09-17 · D19 程序化形态变体契约与 3A 树木路线（T008 开工 grill 拷问门裁定）` |
+| D19 | 部分取代 | 裁 003.4 返工分叉作废 / T003 冻结；修订 D17.2 与 D12；008.5 定位经 D20 修订；第 1 条「v1 四植物不动」子句经 D42 废止（四资产已删，「设施资产不动」与其余条款不变） | 形态变体契约与 3A 树木路线 | `2026-09-17 · D19 程序化形态变体契约与 3A 树木路线（T008 开工 grill 拷问门裁定）` |
 | D20 | 有效 | — | 植物资产路线立项 | `2026-09-18 · D20 植物资产路线立项（T008 增补 + T009/T010 立项 grill，三轮拷问 + 两轮修正）` |
 | D21 | 有效 | — | 双通路原则 | `2026-09-18 · D21 双通路原则：固定资产放置 vs 边界驱动生成` |
-| D22 | 有效 | — | 资产分类三级可寻址 | `2026-09-18 · D22 资产分类契约方向：大类 + family + asset 三级可寻址` |
+| D22 | 部分取代 | 三级可寻址的分类契约面仍有效（值域/配对/映射整表锁）；「T16 三级浏览」消费面经 D42 修正——family 纯元数据（消费者 = 契约测试） | 资产分类三级可寻址 | `2026-09-18 · D22 资产分类契约方向：大类 + family + asset 三级可寻址` |
 | D23 | 有效 | 修正 D17/D11 历史表述（正文不回改）；第 7 条为 D16 人工门例外补充 | LOD 职责澄清与注释纪律 | `2026-09-18 · D23 LOD 职责澄清与契约注释纪律（修正 D17/D11 历史表述，append-only 不回改）` |
 | D24 | 有效 | — | 文档五件套职责收敛 | `2026-09-18 · D24 文档五件套职责收敛：状态与依赖的单一真相源` |
 | D25 | 有效 | 声明「默认假设」块第 4 条（threejs-expert 派发）失效 | 多 Agent 按 Step 派发 | `2026-09-18 · D25 多 Agent 按 Step 动态派发` |
@@ -56,6 +56,7 @@ Status 四值：**有效**（当前依据；条内自足的行内修订仍属有
 | D39 | 有效 | 018.5 验收收口裁定；索引行系主代理 2026-09-23 补登（收官会话漏登——同步规则首个实测失败例） | 过曝处置：显示域压缩 | `2026-09-23 · D39 T018 过曝处置：显示域压缩选定，tone mapping 重审弃选（018.5 验收收口裁定）` |
 | D40 | 有效 | — | 任务执行体系收敛 | `2026-09-23 · D40 任务执行体系收敛：Lean Task + read-set 白名单 + 测试纪律（T020 grilling 逐题裁定）` |
 | D41 | 有效 | — | LOD→Representation 运行体系（T021 立项） | `2026-09-23 · D41 LOD→Representation 运行体系（T021 立项：grilling 三轮 16 题裁定 + 独立对抗审核修正）` |
+| D42 | 有效 | 含 T016 取消与 D19 第 1 条四植物子句废止（D19/D22 索引行 Note 随动） | 资产库清理：浏览器一行大分类 + v1 四植物删除（T022） | `2026-09-28 · D42 资产库清理：浏览器一行大分类 + T016 取消 + v1 四植物删除（2026-09-24 共识会话用户裁定 + 同日审计修订，T022 执行落盘）` |
 
 ---
 
@@ -516,3 +517,15 @@ D26.2 六情形末条「spec 关键事实含 Unknown」收窄为：**关键事�
 
 **承载文件清单（生效依赖，可机械核对）**：`docs/procedural-assets/representation-runtime.md`（运行面真相源，新建）｜`docs/procedural-assets/lod-spec.md`（声明面收窄 + 五处过渡注）｜`tasks/021-lod-representation.md` + `021.0`–`021.8` 共十份（新建）｜`DECISIONS.md`（本条 + 索引行 D41 + D27/D28 Note 修订 + D28.2 行内注）｜`TASKS.md` / `PROGRESS.md`（T006/T006.6 收口 + T019 占位 + T021 挂行）｜`tasks/006.6-lod-reference-bounds.md` + `tasks/006-lod-chunking.md`（迁移处置记档）｜根目录 `lod升级.md`（迁移后删除）。
 
+
+## 2026-09-28 · D42 资产库清理：浏览器一行大分类 + T016 取消 + v1 四植物删除（2026-09-24 共识会话用户裁定 + 同日审计修订，T022 执行落盘）
+
+**背景**：资产库正式扩充前清障（T022）。2026-09-24 资产库扩充方向共识会话用户裁定七项待裁决位；同日独立审计修订（P0×1 + P1×3——含 plantMaterials 两测试整删与 categoryMarkColor 保留的实事求正）；本条为一次记档。**待裁决位执行时不再复议。**
+
+1. **浏览器简化为 bar 一行**：只保留 `ed-browser__bar`（标题 + 命中读数 + 分类芯片行 + 搜索 + 双态钮 + 隐藏 ×）；`ed-browser__tags`（标签筛选 + 排序下拉，排序能力一并移除不保留）与 `ed-browser__rail`（左分类纵栏）全删；展开态资产网格占满 body。bar 分类键维持现状——程序化 `meta.category` + GLB 目录 slug 混排自动派生、零手写表；不迁移 taxonomy 八大类值域。持久化 `workspaceStore.browser.category` + `selectCategory` 保留给 bar；`browser.search / browser.expanded` 不动。
+2. **T016 资产管理器取消**：浏览器一行大分类即终态。混排分栏不一致为**接受终态**显式记档：程序化 facility 单栏 vs GLB 细分三栏并存、英文 slug 与中文 label 同排、首现序排序均接受。
+3. **taxonomy 口径修正**（D22 消费面随动）：大类仍经 `meta.category` 约束浏览器分栏值域；family 降为纯元数据（消费者 = 契约测试 + 必填声明，值随各族落地继续补）；metadata-taxonomy.md T016 失真面同步（§1 消费者列 / §6 降为策略记档 / §8 禁则行）。
+4. **v1 四低模植物删除**（flower/shrub/oak/pine）：纯删除不留替补——13 种乔木四档表示已覆盖用途。**D19 第 1 条「v1 四植物不动」子句废止**（第 1 条「设施资产不动」与 D19 其余条款——build 参数化 / 三流域 seed / sourceKey 锁定链——均不变，不作整条废止表述）。`plantMaterials.ts` 模块整体删除（七配方消费者 = 且仅 = 四个已删资产，删后零消费者孤儿）；plantAssets / plantMaterials 两测试文件**整文件删除**（零可 salvage——现役树走 `tree/<asset>/*Materials` 独立配方键系，fixture 替换不可行）。
+5. **不动面**：`.ed-chip` 共享样式（RegionQuickApply / BatchRenameDialog / ContextToolbar / ContextActions 共用）；`categoryMarkColor` 保留（资产卡片 `__cat-dot` 仍消费）；`buildCategories` / 收藏过滤（经 bar）保留；asset-research SKILL.md §3 照片槽示例标注「树族当前值」收口。
+
+**承载文件清单（生效依赖，可机械核对）**：`src/ui/panels/ContentBrowser.tsx` + `browserModel.ts`（删标签/排序/纵栏）｜`src/ui/styles/app.css` + `DESIGN.md`（rail/tags 样式块删 + §5.8 规格三行并一行）｜四资产 `.asset.ts` + `materials/plantMaterials.ts` + `plantAssets.test.ts` / `plantMaterials.test.ts`（删除）｜引用测试八文件（bootstrap / phase1 / assetTaxonomy / shapeFamily / sceneSerializer / StylePresetRegistry / ScatterParamsForm / treeCanopyChain）｜`docs/procedural-assets/metadata-taxonomy.md` + `organization.md`（§2.1 计数 10→6）｜`DECISIONS.md`（本条 + 索引行 D19/D22 Note 修订）｜`TASKS.md`（T003.4 终态收口）｜`tasks/003-scatter-styles.md`（引用行删除记注）｜`.zcode/skills/asset-research/SKILL.md`（§3 标注）。

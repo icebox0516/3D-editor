@@ -4,10 +4,9 @@
  * 双态结构：
  *   - 紧凑态（60px 默认）：单行 = 标题 + 命中读数 + 分类芯片行（全部/收藏/各分类，横向滚动）
  *     + 搜索框 + 展开钮 + 隐藏 ×；点芯片 = 选定分类并同时展开；输入搜索词自动展开。
- *   - 展开态（280px 目标高）：顶部行同紧凑态（展开钮转收起钮）+ 标签/排序工具行
- *     （T8.3：manifest tags 聚合芯片点击切换筛选，与分类/搜索 AND 叠加 + 排序下拉
- *     默认/名称/分类；会话态不入持久化）+ 左分类纵栏（含计数）+ 右资产网格卡片
- *     （缩略图 + 名称 + 分类色标 + 收藏星标）。
+ *   - 展开态（280px 目标高）：顶部行同紧凑态（展开钮转收起钮）+ 资产网格卡片
+ *     （缩略图 + 名称 + 分类色标 + 收藏星标），网格占满 body（T022：标签行与
+ *     左分类纵栏已删，分类切换只走 bar 芯片一行）。
  * 交互：
  *   - 点击卡片 → onPick（组合根激活 placement 工具；随机采样语义在工具内，本面板不感知）；
  *   - 拖拽卡片 → dragstart 写 dataTransfer（application/x-asset-id + text/plain 兜底），
@@ -16,7 +15,7 @@
  *     添加到场景 = 点击放置同路，其余项 P1 占位禁用）；
  *   - 收藏星标 → localStorage 持久化（browserModel 唯一真相源）。
  * 混排（T002.2，D7/D13）：数据源 = 统一 AssetDescriptor（GLB file 与程序化 procedural
- *   同库混排，过滤/搜索/标签/收藏对两者一视同仁）；程序化卡片左上角 kind 角标区分来源
+ *   同库混排，过滤/搜索/收藏对两者一视同仁）；程序化卡片左上角 kind 角标区分来源
  *   （仅视觉标注，无功能隔离），缩略图 = 组合根离屏快照回填（proceduralThumbnails prop），
  *   未就绪/失败时首字形占位兜底（不阻塞浏览）。
  * 边界：只读 store 与 props（UI 边界 #11）；双态/分类/搜索存 workspaceStore.browser
@@ -37,15 +36,13 @@ import {
   BROWSER_CATEGORY_FAVORITES,
   assetCategoryLabel,
   buildCategories,
-  buildTagChips,
   categoryMarkColor,
   filterAssets,
   isBrowserExpanded,
   loadFavoriteIds,
-  sortAssets,
   toggleFavorite,
 } from './browserModel';
-import type { AssetSortKey, BrowserAsset } from './browserModel';
+import type { BrowserAsset } from './browserModel';
 
 /** 混排卡片视图条目：BrowserAsset 公共面 + 渲染附加（kind 标注 + 缩略图归一） */
 interface BrowserEntry extends BrowserAsset {
@@ -64,9 +61,6 @@ interface ContentBrowserProps {
   /** 隐藏所在面板组（底部浏览器行整组收起；恢复经上下文条开关）。由装配层注入 */
   onHideZone?: () => void;
 }
-
-/** 筛选选中项：全部 / 收藏 / 具体分类 key（哨兵值见 browserModel） */
-type RailSelection = typeof BROWSER_CATEGORY_ALL | typeof BROWSER_CATEGORY_FAVORITES | string;
 
 /** 名称首字（占位字形，缩略图缺失时的兜底） */
 function initialChar(name: string): string {
@@ -97,18 +91,13 @@ export function ContentBrowser({
   const setBrowserCategory = useWorkspaceStore((s) => s.setBrowserCategory);
   const setBrowserSearch = useWorkspaceStore((s) => s.setBrowserSearch);
 
-  const rail: RailSelection = browser.category;
   const expanded = isBrowserExpanded(browser.expanded, bottomHeight);
 
   // 收藏真相源 localStorage：初始一次读入，切换即持久化（不进 zustand——面板私有状态）
   const [favoriteIds, setFavoriteIds] = useState(() => loadFavoriteIds());
-  /** 标签筛选（T8.3：面板会话态，不入持久化；null = 不筛） */
-  const [tagFilter, setTagFilter] = useState<string | null>(null);
-  /** 排序档（T8.3：面板会话态，不入持久化） */
-  const [sortKey, setSortKey] = useState<AssetSortKey>('default');
 
   /** 混排视图条目：描述符解包（公共面 + kind + 缩略图归一）；BrowserEntry 结构兼容 BrowserAsset。
-   *  DEV 分类先过滤（T008.1：管线验证资产不进产品栏——列表/分类/标签芯片共用 entries） */
+   *  DEV 分类先过滤（T008.1：管线验证资产不进产品栏——列表/分类芯片共用 entries） */
   const entries = useMemo<BrowserEntry[]>(
     () =>
       assets
@@ -122,24 +111,22 @@ export function ContentBrowser({
   );
 
   const categories = useMemo(() => buildCategories(entries), [entries]);
-  const tagChips = useMemo(() => buildTagChips(entries), [entries]);
   const favoriteCount = useMemo(
     () => entries.reduce((n, a) => n + (favoriteIds.has(a.id) ? 1 : 0), 0),
     [entries, favoriteIds],
   );
   const visible = useMemo(
     () =>
-      sortAssets(
-        filterAssets(entries, {
-          query: browser.search,
-          category: rail === BROWSER_CATEGORY_FAVORITES ? BROWSER_CATEGORY_ALL : rail,
-          favoritesOnly: rail === BROWSER_CATEGORY_FAVORITES,
-          favoriteIds,
-          tag: tagFilter ?? undefined,
-        }),
-        sortKey,
-      ),
-    [entries, browser.search, rail, favoriteIds, tagFilter, sortKey],
+      filterAssets(entries, {
+        query: browser.search,
+        category:
+          browser.category === BROWSER_CATEGORY_FAVORITES
+            ? BROWSER_CATEGORY_ALL
+            : browser.category,
+        favoritesOnly: browser.category === BROWSER_CATEGORY_FAVORITES,
+        favoriteIds,
+      }),
+    [entries, browser.search, browser.category, favoriteIds],
   );
 
   const onToggleStar = (assetId: string): void => {
@@ -147,7 +134,7 @@ export function ContentBrowser({
   };
 
   /** 选中一个分类：紧凑态点芯片 = 选分类并同时展开（任务书 21 章）；展开态仅切换 */
-  const selectCategory = (key: RailSelection): void => {
+  const selectCategory = (key: string): void => {
     setBrowserCategory(key);
     if (!expanded) setBrowserExpanded(true);
   };
@@ -164,36 +151,16 @@ export function ContentBrowser({
     e.dataTransfer.effectAllowed = 'copy';
   };
 
-  const chip = (key: RailSelection, label: string, count: number) => (
+  const chip = (key: string, label: string, count: number) => (
     <button
       type="button"
       key={key}
-      className={`ed-chip${rail === key ? ' ed-chip--active' : ''}`}
-      aria-pressed={rail === key}
+      className={`ed-chip${browser.category === key ? ' ed-chip--active' : ''}`}
+      aria-pressed={browser.category === key}
       onClick={() => selectCategory(key)}
     >
       <span className="ed-chip__label">{label}</span>
       <span className="ed-chip__count">{count}</span>
-    </button>
-  );
-
-  const railItem = (key: RailSelection, label: string, count: number) => (
-    <button
-      type="button"
-      key={key}
-      className={`ed-browser__rail-item${rail === key ? ' ed-browser__rail-item--active' : ''}`}
-      aria-pressed={rail === key}
-      onClick={() => selectCategory(key)}
-    >
-      {key !== BROWSER_CATEGORY_ALL && key !== BROWSER_CATEGORY_FAVORITES && (
-        <span
-          className="ed-browser__rail-dot"
-          style={{ backgroundColor: categoryMarkColor(key) }}
-          aria-hidden="true"
-        />
-      )}
-      <span className="ed-browser__rail-label">{label}</span>
-      <span className="ed-browser__rail-count">{count}</span>
     </button>
   );
 
@@ -246,54 +213,8 @@ export function ContentBrowser({
         ) : null}
       </div>
 
-      {/* 展开态工具行（T8.3）：标签芯片（聚合去重，点击切换筛选，与分类/搜索 AND 叠加）
-          + 排序下拉；紧凑态不渲染（现状回归零） */}
-      {expanded ? (
-        <div className="ed-browser__tags" role="group" aria-label="标签筛选与排序">
-          <div className="ed-browser__chips" aria-label="标签筛选">
-            {tagChips.map((chip) => (
-              <button
-                type="button"
-                key={chip.tag}
-                className={`ed-chip${tagFilter === chip.tag ? ' ed-chip--active' : ''}`}
-                aria-pressed={tagFilter === chip.tag}
-                title={tagFilter === chip.tag ? `清除标签筛选「${chip.tag}」` : `筛选标签「${chip.tag}」（与分类/搜索叠加）`}
-                onClick={() => setTagFilter(tagFilter === chip.tag ? null : chip.tag)}
-              >
-                <span className="ed-chip__label">{chip.tag}</span>
-                <span className="ed-chip__count">{chip.count}</span>
-              </button>
-            ))}
-            {tagChips.length === 0 ? <span className="ed-readout">清单未含标签</span> : null}
-          </div>
-          <div className="ed-browser__sort">
-            <label className="ed-field__label" htmlFor="browser-sort">
-              排序
-            </label>
-            <div className="ed-select-wrap">
-              <select
-                id="browser-sort"
-                className="ed-input ed-select"
-                value={sortKey}
-                aria-label="资产排序"
-                onChange={(e) => setSortKey(e.target.value as AssetSortKey)}
-              >
-                <option value="default">默认</option>
-                <option value="name">名称</option>
-                <option value="category">分类</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {/* 展开态主体：左分类纵栏（含计数）+ 右资产网格 */}
+      {/* 展开态主体：资产网格（T022：标签/排序工具行与左分类纵栏已删，占满 body） */}
       <div className="ed-browser__body">
-        <div className="ed-browser__rail" role="group" aria-label="分类列表">
-          {railItem(BROWSER_CATEGORY_ALL, '全部', entries.length)}
-          {railItem(BROWSER_CATEGORY_FAVORITES, '收藏', favoriteCount)}
-          {categories.map((c) => railItem(c.key, c.label, c.count))}
-        </div>
         <div className="ed-browser__grid">
           {entries.length === 0 ? (
             <div className="ed-empty">

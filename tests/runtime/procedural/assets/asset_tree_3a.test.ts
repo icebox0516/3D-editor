@@ -71,7 +71,7 @@ describe('meta 契约', () => {
     expect(meta.tags.length).toBeGreaterThan(0);
   });
 
-  it('variants 参照 asset_oak 量级 / levels 三档 high|mid|low（D27 最小化声明）/ triangleCount 实数声明', () => {
+  it('variants 乔木族通用量级 / levels 三档 high|mid|low（D27 最小化声明）/ triangleCount 实数声明', () => {
     expect(meta.variants).toEqual({ scaleJitter: 0.16, rotationJitter: 180, hueJitter: 9 });
     expect(meta.levels).toEqual([{ id: 'high' }, { id: 'mid' }, { id: 'low' }]); // T009.6：首版最小化 [{id}]——阈值归 Runtime 常量不进 Profile
     expect(meta.triangleCount).toBe(35058); // T009.2：皮 20724 恒定 + slot-0 叶簇卡 7167×2（簇级剔除 + 通透规则确定值；多档起声明面取 High 细模档）

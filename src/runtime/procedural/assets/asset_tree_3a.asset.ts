@@ -68,7 +68,7 @@ export const meta: ProceduralAssetMeta = {
   defaultScale: { x: 1, y: 1, z: 1 },
   defaultRotation: { x: 0, y: 0, z: 0 },
   shapeFamily: { size: 8 }, // D19：8 形态槽（本任务只做 slot-0 锚点；跨槽差异归 008.5）
-  variants: { scaleJitter: 0.16, rotationJitter: 180, hueJitter: 9 }, // 参照 asset_oak 量级
+  variants: { scaleJitter: 0.16, rotationJitter: 180, hueJitter: 9 }, // 乔木族通用量级（原参照 asset_oak，T022 删该资产后改族口径）
   triangleCount: 35058, // 实数 = slot-0 锚点 High 档结构计数（皮 20724 恒定 + 叶簇卡 7167×2，簇级剔除 + 冠内通透规则确定；多档起声明面取细模档；见完成记录）
   levels: [{ id: 'high' }, { id: 'mid' }, { id: 'low' }], // LOD 三档（T009.6 夏栎内容交付；D27 首版最小化 [{id}]——阈值归 Runtime 常量，不进 Profile）
   // Runtime 表示能力声明（T021.7 接线，D41 §三.2）：乔木 canopy 链 High → Mid → Canopy →

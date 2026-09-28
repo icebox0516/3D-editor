@@ -112,7 +112,7 @@ describe('scatter 散布配方段（T003.3/D18：同构两段可选）', () => {
     const registry = new StylePresetRegistry();
     const scatter = {
       assets: [
-        { assetId: 'asset_oak', weight: 40 },
+        { assetId: 'asset_tree_3a', weight: 40 },
         { assetId: 'asset_bush', weight: 30 },
       ],
       densityPerM2: 0.02,

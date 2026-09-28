@@ -1,6 +1,6 @@
 # T022 资产库清理（浏览器简化 + 低模植物删除 + 记档）
 
-状态：pending ｜ 立项 2026-09-24（资产库扩充方向共识会话，用户确认）
+状态：done 2026-09-28 ｜ 立项 2026-09-24（资产库扩充方向共识会话，用户确认）
 
 ## Goal
 
@@ -67,4 +67,15 @@ Status: waived — Reason: 清理任务，非程序化资产生产，无现实�
 
 ## 取证路径
 
-`docs/acceptance/T022/`（独立任务，无 epic）
+`docs/acceptance/T022/`
+
+## 完成记录
+
+**2026-09-28 执行（主代理直接交付——清理类任务无渲染实质修改；七项待裁决位按 2026-09-24 共识执行零复议）——完成，三门槛 4159 全绿。**
+
+- **A 浏览器简化**：ContentBrowser.tsx 删 `RailSelection`/`rail`/`tagFilter`/`sortKey`/`tagChips`/`railItem` 与标签排序 JSX（visible memo 收窄为纯 filterAssets，收藏分支直读 `browser.category`）；browserModel.ts 删 `buildTagChips`/`sortAssets`/`AssetSortKey` 与 `AssetFilter.tag` 参数（query 的 tags 命中按裁决 3「search 不动」保留）；app.css 删 rail 块（66 行）与 tags/sort 块（25 行）、body flex→grid（单子项占满）；DESIGN.md §5.8 三行规格并一行 bar 规格。`categoryMarkColor` 保留（`__cat-dot` 消费）。
+- **B 浏览器测试**：browserModel.test.ts 删标签筛选/buildTagChips/sortAssets 三 describe + 混排区标签与排序两用例 + DEV 断言收窄（首跑漏删混排标签用例一次，即改即过）；workspaceStore.test.ts 保留未动。
+- **C 四植物删除**：四 `.asset.ts` + `plantMaterials.ts` + `plantAssets.test.ts`/`plantMaterials.test.ts` 整删（七配方消费者 = 且仅 = 四资产，审计口径成立——树族文件内「沿 plantMaterials 范式」为注释溯源非导入，按任务书范围保留）；引用测试九文件更新（bootstrap 账目 23→19 + 字典序注释同步 / phase1 `+19` / assetTaxonomy 删 4 行 + 头注计数 / shapeFamily fixture 换 `asset_celtis`·`asset_trashbin` / sceneSerializer·StylePresetRegistry·ScatterParamsForm fixture 换现役树 id / treeCanopyChain 零变化锁删四植物〔任务书未点名的 T021.7 新增文件，import 已删模块必修〕/ tree_3a 两处「参照 asset_oak 量级」注释改族口径）。
+- **D 记档**：DECISIONS **D42 新条**（五项裁定 + 承载清单）+ 索引行 D42 新增 / D19 有效→部分取代（四植物子句废止 Note）/ D22 有效→部分取代（family 纯元数据 Note）；metadata-taxonomy.md T016 失真面六处同步（头注/§1 消费者列/判定口诀/§4 表尾注/§5 表删 4 行 + 记档块/§6 降策略记档/§8 禁则行）+ §3 plant 行计数随动（程序化 13 全 broadleaf、19 资产 meta）+ §4 conifer/shrub 消费者清零标注；organization.md §2.1 计数 10→6 + plantMaterials 引用改记档；003 任务书三处删除记注 + T003.4 勾选行终态 + 进度区收口行；asset-research SKILL.md §3 照片槽标注「树族当前值」。
+- **验收**：三门槛 `npm test` **4159 全绿**（273 文件；4243 − 净 84 = 删除用例）/ `check:layers` 625（−7 删除文件）/ `typecheck` 零错；视觉冒烟（DOM 断言 + 交互 + 截图）——bar 唯一 44px 单行、rail/tags/sort 零残留、网格 1280 占满、芯片切换实测（收藏 1/31 → 全部 31/31 → plant 16/31 = 13 乔木 + 3 GLB，删除后计数正确）、console 应用面零错误零警告（IAB 宿主 RUM 噪音记档排除）；存量场景冒烟（fiber 提取 EditorHandle → openScene 同链路）——含四已删 id 场景不崩溃、设计内降级 warn 各一条（实例不渲染）、对照 tree_3a 正常渲染、无 error/rejection；零残留检查全过。取证 `docs/acceptance/T022/`（README + 两帧）。
+- **执行偏差记档**：①treeCanopyChain.test.ts 为任务书立项后 T021.7 新增的引用方（任务书未点名），按「import 已删模块必修」处理，零变化锁用例同步精简；②视觉模型对宽图初判「工具条两行重复」经 DOM 仲裁推翻（barCount/titleCount=1、31 卡无重复）——读图伪影记档；③冒烟场景用 fiber 提取 facade 而非 file.open UI 入口（IAB 不支持文件选择器），链路等价（deserialize → openScene）。进程清理：5173 dev server 停止、验收标签关闭。（独立任务，无 epic）

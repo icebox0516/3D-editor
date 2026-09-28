@@ -109,7 +109,7 @@ describe('交叉独立性（D19.3 域分离锁定）', () => {
       morphSeedOf('asset_tree_3a', 1),
       morphSeedOf('asset_tree_3a', 2),
       morphSeedOf('asset_tree_3a', 3),
-      morphSeedOf('asset_shrub', 0),
+      morphSeedOf('asset_celtis', 0),
     ];
     expect(new Set(seeds).size).toBe(seeds.length);
   });
@@ -129,7 +129,7 @@ describe('交叉独立性（D19.3 域分离锁定）', () => {
 
 describe('sourceKeyOf 组装（缓存与池桶键单一真相源）', () => {
   it('无槽 → 纯 assetId', () => {
-    expect(sourceKeyOf('asset_shrub')).toBe('asset_shrub');
+    expect(sourceKeyOf('asset_trashbin')).toBe('asset_trashbin');
   });
 
   it('有槽 → assetId:slot-N', () => {

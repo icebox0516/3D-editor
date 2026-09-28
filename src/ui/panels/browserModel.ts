@@ -11,9 +11,9 @@
  *   - 拖放 mime 纯部分：ASSET_DRAG_MIME / isAssetDrag（dragover 只读 types）/ parseAssetDragId
  *     （mime 优先、text/plain 兜底）——卡片 dragstart 与 App drop 接线的共同约定；
  *   - 分类色标 categoryMarkColor：slug 哈希 → 确定性 HSL（数据编码色，非 UI 强调色）。
- * 混排（T002.2，D7/D13）：过滤/聚合/排序全部编程到 BrowserAsset（AssetCommonMeta 公共面
- *      + GLB 可选 metadata）——GLB（file）与程序化（procedural）条目一视同仁，kind 不参与
- *      任何检索语义（功能隔离零）。
+ * 混排（T002.2，D7/D13）：过滤/分类数据构建全部编程到 BrowserAsset（AssetCommonMeta
+ *      公共面 + GLB 可选 metadata）——GLB（file）与程序化（procedural）条目一视同仁，kind 不参与
+ *      任何检索语义（功能隔离零）。T022：标签芯片聚合与排序档随浏览器简化删除。
  * 边界：ui 层只依赖 domain 与本层 layout（分层 DAG）；storage 以最小结构注入（node 测试
  *      用 fake 模拟 localStorage），globalThis.localStorage 不可用时静默返回空集合（不抛错）。
  */
@@ -122,8 +122,6 @@ export interface AssetFilter {
   favoritesOnly?: boolean;
   /** 收藏集合（favoritesOnly 时生效） */
   favoriteIds?: ReadonlySet<string>;
-  /** 标签精确匹配（asset.tags 数组项；T8.3——与分类/搜索 AND 叠加；undefined → 不过滤） */
-  tag?: string;
 }
 
 /** 面板过滤：保持传入顺序（注册表顺序；GLB 与程序化混排不重排）。泛型保留调用方的元素类型（视图条目带 kind/缩略图） */
@@ -131,11 +129,9 @@ export function filterAssets<T extends BrowserAsset>(assets: readonly T[], filte
   const query = filter.query?.trim().toLowerCase() ?? '';
   const category = filter.category && filter.category !== BROWSER_CATEGORY_ALL ? filter.category : null;
   const favorites = filter.favoritesOnly ? filter.favoriteIds ?? new Set<string>() : null;
-  const tag = filter.tag !== undefined && filter.tag !== '' ? filter.tag : null;
   return assets.filter((asset) => {
     if (category !== null && asset.category !== category) return false;
     if (favorites !== null && !favorites.has(asset.id)) return false;
-    if (tag !== null && !asset.tags.includes(tag)) return false;
     if (query !== '') {
       const inName = asset.name.toLowerCase().includes(query);
       const inTags = asset.tags.some((t) => t.toLowerCase().includes(query));
@@ -178,64 +174,6 @@ export function buildCategories(assets: readonly BrowserAsset[]): AssetCategoryI
     const sample = assets.find((a) => a.category === key);
     return { key, label: sample ? assetCategoryLabel(sample) : key, count: byKey.get(key) ?? 0 };
   });
-}
-
-// ── 标签芯片（T8.3：manifest tags 聚合浏览；编辑/新增归生成侧非本任务）──
-
-/** 标签芯片项（点击切换筛选，与分类/搜索 AND 叠加） */
-export interface AssetTagChip {
-  tag: string;
-  count: number;
-}
-
-/** 全资产 tags 聚合去重 + 计数；顺序 = 标签首次出现序（资产序 × 资产内 tag 序）；空标签串不产出 */
-export function buildTagChips(assets: readonly BrowserAsset[]): AssetTagChip[] {
-  const order: string[] = [];
-  const counts = new Map<string, number>();
-  for (const asset of assets) {
-    const seen = new Set<string>(); // 同一资产内重复标签只计一次
-    for (const tag of asset.tags) {
-      if (tag === '' || seen.has(tag)) continue;
-      seen.add(tag);
-      const count = counts.get(tag);
-      if (count === undefined) {
-        order.push(tag);
-        counts.set(tag, 1);
-      } else {
-        counts.set(tag, count + 1);
-      }
-    }
-  }
-  return order.map((tag) => ({ tag, count: counts.get(tag) ?? 0 }));
-}
-
-// ── 排序（T8.3：面板会话态，不入持久化）────────────────────
-
-/** 排序档（默认（现状序）/ 名称 / 分类） */
-export type AssetSortKey = 'default' | 'name' | 'category';
-
-/**
- * 名称比较：字典序（Unicode 码点，形近字典部首归组）——刻意不用 localeCompare：
- * small-icu 运行时（node 测试环境）无中文整理数据会静默退化为另一序，跨环境
- * 行为不一致；字典序在任何环境确定性一致，且对中英混排稳定可预期。
- */
-function byName(a: BrowserAsset, b: BrowserAsset): number {
-  if (a.name < b.name) return -1;
-  if (a.name > b.name) return 1;
-  return 0;
-}
-
-/** 排序：default 保持传入序；name 按名称字典序；category 按分类首现序归组（组内原序，稳定排序）。泛型同 filterAssets */
-export function sortAssets<T extends BrowserAsset>(assets: readonly T[], key: AssetSortKey): T[] {
-  if (key === 'default') return [...assets];
-  if (key === 'name') return [...assets].sort(byName);
-  const order = new Map<string, number>();
-  for (const asset of assets) {
-    if (!order.has(asset.category)) order.set(asset.category, order.size);
-  }
-  return [...assets].sort(
-    (a, b) => (order.get(a.category) ?? 0) - (order.get(b.category) ?? 0),
-  );
 }
 
 // ── 双态派生 ───────────────────────────────────────────────

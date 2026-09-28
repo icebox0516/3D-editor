@@ -160,9 +160,8 @@
 
 | 组件 | 类名 | 要点 |
 |---|---|---|
-| 双态容器 | `.ed-browser`（`--expanded`） | 紧凑 60px 单行工具条（标题 + 计数读数 + 分类芯片行横向滚动 + 搜索框 + 双态钮 ▼/▲ + ×）↔ 展开 280px = 顶行 + 左分类纵栏 148px + 右资产网格；点芯片 = 选分类并展开，紧凑态输入搜索词自动展开；高度过渡复用 `.ed-app` grid-template-rows `--dur-2`（`body.ed-dragging` 禁用 / `prefers-reduced-motion` 降级已有） |
-| 分类芯片/纵栏 | `.ed-chip`（§5.2 既有）/ `.ed-browser__rail-item` | 纵栏 26px 行高 + 等宽计数，当前分类 = 琥珀左线 + soft 底（与大纲树行同语义）；分类哨兵 'all' / '__favorites__' |
-| 标签/排序工具行（T8.3 增补） | `.ed-browser__tags` `__chips/__sort` | 展开态顶行下第二行：manifest tags 聚合去重芯片（`.ed-chip` 复用 + 等宽计数，点击切换筛选、再点清除；与分类/搜索 AND 叠加；空 tags 清单显「清单未含标签」读数）+ 排序下拉（`.ed-select`：默认（现状序）/ 名称 / 分类——分类按首现序归组、组内稳定）；筛选与排序均面板会话态 useState 不入持久化；紧凑态整行不渲染（零回归）。名称排序 = Unicode 码点字典序（刻意不用 `localeCompare`——node small-icu 无中文整理数据静默退化，跨环境序不一致） |
+| 双态容器 | `.ed-browser`（`--expanded`） | 紧凑 60px 单行工具条（标题 + 计数读数 + 分类芯片行横向滚动 + 搜索框 + 双态钮 ▼/▲ + ×）↔ 展开 280px = 顶行 + 资产网格占满 body（T022：标签/排序工具行与左分类纵栏删除，分类切换只走 bar 芯片一行）；点芯片 = 选分类并展开，紧凑态输入搜索词自动展开；高度过渡复用 `.ed-app` grid-template-rows `--dur-2`（`body.ed-dragging` 禁用 / `prefers-reduced-motion` 降级已有） |
+| 分类芯片行 | `.ed-chip`（§5.2 既有） | bar 内分类切换（全部/收藏/各分类 + 等宽计数），当前分类 = 琥珀 soft 底（`--active`）；分类哨兵 'all' / '__favorites__' |
 | 资产卡片 | `.ed-card` `__main/__thumb/__name/__cat/__cat-dot/__star` | 网格 auto-fill `minmax(150px,1fr)`；卡片 = 缩略图（懒加载真实快照 / 首字符占位）+ 名称 + 分类色标（`categoryMarkColor`：slug 确定性哈希 → HSL，**数据编码色而非 UI 强调色**，不违反琥珀唯一性）+ 收藏星标（localStorage 沿用）；`draggable` grab/grabbing 光标；正在放置卡片琥珀边 + soft 底沿用 |
 | 拖放落点高亮 | `.ed-viewport--drop-target` | dragover 时 `::after` 2px `--accent-line` 描边 + `inset 0 0 24px` `--accent-soft` 内光，pointer-events:none（瞬时态琥珀语义）；dragleave/drop 移除 |
 | 退役登记 | `.ed-lib__*`、`.ed-asset-group*` | AssetLibraryPanel 收编退役；`--browser-h-compact/--expanded` 令牌已在 tokens.css，零新增 |

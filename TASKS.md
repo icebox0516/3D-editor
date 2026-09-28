@@ -8,6 +8,8 @@
 
 ## Done（近）
 
+- [x] T022 资产库清理（done 2026-09-28：浏览器一行大分类 + v1 四低模植物删除 + D42 记档；三门槛 4159 全绿）→ [tasks/022-asset-library-cleanup.md](tasks/022-asset-library-cleanup.md)
+
 - [x] T021 LOD → Representation 运行体系重构（9/9 epic 收官 2026-09-28；D41——运行面真相源 docs/procedural-assets/representation-runtime.md）→ [tasks/021-lod-representation.md](tasks/021-lod-representation.md)
   - [x] T021.8 标定与验收门（done 2026-09-28：九项标定全维持 + T006.6 Step 3 吸收〔平移量 ≤0.42%〕+ 六面验收全 PASS + 预算四线重锁〔DC 1500 / p95 10ms / tri 12M / shadow ≤15%〕+ 收官双修复〔koe X4000 / drawCallBudget 1500〕，4243 全绿）→ [tasks/021.8-calibration-acceptance.md](tasks/021.8-calibration-acceptance.md)
   - [x] T021.7 两链接线 + 编辑态 pin（done 2026-09-24）→ [tasks/021.7-wiring-editing-pin.md](tasks/021.7-wiring-editing-pin.md)
@@ -70,9 +72,9 @@
   - [x] T009.3 8 槽形态向量表（done 2026-09-18；用户裁定门定稿）→ [tasks/009.3-shape-slots.md](tasks/009.3-shape-slots.md)
   - [x] T009.4 树皮近景微起伏（done 2026-09-18）→ [tasks/009.4-bark-relief.md](tasks/009.4-bark-relief.md)
   - [x] T009.6 夏栎 LOD 三档（done 2026-09-19；预算锁定）→ [tasks/009.6-lod-levels.md](tasks/009.6-lod-levels.md)
-- [❄] T003 Scatter Styles（3/6；003.3 收官 2026-09-19，冻结其余——恢复入口见任务书）→ [tasks/003-scatter-styles.md](tasks/003-scatter-styles.md)
+- [❄] T003 Scatter Styles（3/6；003.3 收官 2026-09-19，冻结其余——恢复入口见任务书；003.4 终态收口 2026-09-28：v1 四植物资产已删〔T022/D42〕，无返工对象）→ [tasks/003-scatter-styles.md](tasks/003-scatter-styles.md)
   - [x] T003.3 Style 配方+序列化（done 2026-09-19）→ [tasks/003.3-style-recipe.md](tasks/003.3-style-recipe.md)
-  - [~] T003.4 植物资产 4 种（代码完成；返工升格 T008 路线〔D19〕，冻结）→ [tasks/003.4-plant-assets.md](tasks/003.4-plant-assets.md)
+  - [~] T003.4 植物资产 4 种（代码完成；资产已删 2026-09-28 T022——终态收口）→ [tasks/003.4-plant-assets.md](tasks/003.4-plant-assets.md)
   - [x] T003.2 分块实例化管线（done 2026-09-16）→ [tasks/003.2-chunk-pipeline.md](tasks/003.2-chunk-pipeline.md)
   - [x] T003.1 撒点纯函数（done 2026-09-16）→ [tasks/003.1-scatter-function.md](tasks/003.1-scatter-function.md)
 - [x] T002 Procedural Assets（5/5，epic 收官 2026-09-16）→ [tasks/002-procedural-assets.md](tasks/002-procedural-assets.md)
@@ -86,7 +88,6 @@
 
 > Next 仅表示已排入路线图的后续任务，不代表执行顺序；实际启动顺序由任务文件中的依赖、当前项目状态及有效架构裁定决定（D31.8）。
 
-- [ ] T022 资产库清理（浏览器一行大分类化 + 四低模植物删除 + plantMaterials 模块整体删除；记档：T016 取消 / **D19 第 1 条四植物子句废止** / taxonomy 口径修正 + metadata-taxonomy 失真面同步）→ [tasks/022-asset-library-cleanup.md](tasks/022-asset-library-cleanup.md)
 - [ ] T023 生产脊柱 spine 提取（spine + 方法剖面两层 / D36 边界句 + D30 最低可信证据原则记档 / **AGENTS「首例完整 SOP」两句同步**〔P0〕/ 新 workflow 创建纪律与 read-set 体积约束）→ [tasks/023-spine-extraction.md](tasks/023-spine-extraction.md)
 - [ ] T024 资产色卡预设【占位；2026-09-24 共识：激活 D17.2 preset 扩展位（材质基调切换，冠变干不变；instanceColor 继续管 hueJitter 群内微差）；声明契约 + 浏览器名旁色点切换 + 手动放置带 preset；存量 13 种乔木全量回补（色卡以各 Spec 季相记录为证据）；配方 schema 预留 preset 字段位，散布份额消费归散布任务；后续各族与车辆出生即带 preset；**立项必答**：preset 声明硬钩子（契约测试整表锁或 meta 必填 + typecheck 闸）/ D19.2「preset 不启用」子句修订记档 / sourceKey×preset 缓存增殖裁定（lod-spec sourceKey 语义下 13 树 × 槽 × N 色卡的 Source 增殖）】
 - [ ] T012 针叶族【占位；立项按 D30：012.1 雪松 = ConiferShapeProfile 家族首例走完整 SOP 口径，后续资产增量口径，族末集体验收门；候选池（D34 摘要，docs/research/urban-tree-candidates.md §2）：强 9——圆柏/龙柏/侧柏/白皮松/黑松/水杉/落羽杉/池杉/罗汉松，中 2（油松/华山松），弱 1（马尾松需补园艺文献或降优先级）】

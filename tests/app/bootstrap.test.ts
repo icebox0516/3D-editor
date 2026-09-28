@@ -402,25 +402,13 @@ describe('registerAssets', () => {
     const other: ModelAsset = { ...treeAsset, id: 'asset_pergola', name: '凉亭', category: 'public-facility' };
     expect(registerAssets(facade, [treeAsset, other])).toBe(1);
     // createEditor 内 manifest→procedural 收割先行（glob 按文件名序：植物 asset_* 前缀 < 设施裸名 h/p/s/t；
-    // T008.1 增 DEV 资产 asset_seedstack——seedstack < shrub 字典序；T008.2 增 asset_tree_3a——
-    // shrub < tree_3a 字典序；T011.1 增 asset_tree_celtis——tree_3a < tree_celtis 字典序；
-    // T011.2 增 asset_tree_camphor——tree_3a < tree_camphor < tree_celtis 字典序；T011.3 增
-    // asset_tree_zelkova——tree_celtis < tree_zelkova 字典序；T011.4 增 asset_tree_ginkgo——
-    // tree_celtis < tree_ginkgo < tree_zelkova 字典序；T011.5 增 asset_tree_platanus——
-    // tree_ginkgo < tree_platanus < tree_zelkova 字典序；T011.6 增 asset_tree_koelreuteria
-    // ——tree_ginkgo < tree_koelreuteria < tree_platanus 字典序；T011.7 增
-    // asset_tree_triadica——tree_platanus < tree_triadica < tree_zelkova 字典序；T011.8 增
-    // asset_tree_bischofia——tree_3a < tree_bischofia < tree_camphor 字典序；T011.10 增
-    // asset_tree_fraxinus——tree_celtis < tree_fraxinus < tree_ginkgo 字典序；T011.11 增
-    // asset_tree_ligustrum——tree_koelreuteria < tree_ligustrum < tree_platanus 字典序；T011.12 增
-    // asset_tree_salix——tree_platanus < tree_salix < tree_sophora 字典序），追加注册在后
+    // T022 删 v1 四低模植物 flower/oak/pine/shrub——seedstack 后直接 tree_3a；T008.2 起各树按字典序
+    // 追加：tree_3a < tree_bischofia < tree_camphor < tree_celtis < tree_fraxinus < tree_ginkgo <
+    // tree_koelreuteria < tree_ligustrum < tree_platanus < tree_salix < tree_sophora < tree_triadica <
+    // tree_zelkova），追加注册在后
     expect(facade.registries.assets.list().map((d) => d.asset.id)).toEqual([
       'asset_tree',
-      'asset_flower',
-      'asset_oak',
-      'asset_pine',
       'asset_seedstack',
-      'asset_shrub',
       'asset_tree_3a',
       'asset_tree_bischofia',
       'asset_tree_camphor',

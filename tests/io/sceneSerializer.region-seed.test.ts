@@ -65,8 +65,8 @@ describe('SceneSerializer：RegionStyle.seed 与散布覆写（D18）', () => {
         'scatter.densityPerM2': 0.03,
         'scatter.clustering': 0.6,
         'scatter.assets': [
-          { assetId: 'asset_oak', weight: 40 },
-          { assetId: 'asset_pine', weight: 20 },
+          { assetId: 'asset_tree_3a', weight: 40 },
+          { assetId: 'asset_tree_celtis', weight: 20 },
         ],
         'scatter.scaleRange': { min: 0.8, max: 1.2 },
       },

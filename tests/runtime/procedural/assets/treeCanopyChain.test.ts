@@ -7,9 +7,9 @@
  *   Canopy → Culled）且 levels 三档保持 [high,mid,low]（构建面零触碰回归锁）；
  *   声明集与 BroadleafCanopyProxy 工厂接入表逐 id 一致（声明 ⊆ 工厂可产——canopy
  *   请求永不落防御路径）；
- * - 零变化锁：旧低模植物（oak/pine/shrub/flower）与设施资产（hydrant/parkbench/
- *   trashbin/signpost）无 representations 声明；seedstack（shapeFamily + 单档 levels）
- *   与 streetlamp（['high','low']）声明零变化；
+ * - 零变化锁：设施资产（hydrant/parkbench/trashbin/signpost）无 representations
+ *   声明；seedstack（shapeFamily + 单档 levels）与 streetlamp（['high','low']）
+ *   声明零变化（T022 删 v1 四低模植物后不再参与本锁）；
  * - 全链选档（it.each 13 树种，链 = effectiveRepresentationChain(真实声明)）：
  *   m ≤ highToMid → high / (highToMid, midToCanopy] → mid / (midToCanopy,
  *   canopyToCulled] → canopy（**canopy 可达——021.7 起预期行为变化**）/ 越过
@@ -42,10 +42,6 @@ import { meta as sophora } from '../../../../src/runtime/procedural/assets/asset
 import { meta as fraxinus } from '../../../../src/runtime/procedural/assets/asset_tree_fraxinus.asset';
 import { meta as ligustrum } from '../../../../src/runtime/procedural/assets/asset_tree_ligustrum.asset';
 import { meta as salix } from '../../../../src/runtime/procedural/assets/asset_tree_salix.asset';
-import { meta as oak } from '../../../../src/runtime/procedural/assets/asset_oak.asset';
-import { meta as pine } from '../../../../src/runtime/procedural/assets/asset_pine.asset';
-import { meta as shrub } from '../../../../src/runtime/procedural/assets/asset_shrub.asset';
-import { meta as flower } from '../../../../src/runtime/procedural/assets/asset_flower.asset';
 import { meta as seedstack } from '../../../../src/runtime/procedural/assets/asset_seedstack.asset';
 import { meta as streetlamp } from '../../../../src/runtime/procedural/assets/streetlamp.asset';
 import { meta as hydrant } from '../../../../src/runtime/procedural/assets/hydrant.asset';
@@ -89,8 +85,8 @@ describe('13 乔木 canopy 能力声明（T021.7）', () => {
     }
   });
 
-  it('零变化锁：旧低模植物与设施资产无 representations 声明；seedstack / streetlamp 声明零变化', () => {
-    for (const meta of [oak, pine, shrub, flower, hydrant, parkbench, trashbin, signpost]) {
+  it('零变化锁：设施资产无 representations 声明；seedstack / streetlamp 声明零变化', () => {
+    for (const meta of [hydrant, parkbench, trashbin, signpost]) {
       expect(meta.representations, `${meta.id} 无表示声明（恒单档 / levels 语义不变）`).toBeUndefined();
     }
     expect(seedstack.representations).toBeUndefined(); // shapeFamily + 单档 levels——键走 family 分支不变
