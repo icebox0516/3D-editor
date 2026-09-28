@@ -40,7 +40,8 @@ function tempMeta(id: string): ProceduralAssetMeta {
     id,
     name: `临时资产 ${id}`,
     category: 'test',
-    taxonomy: { category: 'dev' }, // T010.2 必填分类（临时管线测试资产 → dev）
+taxonomy: { category: 'dev' }, // T010.2 必填分类（临时管线测试资产 → dev）
+    presets: [], // T024/D44 #2 必填色卡声明（测试替身 = 显式无卡）
     tags: ['test'],
     defaultScale: { x: 1, y: 1, z: 1 },
     defaultRotation: { x: 0, y: 0, z: 0 },

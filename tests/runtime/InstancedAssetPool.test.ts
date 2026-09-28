@@ -23,6 +23,7 @@ import * as THREE from 'three';
 import type { ID, Transform } from '../../src/core/types';
 import { aSeedValueOf } from '../../src/domain/assets';
 import type { ModelObject } from '../../src/domain/assets';
+import { LOD_THRESHOLDS } from '../../src/domain/lod/lodPolicy';
 import { InstancedAssetPool } from '../../src/runtime/instancing/InstancedAssetPool';
 import type {
   InstanceSource,
@@ -46,6 +47,7 @@ function makeModel(
   t: Transform,
   visible = true,
   seed?: number,
+  preset?: string,
 ): ModelObject {
   return {
     id,
@@ -57,7 +59,14 @@ function makeModel(
     locked: false,
     transform: t,
     properties: {},
-    asset: seed === undefined ? { assetId } : { assetId, seed },
+    asset:
+      seed === undefined && preset === undefined
+        ? { assetId }
+        : {
+            assetId,
+            ...(seed !== undefined ? { seed } : {}),
+            ...(preset !== undefined ? { preset } : {}),
+          },
   };
 }
 
@@ -907,14 +916,14 @@ describe('InstancedAssetPool：池键分桶（resolvePoolKey 注入）', () => {
     await flush();
     expect(pool.root.children).toHaveLength(1);
     expect(provider).toHaveBeenCalledTimes(1);
-    expect(provider).toHaveBeenNthCalledWith(1, 'asset_tree', 0, 'high'); // T006.3：源请求带档位（新登记 high 桶起步）
+    expect(provider).toHaveBeenNthCalledWith(1, 'asset_tree', 0, 'high', undefined); // T006.3：源请求带档位（新登记 high 桶起步）；T024.1 第四参卡位缺省
 
     // seed 1 → 槽 1 → 新桶
     pool.attach(makeModel('c', 'asset_tree', transformAt(2), true, 1));
     await flush();
     expect(pool.root.children).toHaveLength(2);
     expect(provider).toHaveBeenCalledTimes(2);
-    expect(provider).toHaveBeenNthCalledWith(2, 'asset_tree', 1, 'high');
+    expect(provider).toHaveBeenNthCalledWith(2, 'asset_tree', 1, 'high', undefined);
     const counts = pool.root.children.map((c) => (c as THREE.InstancedMesh).count).sort();
     expect(counts).toEqual([1, 2]);
     pool.dispose();
@@ -944,8 +953,119 @@ describe('InstancedAssetPool：池键分桶（resolvePoolKey 注入）', () => {
     const pool = new InstancedAssetPool({ provideSource: provider, resolvePoolKey: slotPoolKey });
     pool.attach(makeModel('a', 'asset_tree', transformAt(0)));
     await flush();
-    expect(provider).toHaveBeenNthCalledWith(1, 'asset_tree', undefined, 'high');
+    expect(provider).toHaveBeenNthCalledWith(1, 'asset_tree', undefined, 'high', undefined);
     pool.dispose();
+  });
+});
+
+// ── T024.1 色卡池桶维度（preset 进 sourceKey 段——D44 #3 分桶硬要求）──────────
+
+/** 槽路由 + 色卡池键模拟（镜像 sourceKeyOf `assetId[:preset]:slot-N` 语法与 Renderer
+ *  choke point 注入形态——归一在注入侧完成，池收到的恒为合法卡或缺省） */
+function presetPoolKey(assetId: string, seed?: number, preset?: string): string {
+  const card = preset === undefined ? '' : `:${preset}`;
+  const slot = seed === undefined ? '' : `:slot-${seed % 4}`;
+  return `${assetId}${card}${slot}`;
+}
+
+describe('InstancedAssetPool：色卡池桶维度（T024.1）', () => {
+  it('同 assetId 同槽两卡 → 两桶（InstancedMesh 各一）+ geometry 同引用（共享缓存去重模拟）', async () => {
+    const { provider, sources } = makeProvider();
+    const pool = new InstancedAssetPool({ provideSource: provider, resolvePoolKey: presetPoolKey });
+    // 同槽（seed 0）异卡：默认卡 + autumn 卡——材质不同必须分桶（D44 #3）
+    pool.attach(makeModel('a', 'asset_tree', transformAt(0), true, 0));
+    pool.attach(makeModel('b', 'asset_tree', transformAt(1), true, 0, 'autumn'));
+    await flush();
+
+    expect(pool.root.children).toHaveLength(2);
+    const [meshA, meshB] = pool.root.children as [THREE.InstancedMesh, THREE.InstancedMesh];
+    // 带 seed 的池单实例仍走 InstancedMesh（D19.7）——两卡各一 InstancedMesh
+    expect(meshA).toBeInstanceOf(THREE.InstancedMesh);
+    expect(meshB).toBeInstanceOf(THREE.InstancedMesh);
+    // 几何跨卡同引用（缓存共享层：几何/深度不随卡增殖，D44 #3）
+    expect(meshA.geometry).toBe(sources.get('asset_tree')!.geometry);
+    expect(meshB.geometry).toBe(meshA.geometry);
+    // 源请求按卡发起（第四参透传）
+    expect(provider).toHaveBeenNthCalledWith(1, 'asset_tree', 0, 'high', undefined);
+    expect(provider).toHaveBeenNthCalledWith(2, 'asset_tree', 0, 'high', 'autumn');
+    pool.dispose();
+  });
+
+  it('attach 幂等：同 obj 同卡重复登记不迁移（同桶更新、源不重复取）', async () => {
+    const { provider } = makeProvider();
+    const pool = new InstancedAssetPool({ provideSource: provider, resolvePoolKey: presetPoolKey });
+    pool.attach(makeModel('a', 'asset_tree', transformAt(0), true, 0, 'autumn'));
+    await flush();
+    const moved = transformAt(5);
+    pool.attach(makeModel('a', 'asset_tree', moved, true, 0, 'autumn')); // 同卡重挂 = 更新
+    await flush();
+    expect(pool.root.children).toHaveLength(1);
+    expect(provider).toHaveBeenCalledTimes(1);
+    const mesh = pool.root.children[0] as THREE.InstancedMesh;
+    expect(mesh.count).toBe(1);
+    const m = new THREE.Matrix4();
+    mesh.getMatrixAt(0, m);
+    expect(m.equals(expectedMatrix(moved))).toBe(true);
+    pool.dispose();
+  });
+
+  it('同 obj 换卡（preset 字段变化）→ 跨池迁移（旧桶成员减一，新桶承接）', async () => {
+    const { provider } = makeProvider();
+    const pool = new InstancedAssetPool({ provideSource: provider, resolvePoolKey: presetPoolKey });
+    pool.attach(makeModel('a', 'asset_tree', transformAt(0), true, 0));
+    pool.attach(makeModel('b', 'asset_tree', transformAt(1), true, 0));
+    await flush();
+    expect(pool.root.children).toHaveLength(1); // 同卡同槽一桶
+    const before = pool.root.children[0] as THREE.InstancedMesh;
+
+    // a 换 autumn 卡 → sourceKey 变 → 跨池迁移（复用既有 detach+ensure 路径）
+    pool.attach(makeModel('a', 'asset_tree', transformAt(5), true, 0, 'autumn'));
+    await flush();
+    expect(pool.root.children).toHaveLength(2);
+    expect(before.count).toBe(1); // 旧桶只剩 b
+    expect(provider).toHaveBeenCalledTimes(2);
+    // 迁移后 a 在新桶可拾取
+    const sorted = pool.root.children.map((c) => (c as THREE.InstancedMesh).count).sort();
+    expect(sorted).toEqual([1, 1]);
+    pool.dispose();
+  });
+
+  it('frameLod 建 canopy 桶携带色卡（canopy 源随卡请求——桶卡经 ensurePool 传递）', async () => {
+    // 钉死包围球的假想源（球心 (0,3,0) 半径 2——与 lod.test 定标口径一致，选档确定性）
+    const geometry = new THREE.BoxGeometry(2, 2, 2);
+    geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 3, 0), 2);
+    const source: InstanceSource = {
+      geometry,
+      material: new THREE.MeshStandardMaterial({ color: 0x2e8b57 }),
+    };
+    const provider: InstanceSourceProvider = vi.fn(async () => source);
+    const pool = new InstancedAssetPool({
+      provideSource: provider,
+      resolvePoolKey: presetPoolKey,
+      // 假想声明 canopy 能力（真实 13 树种已声明；canopy 桶冠色随卡 = T024.1 裁定）
+      getRepresentationCapability: () => ({ representations: ['high', 'canopy'] }),
+    });
+    pool.attach(makeModel('a', 'asset_tree', transformAt(0), true, 3, 'autumn'));
+    await flush();
+    expect(provider).toHaveBeenNthCalledWith(1, 'asset_tree', 3, 'high', 'autumn');
+
+    // canopy 名义带内机位（fov 90° → m = 视距 / 半径；16 < m ≤ 60）：high → canopy 跳档
+    const t = LOD_THRESHOLDS;
+    const m = (t.midToCanopy + t.canopyToCulled) / 2;
+    const camera = new THREE.PerspectiveCamera(90, 1, 0.5, 100000);
+    camera.position.set(0, 3, -m * 2);
+    camera.lookAt(0, 3, 10);
+    pool.frameLod(camera, true);
+    await flush();
+
+    // canopy 桶源请求携带桶卡（ensurePool → provideSource 第四参）——冠色随卡的接线断言
+    expect(provider).toHaveBeenNthCalledWith(2, 'asset_tree', 3, 'canopy', 'autumn');
+    // 硬切迁移完成后旧 high 桶拆空 → 渲染根只剩 canopy 桶
+    expect(pool.root.children).toHaveLength(1);
+    expect(pool.root.children[0]).toBeInstanceOf(THREE.InstancedMesh);
+    pool.dispose();
+    geometry.dispose();
+    (source.material as THREE.Material).dispose();
   });
 });
 

@@ -35,6 +35,11 @@ export type ScatterSampler = 'jitter-grid';
 export interface ScatterAssetWeight {
   assetId: string;
   weight: number;
+  /**
+   * 材质基调色卡 id（T024，D44 #6——**schema 预留位**）：类型层 + 序列化透传；
+   * 散布份额消费归散布任务（T003 系解冻后立项）——当前散布链恒以默认卡实例化。
+   */
+  preset?: string;
 }
 
 /** 均匀缩放采样范围 [min, max]；min/max 非法自动交换，等值 = 恒定 */

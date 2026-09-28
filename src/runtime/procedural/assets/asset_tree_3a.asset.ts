@@ -77,6 +77,7 @@ export const meta: ProceduralAssetMeta = {
   // canopy 源由 CanopySourceCache 经 broadleafCanopyProxy 工厂提供（021.6，恒 487 面）
   representations: ['high', 'mid', 'canopy'],
   taxonomy: { category: 'plant', family: 'broadleaf' }, // 阔叶家族契约第一实例（tree/broadleaf/，T010.1）；T011 首批阔叶乔木同族
+  presets: [{ id: 'default', label: '默认', swatch: '#4e7c33' }], // 色卡占位（T024.1）：默认卡 = 现行材质基调；季相卡 024.2/024.3 按 Spec 证据回补（D44 #7 无证据不建卡）
   proceduralProfile: {
     // 跨 8 槽细模包围盒实测带（T010.2 探针：h 7.3869–9.1183 / w 4.4415–9.8035）。
     // 模块头「总高 7.4–8.5m、冠幅 5.4–6.6m」为 T008.2 slot-0 锚点描述（slot-0 实测

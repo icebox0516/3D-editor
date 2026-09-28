@@ -62,6 +62,47 @@ export interface ProceduralLevelDescriptor {
 }
 
 /**
+ * 资产色卡预设 meta（T024，D44 #1/#2）：preset = **材质基调变体**——只改叶/冠材质
+ * 基调（冠变干不变），不改几何结构、不改树皮。浏览语义三字段（id / label / swatch），
+ * **色值配方参数归各树材质工厂私有域**（D20.2 资产私有先例）——本层不承载渲染数据；
+ * swatch = 浏览器色点 UI 的数据色（CSS 色串），缩略图不随卡重渲。
+ * 证据纪律（D44 #7）：每树至少 'default' 默认卡（= 现行生产相）；季相卡逐树按
+ * Reference Spec 季相记录定，无证据不建卡；跨树同相卡 id 同名（便于散布配方书写），
+ * id 域定稿记档见 tasks/024-color-presets.md 子任务 024.2。
+ */
+export interface AssetColorPresetMeta {
+  /** 卡 id（资产内唯一；默认卡全资产统一 'default'——见 DEFAULT_COLOR_PRESET_ID） */
+  id: string;
+  /** 浏览显示名（如「默认」「秋·金黄」） */
+  label: string;
+  /** 色点数据色（CSS 色串，如 '#8ab45d'——UI 呈现用，非渲染配方） */
+  swatch: string;
+}
+
+/** 默认卡 id 单一真相源（全资产统一；= 现行材质基调，D44 #1） */
+export const DEFAULT_COLOR_PRESET_ID = 'default';
+
+/**
+ * 色卡读侧归一（T024.1，D44 #4 读侧语义——「已删卡/脏数据宽容回退 default」的
+ * 单一纯函数）：按资产 presets 声明表判定对象携带的 preset id 是否有效。
+ *  - preset 缺省 / 空串 → undefined（默认卡——不进 sourceKey，缺省路径行为零变化）；
+ *  - preset 在声明表内 → 原值返回（合法卡）；
+ *  - preset 不在表内（含空表 / 表缺省）→ undefined（场景数据引用了已删卡或脏 id：
+ *    序列化整体透传不校验值域，读侧统一在此归一回退 default，不抛错）。
+ * 消费方 = Renderer 池键解析 choke point（resolvePoolKey / canopy provider）；
+ * 写侧 fail-fast（PlacementTool 未声明卡 throw）不走本函数——读侧宽容与写侧
+ * 严格分工，归 024.1 任务书待裁决位裁定。
+ */
+export function resolveDeclaredPreset(
+  presets: readonly AssetColorPresetMeta[] | undefined,
+  preset: string | undefined,
+): string | undefined {
+  if (preset === undefined || preset === '') return undefined;
+  if (!presets || !presets.some((card) => card.id === preset)) return undefined;
+  return preset;
+}
+
+/**
  * 程序化资产 meta：真相源是同文件的 generator 代码（D7），不设 file/thumbnail 字段
  * （缩略图走 002.2 离屏快照管线）；分类为显式声明，不靠目录推导（D17）。
  */
@@ -92,6 +133,15 @@ export interface ProceduralAssetMeta extends AssetCommonMeta {
    *  ./taxonomy 与 docs/procedural-assets/metadata-taxonomy.md）。
    *  与 category（现行 UI 分组键，自由字符串）正交共存：category 不改、UI 分组行为不变 */
   taxonomy: AssetTaxonomy;
+  /**
+   * 资产色卡声明（T024，D44 #2——**必填**，typecheck 闸）：本资产可切换的材质基调
+   * 卡全集。**必填语义 = 新资产不声明编译不过**（「出生即带 preset」的强制位在类型层，
+   * 跟随 D22 taxonomy 必填先例）；空数组 = 显式声明「本资产无色卡」（设施/DEV 资产
+   * 合法态）；乔木/植物族「非空且含 default 卡」的族级断言归各自 epic 族门定义
+   * （D30 不预防性泛化）。卡 id 资产内唯一、跨树同相同名；值域依据 =
+   * docs/procedural-assets/metadata-taxonomy.md presets 字段节。
+   */
+  presets: readonly AssetColorPresetMeta[];
   /** 尺寸声明（可选；通用维度语义与数值纪律见 ProceduralProfile） */
   proceduralProfile?: ProceduralProfile;
 }

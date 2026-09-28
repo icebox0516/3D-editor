@@ -56,6 +56,7 @@ export const meta: ProceduralAssetMeta = {
   // 全向摆放；路灯色相不漂移，省略 hueJitter
   variants: { scaleJitter: 0.05, rotationJitter: 180 },
   taxonomy: { category: 'facility', family: 'road-facility' }, // 道路设施（GLB road-facility 目录已有 streetlight 同族）
+  presets: [], // 色卡：显式无卡（D44 #2 合法态——设施/DEV 资产无材质基调变体面）
   proceduralProfile: { heightRange: { min: 4.21, max: 4.21 }, widthRange: { min: 0.89, max: 0.89 } }, // 细模包围盒实测（T010.2 探针：h 4.2075 / w 0.8944——含悬臂外伸与灯头）
   triangleCount: 328, // 实数 = High 档结构计数（多档起声明面取细模档，lod-spec §5.2；Low 136 见模块头 LOD 预算记账）
   levels: [{ id: 'high' }, { id: 'low' }], // LOD 两档（T006.2 不完整链验证——mid 未声明，跳档语义归 006.3 Runtime；D27 首版最小化 [{id}]）

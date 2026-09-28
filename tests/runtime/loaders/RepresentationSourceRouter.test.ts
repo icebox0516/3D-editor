@@ -67,10 +67,28 @@ describe('h/m/l 透传（构建档位表示直落既有路由）', () => {
     await router.provideRepresentationSource('asset_proc');
     expect(assetRouter.provideInstanceSource).toHaveBeenCalledWith('asset_proc', { seed: undefined, level: 'high' });
   });
+
+  it('preset 透传（T024.1）：h/m/l → assetRouter opts.preset 同参到达', async () => {
+    const assetRouter = makeFakeAssetRouter();
+    const router = new RepresentationSourceRouter({ assetRouter });
+    await router.provideRepresentationSource('asset_proc', 42, 'mid', 'autumn');
+    expect(assetRouter.provideInstanceSource).toHaveBeenCalledWith('asset_proc', {
+      seed: 42,
+      preset: 'autumn',
+      level: 'mid',
+    });
+    // 未携卡 → opts.preset 为 undefined（默认卡缺省路径）
+    await router.provideRepresentationSource('asset_proc', 42, 'mid');
+    expect(assetRouter.provideInstanceSource).toHaveBeenLastCalledWith('asset_proc', {
+      seed: 42,
+      preset: undefined,
+      level: 'mid',
+    });
+  });
 });
 
 describe('canopy 分流（providers 路由表 canopy 行）', () => {
-  it('canopy 请求 → provider 被调（assetId/seed/representation 同参透传）、同引用返回；assetRouter 不被调', async () => {
+  it('canopy 请求 → provider 被调（assetId/seed/representation/preset 同参透传）、同引用返回；assetRouter 不被调', async () => {
     const assetRouter = makeFakeAssetRouter();
     const canopySource: InstanceSource = {
       geometry: new THREE.BufferGeometry(),
@@ -80,8 +98,12 @@ describe('canopy 分流（providers 路由表 canopy 行）', () => {
     const router = new RepresentationSourceRouter({ assetRouter, providers: { canopy } });
     const got = await router.provideRepresentationSource('asset_tree_3a', 7, 'canopy');
     expect(got).toBe(canopySource);
-    expect(canopy).toHaveBeenCalledWith('asset_tree_3a', 7, 'canopy');
+    expect(canopy).toHaveBeenCalledWith('asset_tree_3a', 7, 'canopy', undefined);
     expect(assetRouter.provideInstanceSource).not.toHaveBeenCalled();
+
+    // T024.1：preset 第四参透传（canopy 冠色随卡——归一在 Renderer 侧 choke point）
+    await router.provideRepresentationSource('asset_tree_3a', 7, 'canopy', 'autumn');
+    expect(canopy).toHaveBeenLastCalledWith('asset_tree_3a', 7, 'canopy', 'autumn');
   });
 
   it('防御路径：未注册 canopy 行的 canopy 请求 → reject 且错误含 assetId、assetRouter 不被调（不静默回 high）', async () => {

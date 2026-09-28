@@ -1,6 +1,6 @@
 /**
  * runtime/procedural/tree/ginkgo/ginkgoMaterials —— 银杏（asset_tree_ginkgo）叶/树皮材质
- * + 风动 + 叶影深度材质（T011.4）。
+ * + 风动 + 叶影深度材质（T011.4；T024.1 叶材质 preset 色卡参数化——冠变干不变，皮/深度零改动）。
  *
  * 职责：复制朴树/香樟/榉树已验收的配方方法（onBeforeCompile 注入工厂 L2 全套纪律：
  *   replaceOnce 缺失即抛 / customProgramCacheKey 必写且键唯一 / 原生 chunk 原句保留后追加 /
@@ -75,6 +75,19 @@
  *     相关）+ 叶片快颤 10–17 rad/s（≈1.6–2.7Hz 慢摆）/ ≤13mm（**长柄扇叶颤**——柄 3–10cm
  *     ≈叶宽同量级 Verified [1][2][7]：摆幅五树最大（>香樟 11mm >榉树 8mm）、频率偏低
  *     （长柄摆锤周期长）；aBend 权重）；树高锚 8m（×0.125——银杏目标 ≈8m，D19.7 同口径）。
+ *
+ *   - 【色卡 preset（T024.1，D44 #1/#2——冠变干不变）】createGinkgoLeafMaterial 追加可选
+ *     preset 参（导出签名冻结的扩展 = 只追加可选参）：preset = 材质基调变体，只改叶基调
+ *     构造色（GINKGO_LEAF_PRESETS 模块私有表——default 行 = 现行数值的**单一定义源**，
+ *     缺省路径经表消费保证「default = 现行」由结构成立；autumn 行 = 秋·金黄 #d4b737，
+ *     证据链与数值推导见表注释）；皮/深度/风动/SDF/变奏域/透射色零改动（冠变干不变 +
+ *     深度材质色无关、将被 Runtime 跨卡共享——另一 Step）。**program 不增红线（D44 #3）**：
+ *     default 与 autumn 共享同一 customProgramCacheKey ⇒ GLSL 逐位同源（同键不同源 =
+ *     Three.js 复用错程序的暴雷路径）——hue/luma 两端、透射色 (0.66,0.95,0.38)、峰值 0.34
+ *     字面量跨卡冻结，秋相差异全部由构造色（uniform 通道）承载；「<10% 残绿」以变奏冷端
+ *     复合的橄榄金少数叶弱近似（hue 端点被程序红线冻结——取舍记档，见 autumn 行注释）。
+ *     未知卡 id 回退 default（值域校验归 Renderer resolvePoolKey 单一 choke point——工厂
+ *     不做第二套校验，校验双写会漂移）。
  *
  * 皮（组 0）配方（**第五种树皮语言：灰褐纵裂脊沟（中龄浅-中裂相）**——vs 夏栎脊沟浮雕 /
  *   朴树平滑-浅裂小斑块 / 香樟纵裂深沟 / 榉树光滑剥落斑驳；与香樟同纵裂族的三个分化点：
@@ -167,6 +180,7 @@
  */
 import * as THREE from 'three';
 import { FACILITY_GLSL_NOISE } from '../../materials/facilityGlsl';
+import { DEFAULT_COLOR_PRESET_ID } from '../../../../domain/assets'; // 默认卡 id 单一真相源（值导入——先例 morphSeedOf）
 import type { ProceduralLevel } from '../../../../domain/assets';
 import { applyTreeFadeDither } from '../treeFadeDither';
 
@@ -389,6 +403,47 @@ diffuseColor.rgb *= gkBarkMul;
 
 // ── 工厂（每次调用 new 材质 + 独立注入闭包；键不变则共享 program）──────────────────
 
+/** 叶基调色卡配方行（T024.1，D44 #2——色值配方归树材质工厂私有域） */
+interface GinkgoLeafPreset {
+  /** 叶基调构造色（material.color = uniform 通道，不进 GLSL——program 不增的载体面） */
+  color: number;
+}
+
+/**
+ * 叶基调色卡配方表（模块私有；卡集与 meta.presets 声明对应——asset_tree_ginkgo 双卡）。
+ * default 行 = 现行数值的**单一定义源**（缺省路径经本表消费——「default = 现行」由结构
+ * 保证而非抄写保证）；变奏域/透射色**不随卡**：program 不增红线（D44 #3）要求 autumn 与
+ * default 同 customProgramCacheKey ⇒ GLSL 字面量不分叉 ⇒ hue 两端 (0.94,1.00,1.03)↔
+ * (1.08,1.05,0.88)、luma 0.92±0.08、透射色 (0.66,0.95,0.38)、峰值 0.34 跨卡冻结，秋相
+ * 读向 = 金黄基色 × 现行变奏乘子复合（推导见 autumn 行注释）。未知卡 id 回退 default
+ * （值域校验归 Renderer resolvePoolKey 单一 choke point——工厂不做第二套校验）。
+ */
+const GINKGO_LEAF_PRESETS: Readonly<Record<string, Readonly<GinkgoLeafPreset>>> = {
+  [DEFAULT_COLOR_PRESET_ID]: {
+    // 现行数值（T011.4 工程设定）：淡绿-黄绿——五树最浅最黄（FRPS「淡绿色」Verified [1][2] +
+    // 照片中绿-黄绿调 Inferred [7] 交叉；中距色块与樟树深绿直接区分 Spec §5）
+    color: 0x8ab45d,
+  },
+  autumn: {
+    // 秋·金黄 #d4b737（工程合成，五源交叉：FRPS「秋季落叶前变为黄色」/ FOC "turning bright
+    // yellow in autumn" / Wikipedia "deep saffron yellow" / OSU "Fall color often bright
+    // yellow to gold" / NC "golden yellow" + fall 样木「≈90%+ 纯金黄、<10% 残绿、无橙红
+    // 混入」——Spec §6 [1][2][4][5][6][7]）：
+    // - hue ≈48.9°（sRGB）金黄微暖——R−G 29 克制不入橙（榉树秋橙-红橙谱 hue <40° 被「无
+    //   橙红混入」[7] 明确排除）；变奏暖端复合 ×(1.08,1.05,0.88) ≈47.7° = 端点冻结下的
+    //   最坏橙向，仍守金黄域；
+    // - G−B 128 强黄向饱和（"golden / saffron" 读向）；
+    // - 亮度 ≈180 > 夏相 ≈165（FOC "bright" / OSU "bright yellow to gold"——秋相更亮）；
+    // - 「<10% 残绿」近似取舍：变奏冷端复合 ×(0.94,1.00,1.03) ≈53.2° 橄榄金少数叶 =
+    //   残绿弱表达（逐叶 hash 均匀取样，冷端份额读橄榄金；绿相强度弱于证据 [7]——hue
+    //   端点字面量被 program 红线冻结，记档）；
+    // - 透射色维持黄绿 (0.66,0.95,0.38)：同程序红线的代价（透射字面量进 GLSL，分叉即
+    //   +1 program 违反 D44 #3「programs 不增」）；秋相透射偏金的解锁需后续统一决策
+    //   （uniform 化透射通道或显式接受 program 增量），不在本 Step。
+    color: 0xd4b737,
+  },
+};
+
 /**
  * 叶卡材质（组 1）：SDF 扇形缺刻叶 alphaTest 裁切 + 二叉辐射脉（High）+ 两面同色（无背面
  * 通道——五例首例）+ 中等偏强透光 + 逐叶变奏 + 风动。level 分档（T011.4，缺省 'high'）：
@@ -400,10 +455,19 @@ diffuseColor.rgb *= gkBarkMul;
  * 黄绿调 Inferred [7] 交叉；中距色块与樟树深绿直接区分）/ m 0 / r 0.68（哑光-半光泽——
  * Spec §5「非蜡质亮面、非糙毛面」Inferred [7]；介于榉树 0.62 与朴树 0.72 之间）/ DoubleSide
  * （卡面双面可见，背面法线由 three 双面光照自动翻转；两面固有色同值——Spec §5 两面同色）。
+ * preset（T024.1 可选参，缺省 = 默认卡）：查 GINKGO_LEAF_PRESETS 覆写基调构造色（autumn =
+ * 秋·金黄 #d4b737，Spec §6——数值推导见该表注释）；缺省/'default'/未知 id = default 行 =
+ * 现行行为逐位一致；program 不增红线 = preset 只走构造色，GLSL/defines/键与 default 全同。
  */
-export function createGinkgoLeafMaterial(level: ProceduralLevel = 'high'): THREE.MeshStandardMaterial {
+export function createGinkgoLeafMaterial(
+  level: ProceduralLevel = 'high',
+  preset?: string,
+): THREE.MeshStandardMaterial {
+  // 色卡解析（T024.1）：缺省 / 'default' / 未知 id → default 行（现行数值单一定义源）
+  const recipe = (preset !== undefined ? GINKGO_LEAF_PRESETS[preset] : undefined)
+    ?? GINKGO_LEAF_PRESETS[DEFAULT_COLOR_PRESET_ID]!;
   const material = new THREE.MeshStandardMaterial({
-    color: 0x8ab45d, // 淡绿-黄绿（工程设定：五树最浅——FRPS「淡绿色」Verified [1][2] + 照片黄绿调 Inferred [7] 交叉）
+    color: recipe.color, // 基调随卡（default = 淡绿-黄绿现行值 / autumn = 秋·金黄——GINKGO_LEAF_PRESETS 表注释引 Spec）
     metalness: 0,
     roughness: 0.68, // 哑光-半光泽（Spec §5「非蜡质亮面」Inferred [7]；介于榉树 0.62 与朴树 0.72 之间——薄纸质-半肉质微光）
     side: THREE.DoubleSide,

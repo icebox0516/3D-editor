@@ -46,8 +46,8 @@
 
 ## 子任务
 
-- [ ] 024.1 契约层 + 缓存几何共享 + 试点树全链（AssetColorPresetMeta 类型 + 18 资产 presets 声明占位〔13 树中试点树写真卡〕+ AssetReference.preset + ScatterAssetWeight 预留位 + ProceduralSourceCache/CanopySourceCache 几何与深度材质跨卡共享〔引用计数〕+ 放置链/Ghost preset 流 + 序列化透传 + 试点树〔建议 ginkgo：default + 秋金黄，证据最强〕全链贯通 + 两规范增量 + types 注释修订）→ [024.1-contract-cache-pilot.md](024.1-contract-cache-pilot.md)
-- [ ] 024.2 回补批一（6 树：platanus / koelreuteria / fraxinus / sophora / salix / triadica——试点法复制 + 卡 id 域定稿记档 + 整表锁框架落位）→ [024.2-rebatch-1.md](024.2-rebatch-1.md)
+- [x] 024.1 契约层 + 缓存几何共享 + 试点树全链（done 2026-09-28：五 Step〔契约/材质/缓存共享/接线/整表锁+规范〕；ginkgo 双卡 default+autumn #d4b737；共享层引用计数落地；4209 全绿——**024.2 注意位**：车辆族（有卡无形态族）须扩 resolvePoolKey〔记 T26〕、试点卡 id 'autumn' 待 id 域定稿、canopy 覆写表回补行随批填）→ [024.1-contract-cache-pilot.md](024.1-contract-cache-pilot.md)
+- [ ] 024.2 回补批一（6 树：platanus / koelreuteria / fraxinus / sophora / salix / triadica——试点法复制 + 卡 id 域定稿记档〔试点占位 'autumn' 如改名随改 ginkgo〕+ 整表锁框架落位〔已随 024.1 落 assetColorPresets.test，本批只增行〕；**注意位**：canopy 覆写表逐行同步 / 车辆族 resolvePoolKey 扩张记 T26）→ [024.2-rebatch-1.md](024.2-rebatch-1.md)
 - [ ] 024.3 回补批二（6 树：tree3a / celtis / zelkova / bischofia / camphor / ligustrum——含常绿证据弱档 + Contact Sheet 13 树全量）→ [024.3-rebatch-2.md](024.3-rebatch-2.md)
 - [ ] 024.4 浏览器色点 UI + 放置入口接线（资产名旁色点切换〔swatch 数据色〕+ 选中态持久 + 放置注入；无卡资产不显色点；frontend-design 技能 + DESIGN.md §5.8 增量）→ [024.4-browser-ui.md](024.4-browser-ui.md)
 - [ ] 024.5 验收门（epic 级五面：契约收口 / 横向一致性 / 资源与性能 / 回归 / 冒烟——口径见上 Acceptance）→ [024.5-acceptance.md](024.5-acceptance.md)

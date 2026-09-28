@@ -44,6 +44,9 @@
  *      （需 meta），经 resolvePoolKey 依赖注入（Renderer 注入 = 查注册表 meta +
  *      domain sourceKeyOf，与源缓存同一真相源；缺省恒 assetId = 行为回退现状）。
  *      同 assetId 不同槽（重掷 seed 换形态）= 不同桶 = 跨池迁移（attach 按池键判定）。
+ *      T024.1（D44 #3）：色卡 preset 进 sourceKey 段——同 assetId 不同卡 = 不同桶
+ *      = 跨池迁移（InstancedMesh 同组同材质 ⇒ 材质不同必须分桶）；桶键组装不变
+ *      （`${sourceKey}::${representation}`，preset 已在 sourceKey 段内）。
  * aSeed 逐实例属性（T008.1，D19.7）：entry 存 obj.asset.seed（可 null），桶内存在
  *      带 seed 的 entry 时在桶几何上建 aSeed Float32 InstancedBufferAttribute
  *      （itemSize 1），逐槽写「种子哈希折算 [0,1)」（domain aSeedValueOf，'aseed'
@@ -197,24 +200,30 @@ export function shadowDepthMaterialOf(
  *  RepresentationSourceRouter（T021.7）：h/m/l → ProceduralSourceCache、canopy →
  *  CanopySourceCache；seed 供源端槽路由定 sourceKey，表示为桶维度（缓存
  *  sourceKey::representation 键，T021.3 宽化 + T021.7 真接线——13 乔木已声明
- *  canopy 能力）。无 seed / 无表示调用兼容，散布等无 seed 消费方照旧） */
+ *  canopy 能力）。preset 为色卡 id（T024.1，D44 #1/#3）：源端进 sourceKey 分桶
+ *  （同 id 异卡 = 异桶异材质）；未知卡归一在 Renderer 侧 choke point（本层收到的
+ *  恒为已归一的合法卡或缺省）。无 seed / 无表示 / 无卡调用兼容，散布等无 seed
+ *  消费方照旧（D44 #6 散布链不携卡） */
 export type InstanceSourceProvider = (
   assetId: string,
   seed?: number,
   representation?: RuntimeRepresentation,
+  preset?: string,
 ) => Promise<InstanceSource>;
 
 /** 池选项 */
 export interface InstancedAssetPoolOptions {
   provideSource: InstanceSourceProvider;
   /**
-   * 池键解析（T008.1，D19.4）：assetId + 对象 seed → 池桶键。池无法自行算槽（需
-   * meta），由 Renderer 注入「查注册表 meta + domain sourceKeyOf」（与源缓存同一
-   * 真相源）；缺省恒 assetId（行为回退现状——GLB/未声明形态族资产零变化）。
-   * 注：此键是 **sourceKey（形态身份）**——T006.3 起池内部再叠加 level 维度组成
+   * 池键解析（T008.1，D19.4）：assetId + 对象 seed + 色卡 preset → 池桶键。池无法
+   * 自行算槽（需 meta），由 Renderer 注入「查注册表 meta + domain sourceKeyOf」（与
+   * 源缓存同一真相源）；缺省恒 assetId（行为回退现状——GLB/未声明形态族资产零变化）。
+   * T024.1：preset 为色卡 id 第三参（Renderer choke point 已归一——本层收到的恒为
+   * 合法卡或缺省；卡进 sourceKey 段 = 同 id 异卡跨池迁移，D44 #3）。注：此键是
+   * **sourceKey（形态+色卡身份）**——T006.3 起池内部再叠加 level 维度组成
    * 桶键 `${sourceKey}::${level}`，level 绝不进本函数（D23.2）。
    */
-  resolvePoolKey?: (assetId: string, seed?: number) => string;
+  resolvePoolKey?: (assetId: string, seed?: number, preset?: string) => string;
   /**
    * 资产表示能力查询（T021.2 选档输入，表示能力驱动）：返回 AssetDescriptor meta 的
    * representations / levels 两字段投影（RepresentationCapability）；选档消费
@@ -310,6 +319,13 @@ interface AssetPool {
   readonly sourceKey: string;
   /** 桶表示（T006.3：桶创建时定死——不做「桶内换 Source」，换表示 = 跨桶迁移） */
   readonly level: RuntimeRepresentation;
+  /**
+   * 桶色卡（T024.1，D44 #3）：建桶时的 preset（choke point 已归一——恒为合法卡 id
+   * 或 undefined 默认卡）。桶创建时定死（与 level 同语义：换卡 = 换 sourceKey = 跨桶
+   * 迁移）；frameLod 建下一表示桶（stepEntryTransition → ensurePool）时随桶携带——
+   * canopy 桶冠色随卡。
+   */
+  readonly preset: string | undefined;
   /** 源资产 id（provideSource 发起与告警用） */
   readonly assetId: string;
   /** 实例登记（插入序；undo 重挂追加到尾部） */
@@ -400,7 +416,7 @@ export class InstancedAssetPool {
   private readonly idToPool = new Map<ID, AssetPool>();
   private readonly provideSource: InstanceSourceProvider;
   /** 池键解析（缺省恒 assetId——无注入时行为回退现状，GLB 池零变化） */
-  private readonly resolvePoolKey: (assetId: string, seed?: number) => string;
+  private readonly resolvePoolKey: (assetId: string, seed?: number, preset?: string) => string;
   /** 资产表示能力（T021.2 选档输入；每资产缓存有效链一次——帧路径零重复归一） */
   private readonly getRepresentationCapability: (assetId: string) => RepresentationCapability | undefined;
   /** 有效表示链缓存（assetId → effectiveRepresentationChain 产物，T021.2） */
@@ -435,26 +451,28 @@ export class InstancedAssetPool {
 
   /**
    * 登记模型实例并返回锚点（幂等：同 id 同 sourceKey 视为更新——含 LOD 档位桶内
-   * 更新（frameLod 管档位，attach 不感知相机）；同 id sourceKey 变了——换资产或
-   * 重掷 seed 换槽——跨池迁移）。新登记从 'high' 桶起步（attach 时无相机评估，
+   * 更新（frameLod 管档位，attach 不感知相机）；同 id sourceKey 变了——换资产、
+   * 重掷 seed 换槽或**换色卡**（T024.1：preset 进 sourceKey 段，同 id 换卡 = 跨池
+   * 迁移）——跨池迁移）。新登记从 'high' 桶起步（attach 时无相机评估，
    * 首帧 frameLod 即校正；迟滞无参考按名义档起步，无残留状态）。源未就绪时只登记
    * 矩阵，源到达后一次性建网格。
    */
   attach(obj: ModelObject): THREE.Object3D {
     if (this.disposed) return new THREE.Object3D();
     const seed = obj.asset.seed;
+    const preset = obj.asset.preset;
     const existing = this.idToPool.get(obj.id);
     if (existing) {
-      if (existing.sourceKey === this.resolvePoolKey(obj.asset.assetId, seed)) {
+      if (existing.sourceKey === this.resolvePoolKey(obj.asset.assetId, seed, preset)) {
         const slot = existing.slotOf.get(obj.id)!;
         existing.entries[slot].seed = seed ?? null; // 同槽重掷：aSeed 槽随入口一并刷新
         this.writeEntry(existing, obj.id, obj.transform, obj.visible);
         this.writeEntryInstanceAttrs(existing, obj.id);
         return existing.anchors.get(obj.id)!;
       }
-      this.detach(obj.id); // 池键变了（换资产 / 换槽）：先从旧池摘除（含旧池 reconcile）
+      this.detach(obj.id); // 池键变了（换资产 / 换槽 / 换卡）：先从旧池摘除（含旧池 reconcile）
     }
-    const pool = this.ensurePool(obj.asset.assetId, seed, 'high');
+    const pool = this.ensurePool(obj.asset.assetId, seed, 'high', preset);
     const entry: PoolEntry = {
       id: obj.id,
       matrix: new THREE.Matrix4(),
@@ -714,7 +732,8 @@ export class InstancedAssetPool {
     let sourceReady = true;
     let targetPool: AssetPool | null = null;
     if (decision !== 'culled' && decision !== pool.level) {
-      targetPool = this.ensurePool(pool.assetId, entry.seed ?? undefined, decision);
+      // T024.1：建下一表示桶随桶携带色卡（canopy 桶冠色随卡——D44 #3 分桶硬要求）
+      targetPool = this.ensurePool(pool.assetId, entry.seed ?? undefined, decision, pool.preset);
       sourceReady = targetPool.source !== null;
     }
     const prev = entry.lodTransition ?? steadySelectionState(pool.level);
@@ -1210,18 +1229,20 @@ export class InstancedAssetPool {
   // ── 内部：池生命周期 ─────────────────────────────────────
 
   /**
-   * 取或建池（按桶键 `${sourceKey}::${level}`）；建桶时以 (assetId, seed, level) 发起
-   * 源加载（同桶只取一次，失败告警一次、不重试）。源到达：补算几何包围球（渲染/剔除
+   * 取或建池（按桶键 `${sourceKey}::${level}`）；建桶时以 (assetId, seed, level,
+   * preset) 发起源加载（preset 已在 Renderer choke point 归一——合法卡或缺省；
+   * 同桶只取一次，失败告警一次、不重试）。源到达：补算几何包围球（渲染/剔除
    * 路径用，惰性首算一次——桶内几何共享，全局只算一次；high 桶同时派生选档稳定基准
    * ——T006.6）、补锚点装饰、建网格，并收敛同 sourceKey 家族内在途迁移
-   * （applyPendingMigrations——T006.3）。
+   * （applyPendingMigrations——T006.3；preset 在 sourceKey 段内，家族匹配天然同卡）。
    */
   private ensurePool(
     assetId: string,
     seed: number | undefined,
     representation: RuntimeRepresentation,
+    preset?: string,
   ): AssetPool {
-    const sourceKey = this.resolvePoolKey(assetId, seed);
+    const sourceKey = this.resolvePoolKey(assetId, seed, preset);
     const key = composePoolKey(sourceKey, representation);
     let pool = this.pools.get(key);
     if (pool) return pool;
@@ -1229,6 +1250,7 @@ export class InstancedAssetPool {
       key,
       sourceKey,
       level: representation,
+      preset,
       assetId,
       entries: [],
       slotOf: new Map(),
@@ -1241,7 +1263,7 @@ export class InstancedAssetPool {
       split: null,
     };
     this.pools.set(key, pool);
-    this.provideSource(assetId, seed, representation)
+    this.provideSource(assetId, seed, representation, preset)
       .then((source) => {
         pool.source = source;
         if (!source.geometry.boundingSphere) source.geometry.computeBoundingSphere();

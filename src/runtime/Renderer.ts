@@ -35,7 +35,7 @@ import type { ID, Transform } from '../core/types';
 import type { EventBus } from '../core/events/EventBus';
 import { isModelObject } from '../domain/assets';
 import type { ModelObject } from '../domain/assets';
-import { applyAssetVariants, shapeSlotOf, sourceKeyOf } from '../domain/assets';
+import { applyAssetVariants, resolveDeclaredPreset, shapeSlotOf, sourceKeyOf } from '../domain/assets';
 import { BATCH_POLICY } from '../domain/lod/batchPolicy';
 import type { RepresentationCapability } from '../domain/lod/representation';
 import type { LodDistribution } from './lodDistribution';
@@ -463,12 +463,25 @@ export class Renderer {
     // 注册 CanopySourceCache（021.6 BroadleafCanopyProxy 工厂——成套材质 + 深度材质 +
     // bounds；未支持资产的 canopy 请求在源端 reject，对象停留当前表示不静默回 high）。
     // canopy 缓存会话私有（D17），随 dispose 链释放。
+    // T024.1（D44 #4 读侧宽容回退）：canopy provider 携 preset 并经 declaredPresetOf
+    // 归一（未知卡 → undefined = default 冠色）——canopy 只对 13 阔叶树可达，presets
+    // 恒含 default，归一语义与 resolvePoolKey choke point 同构。
     const canopySourceCache = this.canopySourceCache;
+    // T024.1 色卡归一助手（choke point 单一入口的共享原语）：preset 不在该资产
+    // presets 声明内（已删卡/脏数据/非程序化）→ undefined = default——宽容回退不抛错
+    const declaredPresetOf = (assetId: string, preset: string | undefined): string | undefined => {
+      const descriptor = assets?.get(assetId);
+      if (!descriptor || descriptor.kind !== 'procedural') return undefined;
+      return resolveDeclaredPreset(descriptor.asset.presets, preset);
+    };
     this.representationRouter =
       this.assetRouter && canopySourceCache
         ? new RepresentationSourceRouter({
             assetRouter: this.assetRouter,
-            providers: { canopy: (assetId, seed) => canopySourceCache.load(assetId, seed) },
+            providers: {
+              canopy: (assetId, seed, preset) =>
+                canopySourceCache.load(assetId, seed, declaredPresetOf(assetId, preset)),
+            },
           })
         : null;
     // 模型对象改走实例化池（业务层无感：仍逐个 ModelObject attach，
@@ -498,13 +511,32 @@ export class Renderer {
           // representation 双维，021.7 键收敛）；canopy → CanopySourceCache（021.6
           // 工厂 + bounds 成套）；未支持资产的 canopy 请求 reject（sourceReady 保持
           // false、对象停留当前表示，不静默回 high）
-          provideSource: (assetId, seed, representation) =>
-            representationRouter.provideRepresentationSource(assetId, seed, representation),
-          resolvePoolKey: (assetId, seed) => {
+          // T024.1：第四参 preset 透传门面（h/m/l → procedural.load({preset})、
+          // canopy → 缓存第三参——冠色随卡）。携卡同样过 declaredPresetOf 归一——
+          // 与 resolvePoolKey 同一 choke point：未知卡对象落默认桶（池键无卡段），
+          // 源请求必须同归一（否则脏卡以预设段进缓存键、桶声明与源身份背离）
+          provideSource: (assetId, seed, representation, preset) =>
+            representationRouter.provideRepresentationSource(
+              assetId,
+              seed,
+              representation,
+              declaredPresetOf(assetId, preset),
+            ),
+          // T008.1（D19.4）：池键 = sourceKey。T024.1（D44 #4）**未知卡回退 choke
+          // point 单一入口**：preset 经 declaredPresetOf 对注册表 meta.presets 归一——
+          // 不在声明内（已删卡/脏数据）→ undefined = default（宽容回退不抛错）；file
+          // 资产 preset 概念不存在，回退 assetId（现状）；无 shapeFamily 的程序化
+          // 资产同回退 assetId（无形态/色卡声明面，ProceduralSourceCache 同口径）
+          resolvePoolKey: (assetId, seed, preset) => {
             const descriptor = assets?.get(assetId);
             if (!descriptor || descriptor.kind !== 'procedural') return assetId;
             const family = descriptor.asset.shapeFamily;
-            return family ? sourceKeyOf(assetId, shapeSlotOf(seed ?? 0, family.size)) : assetId;
+            if (!family) return assetId;
+            return sourceKeyOf(
+              assetId,
+              shapeSlotOf(seed ?? 0, family.size),
+              declaredPresetOf(assetId, preset),
+            );
           },
           getRepresentationCapability: representationCapabilityOf,
         })

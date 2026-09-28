@@ -33,12 +33,15 @@
  * 材质分层表（materialIndex → 部件 → 材质；配方在 ./tree/ginkgo/ginkgoMaterials——
  *      park-shader-agent 并行交付，导出签名冻结（与 zelkovaMaterials 同构）：
  *      createGinkgoBarkMaterial / createGinkgoLeafMaterial / createGinkgoLeafDepthMaterial，
- *      均 (level?: ProceduralLevel) => 材质）：
+ *      均 (level?: ProceduralLevel) => 材质；T024.1 起叶工厂追加可选 preset 尾参
+ *      （createGinkgoLeafMaterial(level?, preset?)，向后兼容）：
  *      0 树皮（主干+五级枝+底盖）—— createGinkgoBarkMaterial(level)：灰褐纵裂脊沟
  *        （幼即浅纵裂→老深纵裂粗糙 Verified [1][2]；中龄取浅-中相——脊宽 ≈干径
  *        1/10–1/15、沟脊对比中-高、伴生树瘤记档；几何侧微起伏 0.030/{4,5,6}/2.6 见
  *        profile）
- *      1 叶簇卡（L4/L5 短枝莲座簇 + 长枝散生烘焙）—— createGinkgoLeafMaterial(level)：
+ *      1 叶簇卡（L4/L5 短枝莲座簇 + 长枝散生烘焙）—— createGinkgoLeafMaterial(level,
+ *        preset)（T024.1：preset = 色卡 id，缺省/'default' = 现行淡绿-黄绿基调；'autumn' =
+ *        秋·金黄——色值配方与 Spec §6 证据链在 ginkgoMaterials 秋卡私有域，冠变干不变）：
  *        淡绿-中绿细质密叶基调（五资产最淡叶色——两面同色无粉感 Verified [1][2][7]）+
  *        SDF 扇形叶（宽楔基 + 全缘 + 波状缺刻 60%/2 裂 30%/近全缘 10% + 二叉分歧脉
  *        ——五资产唯一非中轴脉型，Spec §4 叶形/叶脉节 Verified）+ aLeafRand 逐叶变奏 +
@@ -50,7 +53,8 @@
  *      值）、aBend（风动摆幅权重，卡内根→尖非降；树皮组恒 0）。
  * 边界：每次调用 new 全部 geometry/material/深度材质（所有权随调用移交调用方，缓存会
  *      dispose，禁止模块级共享对象，D17）；不建模记档（Spec 有事实、本资产不表达）：
- *      秋色金黄 ≈90%+ 纯金黄（季相归材质/风格层，任务书「秋色不建模记档」）、种子白果
+ *      秋色金黄 ≈90%+ 纯金黄（**T024.1 起经叶材质色卡 'autumn' 表达**——季相不进几何/
+ *      树皮维持「冠变干不变」，原「不建模记档」的几何侧口径不变）、种子白果
  *      （雌株不进生产口径）、雄球花、落叶一夜集中行为、叶柄细长（卡抽象）、扇形轮廓/
  *      缺刻/2 裂/二叉脉（归材质 SDF）、冬芽、小枝三色（淡褐黄→灰/短枝黑灰——归材质层）、
  *      树瘤/苔藓地衣（归树皮材质）——详见 ginkgoShapeProfile 模块头。
@@ -102,6 +106,15 @@ export const meta: ProceduralAssetMeta = {
   // CanopySourceCache 经 broadleafCanopyProxy 工厂提供（021.6，恒 487 面）
   representations: ['high', 'mid', 'canopy'],
   taxonomy: { category: 'plant', family: 'broadleaf' }, // 阔叶家族契约第五实例（tree/broadleaf/，T010.1；银杏为裸子植物（gymnosperm [4]）但按家族形态域归 broadleaf 家族——叶序/冠形方法适配先例（落叶阔叶第三例），裸子语义无家族字段，记档同榉树落叶先例）
+  // 色卡（T024.1 试点真卡，D44）：default = 现行淡绿-黄绿基调（swatch = 叶材质构造色
+  // #8ab45d——与 canopy crownColor 同源）；autumn = 秋·金黄（Spec §6 五源交叉「≈90%+ 纯金黄、
+  // <10% 残绿、无橙红混入」+ fall 样木第二视觉复证 [1][2][4][5][6][7]）；色值配方在
+  // ginkgoMaterials 秋卡私有域（冠变干不变——皮与几何不动）。试点卡 id 'autumn' 为 024.2
+  // id 域定稿前占位（定稿改名随改，归 024.2）
+  presets: [
+    { id: 'default', label: '默认', swatch: '#8ab45d' },
+    { id: 'autumn', label: '秋·金黄', swatch: '#d4b737' }, // swatch = 秋卡基色（ginkgoMaterials GINKGO_LEAF_PRESETS autumn 行同源——Step C 定稿 #d4b737）
+  ],
   proceduralProfile: {
     // 跨 8 槽细模包围盒实测带（T011.4 探针：h 7.80–8.77 / w 3.82–5.89）。
     // 物种锚 slot-0 ≈8.17m 高 / 4.75m 冠幅 / w-h 比 0.581（≈8m 中龄公园个体工程锚——
@@ -134,8 +147,11 @@ export function build(params?: ProceduralBuildParams): InstanceSource {
   const level = params?.level ?? 'high';
   const rng = mulberry32(seed);
   const { geometry } = buildGinkgoGeometry(rng, profileForSeed(seed), level);
+  // params.preset = 色卡 id（T024.1 试点透传，D44 #1——冠变干不变）：仅叶材质消费；
+  // 皮材质与深度材质不传（干不变；深度材质色无关、将被 Runtime 跨卡共享——另一 Step）
+  const preset = params?.preset;
   const bark = createGinkgoBarkMaterial(level); // 组 0（契约序 [皮, 叶]——mergeGeometries 层序）
-  const leaf = createGinkgoLeafMaterial(level);
+  const leaf = createGinkgoLeafMaterial(level, preset);
   // 影 pass 叶影裁切走 InstanceSource 契约通道——工厂每次 new（build 契约「每次调用 new
   // 全部资源」天然满足），档位随 level 匹配；归源所有（缓存 dispose）
   return {

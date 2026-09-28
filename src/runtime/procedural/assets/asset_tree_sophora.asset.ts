@@ -142,6 +142,7 @@ export const meta: ProceduralAssetMeta = {
   // CanopySourceCache 经 broadleafCanopyProxy 工厂提供（021.6，恒 487 面）
   representations: ['high', 'mid', 'canopy'],
   taxonomy: { category: 'plant', family: 'broadleaf' }, // 阔叶家族契约第十实例（tree/broadleaf/，T010.1；豆科（Fabaceae）被子植物按家族形态域归 broadleaf——落叶阔叶第七例、复叶第三型（一回奇数羽状窗列单级化），记档见资产模块头）
+  presets: [{ id: 'default', label: '默认', swatch: '#568a3e' }], // 色卡占位（T024.1）：默认卡 = 现行材质基调；季相卡 024.2/024.3 按 Spec 证据回补（D44 #7 无证据不建卡）
   proceduralProfile: {
     // 跨 8 槽细模包围盒实测带（T011.9 终测 2026-09-21：h 9.23–11.36 / w 9.30–11.01，
     // 声明带外沿放宽——实测带全含）。

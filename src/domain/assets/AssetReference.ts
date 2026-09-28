@@ -14,4 +14,11 @@ export interface AssetReference {
   assetId: ID;
   /** 烘焙式变体 seed（可选；数字，非负整数惯例但不做结构约束——序列化整体透传） */
   seed?: number;
+  /**
+   * 材质基调色卡 id（T024，D44 #4——可选，与 seed 同层整体透传）：指向资产 meta
+   * presets 声明的卡；**默认卡省略不落盘**（缺省 = DEFAULT_COLOR_PRESET_ID，旧场景
+   * 零迁移）；放置 Command 携带随撤销重做走。读侧宽容：未声明的卡 id 由渲染入口
+   * 归一回默认卡（已删卡场景不崩）。instanceColor 群内微差与此正交（D44 #5）。
+   */
+  preset?: string;
 }

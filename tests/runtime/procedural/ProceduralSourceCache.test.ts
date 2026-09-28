@@ -26,6 +26,11 @@
  *   也入键分支（字面规则「representations 非空」——边界记档）。
  * - customDepthMaterial 释放（T009.5）：evict 单条目与 dispose 全量均释放源所持影
  *   pass 深度材质（恰一次、互不误伤、幂等）。
+ * - 跨色卡共享（T024.1，D44 #3）：同树同槽两卡（default/autumn 临时路由 fake build）
+ *   两缓存条目——geometry/customDepthMaterial 同引用、material 异引用；后到条目
+ *   冗余几何/深度即时 dispose（切卡不重建几何——条目持第一次交付）；evict 引用计数
+ *   （一卡 evict 共享份存活、两卡全 evict 共享份 dispose 恰一次且登记清空）；dispose
+ *   全量共享份各恰一次（不随条目数翻倍）。
  * 边界：绝无模块级单例——每测试 new 独立实例（D17 StrictMode 双挂载裁定）。
  */
 import { afterEach, describe, expect, it } from 'vitest';
@@ -207,8 +212,9 @@ function familyMeta(id: string, size: number): ProceduralAssetMeta {
   return {
     id,
     name: `临时形态族资产 ${id}`,
-    category: 'test',
-    taxonomy: { category: 'dev' }, // T010.2 必填分类（临时管线测试资产 → dev）
+    category: 'test',taxonomy: { category: 'dev' }, // T010.2 必填分类（临时管线测试资产 → dev）
+
+    presets: [], // T024/D44 #2 必填色卡声明（测试替身 = 显式无卡）
     tags: ['test'],
     defaultScale: { x: 1, y: 1, z: 1 },
     defaultRotation: { x: 0, y: 0, z: 0 },
@@ -441,8 +447,9 @@ function bareLevelsMeta(id: string, levels: { id: 'high' | 'mid' | 'low' }[]): P
   return {
     id,
     name: `临时多档设施资产 ${id}`,
-    category: 'test',
-    taxonomy: { category: 'dev' }, // T010.2 必填分类（临时管线测试资产 → dev）
+    category: 'test',taxonomy: { category: 'dev' }, // T010.2 必填分类（临时管线测试资产 → dev）
+
+    presets: [], // T024/D44 #2 必填色卡声明（测试替身 = 显式无卡）
     tags: ['test'],
     defaultScale: { x: 1, y: 1, z: 1 },
     defaultRotation: { x: 0, y: 0, z: 0 },
@@ -518,8 +525,9 @@ function bareRepresentationsMeta(
   return {
     id,
     name: `临时表示声明资产 ${id}`,
-    category: 'test',
-    taxonomy: { category: 'dev' }, // T010.2 必填分类（临时管线测试资产 → dev）
+    category: 'test',taxonomy: { category: 'dev' }, // T010.2 必填分类（临时管线测试资产 → dev）
+
+    presets: [], // T024/D44 #2 必填色卡声明（测试替身 = 显式无卡）
     tags: ['test'],
     defaultScale: { x: 1, y: 1, z: 1 },
     defaultRotation: { x: 0, y: 0, z: 0 },
@@ -634,5 +642,126 @@ describe('customDepthMaterial 释放（T009.5：源所持影 pass 深度材质�
     expect(depthDisposed).toBe(3); // 全量条目的深度材质均释放
     cache.dispose(); // 幂等
     expect(depthDisposed).toBe(3);
+  });
+});
+
+// ── 跨色卡共享（T024.1，D44 #3——preset 进键分桶 + geometry/深度跨卡单份）──────────
+
+/** 跨卡共享测试替身单次交付记录：三资源引用 + 各自 dispose 计数（创建即挂监听——
+ *  load 内即时 dispose 的冗余资源也要能数到） */
+interface PresetBuildRecord {
+  geometry: THREE.BufferGeometry;
+  depth: THREE.MeshDepthMaterial;
+  material: THREE.MeshStandardMaterial;
+  geoDisposed: number;
+  depthDisposed: number;
+  matDisposed: number;
+  preset?: string;
+}
+
+/** 计数 + 记录型构建器（跨卡共享专用）：记录每次 preset 入参与逐资源 dispose 计数 */
+function presetShareBuild(log: { calls: number; records: PresetBuildRecord[] }) {
+  return (params?: ProceduralBuildParams): InstanceSource => {
+    log.calls++;
+    const geometry = new THREE.BoxGeometry();
+    const depth = new THREE.MeshDepthMaterial();
+    const material = new THREE.MeshStandardMaterial();
+    const record: PresetBuildRecord = {
+      geometry,
+      depth,
+      material,
+      geoDisposed: 0,
+      depthDisposed: 0,
+      matDisposed: 0,
+      preset: params?.preset,
+    };
+    geometry.addEventListener('dispose', () => record.geoDisposed++);
+    depth.addEventListener('dispose', () => record.depthDisposed++);
+    material.addEventListener('dispose', () => record.matDisposed++);
+    log.records.push(record);
+    return { geometry, material, customDepthMaterial: depth };
+  };
+}
+
+describe('跨色卡共享（D44 #3：preset 进键分桶 + geometry/customDepthMaterial 跨卡单份）', () => {
+  it('同树同槽两卡两缓存条目：geometry/customDepthMaterial 同引用、material 异引用；第二次 build 被调但交付的冗余几何/深度即时 dispose（切卡不重建几何——条目持第一次交付）', async () => {
+    const id = 'test.preset_share';
+    tempIds.push(id);
+    const log = { calls: 0, records: [] as PresetBuildRecord[] };
+    registerProceduralRoute(id, presetShareBuild(log), familyMeta(id, 2));
+    const cache = newCache();
+    const seed = 3;
+    const a = await cache.load(id, { seed }); // 默认卡（preset 缺省）
+    const b = await cache.load(id, { seed, preset: 'autumn' }); // 秋色卡
+    expect(cache.size).toBe(2); // 分桶硬要求：同场景同树不同卡并存
+    expect(cache.sharedSize).toBe(1); // 同槽同档跨卡 = 一行共享登记
+    expect(log.calls).toBe(2); // build 第二次被调（第二条目私有材质需要）
+    expect(log.records[1]!.preset).toBe('autumn'); // preset 透传 build（材质按卡取色）
+    expect(log.records[0]!.preset).toBeUndefined();
+    expect(b.geometry).toBe(a.geometry); // 跨卡共享同一 geometry
+    expect(b.customDepthMaterial).toBe(a.customDepthMaterial); // 跨卡共享同一深度材质
+    expect(b.material).not.toBe(a.material); // 主材质按卡私有
+    expect(a.geometry).toBe(log.records[0]!.geometry); // 条目持第一次交付的引用
+    expect(log.records[0]!.geoDisposed).toBe(0); // 共享份在用未释放
+    expect(log.records[0]!.depthDisposed).toBe(0);
+    expect(log.records[1]!.geoDisposed).toBe(1); // 第二次交付的冗余几何即时 dispose
+    expect(log.records[1]!.depthDisposed).toBe(1); // 冗余深度即时 dispose
+    expect(log.records[1]!.matDisposed).toBe(0); // 秋卡私有材质未被误伤
+  });
+
+  it('evict 引用计数：evict 一卡——私有材质释放、共享 geometry/深度存活（另一卡在用）；两卡全 evict——共享份 dispose 恰一次、登记清空；释放后可重建再采编', async () => {
+    const id = 'test.preset_share_evict';
+    tempIds.push(id);
+    const log = { calls: 0, records: [] as PresetBuildRecord[] };
+    registerProceduralRoute(id, presetShareBuild(log), familyMeta(id, 2));
+    const cache = newCache();
+    const seed = 3;
+    await cache.load(id, { seed });
+    await cache.load(id, { seed, preset: 'autumn' });
+    // evict 秋色卡：条目移除、私有材质释放、共享资源不动（默认卡在用）
+    expect(cache.evict(id, { seed, preset: 'autumn' })).toBe(true);
+    expect(cache.size).toBe(1);
+    expect(log.records[0]!.geoDisposed).toBe(0);
+    expect(log.records[0]!.depthDisposed).toBe(0);
+    expect(log.records[1]!.matDisposed).toBe(1); // 秋卡私有材质已释放
+    expect(log.records[0]!.matDisposed).toBe(0); // 默认卡材质未误伤
+    expect(cache.sharedSize).toBe(1); // 登记仍在
+    expect(cache.evict(id, { seed, preset: 'autumn' })).toBe(false); // 幂等：已释放未命中
+    // evict 默认卡：引用归零——共享份 dispose 恰一次、登记移除
+    expect(cache.evict(id, { seed })).toBe(true);
+    expect(log.records[0]!.geoDisposed).toBe(1);
+    expect(log.records[0]!.depthDisposed).toBe(1);
+    expect(log.records[0]!.matDisposed).toBe(1);
+    expect(cache.size).toBe(0);
+    expect(cache.sharedSize).toBe(0); // 登记清空
+    // 全释放后再 load 视为未命中重建、重新采编共享
+    await cache.load(id, { seed });
+    expect(cache.size).toBe(1);
+    expect(cache.sharedSize).toBe(1);
+    expect(log.calls).toBe(3);
+  });
+
+  it('dispose 全量（两卡场景）：共享 geometry/深度各释放恰一次（不随条目数翻倍）、两卡私有材质各释放；幂等、条目与登记清空', async () => {
+    const id = 'test.preset_share_dispose';
+    tempIds.push(id);
+    const log = { calls: 0, records: [] as PresetBuildRecord[] };
+    registerProceduralRoute(id, presetShareBuild(log), familyMeta(id, 2));
+    const cache = newCache();
+    await cache.load(id, { seed: 3 });
+    await cache.load(id, { seed: 3, preset: 'autumn' });
+    cache.dispose();
+    expect(log.records[0]!.geoDisposed).toBe(1); // 共享单份恰一次（双条目不翻倍）
+    expect(log.records[0]!.depthDisposed).toBe(1);
+    expect(log.records[1]!.geoDisposed).toBe(1); // 冗余份已在 load 时即时释放，dispose 不重复
+    expect(log.records[1]!.depthDisposed).toBe(1);
+    expect(log.records[0]!.matDisposed).toBe(1); // 两卡私有材质各释放
+    expect(log.records[1]!.matDisposed).toBe(1);
+    expect(cache.size).toBe(0);
+    expect(cache.sharedSize).toBe(0);
+    cache.dispose(); // 幂等
+    expect(log.records[0]!.geoDisposed).toBe(1);
+    expect(log.records[0]!.depthDisposed).toBe(1);
+    expect(log.records[0]!.matDisposed).toBe(1);
+    expect(log.records[1]!.matDisposed).toBe(1);
   });
 });

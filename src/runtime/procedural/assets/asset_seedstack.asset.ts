@@ -31,6 +31,7 @@ export const meta: ProceduralAssetMeta = {
   triangleCount: 72, // 上界实数：6 层 × 12 面（层数 4–6 由 seed 派生）
   levels: [{ id: 'high' }],
   taxonomy: { category: 'dev' }, // DEV 管线验证资产（浏览器产品栏过滤）；无族可归，不填 family 与 proceduralProfile（无浏览语义需求，不投机造数）
+  presets: [], // 色卡：显式无卡（D44 #2 合法态——设施/DEV 资产无材质基调变体面）
 };
 
 /** 无参调用的固定缺省 seed（缩略图/旧通路确定性保证；任意值，锁定不改） */

@@ -49,7 +49,7 @@ function isFiniteNumber(v: unknown): v is number {
   return typeof v === 'number' && Number.isFinite(v);
 }
 
-/** 覆写配比表防御：[{assetId, weight}] 中合法项（非空 id + 有限正权重）；全无效 → null（视为无此覆写） */
+/** 覆写配比表防御：[{assetId, weight, preset?}] 中合法项（非空 id + 有限正权重 + 可选非空色卡 id 透传——T024 预留位不校验值域，消费归散布任务 D44 #6）；全无效 → null（视为无此覆写） */
 function sanitizeAssets(v: unknown): ScatterAssetWeight[] | null {
   if (!Array.isArray(v) || v.length === 0) return null;
   const out: ScatterAssetWeight[] = [];
@@ -62,7 +62,12 @@ function sanitizeAssets(v: unknown): ScatterAssetWeight[] | null {
       isFiniteNumber((item as ScatterAssetWeight).weight) &&
       (item as ScatterAssetWeight).weight > 0
     ) {
-      out.push({ assetId: (item as ScatterAssetWeight).assetId, weight: (item as ScatterAssetWeight).weight });
+      const preset = (item as ScatterAssetWeight).preset;
+      out.push({
+        assetId: (item as ScatterAssetWeight).assetId,
+        weight: (item as ScatterAssetWeight).weight,
+        ...(typeof preset === 'string' && preset !== '' ? { preset } : {}),
+      });
     }
   }
   return out.length > 0 ? out : null;

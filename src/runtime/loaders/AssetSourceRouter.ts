@@ -62,11 +62,12 @@ export class AssetSourceRouter {
 
   /**
    * Ghost 展示对象（PreviewManager 的 Ghost 源）：file → 模板深克隆（共享几何/材质，
-   * 与既有 clone 语义逐位一致）；procedural → 共享缓存源的 Mesh（seed 透传槽路由——
-   * 同槽对象 Ghost 与实例桶共用同一 Source；**Ghost 方永不 dispose**，
+   * 与既有 clone 语义逐位一致）；procedural → 共享缓存源的 Mesh（seed/preset 透传——
+   * seed 槽路由 + preset 色卡分桶（T024.1，D44 #8 Ghost 带卡所见即所得）：同 (assetId,
+   * seed, preset) 的 Ghost 与实例桶共用同一 Source；**Ghost 方永不 dispose**，
    * 所有权在缓存——见类头契约）。失败 reject（占位盒保留，由调用方 catch）。
    */
-  async provideGhostObject(assetId: ID, seed?: number): Promise<THREE.Object3D> {
+  async provideGhostObject(assetId: ID, seed?: number, preset?: string): Promise<THREE.Object3D> {
     const descriptor = this.deps.assets.get(assetId);
     if (!descriptor) {
       throw new Error(`未注册的模型资产: ${assetId}`);
@@ -74,7 +75,7 @@ export class AssetSourceRouter {
     if (isFileAssetDescriptor(descriptor)) {
       return this.deps.loader.instantiate(assetId);
     }
-    const source = await this.deps.procedural.load(assetId, { seed });
+    const source = await this.deps.procedural.load(assetId, { seed, preset });
     return new THREE.Mesh(source.geometry, source.material);
   }
 }

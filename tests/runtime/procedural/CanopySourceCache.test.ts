@@ -14,6 +14,12 @@
  * - 生命周期：dispose 释放 geometry + 两材质 + 深度材质各恰一次、size 归零、幂等；
  *   双实例隔离（D17——A.dispose 不误释放 B 条目）；
  * - 失败语义：非 13 乔木 assetId → reject 且不缓存（size 0，错误含 assetId）。
+ * - 跨色卡共享与 preset 维度（T024.1，D44 #1/#3——ginkgo default + autumn 真卡）：
+ *   两卡两条目 geometry/customDepthMaterial/bounds 同引用（共享单份）、材质按卡私有；
+ *   冠卡色随卡（物种表 #8ab45d → 覆写 #d4b737）、干柱色不随卡；uTime 跨卡同源
+ *   （两卡干柱材质 uniforms.uTime 同一对象 + 共享 depth 绑同一对象——成套契约窄化为
+ *   「uTime 引用同源」）；dispose 共享份各恰一次（不随条目数翻倍）；携 preset 的
+ *   未接入树种请求 reject 语义不变。
  * 边界：每测试 new 独立实例（会话私有）；afterEach 统一 dispose 兜底。
  */
 import { afterEach, describe, expect, it } from 'vitest';
@@ -163,5 +169,90 @@ describe('失败语义（镜像 ProceduralSourceCache：失败不缓存坏结果
     const cache = newCache();
     await expect(cache.load('asset_streetlamp')).rejects.toThrow(/asset_streetlamp/);
     expect(cache.size).toBe(0);
+  });
+});
+
+// ── 跨色卡共享与 preset 维度（T024.1，D44 #1/#3——ginkgo default + autumn 真卡）──────────
+
+describe('跨色卡共享与 preset 维度（冠卡随卡分桶、geometry/depth/uTime/bounds 跨卡单份）', () => {
+  it('ginkgo 两卡两条目：geometry/customDepthMaterial/bounds 同引用、材质按卡私有；冠卡色随卡（#8ab45d → #d4b737）、干柱色不随卡（冠变干不变）', async () => {
+    const cache = newCache();
+    const seed = 3;
+    const a = await cache.load('asset_tree_ginkgo', seed); // 默认卡（preset 缺省）
+    const b = await cache.load('asset_tree_ginkgo', seed, 'autumn'); // 秋金黄卡
+    expect(cache.size).toBe(2); // 冠卡随卡分桶（D44 #3 分桶硬要求）
+    expect(cache.sharedSize).toBe(1); // 同槽跨卡 = 一行共享登记
+    expect(b.geometry).toBe(a.geometry); // canopy 几何与卡无关——共享单份
+    expect(b.customDepthMaterial).toBe(a.customDepthMaterial); // 深度材质与卡无关（色不进深度）
+    expect(b.bounds).toBe(a.bounds); // bounds 随几何派生一次（共享）
+    const [trunkA, cardA] = a.material as THREE.MeshStandardMaterial[];
+    const [trunkB, cardB] = b.material as THREE.MeshStandardMaterial[];
+    expect(trunkA).not.toBe(trunkB); // 材质数组按卡条目私有
+    expect(cardA).not.toBe(cardB);
+    expect(cardA.color.getHex()).toBe(0x8ab45d); // ginkgo 物种表冠色（默认卡零变化）
+    expect(cardB.color.getHex()).toBe(0xd4b737); // autumn 覆写（与近景叶基调同源同值）
+    expect(trunkA.color.getHex()).toBe(trunkB.color.getHex()); // 干柱色不随卡
+    expect(trunkA.color.getHex()).toBe(0x6b665c); // ginkgo 皮色
+  });
+
+  it('uTime 跨卡同源（成套契约窄化）：两卡条目干柱材质 uniforms.uTime 同一对象、共享 depth 绑同一对象——写任一即达深度', async () => {
+    const cache = newCache();
+    const a = await cache.load('asset_tree_ginkgo', 3);
+    const b = await cache.load('asset_tree_ginkgo', 3, 'autumn');
+    const trunkA = (a.material as TimeBridged[])[0]!;
+    const trunkB = (b.material as TimeBridged[])[0]!;
+    const uTimeA = trunkA.uniforms?.uTime;
+    expect(uTimeA).toBeDefined();
+    expect(trunkB.uniforms?.uTime).toBe(uTimeA); // 跨卡同源（后到卡注入共享 uTime）
+    // 共享 depth：材质级 uniforms 不挂（服务只扫 node.material），onBeforeCompile 绑共享对象
+    const depth = b.customDepthMaterial as THREE.MeshDepthMaterial;
+    expect((depth as TimeBridged).uniforms?.uTime).toBeUndefined();
+    const shader = fakeShader();
+    type OnCompileShader = Parameters<NonNullable<THREE.MeshDepthMaterial['onBeforeCompile']>>[0];
+    depth.onBeforeCompile?.(shader as unknown as OnCompileShader, null!); // 工厂闭包不消费 renderer 参
+    expect(shader.uniforms.uTime).toBe(uTimeA); // 深度程序 uniform = 同一对象引用
+    // TimeUniformService 写任一卡的任一主材质一次 → 深度程序读数同帧同值
+    trunkB.uniforms!.uTime!.value = 33.25;
+    expect(shader.uniforms.uTime!.value).toBe(33.25);
+  });
+
+  it('dispose 全量释放（引用计数清零路径）：两卡共享 geometry/深度各恰一次（不随条目数翻倍）、两卡私有材质共 4 项各一次；幂等、条目与登记清空', async () => {
+    const cache = newCache();
+    const a = await cache.load('asset_tree_ginkgo', 3);
+    const b = await cache.load('asset_tree_ginkgo', 3, 'autumn');
+    let geoDisposed = 0;
+    let depthDisposed = 0;
+    let matDisposed = 0;
+    a.geometry.addEventListener('dispose', () => geoDisposed++);
+    a.customDepthMaterial!.addEventListener('dispose', () => depthDisposed++);
+    const allMaterials = [
+      ...(a.material as THREE.Material[]),
+      ...(b.material as THREE.Material[]),
+    ];
+    for (const m of allMaterials) m.addEventListener('dispose', () => matDisposed++);
+    cache.dispose();
+    expect(geoDisposed).toBe(1); // 共享单份恰一次（两条目不翻倍）
+    expect(depthDisposed).toBe(1);
+    expect(matDisposed).toBe(4); // 两卡 × [干柱, 冠卡] 私有材质
+    expect(cache.size).toBe(0);
+    expect(cache.sharedSize).toBe(0); // 登记清空
+    cache.dispose(); // 幂等
+    expect(geoDisposed).toBe(1);
+    expect(depthDisposed).toBe(1);
+    expect(matDisposed).toBe(4);
+  });
+
+  it('后到色卡跳过几何工厂（canopy 几何与卡无关）：首卡后 load 他卡条目持共享引用、不再产出新几何；携 preset 的未接入树种请求 reject 语义不变', async () => {
+    const cache = newCache();
+    const a = await cache.load('asset_tree_ginkgo', 3);
+    const b = await cache.load('asset_tree_ginkgo', 3, 'autumn');
+    // 共享单份证据：第二卡条目几何 = 首卡交付（几何工厂只在首卡路径调用——实现为
+    // 互斥分支；若第二卡重建几何，引用必然分离）
+    expect(b.geometry).toBe(a.geometry);
+    expect(cache.sharedSize).toBe(1);
+    // 失败语义不随卡变化：未接入树种携 preset 同样 reject 且不缓存、不动既有条目
+    await expect(cache.load('asset_streetlamp', undefined, 'autumn')).rejects.toThrow(/asset_streetlamp/);
+    expect(cache.size).toBe(2);
+    expect(cache.sharedSize).toBe(1);
   });
 });

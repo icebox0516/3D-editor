@@ -121,6 +121,7 @@ export const meta: ProceduralAssetMeta = {
   // CanopySourceCache 经 broadleafCanopyProxy 工厂提供（021.6，恒 487 面）
   representations: ['high', 'mid', 'canopy'],
   taxonomy: { category: 'plant', family: 'broadleaf' }, // 阔叶家族契约第六实例（tree/broadleaf/，T010.1；悬铃木科（Platanaceae）被子植物按家族形态域归 broadleaf——落叶阔叶第三例，方法适配先例记档同榉树/银杏）
+  presets: [{ id: 'default', label: '默认', swatch: '#527e39' }], // 色卡占位（T024.1）：默认卡 = 现行材质基调；季相卡 024.2/024.3 按 Spec 证据回补（D44 #7 无证据不建卡）
   proceduralProfile: {
     // 跨 8 槽细模包围盒实测带（T011.5 探针：h 11.53–12.79 / w 6.52–8.79）。
     // 物种锚 slot-0 ≈11.6m 高 / 7.95m 冠幅 / w-h 比 0.683（≈12m 中龄公园个体——主代理

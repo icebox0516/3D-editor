@@ -37,6 +37,21 @@
  *   影 pass 风摆与主渲染同相同帧。**成套消费契约：三材质必须同一工厂产物一起用**（拆开挂
  *   depth 会失去 uTime 更新源——CanopySourceCache 整体成套持有三材质，021.7 按此接线）。
  *
+ * ── 色卡 preset + uTime 注入（T024.1，D44 #1/#3——「冠变干不变」推广到远景表示）──
+ * createBroadleafCanopyMaterials 追加两个可选尾参（导出签名冻结的扩展，向后兼容）：
+ *   - preset：查种子级冠色覆写表 BROADLEAF_CANOPY_CROWN_PRESETS（模块私有）——命中行
+ *     覆写冠卡 crownColor（构造色 = uniform 通道，program 不增；远景不随卡会破所见即
+ *     所得——秋银杏拉远变绿）；transColor/transPeak 可选覆写进 GLSL 字面量（填充即
+ *     card 键加 `:${preset}` 后缀分叉 = +1 program 的显式选择；024.1 无填充——与
+ *     ginkgoMaterials 叶材质透射冻结口径一致，近远景背光观感不背离）。未命中（缺省 /
+ *     'default' / 无行树种 / 未知 id）= 物种表行为逐位一致；干柱色/风动/变奏参数不随卡。
+ *     024.1 只填 ginkgo autumn 一行（与 GINKGO_LEAF_PRESETS.autumn 同源同值——远近
+ *     基调一致）；024.2/024.3 逐树回补。
+ *   - uTime：缓存共享层成套契约的接口（几何/深度跨卡共享后，注入同一 uTime、丢弃自建
+ *     深度材质改用共享份）。缺省 = 工厂自建（现行行为）；提供时三材质（干柱/冠卡/深度）
+ *     统一绑定该对象——TimeUniformService 广播语义不变（写任一主材质即同值到深度程序），
+ *     三材质成套释放契约窄化为「uTime 引用同源」（CanopySourceCache 头注释随改，另 Step）。
+ *
  * ── Canopy Depth Material（§七末段：仅保冠层轮廓 + 主要空隙 + 基本体量）──
  * MeshDepthMaterial + RGBADepthPacking，**无 SDF / 无 alphaTest / 无噪声采样**——canopy 卡
  *   本身即冠层壳带（双卡交叉 + 单卡内层），卡间空隙 = 主要空隙，由几何排布天然保留，深度
@@ -214,6 +229,41 @@ export const BROADLEAF_CANOPY_MATERIAL_SPECIES: Readonly<Record<string, Broadlea
 /** canopy 材质可用树种 assetId 清单（与几何面接入表同序；接线 / 测试枚举面） */
 export const BROADLEAF_CANOPY_MATERIAL_ASSET_IDS: readonly string[] = Object.keys(BROADLEAF_CANOPY_MATERIAL_SPECIES);
 
+// ── 种子级冠色覆写表（T024.1，D44 #1——「冠变干不变」推广到远景表示）────────────────
+
+/** 冠色卡覆写行（assetId → preset id → 行；模块私有） */
+interface BroadleafCanopyCrownPreset {
+  /** 冠卡基调色（= 该卡叶材质构造色——远近同源一致） */
+  crownColor: number;
+  /** 透射色覆写（可选；进 GLSL 字面量——填充即 card 键随卡分叉 = +1 program 显式选择） */
+  transColor?: readonly [number, number, number];
+  /** 透射峰值覆写（可选；进 GLSL 字面量——填充即 card 键随卡分叉） */
+  transPeak?: number;
+}
+
+/**
+ * 种子级冠色覆写表（024.1 只填 ginkgo autumn 一行；024.2/024.3 逐树回补）。未命中 =
+ * 现行物种表行为逐位一致；干柱色/风动/变奏参数不随卡。transColor/transPeak 为透射
+ * 覆写预留位——**024.1 不填**（与 ginkgoMaterials 叶材质透射字面量冻结口径一致：近景
+ * 叶透射不随卡则远景冠透射亦不随卡，否则近远景背光观感背离；填充时走 GLSL 字面量分叉
+ * + card 键 `:${preset}` 后缀，program 增量为显式选择）。
+ */
+export const BROADLEAF_CANOPY_CROWN_PRESETS: Readonly<
+  Record<string, Readonly<Record<string, Readonly<BroadleafCanopyCrownPreset>>>>
+> = {
+  asset_tree_ginkgo: {
+    autumn: {
+      // 秋·金黄冠卡（Spec §6 五源交叉：FRPS「秋季落叶前变为黄色」/ FOC "bright yellow" /
+      // Wikipedia "deep saffron yellow" / OSU "bright yellow to gold" / NC "golden yellow" +
+      // fall 样木「≈90%+ 纯金黄、<10% 残绿、无橙红混入」[1][2][4][5][6][7]）——与
+      // ginkgoMaterials GINKGO_LEAF_PRESETS.autumn 基调**同源同值**（#d4b737：hue ≈48.9°
+      // 金黄、R−G 29 不入橙红、亮度 > 夏相——推导见该表注释）：远景冠色块与近景叶基调
+      // 一致是档间身份一致的色面；远景不随卡会破所见即所得（秋银杏拉远变绿）。
+      crownColor: 0xd4b737,
+    },
+  },
+};
+
 // ── GLSL 配方（参数化拼装——数值来自上表；公式逐字同 species 风动/hue·luma 形态）──────
 
 /** 风动顶点声明（干柱 / 冠卡共用——aLeafRand 进 flutter 相位，干柱 aBend=0 免颤） */
@@ -292,26 +342,45 @@ export interface BroadleafCanopyMaterialSet {
  * 输入 = assetId（散布链 assetId 粒度语义，无 shapeSlot 维度）；输出 = 干柱 + 冠卡 + 深度
  * 三材质，共享同一 uTime 对象（TimeUniformService 扫主材质即三材质同帧——影 pass 风摆与
  * 主渲染同相）。未知 assetId 即抛（可用清单见错误信息）。Runtime 接线已由 021.7 落位
- * （CanopySourceCache）；所有权随
- * 调用移交调用方（Source/Cache 拥有释放，Pool 只挂引用——D41 §10.3）。
+ * （CanopySourceCache）；所有权随调用移交调用方（Source/Cache 拥有释放，Pool 只挂引用
+ * ——D41 §10.3）。
+ * 可选尾参（T024.1，向后兼容）：preset = 色卡 id——查 BROADLEAF_CANOPY_CROWN_PRESETS
+ * 覆写冠卡基调色（构造色通道，program 不增；干柱色/风动/变奏参数不随卡；未命中 = 物种
+ * 表行为逐位一致）；uTime = 外部注入的共享时间对象（缺省工厂自建；提供时三材质统一
+ * 绑定该对象——成套契约窄化为「uTime 引用同源」）。
  */
-export function createBroadleafCanopyMaterials(assetId: string): BroadleafCanopyMaterialSet {
+export function createBroadleafCanopyMaterials(
+  assetId: string,
+  preset?: string,
+  uTime?: { value: number },
+): BroadleafCanopyMaterialSet {
   const spec = BROADLEAF_CANOPY_MATERIAL_SPECIES[assetId];
   if (!spec) {
     throw new Error(`BroadleafCanopyProxy 材质无此树种接入: ${assetId}（可用: ${BROADLEAF_CANOPY_MATERIAL_ASSET_IDS.join(', ')}）`);
   }
-  const uTime = { value: 0 };
+  // 冠色卡覆写（T024.1）：未命中（缺省/'default'/无行树种/未知 id）= undefined = 物种表行为
+  const crownOverride = preset === undefined ? undefined : BROADLEAF_CANOPY_CROWN_PRESETS[assetId]?.[preset];
+  // 透射覆写（预留位消费——024.1 无填充）：字面量进 GLSL ⇒ 键随卡分叉（+1 program 显式选择）
+  let cardVariation: BroadleafCanopyVariationSpec = spec.variation;
+  let cardKeySuffix = '';
+  if (crownOverride?.transColor !== undefined || crownOverride?.transPeak !== undefined) {
+    cardVariation = { ...spec.variation };
+    if (crownOverride?.transColor !== undefined) cardVariation.transColor = crownOverride.transColor;
+    if (crownOverride?.transPeak !== undefined) cardVariation.transPeak = crownOverride.transPeak;
+    cardKeySuffix = `:${preset}`;
+  }
+  const uTimeShared = uTime ?? { value: 0 }; // 缺省自建（现行行为）；注入 = 三材质同源同帧
 
   // ── 干柱（组 0）：树种皮色 + 整树缓摆（远景剪影读向——纹理细节观距不可辨，§六不保留近景树皮）──
   const trunkMaterial = new THREE.MeshStandardMaterial({
-    color: spec.trunkColor,
+    color: spec.trunkColor, // 干柱色不随卡（冠变干不变）
     metalness: 0,
     roughness: 0.93,
     side: THREE.FrontSide,
   });
-  (trunkMaterial as TimeBridgedMaterial).uniforms = { uTime }; // 材质级（TimeUniformService 扫描面）
+  (trunkMaterial as TimeBridgedMaterial).uniforms = { uTime: uTimeShared }; // 材质级（TimeUniformService 扫描面）
   trunkMaterial.onBeforeCompile = (shader) => {
-    shader.uniforms.uTime = uTime; // 同一对象引用——服务写一次两边生效
+    shader.uniforms.uTime = uTimeShared; // 同一对象引用——服务写一次两边生效
     shader.vertexShader = replaceOnce(
       shader.vertexShader,
       '#include <common>',
@@ -328,16 +397,16 @@ ${canopyWindGlsl(spec.wind, true)}`,
   trunkMaterial.customProgramCacheKey = () => `canopy:trunk:${assetId}`;
   applyTreeFadeDither(trunkMaterial, { mirrored: true }); // T021.3 dither fade（incoming 镜像侧——aFadeOut 缺省 0 = 行为逐位不变；深度材质不注入：阴影走中点切换）
 
-  // ── 冠卡（组 1）：树种冠色 + aCrownQ 内外明暗 + aLeafRand 变奏 + 透光微扰 + 风动 ──
+  // ── 冠卡（组 1）：冠色（随卡覆写——远景所见即所得）+ aCrownQ 内外明暗 + aLeafRand 变奏 + 透光微扰 + 风动 ──
   const cardMaterial = new THREE.MeshStandardMaterial({
-    color: spec.crownColor,
+    color: crownOverride !== undefined ? crownOverride.crownColor : spec.crownColor, // 色卡覆写走构造色（program 不增）
     metalness: 0,
     roughness: 0.85,
     side: THREE.DoubleSide, // 卡面水平法线双面读向（几何面契约建议）
   });
-  (cardMaterial as TimeBridgedMaterial).uniforms = { uTime };
+  (cardMaterial as TimeBridgedMaterial).uniforms = { uTime: uTimeShared };
   cardMaterial.onBeforeCompile = (shader) => {
-    shader.uniforms.uTime = uTime;
+    shader.uniforms.uTime = uTimeShared;
     shader.vertexShader = replaceOnce(
       shader.vertexShader,
       '#include <common>',
@@ -365,16 +434,17 @@ varying float vCrownQ;`,
       shader.fragmentShader,
       '#include <map_fragment>',
       `#include <map_fragment>
-${canopyCardBodyGlsl(spec.variation)}`,
+${canopyCardBodyGlsl(cardVariation)}`,
     );
     shader.fragmentShader = replaceOnce(
       shader.fragmentShader,
       '#include <opaque_fragment>',
-      `${canopyTransmissionGlsl(spec.variation)}
+      `${canopyTransmissionGlsl(cardVariation)}
 #include <opaque_fragment>`,
     );
   };
-  cardMaterial.customProgramCacheKey = () => `canopy:card:${assetId}`;
+  // 键后缀仅在透射覆写（GLSL 字面量分叉）时出现——crownColor 走构造色不分键（program 不增）
+  cardMaterial.customProgramCacheKey = () => `canopy:card:${assetId}${cardKeySuffix}`;
   applyTreeFadeDither(cardMaterial, { mirrored: true }); // T021.3 dither fade（incoming 镜像侧——与树种 direct 侧同屏精确互补，模块头注推导）
 
   // ── 深度（customDepthMaterial）：轮廓-only 无 SDF + 风摆同相（干柱 / 冠卡两共用一）──
@@ -383,7 +453,7 @@ ${canopyCardBodyGlsl(spec.variation)}`,
     side: THREE.DoubleSide, // 卡面双面投影（影 pass 侧向由 shadowMap 按主材质覆写，此处显式对齐）
   });
   depthMaterial.onBeforeCompile = (shader) => {
-    shader.uniforms.uTime = uTime; // 共享对象——服务写主材质即深度程序同帧（成套消费契约）
+    shader.uniforms.uTime = uTimeShared; // 共享对象——服务写主材质即深度程序同帧（成套消费契约）
     shader.vertexShader = replaceOnce(
       shader.vertexShader,
       '#include <common>',

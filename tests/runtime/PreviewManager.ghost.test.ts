@@ -36,7 +36,7 @@ function makeManager(provider: PreviewManagerLike | null = null): { scene: THREE
 
 /** 与 GhostObjectProvider 结构一致的最小类型（避免私有导出循环） */
 interface PreviewManagerLike {
-  provideGhostObject(assetId: string, seed?: number): Promise<THREE.Object3D>;
+  provideGhostObject(assetId: string, seed?: number, preset?: string): Promise<THREE.Object3D>;
 }
 
 const T = { position: { x: 1, y: 0.03, z: 2 }, rotation: { x: 0, y: 0, z: 0 }, scale: { x: 1, y: 1, z: 1 } };
@@ -139,13 +139,13 @@ describe('PreviewManager：Ghost seed 透传与去重（T008.4）', () => {
 
     manager.showGhost('asset_proc', T, 42);
     expect(provideGhostObject).toHaveBeenCalledTimes(1);
-    expect(provideGhostObject).toHaveBeenCalledWith('asset_proc', 42);
+    expect(provideGhostObject).toHaveBeenCalledWith('asset_proc', 42, undefined);
     expect(manager.getGhostSeed()).toBe(42);
 
     manager.hideGhost();
     manager.showGhost('asset_proc', T); // 未传 seed → undefined 透传（GLB 侧忽略）
     expect(provideGhostObject).toHaveBeenCalledTimes(2);
-    expect(provideGhostObject).toHaveBeenLastCalledWith('asset_proc', undefined);
+    expect(provideGhostObject).toHaveBeenLastCalledWith('asset_proc', undefined, undefined);
     expect(manager.getGhostSeed()).toBeUndefined();
 
     await flush();
@@ -215,7 +215,7 @@ describe('PreviewManager：Ghost seed 透传与去重（T008.4）', () => {
 
     manager.showGhost('asset_proc', T, 2); // 换 seed → 重建（占位盒先行）
     expect(provideGhostObject).toHaveBeenCalledTimes(2);
-    expect(provideGhostObject).toHaveBeenLastCalledWith('asset_proc', 2);
+    expect(provideGhostObject).toHaveBeenLastCalledWith('asset_proc', 2, undefined);
     expect(root1.parent).toBeNull(); // 旧 root 已卸载
     const root2 = previewGroup(scene).children[0];
     expect(root2).not.toBe(root1);
@@ -243,7 +243,7 @@ describe('PreviewManager：Ghost seed 透传与去重（T008.4）', () => {
     const root1 = previewGroup(scene).children[0];
     manager.showGhost('asset_proc', T, 0); // 0 ≠ undefined → 重建
     expect(provideGhostObject).toHaveBeenCalledTimes(2);
-    expect(provideGhostObject).toHaveBeenLastCalledWith('asset_proc', 0);
+    expect(provideGhostObject).toHaveBeenLastCalledWith('asset_proc', 0, undefined);
     expect(previewGroup(scene).children[0]).not.toBe(root1);
     expect(manager.getGhostSeed()).toBe(0);
 
@@ -275,6 +275,71 @@ describe('PreviewManager：Ghost seed 透传与去重（T008.4）', () => {
     expect(root.children[0]).toBe(provided); // 第二次取源正常挂载
     expect(manager.getGhostSeed()).toBe(9);
 
+    manager.dispose();
+    disposeProvided(provided);
+  });
+});
+
+describe('PreviewManager：Ghost 色卡透传与去重（T024.1）', () => {
+  it('preset 透传：showGhost 第四参原样到达 provider（含未传 = undefined）', async () => {
+    const provided = makeProvided();
+    const provideGhostObject = vi.fn(async () => provided);
+    const { manager } = makeManager({ provideGhostObject });
+
+    manager.showGhost('asset_ginkgo', T, 42, 'autumn');
+    expect(provideGhostObject).toHaveBeenCalledTimes(1);
+    expect(provideGhostObject).toHaveBeenCalledWith('asset_ginkgo', 42, 'autumn');
+
+    manager.hideGhost();
+    manager.showGhost('asset_ginkgo', T); // 未传 → undefined 透传（GLB/默认卡路径）
+    expect(provideGhostObject).toHaveBeenLastCalledWith('asset_ginkgo', undefined, undefined);
+
+    await flush();
+    manager.dispose();
+    disposeProvided(provided);
+  });
+
+  it('去重含 preset：同 (assetId, seed, preset) 重复调用仅同步变换；同 assetId 换卡须重取源', async () => {
+    const provided1 = makeProvided();
+    const provided2 = makeProvided();
+    const provideGhostObject = vi.fn(async (_id: string, _seed?: number, preset?: string) =>
+      preset === 'autumn' ? provided1 : provided2,
+    );
+    const { scene, manager } = makeManager({ provideGhostObject });
+
+    manager.showGhost('asset_ginkgo', T, 7, 'autumn');
+    await flush();
+    const rootBefore = previewGroup(scene).children[0];
+    expect(rootBefore.children[0]).toBe(provided1);
+
+    // 同参重放（pointermove）：仅变换同步，不重复取源
+    manager.showGhost('asset_ginkgo', T, 7, 'autumn');
+    expect(provideGhostObject).toHaveBeenCalledTimes(1);
+    expect(previewGroup(scene).children[0]).toBe(rootBefore);
+
+    // 同 assetId 换卡 = 换源 → 重建重取（参照 seed 变化语义）
+    manager.showGhost('asset_ginkgo', T, 7, 'default');
+    expect(provideGhostObject).toHaveBeenCalledTimes(2);
+    expect(provideGhostObject).toHaveBeenLastCalledWith('asset_ginkgo', 7, 'default');
+    expect(rootBefore.parent).toBeNull(); // 旧 root 卸载
+    await flush();
+    expect((previewGroup(scene).children[0] as THREE.Group).children[0]).toBe(provided2);
+
+    manager.dispose();
+    disposeProvided(provided1, provided2);
+  });
+
+  it('边界：preset undefined → 同名卡字符串不误去重（undefined ≠ "undefined" 逐值比较）', async () => {
+    const provided = makeProvided();
+    const provideGhostObject = vi.fn(async () => provided);
+    const { manager } = makeManager({ provideGhostObject });
+
+    manager.showGhost('asset_ginkgo', T); // ghostPreset = undefined
+    manager.showGhost('asset_ginkgo', T, undefined, 'autumn'); // 显式卡 ≠ 缺省 → 重建
+    expect(provideGhostObject).toHaveBeenCalledTimes(2);
+    expect(provideGhostObject).toHaveBeenLastCalledWith('asset_ginkgo', undefined, 'autumn');
+
+    await flush();
     manager.dispose();
     disposeProvided(provided);
   });

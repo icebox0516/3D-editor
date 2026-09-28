@@ -4,7 +4,8 @@
  *
  * 职责：「表示 → source provider」开放式扩展结构的类型真相源（021.1）+ 现有路由之上
  *      的**运行时门面**（021.7，渐进扩展不重写）：provideRepresentationSource
- *      (assetId, seed, representation) → InstanceSource。内部路由：high/mid/low →
+ *      (assetId, seed, representation, preset?) → InstanceSource（preset = 色卡，
+ *      T024.1 透传位）。内部路由：high/mid/low →
  *      现有 AssetSourceRouter（kind 分派：GLB file 分支忽略 level 恒 high，D28.5 不变
  *      ——GLB 无 representations 声明、有效链单档，canopy 永不被请求；procedural →
  *      ProceduralSourceCache，键 sourceKey::representation 双维）；canopy → 路由表
@@ -28,13 +29,15 @@ import type { AssetSourceRouter } from './AssetSourceRouter';
 
 /**
  * 表示感知源提供者（D41 §十一）：assetId + 对象 seed（槽路由用，同现有
- * provideSource 语义）+ Runtime 表示 → 实例化源（geometry / material /
+ * provideSource 语义）+ Runtime 表示 + 色卡 preset（T024.1，D44 #3——preset 进
+ * sourceKey 分桶，canopy 冠色随卡）→ 实例化源（geometry / material /
  * customDepthMaterial? / bounds? 成套——§10.3 所有权归 Source/Cache）。
  */
 export type RepresentationSourceProvider = (
   assetId: string,
   seed: number | undefined,
   representation: RuntimeRepresentation,
+  preset?: string,
 ) => Promise<InstanceSource>;
 
 /**
@@ -77,24 +80,28 @@ export class RepresentationSourceRouter {
   /**
    * 表示感知源入口（两链 provideSource 的统一后端，§十一）：
    * representation 缺省 'high'（与旧闭包 level 缺省语义逐位一致）；seed = 对象 seed
-   * （槽路由在源端完成——ProceduralSourceCache / CanopySourceCache 同口径）。
-   * canopy 请求但 providers 无 canopy 行 → reject（装配缺项防御——调用方 sourceReady
-   * 保持 false、对象停留当前表示，不静默回 high）。
+   * （槽路由在源端完成——ProceduralSourceCache / CanopySourceCache 同口径）；
+   * preset 为色卡 id（T024.1）：canopy 行透传 provider 第四参、h/m/l 落
+   * assetRouter.provideInstanceSource 的 opts.preset（归一在 Renderer 侧 choke
+   * point 完成，本门面原样透传）。canopy 请求但 providers 无 canopy 行 → reject
+   * （装配缺项防御——调用方 sourceReady 保持 false、对象停留当前表示，不静默回
+   * high）。
    */
   provideRepresentationSource(
     assetId: string,
     seed?: number,
     representation?: RuntimeRepresentation,
+    preset?: string,
   ): Promise<InstanceSource> {
     const rep = representation ?? 'high';
     const provider = this.providers[rep];
-    if (provider) return provider(assetId, seed, rep);
+    if (provider) return provider(assetId, seed, rep, preset);
     if (rep === 'canopy') {
       return Promise.reject(
         new Error(`canopy 表示源未注册（装配缺 canopy provider）: ${assetId}`),
       );
     }
     // rep 此处经类型收窄为 'high' | 'mid' | 'low' = ProceduralLevel——直落既有路由
-    return this.assetRouter.provideInstanceSource(assetId, { seed, level: rep });
+    return this.assetRouter.provideInstanceSource(assetId, { seed, preset, level: rep });
   }
 }

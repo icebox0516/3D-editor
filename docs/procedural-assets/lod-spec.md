@@ -64,24 +64,28 @@ representations?: RuntimeRepresentation[]               // T021.1（D41 §三.2�
 
 - 签名：`build(params?: { seed?, preset?, level? })`；`level` 缺省 `'high'`——旧资产 `build()` 无参路径逐位不变（TS 少参可赋多参签名，零改动兼容）。
 - `level` 不参与 shapeSlot / morphSeed / sourceKey 形态身份计算（D23.2）。
+- `preset` = **材质基调色卡 id**（T024 / D44 #1 定型：D19.2「v1 无消费方」子句经 D44 激活废止，sourceKey preset 段语义收窄为色卡位）——**冠变干不变**：只改叶/冠材质基调，不改几何结构、不改树皮、不改风动；preset 缺省 = 默认卡 = 现行材质行为逐位一致（默认卡零变化红线，D44 #8）。色值配方归各树材质工厂私有域（D44 #2——D20.2 资产私有先例）；与 `level` 一样不参与形态身份，但**进缓存键分桶**（材质不同必须分桶，§2.4）。未支持色卡的资产 build 忽略此参（占位期 12 树行为 = 现状）。
 - **档间不变量义务**（资产侧验收面）：同 seed 跨档同 rng 消费流、同骨架决策；轮廓 / 体量 / 颜色档间连续，切换无身份变化（「同一棵树远近都是那棵树」）；minY 贴地语义一致。夏栎先例：三档 rng 消费恒等 177234、簇表跨档逐位全等、Mid 存活卡 ⊂ High。
 - 未声明档位的回落由资产 build 自行决定（如仅 high 的资产被请求 low → 回 high）；Runtime 侧只请求已声明档（§6），回落是防御面不是协议依赖。
 - **成套交付（D27.4）**：geometry + material + customDepthMaterial 随 sourceKey + level 整体成套——Shader LOD 与 Shadow LOD 因此天然成立，Runtime 无需独立「Shader 档 / 影档」切换机制。材质档位变体在资产材质工厂内（夏栎先例：叶 Mid 去脉三线、叶 Low 去透光、皮 Mid 去节疤、皮 Low 去板块采样/节疤/苔痕、深度 Mid=High SDF / Low=Low SDF）；`customProgramCacheKey` 档位唯一（配方变即键变——夏栎 9 键先例 = 三材质工厂 × 三档，High 三键沿用原键）。
 
-### 2.4 缓存与所有权——representation 独立维度（D23.2 → T021.7 键收敛，D41 §10.2）
+### 2.4 缓存与所有权——representation 独立维度（D23.2 → T021.7 键收敛，D41 §10.2；T024 增 preset 维度）
 
 | 维度 | 键 | 语义 |
 |---|---|---|
 | 形态身份 | `sourceKey`（assetId[:preset]:slot-N） | 不变量；representation 不掺入 |
 | 缓存条目 | `sourceKey::representation`（ProceduralSourceCache 内部后缀编码；h/m/l 与构建档同名同值，canopy 条目由 CanopySourceCache 以 `sourceKey::canopy` 同构持有——门面分流见 representation-runtime.md §十一） | 双维表示缓存；load/evict 同键规则（resolveEntry 单一真相）；未声明能力资产 = 纯 assetId 单条目 |
+| 色卡分桶（T024 / D44 #3） | preset 段进 sourceKey（`sourceKeyOf` 第三参） | 同场景同树不同卡必须并存（InstancedMesh 同组同材质 ⇒ 材质不同必须分桶——硬要求）；池桶键 `${sourceKey}::${representation}` 现状即支持 |
+| 跨卡共享层（T024 / D44 #3） | 「无卡 sourceKey + representation」（共享键 = 条目键剥 preset 段） | geometry 与 customDepthMaterial 跨卡共享单份、引用计数释放（色不进深度、深度材质与卡无关；canopy 行另共享 bounds 与 uTime——三材质成套释放契约窄化为 uTime 引用同源）；后到卡条目新建的冗余几何/深度由缓存即时 dispose |
 
-- 每表示独立缓存（条目间 geometry / material 不共享）、独立释放（`evict` 单档单槽精确释放——h/m/l 构建档换档释放的消费面；幂等，未命中返回 false；canopy 缓存不淘汰、无 evict——天然有界，随会话 dispose 释放）。
-- 条目资源归 Cache 实例所有（dispose / evict 释放 geometry / material / customDepthMaterial / bounds）；池不 dispose Source、Ghost 借缓存 Source 不 dispose（既有契约原样保留，canopy 条目同规）。
-- 缓存不淘汰（每资产至多 槽数 × 表示数 条目，天然有界——D19.4 同推）。
+- 每表示独立缓存（条目间 geometry / material 不共享——**窄化（D44 #3）：跨卡方向上 geometry / customDepthMaterial 共享、主 material 按条目私有**）、独立释放（`evict` 单档单槽精确释放——h/m/l 构建档换档释放的消费面；幂等，未命中返回 false；canopy 缓存不淘汰、无 evict——天然有界，随会话 dispose 释放；evict 释放走引用计数，共享份归零才 dispose）。
+- 条目资源归 Cache 实例所有（dispose / evict 释放**私有 material** 与共享层引用计数；geometry / customDepthMaterial / canopy bounds 归共享层）；池不 dispose Source、Ghost 借缓存 Source 不 dispose（既有契约原样保留，canopy 条目同规）。
+- 缓存不淘汰（每资产至多 槽数 × 表示数 × **卡数** 条目，天然有界——D19.4 同推）；D17 build 契约「每次调用 new 全部资源」条款**窄化**（D44 #3）：build 侧不变（每次 new 交付），Runtime 缓存收窄持有面如上——类型层真相源 = runtime/procedural/types.ts 契约段。
+- 混卡 DC 增殖为用户显式选择的自然代价——典型混卡包络（13 树各 default + 1 季相卡、混植 2000）≤1500 归 T024.5 验收（T021.8 预算四线不破）。
 
 ### 2.5 默认消费口径（D27.14，默认可否决）
 
-缩略图 / Ghost / Preview 固定取 High 档。T007 烘焙「取当前档几何」语义保留原句，细化留 T007 立项拷问门。
+缩略图 / Ghost / Preview 固定取 High 档。T007 烘焙「取当前档几何」语义保留原句，细化留 T007 立项拷问门。色卡正交叠加（T024 / D44 #8）：Ghost / Preview **携当前选中卡**（所见即所得——D19.1 延伸）；缩略图**不随卡重渲**（浏览器色点 = meta swatch 数据色）。
 
 ## 3. Representation 语义集（D27.3 全集；T021.1 与双轨类型对齐）
 

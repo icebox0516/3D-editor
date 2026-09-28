@@ -18,7 +18,7 @@
  */
 import { createId } from '../../core/id';
 import type { ID, Transform, Vec3 } from '../../core/types';
-import { MODEL_BASE_HEIGHT } from '../../domain/assets';
+import { DEFAULT_COLOR_PRESET_ID, MODEL_BASE_HEIGHT } from '../../domain/assets';
 import type { AssetCommonMeta, ModelObject } from '../../domain/assets';
 
 /** 放置对象类型标识（SceneObject.type；场景只存 assetId 引用） */
@@ -66,6 +66,13 @@ export interface CreateModelObjectAtInit {
    * 缺省不写字段——GLB 与拖放路径的对象结构零变化（不变字段零变化）。
    */
   seed?: number;
+  /**
+   * 色卡 id（T024.1，D44 #4——可选）：写入 asset.preset 供渲染侧分桶换材质基调。
+   * **默认卡省略不落盘**：preset === DEFAULT_COLOR_PRESET_ID 与 undefined 同等
+   * 处理（缺省 = 'default'，旧场景零迁移）；缺省不写字段——不携卡路径的对象结构
+   * 零变化（拖放路径现状）。合法卡校验归调用方（PlacementTool 写侧 fail-fast）。
+   */
+  preset?: string;
 }
 
 /** 构建一枚待放置的 ModelObject（新 id、契约缺省字段；确定性，无随机采样——seed 由调用方掷） */
@@ -80,7 +87,13 @@ export function createModelObjectAt(init: CreateModelObjectAtInit): ModelObject 
     locked: false,
     transform: init.transform ? deepCopyTransform(init.transform) : unitTransformAt(init.position),
     properties: {},
-    asset: { assetId: init.asset.id, ...(init.seed !== undefined ? { seed: init.seed } : {}) },
+    asset: {
+      assetId: init.asset.id,
+      ...(init.seed !== undefined ? { seed: init.seed } : {}),
+      ...(init.preset !== undefined && init.preset !== DEFAULT_COLOR_PRESET_ID
+        ? { preset: init.preset }
+        : {}),
+    },
   };
 }
 

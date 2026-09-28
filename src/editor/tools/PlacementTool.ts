@@ -1,10 +1,13 @@
 /**
  * editor/tools/PlacementTool —— 模型放置工具（T1.6 建立，T2.2 增强，T002.3 变体掷骰）。
  *
- * 职责：接收 { assetId, continuous, randomRotation, randomScale, mergeBatch } 参数；Ghost 预览经
+ * 职责：接收 { assetId, continuous, randomRotation, randomScale, mergeBatch, preset } 参数；Ghost 预览经
  *      PreviewPort 跟随鼠标（不进 SceneManager、不入历史）；左键在地面投影处生成
  *      ModelObject 并经 CreateObjectCommand → HistoryManager 落地；continuous 默认 true
  *      （放置后重摇随机值继续）；右键 / ESC 清理 Ghost 退出且已放置对象保留。
+ * 色卡（T024.1，D44 #8）：params.preset 携色卡——activate 校验资产已声明（写侧
+ *      fail-fast）；Ghost 与落地对象同卡（obj.asset.preset 落盘，默认卡省略不落
+ *      ——D44 #4）；会话内不变（换卡 = 重新激活）。
  * 增强（T2.2）：
  *   - 放置中滚轮缩放 Ghost（临时系数，每档 ±0.1，夹在 [0.2, 5]），R 键旋转 Ghost +45°/次
  *     （绕 Y 轴）——均为预览参数，与随机值一样在落点时进 CreateObjectCommand 的 transform，
@@ -67,6 +70,13 @@ export interface PlacementParams {
    * false 时逐条入栈，每次 undo 撤销一枚。增补注记（T2.2）。
    */
   mergeBatch?: boolean;
+  /**
+   * 色卡 id（T024.1，D44 #8——可选）：Ghost 与落地对象携带的材质基调卡。写侧
+   * fail-fast：activate 时校验非空字符串且**该资产 presets 声明内**（放置入口是
+   * 代码接线非用户自由输入——未声明卡直接 throw，与 parseParams 现行风格一致）；
+   * 不传 = 默认卡（obj.asset 不落 preset 字段，D44 #4 默认卡省略不落盘）。
+   */
+  preset?: string;
 }
 
 /** 放置对象类型标识（SceneObject.type；构建逻辑自 T5.5 起收编 factories/modelFactory） */
@@ -147,7 +157,8 @@ export class PlacementTool implements Tool {
       ctx.preview.updateGhost(t);
     } else {
       // T008.4：Ghost 携带当前掷出的 seed——程序化资产同 seed 同槽同几何（所见即所放）
-      ctx.preview.showGhost(this.params.assetId, t, this.rolledSeed ?? undefined);
+      // T024.1：Ghost 携带激活色卡（D44 #8 Ghost 带卡——同卡同源所见即所得）
+      ctx.preview.showGhost(this.params.assetId, t, this.rolledSeed ?? undefined, this.params.preset);
       this.ghostVisible = true;
     }
   }
@@ -174,6 +185,7 @@ export class PlacementTool implements Tool {
       layerId: this.params.layerId ?? null,
       transform: this.buildTransform(ground),
       seed: this.rolledSeed ?? undefined,
+      preset: this.params.preset,
     });
 
     const ok = this.commitPlacement(object);
@@ -183,9 +195,10 @@ export class PlacementTool implements Tool {
       // 连续放置：重摇下一枚随机值，Ghost 更新为新姿态（未显示则从当前位置亮出）；
       // T008.4：roll 后 seed 已换 → 走 showGhost 携新 seed 重取源（新槽 = 新形态预览；
       // 实现方按 (assetId, seed) 去重，GLB/无 seed 同参时等价仅更新 transform）
+      // T024.1：色卡会话内不变（params.preset），随调用一并携带
       this.roll();
       const next = this.buildTransform(ground);
-      ctx.preview.showGhost(this.params.assetId, next, this.rolledSeed ?? undefined);
+      ctx.preview.showGhost(this.params.assetId, next, this.rolledSeed ?? undefined, this.params.preset);
       this.ghostVisible = true;
     } else {
       // 单次放置：隐藏 Ghost 并停止响应后续点击（重新激活后复位）
@@ -247,7 +260,8 @@ export class PlacementTool implements Tool {
     const randomRotation = parseRange(source.randomRotation, 'randomRotation');
     const randomScale = parseRange(source.randomScale, 'randomScale');
     const layerId = parseLayerId(source.layerId);
-    return { assetId: source.assetId, continuous, mergeBatch, randomRotation, randomScale, layerId };
+    const preset = parsePreset(source.preset, ctx, source.assetId);
+    return { assetId: source.assetId, continuous, mergeBatch, randomRotation, randomScale, layerId, preset };
   }
 
   /**
@@ -401,6 +415,28 @@ function parseLayerId(value: unknown): ID | null {
   if (value === undefined || value === null) return null;
   if (typeof value === 'string' && value !== '') return value;
   throw new Error('PlacementTool: 参数 layerId 必须是非空字符串或 null');
+}
+
+/**
+ * preset 解析（T024.1，写侧 fail-fast——与读侧 resolveDeclaredPreset 宽容回退分工）：
+ * undefined → undefined（默认卡）；非空字符串且**该资产 presets 声明内** → 透传；
+ * 其余（类型非法 / 空串 / 未声明卡 / 非程序化资产携卡）→ 抛错。放置入口是代码接线
+ * （ContentBrowser 传已声明卡），非法即接线错误，fail-fast 优于静默回退。
+ */
+function parsePreset(value: unknown, ctx: ToolContext, assetId: ID): string | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== 'string' || value === '') {
+    throw new Error('PlacementTool: 参数 preset 必须是非空字符串');
+  }
+  const descriptor = ctx.registries.assets.get(assetId);
+  const declared =
+    descriptor !== undefined &&
+    descriptor.kind === 'procedural' &&
+    descriptor.asset.presets.some((card) => card.id === value);
+  if (!declared) {
+    throw new Error(`PlacementTool: 资产未声明色卡「${value}」: ${assetId}`);
+  }
+  return value;
 }
 
 /** [min, max] 均匀采样 */

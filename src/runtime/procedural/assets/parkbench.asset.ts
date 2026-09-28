@@ -43,6 +43,7 @@ export const meta: ProceduralAssetMeta = {
   defaultRotation: { x: 0, y: 0, z: 0 },
   variants: { scaleJitter: 0.08, rotationJitter: 180, hueJitter: 8 }, // 木色允许自然色差
   taxonomy: { category: 'facility', family: 'public-facility' }, // 公共设施（GLB public-facility 目录已有 bench 同族）
+  presets: [], // 色卡：显式无卡（D44 #2 合法态——设施/DEV 资产无材质基调变体面）
   proceduralProfile: { heightRange: { min: 0.81, max: 0.81 }, widthRange: { min: 1.7, max: 1.7 } }, // 细模包围盒实测（T010.2 探针：h 0.8147（靠背顶）/ w 1.7000（座长向））
 };
 

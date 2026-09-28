@@ -37,6 +37,7 @@ export const meta: ProceduralAssetMeta = {
   // 全向摆放；牌面色相不漂移，省略 hueJitter
   variants: { scaleJitter: 0.05, rotationJitter: 180 },
   taxonomy: { category: 'facility', family: 'road-facility' }, // 道路设施（指路牌与路灯/街灯同类；GLB road-facility 目录同粒度）
+  presets: [], // 色卡：显式无卡（D44 #2 合法态——设施/DEV 资产无材质基调变体面）
   proceduralProfile: { heightRange: { min: 2.04, max: 2.04 }, widthRange: { min: 0.6, max: 0.6 } }, // 细模包围盒实测（T010.2 探针：h 2.0400 / w 0.6000（牌面宽向））
 };
 

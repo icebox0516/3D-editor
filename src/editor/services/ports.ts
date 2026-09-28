@@ -71,12 +71,13 @@ export interface DrawPreviewState {
 /** 临时预览 Port：放置 Ghost 与绘制预览，全部不进入正式 Scene、不产生历史记录 */
 export interface PreviewPort {
   /**
-   * 显示放置 Ghost（T008.4 增可选 seed）：seed 为放置工具当前掷出的变体 seed——
-   * 程序化资产按 seed 路由 shapeFamily 槽，Ghost 与落地对象同 seed 同槽同几何
-   * （所见即所放）；GLB / 未掷 seed 路径不传（行为零变化）。实现方按
-   * (assetId, seed) 去重：同参重复调用仅更新 transform。
+   * 显示放置 Ghost（T008.4 增可选 seed；T024.1 增可选 preset）：seed 为放置工具
+   * 当前掷出的变体 seed——程序化资产按 seed 路由 shapeFamily 槽，Ghost 与落地对象
+   * 同 seed 同槽同几何（所见即所放）；preset 为色卡 id（D44 #8 Ghost 带卡）——
+   * Ghost 与落地对象同卡同源。GLB / 未掷 seed / 未携卡路径不传（行为零变化）。
+   * 实现方按 (assetId, seed, preset) 去重：同参重复调用仅更新 transform。
    */
-  showGhost(assetId: ID, t: Transform, seed?: number): void;
+  showGhost(assetId: ID, t: Transform, seed?: number, preset?: string): void;
   updateGhost(t: Transform): void;
   hideGhost(): void;
   updateDrawPreview(state: DrawPreviewState): void;

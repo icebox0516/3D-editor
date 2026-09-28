@@ -11,6 +11,8 @@
  *      永远停留占位盒）。T008.4 起 showGhost 增可选 seed 并透传 provideGhostObject
  *      （shapeFamily 槽路由：Ghost 与落地实例同 seed 同槽，「Ghost 预览即最终形态」；
  *      同 (assetId, seed) 重复调用仅同步变换不重建，防 pointermove 重复取源）。
+ *      T024.1 起增可选 preset 第四参（D44 #8 Ghost 带卡：色卡随 Ghost 透传源端
+ *      分桶——换卡 = 换源须重取，去重键随之扩为 (assetId, seed, preset)）。
  * 边界：临时对象全部归本类独立管理（需求 §分层边界规则 5）：不进正式 Scene、
  *      不进 RuntimeObjectMap（不可被拾取）、不产生历史；userData 不写业务映射；
  *      异步加载用令牌防竞态（hideGhost 后迟到的对象不再挂载）；Ghost 展示对象
@@ -33,9 +35,11 @@ import { AUX_LAYER } from '../RenderModeState';
  * Ghost 方（本类）只挂载/移除、永不 dispose。未注入（null）时 Ghost 恒为占位盒。
  * seed 为可选对象 seed（T008.4）：程序化端按 shapeSlotOf(seed) 槽路由（缺省按 0
  * 路由，由缓存端兜底）；GLB 端忽略该参，行为零变化。
+ * preset 为可选色卡 id（T024.1，D44 #8）：程序化端进 sourceKey 分桶——Ghost 与
+ * 落地实例同卡同源（所见即所得）；GLB 端忽略（色卡概念不存在）。
  */
 export interface GhostObjectProvider {
-  provideGhostObject(assetId: ID, seed?: number): Promise<THREE.Object3D>;
+  provideGhostObject(assetId: ID, seed?: number, preset?: string): Promise<THREE.Object3D>;
 }
 
 /** 绘制预览线的离地高度（高于全部贴地表层 water 0.18 且留 0.03 层距，避免被遮挡） */
@@ -74,6 +78,8 @@ export class PreviewManager {
   private ghostAssetId: ID | null = null;
   /** 当前 Ghost 的对象 seed（T008.4；含 undefined 态——与 0 严格区分，去重逐值比较） */
   private ghostSeed: number | undefined;
+  /** 当前 Ghost 的色卡 id（T024.1；含 undefined 态——去重逐值比较，同 assetId 换卡须重取源） */
+  private ghostPreset: string | undefined;
   /** 异步竞态令牌：每次 hide/show 递增，迟到回调按令牌丢弃 */
   private ghostToken = 0;
 
@@ -125,12 +131,18 @@ export class PreviewManager {
     this.group.add(node);
   }
 
-  showGhost(assetId: ID, t: Transform, seed?: number): void {
-    // 去重（T008.4）：目标未变——当前 Ghost 存在且 (assetId, seed) 与既有值逐值相等
-    // （seed 严格 ===，undefined ≠ 0）→ 仅同步变换，不重建；pointermove 逐帧重复调用
-    // 不再触发占位盒闪烁与重复异步取源。异步取源进行中（占位盒期）同参调用同样命中，
-    // 在途回调按原令牌挂载，无竞态。
-    if (this.ghostRoot && this.ghostAssetId === assetId && this.ghostSeed === seed) {
+  showGhost(assetId: ID, t: Transform, seed?: number, preset?: string): void {
+    // 去重（T008.4；T024.1 增 preset 维度）：目标未变——当前 Ghost 存在且
+    // (assetId, seed, preset) 与既有值逐值相等（seed/preset 严格 ===，undefined ≠ 0/''）
+    // → 仅同步变换，不重建；pointermove 逐帧重复调用不再触发占位盒闪烁与重复异步
+    // 取源（同 assetId 换卡须重取源——参照 seed 语义）。异步取源进行中（占位盒期）
+    // 同参调用同样命中，在途回调按原令牌挂载，无竞态。
+    if (
+      this.ghostRoot &&
+      this.ghostAssetId === assetId &&
+      this.ghostSeed === seed &&
+      this.ghostPreset === preset
+    ) {
       this.applyTransform(this.ghostRoot, t);
       return;
     }
@@ -141,12 +153,13 @@ export class PreviewManager {
     this.ghostRoot = root;
     this.ghostAssetId = assetId;
     this.ghostSeed = seed;
+    this.ghostPreset = preset;
     this.applyTransform(root, t);
     this.addToGroup(root);
 
     if (!this.ghosts) return;
     this.ghosts
-      .provideGhostObject(assetId, seed)
+      .provideGhostObject(assetId, seed, preset)
       .then((instance) => {
         // 竞态防护：令牌过期（已隐藏/已换目标）则丢弃迟到结果
         if (token !== this.ghostToken || this.ghostRoot !== root) return;
@@ -174,6 +187,7 @@ export class PreviewManager {
     }
     this.ghostAssetId = null;
     this.ghostSeed = undefined;
+    this.ghostPreset = undefined;
   }
 
   /** 当前 Ghost 指向的资产 id（无 Ghost 为 null；诊断用途） */

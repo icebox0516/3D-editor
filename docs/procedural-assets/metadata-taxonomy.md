@@ -26,10 +26,14 @@ export interface AssetTaxonomy { category: AssetTaxonomyCategory; family?: Asset
 
 // AssetDescriptor.ts —— ProceduralAssetMeta 增量
 taxonomy: AssetTaxonomy;                 // 必填（一次定契约，避免资产二次迁移，D22）
+presets: readonly AssetColorPresetMeta[];  // 必填（T024 / D44 #2——typecheck 闸；空数组 = 显式无卡）
 proceduralProfile?: {                    // 可选；只收通用维度语义（米）
   heightRange?: Range;                   // 总高带：minY=0 → maxY；跨形态槽取实测 min/max
   widthRange?: Range;                    // 水平展幅带：max(X 展幅, Z 展幅)；跨槽实测
 };
+// AssetColorPresetMeta（浏览语义三字段——色值配方归各树材质工厂私有域，D44 #2）
+// { id: string; label: string; swatch: string }   // swatch = UI 色点数据色（CSS 色串）
+// DEFAULT_COLOR_PRESET_ID = 'default'             // 默认卡 id 全资产统一单一真相源
 ```
 
 设计理由（为什么是这形态）：
@@ -37,6 +41,22 @@ proceduralProfile?: {                    // 可选；只收通用维度语义（
 - **必填 taxonomy + 可选 family**：大类保证归类正确性可测试（值域 + 配对 + 映射三闸整表锁）；族归属可以诚实缺席（待各族落地再定值）——「无诚实族归属不占位」优于「投机占位」（T022 后 family 纯元数据，消费者 = 契约测试 + 必填声明）。
 - **enum 用 const 元组而非纯联合**：契约测试（`tests/runtime/procedural/assets/assetTaxonomy.test.ts`）需运行时值域校验全部收割 meta；元组即类型即校验源，单一真相。
 - **profile 是尺寸不是形态**：数值全部来自细模档源几何包围盒实测（跨槽取带），两位小数；只服务浏览筛选/排序，不参与任何生成算法。
+- **presets 必填（T024 / D44 #2）**：色卡是材质基调变体的声明面（浏览语义三字段），必填落在类型层 = 新资产不声明编译不过（「出生即带 preset」——跟随本节 taxonomy 必填先例）；色值配方不进 meta（归各树材质工厂私有域，D20.2 先例），本层只有 `id / label / swatch`。
+
+### 2.1 色卡预设字段（presets，T024 / D44）
+
+**语义**：preset（色卡）= 材质基调变体——**冠变干不变**（只改叶/冠材质基调，不改几何结构、不改树皮、不改风动；D44 #1。远景 canopy 冠卡随卡、干柱色不变）。默认卡 id 全资产统一 `'default'`（`DEFAULT_COLOR_PRESET_ID` 单一真相源）= 现行材质基调。
+
+**声明纪律**：
+
+- **必填 + 空数组合法**：空数组 = 显式声明「本资产无色卡」（设施 / DEV 资产合法态）；乔木 / 植物族「非空且含 default 卡」的族级断言归各自 epic 族门定义（D30 不预防性泛化）。
+- **卡 id 纪律**：资产内唯一；**跨树同相卡 id 同名**（便于散布配方书写，如 `autumn`）；id 域定稿记档归 T024.2。试点：ginkgo 双卡（`default` + `autumn` 秋·金黄——Spec §6 证据）。
+- **证据纪律（D44 #7 无证据不建卡）**：每树至少 default 卡（= 现行生产相，天然有据）；季相卡逐树按 Reference Spec 季相记录定，卡数不设统一硬指标；缺证相先经 asset-research 补 Spec 增量再建卡——色值参数注释逐卡引 Spec 条目（同资产数值注释纪律）。
+- **swatch = 数据色**：CSS 色串，仅服务浏览器色点 UI（T024.4）；**缩略图不随卡重渲**。
+
+**消费链（运行面条款锚点 `lod-spec.md` §2.3–§2.5）**：preset 进 sourceKey 缓存分桶（材质不同必须分桶，硬要求）；geometry / customDepthMaterial 跨卡共享引用计数（D44 #3，D17 build 契约窄化）；`AssetReference.preset?` 默认卡省略不落盘（旧场景零迁移）；读侧未知卡 id 宽容回退 default（`resolveDeclaredPreset` 单一 choke point）；Ghost 携卡所见即所得；散布 `ScatterAssetWeight.preset?` 为 schema 预留位（消费归散布任务，D44 #6）；Inspector 换卡（已放对象切卡）不在 T024 范围——增补位记档于 D44 #4。
+
+**契约测试**：`tests/runtime/procedural/assets/assetColorPresets.test.ts`——存量 13 乔木卡清单整表锁 + 卡 id 唯一性 + 乔木族非空（assetTaxonomy 式先例；与 typecheck 必填闸双钩并用，D44 #2）。
 
 ## 3. 大类值域（8 值，每个值有消费者证据）
 

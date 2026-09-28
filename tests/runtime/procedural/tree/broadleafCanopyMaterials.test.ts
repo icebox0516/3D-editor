@@ -17,6 +17,11 @@
  * - 深度材质轮廓-only（§七末段）：alphaTest 0 / 无 SDF / 无噪声采样 / 无 discard；
  *   aBend 风摆进深度顶点且与主渲染同常数（objectNormal 微扑不进——深度链无该变量）；
  * - customProgramCacheKey 13 树种 × 3 角色两两互异。
+ * - 色卡 preset + uTime 注入（T024.1，D44 #1/#3——「冠变干不变」推广到远景表示）：
+ *   ginkgo autumn 冠色覆写生效（与 ginkgoMaterials 秋卡基调同源同值 #d4b737；干柱色不
+ *   随卡；键与注入 GLSL 零变化——program 不增）；未命中（缺省/显式 default/未知 id/
+ *   无行树种）回物种表且键不随卡分叉；uTime 注入三材质同引用（干柱/冠卡/深度程序）、
+ *   缺省自建套内同源跨套独立。
  */
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
@@ -343,5 +348,59 @@ describe('Canopy Depth Material（轮廓-only）', () => {
       expect(injected.vertexShader).not.toMatch(/facVnoise|SDF|Alpha\(/i);
       expect(injected.fragmentShader).not.toMatch(/facVnoise|discard|Alpha\(/i);
     }
+  });
+});
+
+// ── 色卡 preset（冠色覆写表）+ uTime 注入（T024.1，D44 #1/#3——冠变干不变推广到远景表示）──
+
+describe('色卡 preset（冠色覆写表）+ uTime 注入（T024.1）', () => {
+  it('ginkgo autumn：冠卡色覆写生效（= ginkgoMaterials 秋卡基调同源同值）≠ 物种表；干柱色不随卡；键与注入 GLSL 零变化（program 不增）', () => {
+    const def = createBroadleafCanopyMaterials('asset_tree_ginkgo');
+    const autumn = createBroadleafCanopyMaterials('asset_tree_ginkgo', 'autumn');
+    const species = BROADLEAF_CANOPY_MATERIAL_SPECIES['asset_tree_ginkgo']!;
+    expect(autumn.cardMaterial.color.getHex()).not.toBe(species.crownColor); // 覆写生效 ≠ 物种表值（0x8ab45d）
+    expect(autumn.cardMaterial.color.getHex()).toBe(createGinkgoLeafMaterial('high', 'autumn').color.getHex()); // 与叶材质秋卡同源同值（远近基调一致——远景不随卡会破所见即所得）
+    expect(autumn.trunkMaterial.color.getHex()).toBe(species.trunkColor); // 干柱色不随卡（冠变干不变）
+    expect(autumn.trunkMaterial.color.getHex()).toBe(def.trunkMaterial.color.getHex());
+    // program 不增 + GLSL 零变化：同键、注入产物逐位相等（crownColor 走构造色 uniform 通道）
+    expect(autumn.cardMaterial.customProgramCacheKey!()).toBe(def.cardMaterial.customProgramCacheKey!());
+    expect(autumn.depthMaterial.customProgramCacheKey!()).toBe(def.depthMaterial.customProgramCacheKey!());
+    expect(inject(autumn.cardMaterial).vertexShader).toBe(inject(def.cardMaterial).vertexShader); // 风动/相位零随卡
+    expect(inject(autumn.cardMaterial).fragmentShader).toBe(inject(def.cardMaterial).fragmentShader); // 变奏域/透射零随卡（透射预留位 024.1 无填充）
+  });
+
+  it('未命中回物种表：缺省 / 显式 default / 未知 id = 现行行为；12 树无行（如 camphor）autumn 亦回物种表；键不随卡分叉', () => {
+    const species = BROADLEAF_CANOPY_MATERIAL_SPECIES['asset_tree_ginkgo']!;
+    for (const preset of [undefined, 'default', 'no-such-card'] as (string | undefined)[]) {
+      const set = createBroadleafCanopyMaterials('asset_tree_ginkgo', preset);
+      expect(set.cardMaterial.color.getHex()).toBe(species.crownColor); // 未命中 = 物种表行为逐位一致
+    }
+    for (const id of BROADLEAF_CANOPY_MATERIAL_ASSET_IDS) {
+      const def = createBroadleafCanopyMaterials(id);
+      const autumn = createBroadleafCanopyMaterials(id, 'autumn'); // 仅 ginkgo 有行
+      const expected = id === 'asset_tree_ginkgo' ? 0xd4b737 : BROADLEAF_CANOPY_MATERIAL_SPECIES[id]!.crownColor;
+      expect(autumn.cardMaterial.color.getHex()).toBe(expected); // 无行树种回物种表
+      expect(autumn.cardMaterial.customProgramCacheKey!()).toBe(def.cardMaterial.customProgramCacheKey!()); // 键不随卡分叉（program 不增）
+      expect(autumn.trunkMaterial.color.getHex()).toBe(def.trunkMaterial.color.getHex()); // 干柱色恒不随卡
+    }
+  });
+
+  it('uTime 注入：提供时三材质（干柱/冠卡/深度程序）同引用；缺省自建——套内三材质同源、两套之间互相独立', () => {
+    const injected = { value: 7.5 };
+    const set = createBroadleafCanopyMaterials('asset_tree_3a', undefined, injected);
+    const cardU = (set.cardMaterial as unknown as { uniforms?: Record<string, { value: number }> }).uniforms;
+    const trunkU = (set.trunkMaterial as unknown as { uniforms?: Record<string, { value: number }> }).uniforms;
+    expect(cardU!.uTime).toBe(injected); // 注入对象直达（冠卡材质级）
+    expect(trunkU!.uTime).toBe(injected); // 干柱材质级同对象
+    expect(inject(set.depthMaterial).uniforms.uTime).toBe(injected); // 深度程序绑同一对象（TimeUniformService 广播语义不变——写任一主材质即同值到深度）
+    // 缺省自建：套内三材质同源、跨套独立（dispose 安全）
+    const setA = createBroadleafCanopyMaterials('asset_tree_3a');
+    const setB = createBroadleafCanopyMaterials('asset_tree_3a');
+    const aCard = (setA.cardMaterial as unknown as { uniforms?: Record<string, { value: number }> }).uniforms;
+    const bCard = (setB.cardMaterial as unknown as { uniforms?: Record<string, { value: number }> }).uniforms;
+    expect(aCard!.uTime).not.toBe(bCard!.uTime); // 跨套独立
+    expect(aCard!.uTime).toBe((setA.trunkMaterial as unknown as { uniforms?: Record<string, { value: number }> }).uniforms!.uTime); // 套内同源
+    expect(aCard!.uTime).toBe(inject(setA.depthMaterial).uniforms.uTime);
+    expect(aCard!.uTime).not.toBe(injected); // 自建对象 ≠ 注入对象
   });
 });

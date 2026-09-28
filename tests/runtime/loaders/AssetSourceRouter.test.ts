@@ -12,6 +12,9 @@
  * - 对象 seed 透传（T008.1 槽路由）：provideInstanceSource(id, { seed }) 与同槽
  *   cache.load 命中同条目；provideGhostObject(id, seed) 同槽共享缓存条目
  *   （Ghost 不 dispose 契约不变）。
+ * - 色卡 preset 透传（T024.1，D44 #3/#8）：provideGhostObject 第三参透传
+ *   procedural.load({ preset }) 分桶——同 (assetId, seed, preset) 的 Ghost 与实例
+ *   源共享条目；file 分支忽略 preset（克隆语义不变）。
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
@@ -75,7 +78,8 @@ function makeRegistry(): { assets: AssetRegistry; registerFile: () => void; regi
         defaultScale: { x: 1, y: 1, z: 1 },
         defaultRotation: { x: 0, y: 0, z: 0 },
         variants: { scaleJitter: 0.1, rotationJitter: 180, hueJitter: 6 },
-        taxonomy: { category: 'facility' }, // T010.2 必填分类（测试替身按垃圾桶原型归类）
+taxonomy: { category: 'facility' }, // T010.2 必填分类（测试替身按垃圾桶原型归类）
+        presets: [], // T024/D44 #2 必填色卡声明（测试替身 = 显式无卡）
       },
     });
   return { assets, registerFile, registerProcedural };
@@ -178,7 +182,8 @@ describe('AssetSourceRouter：对象 seed 透传（T008.1 槽路由）', () => {
         id,
         name: `形态族资产 ${id}`,
         category: 'test',
-        taxonomy: { category: 'dev' }, // T010.2 必填分类（临时管线测试资产 → dev）
+taxonomy: { category: 'dev' }, // T010.2 必填分类（临时管线测试资产 → dev）
+        presets: [], // T024/D44 #2 必填色卡声明（测试替身 = 显式无卡）
         tags: [],
         defaultScale: { x: 1, y: 1, z: 1 },
         defaultRotation: { x: 0, y: 0, z: 0 },
@@ -192,7 +197,8 @@ describe('AssetSourceRouter：对象 seed 透传（T008.1 槽路由）', () => {
         id,
         name: `形态族资产 ${id}`,
         category: 'test',
-        taxonomy: { category: 'dev' }, // T010.2 必填分类（临时管线测试资产 → dev）
+taxonomy: { category: 'dev' }, // T010.2 必填分类（临时管线测试资产 → dev）
+        presets: [], // T024/D44 #2 必填色卡声明（测试替身 = 显式无卡）
         tags: [],
         defaultScale: { x: 1, y: 1, z: 1 },
         defaultRotation: { x: 0, y: 0, z: 0 },
@@ -225,5 +231,26 @@ describe('AssetSourceRouter：对象 seed 透传（T008.1 槽路由）', () => {
     expect(ghost).toBeInstanceOf(THREE.Mesh);
     expect((ghost as THREE.Mesh).geometry).toBe(source.geometry); // 借缓存所持 Source
     expect((ghost as THREE.Mesh).material).toBe(source.material);
+  });
+
+  it('provideGhostObject(id, seed, preset)：preset 透传缓存分桶（T024.1——同卡 Ghost 与实例源共享条目）', async () => {
+    const size = 4;
+    const assets = setupFamilyAsset('asset_proc3', size);
+    const { router, cache } = makeRouter(assets);
+    const loadSpy = vi.spyOn(cache, 'load');
+    const ghost = await router.provideGhostObject('asset_proc3', 7, 'autumn');
+    // 第三参透传 procedural.load({ seed, preset })——色卡进 sourceKey 分桶（D44 #3/#8）
+    expect(loadSpy).toHaveBeenCalledWith('asset_proc3', { seed: 7, preset: 'autumn' });
+    // 同 (assetId, seed, preset) 的实例源走同一条目（Ghost 借缓存所持 Source）
+    const source = await router.provideInstanceSource('asset_proc3', { seed: 7, preset: 'autumn' });
+    expect(ghost).toBeInstanceOf(THREE.Mesh);
+    expect((ghost as THREE.Mesh).geometry).toBe(source.geometry);
+    expect((ghost as THREE.Mesh).material).toBe(source.material);
+    // file 分支忽略 preset（色卡概念不存在）——克隆语义透传不抛错
+    const { assets: fileAssets, registerFile } = makeRegistry();
+    registerFile();
+    const { router: fileRouter, loader } = makeRouter(fileAssets);
+    const fileGhost = await fileRouter.provideGhostObject('asset_file', undefined, 'autumn');
+    expect(fileGhost).toBe(loader.ghostClone);
   });
 });

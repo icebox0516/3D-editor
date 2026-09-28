@@ -1,13 +1,16 @@
 /**
- * runtime/procedural/types —— 程序化资产插件契约类型（T002.1，D17；D19.2 参数化）。
+ * runtime/procedural/types —— 程序化资产插件契约类型（T002.1，D17；D19.2 参数化；T024 preset 段定型）。
  *
  * 职责：定义 *.asset.ts 插件文件的模块形态——meta（身份证）与 build（生成器）
  *      同文件导出；build 为同步函数、可选参签名（D19.2：params.seed = Source/形态
- *      seed 即 morphSeed，绝非对象 asset.seed——见下条契约第一锁；params.preset 为
- *      协议扩展位，v1 无消费方）。旧资产 `build()` 无参声明天然兼容（TS 少参可赋
- *      多参签名，类型层面即证明；变体烘 transform/instanceColor 不进 build；
- *      LOD 走可选 level 参数由资产 Runtime 统一接入——level 契约 T009.6 已落地
- *      （签名先行，夏栎三档内容紧随），距离切换 T006 消费，D23/D27）。
+ *      seed 即 morphSeed，绝非对象 asset.seed——见下条契约第一锁；**params.preset
+ *      = 材质基调色卡 id**（D44 #1 定型：冠变干不变——只改叶/冠材质基调，不改几何
+ *      结构、不改树皮；D19.2「v1 无消费方」子句经 D44 激活废止；色值配方归各树
+ *      材质工厂私有域，preset 缺省 = 默认卡 = 现行材质行为逐位一致）。旧资产
+ *      `build()` 无参声明天然兼容（TS 少参可赋多参签名，类型层面即证明；变体烘
+ *      transform/instanceColor 不进 build；LOD 走可选 level 参数由资产 Runtime 统一
+ *      接入——level 契约 T009.6 已落地（签名先行，夏栎三档内容紧随），距离切换
+ *      T006 消费，D23/D27）。
  * 边界：本文件只有类型，零运行时；build 返回的 InstanceSource 形态真相源在
  *      runtime/instancing/InstancedAssetPool（与 GLB 实例化源同构，池无感混排）。
  */
@@ -25,7 +28,9 @@ export interface ProceduralBuildParams {
    * 传入的 morphSeed 必须逐位相同，因此同 sourceKey 共享同一份 Geometry/Material。
    */
   seed?: number;
-  /** 预设扩展位（D19.2：v1 无消费方，不进 Inspector） */
+  /** 材质基调色卡 id（D44 #1 定型：冠变干不变；缺省 = 默认卡 = 现行材质行为——
+   *  T024 起由支持色卡的资产 build 消费（试点 ginkgo），未消费资产忽略此参行为不变；
+   *  进 sourceKey 缓存分桶（sourceKeyOf 第三参，D44 #3））。 */
   preset?: string;
   /** LOD 档位 Runtime 参数（D23/D27.7）：缺省 = 'high'（缩略图/Ghost/Preview 固定 High，
    *  D27.14）；**不参与 shapeSlot / morphSeed / sourceKey 形态身份计算**，档位缓存维度 =
@@ -36,8 +41,12 @@ export interface ProceduralBuildParams {
 }
 
 /** 程序化构建函数：同步、可选参（D19.2 参数化；缺省调用等价旧无参契约）。
- * 契约：每次调用必须构造**新的** geometry/material（不得返回模块级共享对象——缓存会 dispose 所持资源），
- * 所有权随调用移交调用方。 */
+ * 契约（build 侧不变，D17「每次调用 new 全部资源」在缓存侧经 D44 #3 窄化）：
+ * 每次调用构造**新的** geometry / material / customDepthMaterial，不得返回模块级
+ * 共享对象，所有权随调用移交调用方；**Runtime 缓存层收窄持有面**——主 material
+ * 按缓存条目私有，geometry 与 customDepthMaterial 按「无卡 sourceKey +
+ * representation」跨卡共享单份（引用计数释放；后到条目新建的冗余几何/深度由缓存
+ * 即时 dispose），build 侧无需感知共享、继续按每次 new 交付。 */
 export type ProceduralBuild = (params?: ProceduralBuildParams) => InstanceSource;
 
 /** *.asset.ts 模块形态：meta（身份证）+ build（生成器）同文件导出 */
