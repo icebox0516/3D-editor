@@ -8,6 +8,8 @@
 
 ## Done（近）
 
+- [x] T023 生产脊柱 spine 提取（done 2026-09-28：spine + 方法剖面两层 / D36 边界句 + D30 最低可信证据原则 D43 记档 / AGENTS 新族首例两句式同步〔P0〕/ SKILL 路由两步化 + 新 Workflow 创建纪律；layers 625 + typecheck 零错 + check:tasks 53 持平，npm test 判据不触发）→ [tasks/023-spine-extraction.md](tasks/023-spine-extraction.md)
+
 - [x] T022 资产库清理（done 2026-09-28：浏览器一行大分类 + v1 四低模植物删除 + D42 记档；三门槛 4159 全绿）→ [tasks/022-asset-library-cleanup.md](tasks/022-asset-library-cleanup.md)
 
 - [x] T021 LOD → Representation 运行体系重构（9/9 epic 收官 2026-09-28；D41——运行面真相源 docs/procedural-assets/representation-runtime.md）→ [tasks/021-lod-representation.md](tasks/021-lod-representation.md)
@@ -88,7 +90,6 @@
 
 > Next 仅表示已排入路线图的后续任务，不代表执行顺序；实际启动顺序由任务文件中的依赖、当前项目状态及有效架构裁定决定（D31.8）。
 
-- [ ] T023 生产脊柱 spine 提取（spine + 方法剖面两层 / D36 边界句 + D30 最低可信证据原则记档 / **AGENTS「首例完整 SOP」两句同步**〔P0〕/ 新 workflow 创建纪律与 read-set 体积约束）→ [tasks/023-spine-extraction.md](tasks/023-spine-extraction.md)
 - [ ] T024 资产色卡预设【占位；2026-09-24 共识：激活 D17.2 preset 扩展位（材质基调切换，冠变干不变；instanceColor 继续管 hueJitter 群内微差）；声明契约 + 浏览器名旁色点切换 + 手动放置带 preset；存量 13 种乔木全量回补（色卡以各 Spec 季相记录为证据）；配方 schema 预留 preset 字段位，散布份额消费归散布任务；后续各族与车辆出生即带 preset；**立项必答**：preset 声明硬钩子（契约测试整表锁或 meta 必填 + typecheck 闸）/ D19.2「preset 不启用」子句修订记档 / sourceKey×preset 缓存增殖裁定（lod-spec sourceKey 语义下 13 树 × 槽 × N 色卡的 Source 增殖）】
 - [ ] T012 针叶族【占位；立项按 D30：012.1 雪松 = ConiferShapeProfile 家族首例走完整 SOP 口径，后续资产增量口径，族末集体验收门；候选池（D34 摘要，docs/research/urban-tree-candidates.md §2）：强 9——圆柏/龙柏/侧柏/白皮松/黑松/水杉/落羽杉/池杉/罗汉松，中 2（油松/华山松），弱 1（马尾松需补园艺文献或降优先级）】
 - [ ] T013 花木族【占位；候选池（D34 摘要，§3/§4）：乔木型观花强 8——东京樱花/紫叶李/碧桃/梅花/海棠花/西府海棠/紫薇/桂花 + 灌木型观花强 8——月季/杜鹃/山茶/栀子/木槿/紫荆/紫丁香/夹竹桃 + D34 自阔叶候选分流 7（玉兰/广玉兰/合欢/凤凰木/蓝花楹/羊蹄甲/洋紫荆——乔木观花为纲）】

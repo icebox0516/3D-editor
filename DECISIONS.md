@@ -43,20 +43,21 @@ Status 四值：**有效**（当前依据；条内自足的行内修订仍属有
 | D27 | 部分取代 | 第 3 项经 D28.5 升格为硬约束；第 11 项 T006 排期已由 D28.2 / D31.4 改写（旧排期失效）；第 3/4/7/12 项的运行面条款（六档语义集与实装范围 / 桶键 level 维度 / 枚举三值定死 / levels 最小化不扩表示字段）经 D41 升级为 Representation 体系——canopy 入联合、桶键 level→representation、独立 representations 声明字段；运行面真相源 = `docs/procedural-assets/representation-runtime.md`；其余条款仍有效 | 通用 Asset Runtime LOD 架构 | `2026-09-19 · D27 通用 Asset Runtime LOD 架构（grilling 两轮 + 对抗审核，Q1–Q10 逐题裁定）` |
 | D28 | 部分取代 | 第 2 项排期被同日用户指令提前（Step 2 已落地），D31.4 确认旧排期失效；第 3 项 Step 3（A/B 实测 + 阈值重锁判定）2026-09-23 迁 T021.8 承接、006.6 收口（D41）；其余条款仍有效 | LOD 选档基准稳定化 | `2026-09-20 · D28 LOD 选档基准稳定化方向与 GLB LOD 消费硬约束（grilling 五题裁定）` |
 | D29 | 有效 | 同日修订并入第 11–14 条并取代原文第 11/12 条（showSunDisc / displaySky+bakeSky 双实例） | 天空与环境光照架构 | `2026-09-20 · D29 真实程序化天空与环境光照架构（T018 立项 grilling 两轮裁定）` |
-| D30 | 部分取代 | 第 1 条「npm test 每任务必跑」触发条件子句经 D40 改判据式（分层结构不变，历史原文保留）；第 2 条「基线帧参数 SOP §5」指针已修（2026-09-23 行内注 → shadow-visual-sop §3） | 资产验收分层 | `2026-09-20 · D30 资产验收分层：单资产增量验证 + 族级集体验收（grilling 两轮八题裁定）` |
+| D30 | 部分取代 | 第 1 条「npm test 每任务必跑」触发条件子句经 D40 改判据式（分层结构不变，历史原文保留）；第 2 条「基线帧参数 SOP §5」指针已修（2026-09-23 行内注 → shadow-visual-sop §3）；第 4 条「完整 SOP 口径」经 D43 最低可信证据原则增补修订（首例验收深度按所属 Workflow 定义） | 资产验收分层 | `2026-09-20 · D30 资产验收分层：单资产增量验证 + 族级集体验收（grilling 两轮八题裁定）` |
 | D31 | 有效 | 第 4 条取代 D28.2 排期；第 10 条为 2026-09-22 随 D36 增补 | 任务文档规则收口 | `2026-09-20 · D31 任务文档规则收口（grilling 两轮裁定）` |
 | D32 | 有效 | — | 信息查询工具路由 | `2026-09-20 · D32 信息查询工具路由（两轮对照实验裁定）` |
 | D33 | 有效 | 第 1 条废止旧「固定四棵树 / 第一批」口径；第 7 条为族门收官后补裁定 | 资产族 Epic 成员口径 | `2026-09-20 · D33 资产族 Epic 成员集合口径（用户裁定，纯文档零代码）` |
 | D34 | 有效 | — | 植物生产列表扩充 | `2026-09-20 · D34 植物生产列表扩充（用户指令、主代理选型，纯文档零代码）` |
 | D35 | 被取代 | 四例外口径经 D35.1 即时废止（011.7 起恢复标准模式），仅存历史 | 连续生产轮口径 | `2026-09-20 · D35 连续生产轮口径（011.4–011.13，用户 grilling 六题定案，纯文档零代码）` |
 | D35.1 | 有效 | 第 4 条经 2026-09-21 追加裁定取消「第二视觉系统交叉」；第 3 条为一次性补跑记档 | 连续生产轮提前终止 | `2026-09-21 · D35.1 连续生产轮提前终止（用户裁定，纯文档零代码）` |
-| D36 | 有效 | 第 2 条遗留清理已执行（shadow-visual-sop §5 删除，2026-09-23） | Workflow 分层与任务体系解耦 | `2026-09-22 · D36 Asset Production Workflow 分层：生产方法层与任务体系解耦（用户 grilling 四轮 + 终审三轮裁定，纯文档零代码）` |
+| D36 | 有效 | 第 2 条遗留清理已执行（shadow-visual-sop §5 删除，2026-09-23）；2026-09-28 D43 增补「spine + 方法剖面」两层结构与边界句 | Workflow 分层与任务体系解耦 | `2026-09-22 · D36 Asset Production Workflow 分层：生产方法层与任务体系解耦（用户 grilling 四轮 + 终审三轮裁定，纯文档零代码）` |
 | D37 | 有效 | — | 立项入口与新族首例 | `2026-09-22 · D37 资产立项入口与新 Family 首例契约草案（grilling 三轮点选裁定，纯文档零代码）` |
 | D38 | 有效 | — | 调研瘦身与证据封顶 | `2026-09-22 · D38 调研层瘦身：Spec 两层化 + 终审采样 + 证据封顶（grilling 六题点选裁定，纯文档零代码）` |
 | D39 | 有效 | 018.5 验收收口裁定；索引行系主代理 2026-09-23 补登（收官会话漏登——同步规则首个实测失败例） | 过曝处置：显示域压缩 | `2026-09-23 · D39 T018 过曝处置：显示域压缩选定，tone mapping 重审弃选（018.5 验收收口裁定）` |
 | D40 | 有效 | — | 任务执行体系收敛 | `2026-09-23 · D40 任务执行体系收敛：Lean Task + read-set 白名单 + 测试纪律（T020 grilling 逐题裁定）` |
 | D41 | 有效 | — | LOD→Representation 运行体系（T021 立项） | `2026-09-23 · D41 LOD→Representation 运行体系（T021 立项：grilling 三轮 16 题裁定 + 独立对抗审核修正）` |
 | D42 | 有效 | 含 T016 取消与 D19 第 1 条四植物子句废止（D19/D22 索引行 Note 随动） | 资产库清理：浏览器一行大分类 + v1 四植物删除（T022） | `2026-09-28 · D42 资产库清理：浏览器一行大分类 + T016 取消 + v1 四植物删除（2026-09-24 共识会话用户裁定 + 同日审计修订，T022 执行落盘）` |
+| D43 | 有效 | 含 D30 最低可信证据原则增补与 D36 spine 两层结构增补（D30/D36 索引行 Note 随动）；T002.4 批量先例升格通用口径 | 生产脊柱 spine 提取（T023） | `2026-09-28 · D43 生产脊柱 spine 提取：workflow 体系升级「spine + 方法剖面」两层（2026-09-24 共识会话用户裁定，T023 执行落盘，纯文档零代码）` |
 
 ---
 
@@ -529,3 +530,30 @@ D26.2 六情形末条「spec 关键事实含 Unknown」收窄为：**关键事�
 5. **不动面**：`.ed-chip` 共享样式（RegionQuickApply / BatchRenameDialog / ContextToolbar / ContextActions 共用）；`categoryMarkColor` 保留（资产卡片 `__cat-dot` 仍消费）；`buildCategories` / 收藏过滤（经 bar）保留；asset-research SKILL.md §3 照片槽示例标注「树族当前值」收口。
 
 **承载文件清单（生效依赖，可机械核对）**：`src/ui/panels/ContentBrowser.tsx` + `browserModel.ts`（删标签/排序/纵栏）｜`src/ui/styles/app.css` + `DESIGN.md`（rail/tags 样式块删 + §5.8 规格三行并一行）｜四资产 `.asset.ts` + `materials/plantMaterials.ts` + `plantAssets.test.ts` / `plantMaterials.test.ts`（删除）｜引用测试八文件（bootstrap / phase1 / assetTaxonomy / shapeFamily / sceneSerializer / StylePresetRegistry / ScatterParamsForm / treeCanopyChain）｜`docs/procedural-assets/metadata-taxonomy.md` + `organization.md`（§2.1 计数 10→6）｜`DECISIONS.md`（本条 + 索引行 D19/D22 Note 修订）｜`TASKS.md`（T003.4 终态收口）｜`tasks/003-scatter-styles.md`（引用行删除记注）｜`.zcode/skills/asset-research/SKILL.md`（§3 标注）。
+
+---
+
+## 2026-09-28 · D43 生产脊柱 spine 提取：workflow 体系升级「spine + 方法剖面」两层（2026-09-24 共识会话用户裁定，T023 执行落盘，纯文档零代码）
+
+**背景**：资产扩充线确认多方法消费者（T025 设施 simple-asset、T012–T015 植物各族、T026 人车）——tree.md 中跨生产方法恒真的执行规则面临多 Workflow 复制漂移风险，D20.3「第二 workflow 触发才提取」前提不成立。2026-09-24 共识会话八项待裁决位用户裁定（全文见 `tasks/023-spine-extraction.md`），执行时不再复议。裁定：
+
+1. **两层结构与提取时机**：workflow 体系升级为「spine + 方法剖面」——`spine.md` = 跨 Workflow 生产脊柱（共性执行规则），`workflows/<name>.md` = 生产方法剖面（方法差异正文）；提取时机由「第二 workflow 触发」提前为「路线图确认多方法后立即」。**D36 增补（边界句，原文照录）**：
+
+   > Spine 不拥有任何资产语义，只拥有跨 Workflow 的执行规则；Workflow 负责生产方法；Task 负责实例差异。
+
+2. **D30 增补（最低可信证据原则，用户起草原文照录）**：
+
+   > **最低可信证据原则：** 每个资产都必须具备最低可信证据，证据深度与资产生产复杂度匹配。生产复杂度仅作为路由判据，不建立全局固定的"简单 / 标准 / 完整"流程实体；具体执行深度由所选 Workflow 定义。Spine 只承载跨 Workflow 的共性执行规则，不拥有复杂度定义。
+   >
+   > **单资产验收：** 轻量资产同样执行三必做，但采用轻量证据形式：①身份 / 目标符合性一行结论；②统一基线验证——基线帧按「覆盖资产」而非机械逐资产：复杂资产逐资产一张，轻量批次允许一张覆盖全批的 Contact Sheet（逐资产可辨、固定机位/灯光/冻结参数），疑点触发再逐资产补图；③契约 / 公共能力缺口有无记档。复杂资产按对应 Workflow 执行更深验证；疑点、特殊风险与新能力按需增加证据。
+   >
+   > **新 Production Family 首例：** 首例必须完成该 Workflow 定义的首例验收深度，不再统一要求树木级完整 SOP；若为树木等复杂方法，执行其完整首例流程；若为简单资产 Workflow，则执行轻量但完整的首例验收。后续同 Family 按增量验收；族级集体验收仅在对应 Epic 定义且适用时执行。
+   >
+   > **批量资产：** 多个同方法、同批次简单资产可由一个任务批量交付，共用 Workflow、验收方法与测试基础设施；单资产仅在出现新增行为、结构 / 参数 / 材质语义、新契约、新风险或公共能力新边界时增加对应验证与测试，不因资产数量机械复制证据。
+
+3. **保守提取纪律与路由判据**：只迁「证明与方法无关」的条款，拿不准的留 tree.md 标注（D36 第 5 条分裂判据兜底）；spine 不固化 tree 的 Step 执行者映射——spine 只写「每个 Step 定义职责 / 输入 / 输出 / 执行角色槽；具体 Step 集合与 Agent 映射由 Workflow 按生产方法决定」；生产复杂度 = 路由判据，不建全局枚举（simple / standard / complete 不成为流程实体，命名避让 `ProceduralLevel` LOD 档位语义）；中等级不预建实体（灌木 T014 立项时按 D36 第 5 条裁定路由）；simple-asset.md 不预建（首个简单资产批次 T025 立项时创建，引用 spine 只写差异剖面）。
+4. **spine 变更档位 = 同步机制升格三级最高档**（生产方法结构变化：主代理提案 + 用户确认）；自治条款写入 spine.md 头部，防口头条款漂移。
+5. **T002.4 批量先例升格通用口径**：同方法同批次简单资产可一个任务批量交付（即增补第 2 项「批量资产」段）。
+6. **记档附注**：D38 采样数值（≈5–8 硬数值 + 2–3 照片双问）为树族口径，其他 Workflow 自定终审深度；taxonomy family = 分类元数据，**不驱动契约或 Workflow 创建**——契约与 Workflow 由生产方法与立项裁定驱动（D22/D36 既有裁定显式化，防「新分类即自动建契约 / workflow」耦合）；D30 增补「单资产验收」段为 2026-09-24 用户修订（基线帧覆盖资产制），取代初版「每资产一张」表述。
+
+**承载文件清单（生效依赖，可机械核对）**：`.zcode/skills/asset-production/spine.md`（新建，本地私有 R1）｜`.zcode/skills/asset-production/workflows/tree.md`（剖面化改写，本地私有 R1）｜`.zcode/skills/asset-production/SKILL.md`（路由两步化 + 新 Workflow 创建纪律，本地私有 R1）｜`AGENTS.md`（三处：技能结构补 spine 层 + 两处新族首例句式改写〔P0〕）｜`DECISIONS.md`（本条 + 索引行 D43 新增 + D30/D36 Note 补注）｜`tasks/023-spine-extraction.md`（完成记录）｜`TASKS.md` / `PROGRESS.md`（导航同步）｜`docs/acceptance/T023/`（提取完整性 + 引用完整性取证）。
