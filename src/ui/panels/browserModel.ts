@@ -4,6 +4,9 @@
  * 职责（自 assetLibrary.ts 原样吸收 + 扩展）：
  *   - 收藏（星标）localStorage 持久化（UI 唯一真相源；FAVORITES_STORAGE_KEY 键值字符串
  *     原样保留——用户既有收藏数据兼容）；
+ *   - 色卡选中持久化（T024.4）：assetId → 已声明非默认卡 id 的 localStorage 映射
+ *     （真相源 localStorage，沿收藏先例不进 zustand；默认卡省略不落盘）+ 四放置入口
+ *     公共读法 selectedPresetOf（声明校验经 domain resolveDeclaredPreset，已删卡宽容回退）；
  *   - 面板过滤（搜索命中 name/tags、分类过滤、收藏过滤）与分类数据构建
  *     （label 取 metadata.categoryLabel 回退 slug——GLB 附加字段，程序化无则回退）；
  *   - 双态派生 isBrowserExpanded（store 展开位 ∨ 底部行高超出紧凑高——Splitter 抬高
@@ -17,7 +20,8 @@
  * 边界：ui 层只依赖 domain 与本层 layout（分层 DAG）；storage 以最小结构注入（node 测试
  *      用 fake 模拟 localStorage），globalThis.localStorage 不可用时静默返回空集合（不抛错）。
  */
-import type { AssetCommonMeta } from '../../domain/assets';
+import type { AssetCommonMeta, AssetDescriptor } from '../../domain/assets';
+import { DEFAULT_COLOR_PRESET_ID, resolveDeclaredPreset } from '../../domain/assets';
 import { PANEL_SIZE_SPECS } from '../layout/workspaceStore';
 
 /** 收藏 id 集合在 localStorage 的键（自 assetLibrary.ts 原样保留，勿改——既有数据兼容） */
@@ -109,6 +113,94 @@ export function toggleFavorite(
   else next.add(assetId);
   saveFavoriteIds(next, storage);
   return next;
+}
+
+// ── 色卡选中持久化（T024.4）─────────────────────────────────
+
+/** 色卡选中在 localStorage 的键（T024.4；默认卡省略不落盘——存内只有非默认卡） */
+export const PRESET_SELECTION_STORAGE_KEY = 't3d-editor.asset-presets';
+
+/** 色卡拖拽 mime（dragstart 写入、App onDrop 读取；仅非默认卡写入） */
+export const ASSET_PRESET_DRAG_MIME = 'application/x-asset-preset';
+
+/** 色卡选中映射：assetId → 已声明的非默认卡 id */
+export type PresetSelectionMap = Record<string, string>;
+
+/** 持久化色卡选中映射（JSON 对象）；storage 不可用静默跳过（对齐 saveFavoriteIds 纪律） */
+export function savePresetSelection(
+  map: PresetSelectionMap,
+  storage: AssetLibraryStorage | null = defaultStorage(),
+): void {
+  if (!storage) return;
+  try {
+    storage.setItem(PRESET_SELECTION_STORAGE_KEY, JSON.stringify(map));
+  } catch {
+    /* 配额/隐私模式：选中仅存于本次会话内存 */
+  }
+}
+
+/**
+ * 读取色卡选中映射：损坏 JSON / 非对象 / 值非非空字符串 / 值为 'default'
+ * 一律跳过该键（默认卡省略不落盘的镜像纪律——存内永远只有非默认卡）；
+ * storage 不可用静默返回空（面板渲染与放置入口永不因此失败）。
+ */
+export function loadPresetSelection(
+  storage: AssetLibraryStorage | null = defaultStorage(),
+): PresetSelectionMap {
+  if (!storage) return {};
+  let raw: string | null = null;
+  try {
+    raw = storage.getItem(PRESET_SELECTION_STORAGE_KEY);
+  } catch {
+    return {};
+  }
+  if (typeof raw !== 'string') return {};
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return {};
+    const map: PresetSelectionMap = {};
+    for (const [assetId, presetId] of Object.entries(parsed)) {
+      // 宽容过滤：值域收窄到「非空字符串且非默认卡」（default 在存内无意义——省略即默认）
+      if (typeof presetId === 'string' && presetId !== '' && presetId !== DEFAULT_COLOR_PRESET_ID) {
+        map[assetId] = presetId;
+      }
+    }
+    return map;
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * 选中一张色卡：纯更新（返回新映射）+ 立即持久化（写入失败不影响内存，对齐
+ * toggleFavorite 纪律）。presetId 为 null 或默认卡 → 删除该 assetId 条目
+ * （D44 #4 默认卡省略不落盘——点 default 卡 = 清记录，派生读法自然回默认卡）。
+ */
+export function selectAssetPreset(
+  assetId: string,
+  presetId: string | null,
+  current: PresetSelectionMap,
+  storage: AssetLibraryStorage | null = defaultStorage(),
+): PresetSelectionMap {
+  const next: PresetSelectionMap = { ...current };
+  if (presetId === null || presetId === DEFAULT_COLOR_PRESET_ID) delete next[assetId];
+  else next[assetId] = presetId;
+  savePresetSelection(next, storage);
+  return next;
+}
+
+/**
+ * 四放置入口的公共读法（点击/右键/拖放/重放同源——事件时刻由调用方读存储）：
+ * descriptor 缺失或 GLB（file，无色卡）→ undefined；程序化资产按声明表校验
+ * （domain resolveDeclaredPreset：已删卡 id / 空表 / 缺省 → undefined 宽容回退
+ * 默认卡，不抛错——读侧宽容裁定，与 PlacementTool 写侧 fail-fast 分工）。
+ */
+export function selectedPresetOf(
+  descriptor: AssetDescriptor | undefined,
+  selection: PresetSelectionMap,
+): string | undefined {
+  if (!descriptor || descriptor.kind === 'file') return undefined;
+  return resolveDeclaredPreset(descriptor.asset.presets, selection[descriptor.asset.id]);
 }
 
 // ── 过滤 ────────────────────────────────────────────────────

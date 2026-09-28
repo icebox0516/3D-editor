@@ -58,6 +58,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { EventBus } from './core/events/EventBus';
 import type { AssetCommonMeta, AssetDescriptor } from './domain/assets';
+import { resolveDeclaredPreset } from './domain/assets';
 import type { ImportMapping } from './io/JsonImporter';
 import { BUILTIN_TEMPLATES, listUserTemplates, saveUserTemplate } from './io/templates';
 import buildingMappingJson from '../assets/mappings/building.example.json';
@@ -95,8 +96,11 @@ import {
   useEditorStore,
   useWorkspaceStore,
   ASSET_DRAG_MIME,
+  ASSET_PRESET_DRAG_MIME,
   isAssetDrag,
+  loadPresetSelection,
   parseAssetDragId,
+  selectedPresetOf,
   BatchRenameDialog,
   POPUP_ROOT_ID,
 } from './ui';
@@ -367,6 +371,12 @@ export default function App() {
         return;
       }
       const asset = descriptor.asset; // 公共面（id/name/默认姿态）——建对象与 kind 无关（T002.1）
+      // 色卡随拖（T024.4）：读 preset mime（仅非默认卡写入）→ 声明表校验——mime 空串
+      //（默认卡/普通拖放）→ undefined 默认卡路径逐位一致；脏 mime（已删卡）宽容回退默认卡
+      const preset = resolveDeclaredPreset(
+        descriptor.kind === 'procedural' ? descriptor.asset.presets : undefined,
+        dataTransfer.getData(ASSET_PRESET_DRAG_MIME) || undefined,
+      );
       const ground = current.groundPoint(e.clientX, e.clientY); // clientXY 原样（toNDC 自减 rect）
       if (!ground) {
         pushToast('info', '无效放置位置'); // 不产生命令/历史
@@ -375,6 +385,7 @@ export default function App() {
       const object = createModelObjectAt({
         asset,
         layerId: defaultLayerIdFor(current.scene, 'model'),
+        ...(preset !== undefined ? { preset } : {}),
         // 确定性：资产默认姿态，无随机采样——T002.3 起有意保持不注入变体 seed（与 GLB
         // 拖放同语义：烘焙式变体掷骰只在点击放置链路 PlacementTool，拖放永远是标称形态）
         transform: defaultAssetTransform(asset, ground),
@@ -557,15 +568,19 @@ export default function App() {
       if (!facade) return;
       useEditorStore.getState().setPlacingAssetId(asset.id);
       useEditorStore.getState().setLastAssetId(asset.id); // 资产组入口（键 4 / 垂直条）重放记忆
+      // 色卡注入（T024.4）：事件时刻读存储选中 → 声明表校验（selectedPresetOf）；默认卡/
+      // 未选中/已删卡 → undefined，条件展开不落 preset 键——缺省路径与既有参数逐位一致
+      const descriptor = facade.registries.assets.get(asset.id);
+      const preset = selectedPresetOf(descriptor, loadPresetSelection());
       facade.tools.activate(PLACEMENT_TOOL_ID, {
         assetId: asset.id,
         layerId: defaultLayerIdFor(facade.scene, 'model'),
+        ...(preset !== undefined ? { preset } : {}),
       });
       canvasRef.current?.focus();
 
       // 首次点击 → 离屏快照替换 SVG 占位缩略图；命中缓存则零开销（第二次点击不再渲染）。
       // 两种 kind 同路（T002.2）：GLB 懒快照；程序化启动已自动生成，此处即缓存命中/失败重试
-      const descriptor = facade.registries.assets.get(asset.id);
       if (descriptor) kickThumbnail(descriptor);
     },
     [kickThumbnail],

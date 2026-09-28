@@ -1,6 +1,6 @@
 # T024 资产色卡预设
 
-> 状态：**in-progress（立项 done 2026-09-28，D44；024.1 done 2026-09-28；024.2 done 2026-09-28——卡 id 域定稿 {'default','autumn'}；024.3 done 2026-09-28——13 树卡集全量终态收口 + Contact Sheet 交付；下一 = 024.4 浏览器色点 UI）** ｜ 前置：T011 收官（✅ 13 乔木基线资产库）+ T021 收官（✅ representation 缓存键体系）｜ 非程序化资产生产任务（公共能力扩展 + 存量回补）——无 `workflow:` 声明（色卡回补只动材质层不走生产 SOP；缺证相补证时按 asset-research 技能补 Spec 增量）；Research Gate 豁免（非新资产：色卡现实事实源 = 既有 13 份 Reference Spec 季相记录，立项核实 13/13 有叶色基调记录，D26 不触发，豁免记档于此）｜ **裁定真相源 = DECISIONS.md D44**（八项，执行时不再复议）。
+> 状态：**in-progress（立项 done 2026-09-28，D44；024.1 done 2026-09-28；024.2 done 2026-09-28——卡 id 域定稿 {'default','autumn'}；024.3 done 2026-09-28——13 树卡集全量终态收口 + Contact Sheet 交付；024.4 done 2026-09-28——浏览器色点 UI + 四放置入口接线；下一 = 024.5 验收门）** ｜ 前置：T011 收官（✅ 13 乔木基线资产库）+ T021 收官（✅ representation 缓存键体系）｜ 非程序化资产生产任务（公共能力扩展 + 存量回补）——无 `workflow:` 声明（色卡回补只动材质层不走生产 SOP；缺证相补证时按 asset-research 技能补 Spec 增量）；Research Gate 豁免（非新资产：色卡现实事实源 = 既有 13 份 Reference Spec 季相记录，立项核实 13/13 有叶色基调记录，D26 不触发，豁免记档于此）｜ **裁定真相源 = DECISIONS.md D44**（八项，执行时不再复议）。
 
 ## Goal
 
@@ -49,7 +49,7 @@
 - [x] 024.1 契约层 + 缓存几何共享 + 试点树全链（done 2026-09-28：五 Step〔契约/材质/缓存共享/接线/整表锁+规范〕；ginkgo 双卡 default+autumn #d4b737；共享层引用计数落地；4209 全绿——**024.2 注意位**：车辆族（有卡无形态族）须扩 resolvePoolKey〔记 T26〕、试点卡 id 'autumn' 待 id 域定稿、canopy 覆写表回补行随批填）→ [024.1-contract-cache-pilot.md](024.1-contract-cache-pilot.md)
 - [x] 024.2 回补批一（done 2026-09-28：6 树真卡〔platanus 黄褐 #a88a44 / koelreuteria 金黄 #d0bc46 / sophora 金黄 #c4a83a / triadica 绯红 #c65e3e / fraxinus 金黄 #c8af3c〔Spec 1.1 补证〕/ salix 黄绿 #789632〔Spec 1.1 补证·弱秋色不造金黄〕〕+ **卡 id 域定稿 {'default','autumn'}**〔试点名保持零改名，taxonomy §2.1 记档〕+ 果序不随卡裁定〔组 0 字面域〕+ 整表锁/canopy 覆写表/批量集成测试〔024.3 只增行〕；4240 全绿）→ [024.2-rebatch-1.md](024.2-rebatch-1.md)
 - [x] 024.3 回补批二（done 2026-09-28：批二 4 树真卡〔tree3a 黄褐 #99792b / celtis 黄 #b89c38 / zelkova 橙-铜橙 #c4804a / bischofia 红-红橙 #c57551〔Spec 1.1 补证：红相文献四源裁决 + 与 triadica 三轴分离专项〕〕+ **13 树卡集全量终态收口**（camphor/ligustrum 常绿 default 单卡终态记档，材质文件零 diff）+ Contact Sheet 13 树 × 全卡交付（24 帧 + 拼图 + console 零错误零警告）；4263 全绿）→ [024.3-rebatch-2.md](024.3-rebatch-2.md)
-- [ ] 024.4 浏览器色点 UI + 放置入口接线（资产名旁色点切换〔swatch 数据色〕+ 选中态持久 + 放置注入；无卡资产不显色点；frontend-design 技能 + DESIGN.md §5.8 增量）→ [024.4-browser-ui.md](024.4-browser-ui.md)
+- [x] 024.4 浏览器色点 UI + 放置入口接线（done 2026-09-28：卡片右下色点条〔presets.length>1 才渲染；swatch 数据色 + 琥珀激活环〕+ localStorage 选中持久〔默认卡省略不落盘〕+ 四放置入口注入〔点击/右键 onPick / 拖放 mime / 键 4 重放〕缺省路径逐位一致 + 15 帧冒烟取证 console 零噪声；4279 全绿）→ [024.4-browser-ui.md](024.4-browser-ui.md)
 - [ ] 024.5 验收门（epic 级五面：契约收口 / 横向一致性 / 资源与性能 / 回归 / 冒烟——口径见上 Acceptance）→ [024.5-acceptance.md](024.5-acceptance.md)
 
 依赖链：024.1 → 024.2 → 024.3 → 024.4 → 024.5。024.4 仅依赖 024.1（可提前开发），但排 024.3 后吃全量真卡数据冒烟；024.2/024.3 文件集为各树私有目录、可并行——主代理按带宽裁定（整表锁文件 024.2 落位后 024.3 只增行）。

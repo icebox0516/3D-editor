@@ -14,27 +14,38 @@
  * - DEV 分类过滤（T008.1）：visibleBrowserAssets 排除 category=dev（管线验证资产
  *   不进产品栏；分类芯片随过滤上游同步排除）。T022：标签芯片聚合与排序档随浏览器
  *   简化删除（用例同删）。
+ * - 色卡选中持久化（T024.4）：loadPresetSelection 宽容读回（损坏 JSON / 非对象 /
+ *   值非非空字符串 / 'default' 一律跳过）、selectAssetPreset 纯更新 + 即时持久化
+ *   （默认卡/null = 删条目——默认卡省略不落盘）、selectedPresetOf 四放置入口公共
+ *   读法（file/GLB → undefined；声明表校验经 domain resolveDeclaredPreset，已删卡
+ *   宽容回退）；mime 常量 application/x-asset-preset。
  * 边界：纯函数 + 注入 storage，不渲染 DOM（vitest node 环境）；组件壳归浏览器目检。
  */
 import { describe, expect, it } from 'vitest';
-import type { ModelAsset } from '../../../src/domain/assets';
+import type { AssetDescriptor, ModelAsset, ProceduralAssetMeta } from '../../../src/domain/assets';
 import {
   ASSET_DRAG_MIME,
+  ASSET_PRESET_DRAG_MIME,
   BROWSER_CATEGORY_ALL,
   BROWSER_CATEGORY_FAVORITES,
   FAVORITES_STORAGE_KEY,
+  PRESET_SELECTION_STORAGE_KEY,
   buildCategories,
   categoryMarkColor,
   filterAssets,
   isAssetDrag,
   isBrowserExpanded,
   loadFavoriteIds,
+  loadPresetSelection,
   parseAssetDragId,
   saveFavoriteIds,
+  savePresetSelection,
+  selectAssetPreset,
+  selectedPresetOf,
   toggleFavorite,
   visibleBrowserAssets,
 } from '../../../src/ui/panels/browserModel';
-import type { BrowserAsset } from '../../../src/ui/panels/browserModel';
+import type { BrowserAsset, PresetSelectionMap } from '../../../src/ui/panels/browserModel';
 import { PANEL_SIZE_SPECS } from '../../../src/ui/layout/workspaceStore';
 
 function makeAsset(partial: Partial<ModelAsset> = {}): ModelAsset {
@@ -346,5 +357,145 @@ describe('DEV 分类过滤（T008.1：管线验证资产不进产品栏）', () 
   it('过滤上游一处生效：分类芯片不含 dev 条目', () => {
     const visible = visibleBrowserAssets(WITH_DEV);
     expect(buildCategories(visible).map((c) => c.key)).not.toContain('dev');
+  });
+});
+
+describe('色卡选中持久化（T024.4）', () => {
+  /** 双卡声明（11 树形态：default + 季相卡；fixture 沿 AssetRegistry.test.ts makeProcedural 先例） */
+  const CARDS = [
+    { id: 'default', label: '默认', swatch: '#8ab45d' },
+    { id: 'autumn', label: '秋·金黄', swatch: '#d9a441' },
+  ];
+
+  function makeProcedural(id: string, overrides: Partial<ProceduralAssetMeta> = {}): ProceduralAssetMeta {
+    return {
+      id,
+      name: `程序化-${id}`,
+      category: 'tree',
+      tags: ['乔木'],
+      defaultScale: { x: 1, y: 1, z: 1 },
+      defaultRotation: { x: 0, y: 0, z: 0 },
+      taxonomy: { category: 'plant' }, // T010.2 必填分类（测试替身）
+      presets: CARDS,
+      ...overrides,
+    };
+  }
+
+  function proceduralDescriptor(id: string, overrides: Partial<ProceduralAssetMeta> = {}): AssetDescriptor {
+    return { kind: 'procedural', asset: makeProcedural(id, overrides) };
+  }
+
+  it('存储键与拖拽 mime 常量（跨组件约定）', () => {
+    expect(PRESET_SELECTION_STORAGE_KEY).toBe('t3d-editor.asset-presets');
+    expect(ASSET_PRESET_DRAG_MIME).toBe('application/x-asset-preset');
+  });
+
+  describe('loadPresetSelection：宽容读回（对齐 loadFavoriteIds 纪律）', () => {
+    it('正常读回；跨刷新（同一 storage 重新 load）保留', () => {
+      const storage = fakeStorage();
+      storage.setItem(PRESET_SELECTION_STORAGE_KEY, JSON.stringify({ asset_oak: 'autumn' }));
+      expect(loadPresetSelection(storage)).toEqual({ asset_oak: 'autumn' });
+      expect(loadPresetSelection(storage)).toEqual({ asset_oak: 'autumn' }); // 模拟刷新重读
+    });
+
+    it('空 / 损坏 JSON / 非对象（数组·字符串·数字）→ 空映射，不抛错', () => {
+      const storage = fakeStorage();
+      expect(loadPresetSelection(storage)).toEqual({});
+      storage.setItem(PRESET_SELECTION_STORAGE_KEY, '{oops');
+      expect(loadPresetSelection(storage)).toEqual({});
+      storage.setItem(PRESET_SELECTION_STORAGE_KEY, JSON.stringify(['asset_oak']));
+      expect(loadPresetSelection(storage)).toEqual({});
+      storage.setItem(PRESET_SELECTION_STORAGE_KEY, '"just a string"');
+      expect(loadPresetSelection(storage)).toEqual({});
+      storage.setItem(PRESET_SELECTION_STORAGE_KEY, '42');
+      expect(loadPresetSelection(storage)).toEqual({});
+    });
+
+    it('值为 default / 空串 / 非字符串 → 跳过该键（默认卡省略不落盘的镜像纪律）', () => {
+      const storage = fakeStorage();
+      storage.setItem(
+        PRESET_SELECTION_STORAGE_KEY,
+        JSON.stringify({
+          asset_oak: 'autumn', // 合法保留
+          asset_pine: 'default', // 默认卡不该出现在存内——跳过
+          asset_fir: '', // 空串——跳过
+          asset_birch: 42, // 非字符串——跳过
+          asset_maple: null, // null——跳过
+        }),
+      );
+      expect(loadPresetSelection(storage)).toEqual({ asset_oak: 'autumn' });
+    });
+
+    it('storage 不可用（null）→ 空映射，不抛错', () => {
+      expect(loadPresetSelection(null)).toEqual({});
+    });
+  });
+
+  describe('selectAssetPreset：纯更新 + 立即持久化（对齐 toggleFavorite 纪律）', () => {
+    it('写入非默认卡 → 返回新映射且 storage 落盘（跨刷新读回）', () => {
+      const storage = fakeStorage();
+      const next = selectAssetPreset('asset_oak', 'autumn', {}, storage);
+      expect(next).toEqual({ asset_oak: 'autumn' });
+      expect(JSON.parse(storage.getItem(PRESET_SELECTION_STORAGE_KEY)!)).toEqual({ asset_oak: 'autumn' });
+      expect(loadPresetSelection(storage)).toEqual({ asset_oak: 'autumn' });
+    });
+
+    it('纯更新语义：不改动传入的 current（返回新对象）', () => {
+      const current: PresetSelectionMap = { asset_oak: 'autumn' };
+      const next = selectAssetPreset('asset_pine', 'autumn', current, fakeStorage());
+      expect(current).toEqual({ asset_oak: 'autumn' });
+      expect(next).toEqual({ asset_oak: 'autumn', asset_pine: 'autumn' });
+    });
+
+    it('切 default → 删除该 assetId 条目（点默认卡 = 清记录）', () => {
+      const storage = fakeStorage();
+      const selected = selectAssetPreset('asset_oak', 'autumn', {}, storage);
+      const back = selectAssetPreset('asset_oak', 'default', selected, storage);
+      expect(back).toEqual({});
+      expect(storage.getItem(PRESET_SELECTION_STORAGE_KEY)).toBe('{}');
+    });
+
+    it('切 null → 删除该 assetId 条目', () => {
+      const storage = fakeStorage();
+      const selected = selectAssetPreset('asset_oak', 'autumn', {}, storage);
+      expect(selectAssetPreset('asset_oak', null, selected, storage)).toEqual({});
+    });
+
+    it('storage 不可用（null）→ 内存返回新映射不抛错（写入失败不影响内存）', () => {
+      expect(selectAssetPreset('asset_oak', 'autumn', {}, null)).toEqual({ asset_oak: 'autumn' });
+      expect(savePresetSelection({ asset_oak: 'autumn' }, null)).toBeUndefined();
+    });
+  });
+
+  describe('selectedPresetOf：四放置入口公共读法（声明表校验）', () => {
+    it('descriptor 缺失 → undefined', () => {
+      expect(selectedPresetOf(undefined, { asset_oak: 'autumn' })).toBeUndefined();
+    });
+
+    it('file kind（GLB，无色卡）→ undefined', () => {
+      const fileDescriptor: AssetDescriptor = { kind: 'file', asset: makeAsset({ id: 'asset_car' }) };
+      expect(selectedPresetOf(fileDescriptor, { asset_car: 'autumn' })).toBeUndefined();
+    });
+
+    it('procedural：声明内卡 → 原值', () => {
+      const descriptor = proceduralDescriptor('asset_oak');
+      expect(selectedPresetOf(descriptor, { asset_oak: 'autumn' })).toBe('autumn');
+    });
+
+    it('procedural：存了未声明卡 id（已删卡/脏数据）→ undefined 宽容回退默认卡', () => {
+      const descriptor = proceduralDescriptor('asset_oak');
+      expect(selectedPresetOf(descriptor, { asset_oak: 'removed-card' })).toBeUndefined();
+    });
+
+    it('procedural：presets 空数组（显式无卡）→ undefined', () => {
+      const descriptor = proceduralDescriptor('asset_hydrant', { presets: [] });
+      expect(selectedPresetOf(descriptor, { asset_hydrant: 'autumn' })).toBeUndefined();
+    });
+
+    it('selection 无该 assetId（未选过色卡）→ undefined', () => {
+      const descriptor = proceduralDescriptor('asset_oak');
+      expect(selectedPresetOf(descriptor, {})).toBeUndefined();
+      expect(selectedPresetOf(descriptor, { asset_other: 'autumn' })).toBeUndefined();
+    });
   });
 });

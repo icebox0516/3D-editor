@@ -1140,15 +1140,18 @@ export function toggleMeasureTool(tools: ToolManager, kind: MeasureKind): void {
  * 资产组入口（键 4 / 放置钮）：重放 store.lastAssetId 资产（默认「模型」图层，
  * 层名 = domain/assets.MODEL_LAYER_NAME，T6.7 旧表删除后的单一真相源）；
  * 无记忆资产返回 false（调用方 Toast 提示先去内容浏览器选择）。
+ * preset 可选尾参（T024.4 色卡重放注入）：调用侧经 selectedPresetOf 完成存储读取
+ * 与声明校验后传入；默认卡/未选中 = 不传（缺省路径与既有激活参数逐位一致）。
  */
 export function togglePlacement(
   tools: ToolManager,
   scene: { getLayers(): ReadonlyArray<{ id: string; name: string }> },
   assetId: string | null,
+  preset?: string,
 ): boolean {
   if (!assetId) return false;
   const layerId = scene.getLayers().find((l) => l.name === MODEL_LAYER_NAME)?.id ?? null;
-  tools.activate(PLACEMENT_TOOL_ID, { assetId, layerId });
+  tools.activate(PLACEMENT_TOOL_ID, { assetId, layerId, ...(preset !== undefined ? { preset } : {}) });
   return true;
 }
 

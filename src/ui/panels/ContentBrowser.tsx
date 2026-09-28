@@ -13,7 +13,11 @@
  *     视口侧 dragover/drop 接线在 App 层（ui 不 import app）；
  *   - 右键卡片 → store.openContextMenu('asset-card')（T5.8 四类上下文菜单之一；
  *     添加到场景 = 点击放置同路，其余项 P1 占位禁用）；
- *   - 收藏星标 → localStorage 持久化（browserModel 唯一真相源）。
+ *   - 收藏星标 → localStorage 持久化（browserModel 唯一真相源）；
+ *   - 色卡色点（T024.4）→ 卡片右下覆盖条（presets.length>1 才渲染）：点选持久化
+ *     localStorage（browserModel 唯一真相源，默认卡省略不落盘）并即时生效于放置入口；
+ *     正在放置该资产时点色点 = 重激活换卡（onPick 在事件时刻读到新选中）；
+ *     拖拽卡片随色卡写 preset mime（仅非默认卡）。
  * 混排（T002.2，D7/D13）：数据源 = 统一 AssetDescriptor（GLB file 与程序化 procedural
  *   同库混排，过滤/搜索/收藏对两者一视同仁）；程序化卡片左上角 kind 角标区分来源
  *   （仅视觉标注，无功能隔离），缩略图 = 组合根离屏快照回填（proceduralThumbnails prop），
@@ -26,11 +30,13 @@
 import { useMemo, useState } from 'react';
 import type { DragEvent } from 'react';
 import { Boxes } from 'lucide-react';
-import type { AssetCommonMeta, AssetDescriptor } from '../../domain/assets';
+import type { AssetColorPresetMeta, AssetCommonMeta, AssetDescriptor } from '../../domain/assets';
+import { DEFAULT_COLOR_PRESET_ID, resolveDeclaredPreset } from '../../domain/assets';
 import { useEditorStore } from '../store';
 import { useWorkspaceStore } from '../layout/workspaceStore';
 import {
   ASSET_DRAG_MIME,
+  ASSET_PRESET_DRAG_MIME,
   BROWSER_CATEGORY_ALL,
   BROWSER_CATEGORY_DEV,
   BROWSER_CATEGORY_FAVORITES,
@@ -40,15 +46,19 @@ import {
   filterAssets,
   isBrowserExpanded,
   loadFavoriteIds,
+  loadPresetSelection,
+  selectAssetPreset,
   toggleFavorite,
 } from './browserModel';
-import type { BrowserAsset } from './browserModel';
+import type { BrowserAsset, PresetSelectionMap } from './browserModel';
 
 /** 混排卡片视图条目：BrowserAsset 公共面 + 渲染附加（kind 标注 + 缩略图归一） */
 interface BrowserEntry extends BrowserAsset {
   kind: AssetDescriptor['kind'];
   /** file → manifest SVG 占位/离屏快照；procedural → 离屏快照回填（未就绪 undefined → 字形占位） */
   thumbnail?: string;
+  /** 色卡声明（T024.4；仅 procedural 携带——`...d.asset` spread 自然带入，file/GLB 无此字段） */
+  presets?: readonly AssetColorPresetMeta[];
 }
 
 interface ContentBrowserProps {
@@ -95,6 +105,8 @@ export function ContentBrowser({
 
   // 收藏真相源 localStorage：初始一次读入，切换即持久化（不进 zustand——面板私有状态）
   const [favoriteIds, setFavoriteIds] = useState(() => loadFavoriteIds());
+  // 色卡选中真相源 localStorage（T024.4）：同收藏先例——初始一次读入，切换即持久化
+  const [presetSelection, setPresetSelection] = useState<PresetSelectionMap>(() => loadPresetSelection());
 
   /** 混排视图条目：描述符解包（公共面 + kind + 缩略图归一）；BrowserEntry 结构兼容 BrowserAsset。
    *  DEV 分类先过滤（T008.1：管线验证资产不进产品栏——列表/分类芯片共用 entries） */
@@ -133,6 +145,12 @@ export function ContentBrowser({
     setFavoriteIds(toggleFavorite(assetId, favoriteIds));
   };
 
+  /** 点选色卡（T024.4）：持久化新选中；正放置该资产 → 重激活（App 事件时刻读到新选中，Ghost 立即换卡） */
+  const onSelectPreset = (asset: BrowserEntry, cardId: string): void => {
+    setPresetSelection(selectAssetPreset(asset.id, cardId, presetSelection));
+    if (activeToolId === 'placement' && placingAssetId === asset.id) onPick(asset);
+  };
+
   /** 选中一个分类：紧凑态点芯片 = 选分类并同时展开（任务书 21 章）；展开态仅切换 */
   const selectCategory = (key: string): void => {
     setBrowserCategory(key);
@@ -145,9 +163,12 @@ export function ContentBrowser({
     if (!expanded && value.trim() !== '') setBrowserExpanded(true);
   };
 
-  const onCardDragStart = (e: DragEvent<HTMLDivElement>, asset: BrowserAsset): void => {
+  const onCardDragStart = (e: DragEvent<HTMLDivElement>, asset: BrowserEntry): void => {
     e.dataTransfer.setData(ASSET_DRAG_MIME, asset.id);
     e.dataTransfer.setData('text/plain', asset.id); // 跨应用兜底（拖入文本目标仍是资产 id）
+    // 色卡随拖（T024.4）：仅非默认卡写 preset mime（default/未声明 → 不写，App 读侧宽容回默认卡）
+    const preset = resolveDeclaredPreset(asset.presets, presetSelection[asset.id]);
+    if (preset !== undefined) e.dataTransfer.setData(ASSET_PRESET_DRAG_MIME, preset);
     e.dataTransfer.effectAllowed = 'copy';
   };
 
@@ -233,9 +254,16 @@ export function ContentBrowser({
               {visible.map((asset) => {
                 const placing = activeToolId === 'placement' && placingAssetId === asset.id;
                 const starred = favoriteIds.has(asset.id);
+                // 色卡（T024.4）：多卡才渲染色点条（单卡/空表/GLB 不出）；激活卡 id 按声明表
+                // 校验派生（已删卡宽容回退 default），点 default 卡 = 删条目自然派生回默认卡
+                const cards = asset.presets ?? [];
+                const hasPresets = cards.length > 1;
+                const activeCard = hasPresets
+                  ? (resolveDeclaredPreset(cards, presetSelection[asset.id]) ?? DEFAULT_COLOR_PRESET_ID)
+                  : null;
                 return (
                   <div
-                    className={`ed-card${placing ? ' ed-card--active' : ''}`}
+                    className={`ed-card${placing ? ' ed-card--active' : ''}${hasPresets ? ' ed-card--presetted' : ''}`}
                     key={asset.id}
                     role="listitem"
                     data-asset-id={asset.id}
@@ -298,6 +326,25 @@ export function ContentBrowser({
                     >
                       <StarIcon />
                     </button>
+                    {hasPresets ? (
+                      <span className="ed-card__presets" role="group" aria-label={`${asset.name} 色卡`}>
+                        {cards.map((card) => {
+                          const active = card.id === activeCard;
+                          return (
+                            <button
+                              type="button"
+                              key={card.id}
+                              className={`ed-card__preset-dot${active ? ' ed-card__preset-dot--on' : ''}`}
+                              style={{ backgroundColor: card.swatch }}
+                              aria-pressed={active}
+                              aria-label={`色卡 ${card.label}`}
+                              title={active ? `当前色卡：${card.label}` : `切换到「${card.label}」`}
+                              onClick={() => onSelectPreset(asset, card.id)}
+                            />
+                          );
+                        })}
+                      </span>
+                    ) : null}
                   </div>
                 );
               })}

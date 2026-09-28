@@ -1964,6 +1964,42 @@ body.ed-dragging .ed-app {
   cursor: grabbing;
 }
 
+/* 色卡色点条（T024.4）：卡片右下覆盖层，与 kind 角标/星标同覆盖语言；点色 = swatch
+   数据编码色（inline style），激活环 = 琥珀（「正在被操作」语义，琥珀专属不受
+   数据编码色条款约束）；不挤占流式布局（绝对定位），cat 行经 --presetted 预留右距 */
+.ed-card__presets {
+  position: absolute;
+  right: var(--sp-2);
+  bottom: var(--sp-2);
+  display: flex;
+  gap: 3px;
+}
+.ed-card__preset-dot {
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: 1px solid var(--line-2);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--surface-1) 55%, transparent);
+  transition: box-shadow var(--dur-1) var(--ease), border-color var(--dur-1) var(--ease);
+}
+.ed-card__preset-dot:hover {
+  border-color: var(--line-3);
+}
+.ed-card__preset-dot:focus-visible {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+.ed-card__preset-dot--on {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+/* 色点条占位：cat 行文字过长时不出色点条底下（色点条约 2 点 ≈ 31px + 边距） */
+.ed-card--presetted .ed-card__cat {
+  padding-right: 34px;
+}
+
 /* ── Content Browser（T5.5 双态：紧凑 60 = 单行工具条 / 展开 = 顶行 + 左分类栏 + 右网格）── */
 .ed-browser {
   position: relative;

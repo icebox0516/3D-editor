@@ -163,6 +163,7 @@
 | 双态容器 | `.ed-browser`（`--expanded`） | 紧凑 60px 单行工具条（标题 + 计数读数 + 分类芯片行横向滚动 + 搜索框 + 双态钮 ▼/▲ + ×）↔ 展开 280px = 顶行 + 资产网格占满 body（T022：标签/排序工具行与左分类纵栏删除，分类切换只走 bar 芯片一行）；点芯片 = 选分类并展开，紧凑态输入搜索词自动展开；高度过渡复用 `.ed-app` grid-template-rows `--dur-2`（`body.ed-dragging` 禁用 / `prefers-reduced-motion` 降级已有） |
 | 分类芯片行 | `.ed-chip`（§5.2 既有） | bar 内分类切换（全部/收藏/各分类 + 等宽计数），当前分类 = 琥珀 soft 底（`--active`）；分类哨兵 'all' / '__favorites__' |
 | 资产卡片 | `.ed-card` `__main/__thumb/__name/__cat/__cat-dot/__star` | 网格 auto-fill `minmax(150px,1fr)`；卡片 = 缩略图（懒加载真实快照 / 首字符占位）+ 名称 + 分类色标（`categoryMarkColor`：slug 确定性哈希 → HSL，**数据编码色而非 UI 强调色**，不违反琥珀唯一性）+ 收藏星标（localStorage 沿用）；`draggable` grab/grabbing 光标；正在放置卡片琥珀边 + soft 底沿用 |
+| 色卡色点条（T024.4 增补） | `.ed-card__presets` `__preset-dot`（`--on`）`--presetted` | 卡片右下绝对定位覆盖条（presets.length>1 才渲染；真实 button 不嵌套 __main）；点色 = `meta.swatch` 数据编码色 inline 注入，激活 = 琥珀环（激活语义琥珀专属）；点选持久化 localStorage（`t3d-editor.asset-presets`，默认卡省略不落盘）并即时生效于四放置入口（点击/右键/拖放/重放）；已删卡宽容回退 default |
 | 拖放落点高亮 | `.ed-viewport--drop-target` | dragover 时 `::after` 2px `--accent-line` 描边 + `inset 0 0 24px` `--accent-soft` 内光，pointer-events:none（瞬时态琥珀语义）；dragleave/drop 移除 |
 | 退役登记 | `.ed-lib__*`、`.ed-asset-group*` | AssetLibraryPanel 收编退役；`--browser-h-compact/--expanded` 令牌已在 tokens.css，零新增 |
 

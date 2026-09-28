@@ -58,6 +58,7 @@ import {
   toggleShapeDraw,
 } from '../ui/tools/toolIA';
 import { useEditorStore } from '../ui/store';
+import { loadPresetSelection, selectedPresetOf } from '../ui/panels/browserModel';
 import { EditorActionsCore } from './editorActionsCore';
 
 /** 输入接线依赖（由组合根装配） */
@@ -313,12 +314,16 @@ export class InputController {
         if (digit.kind === 'area-sub') {
           toggleShapeDraw(this.deps.tools, digit.shapeType);
         } else if (digit.key === '4') {
-          // 资产放置：重放最近资产；无记忆时不激活（内容浏览器选择后经 lastAssetId 记忆）
-          togglePlacement(
-            this.deps.tools,
-            this.deps.sceneManager,
-            useEditorStore.getState().lastAssetId,
+          // 资产放置：重放最近资产；无记忆时不激活（内容浏览器选择后经 lastAssetId 记忆）。
+          // 色卡重放注入（T024.4）：事件时刻读存储选中 → selectedPresetOf 按声明表校验
+          // （deps 无 registry 访问面，经 store.facade 既有通道取描述符；已删卡宽容回退默认卡，
+          // 快捷键不因存留脏卡 id 崩——写侧 fail-fast 之前调用侧先归一）
+          const { lastAssetId: lastId, facade } = useEditorStore.getState();
+          const preset = selectedPresetOf(
+            facade !== null && lastId !== null ? facade.registries.assets.get(lastId) : undefined,
+            loadPresetSelection(),
           );
+          togglePlacement(this.deps.tools, this.deps.sceneManager, lastId, preset);
         } else if (digit.key === '1') {
           toggleRegionDraw(this.deps.tools);
         } else {
