@@ -625,3 +625,90 @@ describe('TimeUniformService 兼容（冻结风相位——固定机位取证纪
     expect(materialUniformsOf(material).uTime!.value).toBeCloseTo(0.5, 10); // 静止在冻结帧
   });
 });
+
+describe('色卡 preset（T024.3 批二——冠变干不变：叶基调随卡，皮/深度/风动/GLSL 零变化；program 不增红线）', () => {
+  it('autumn 卡存在：基色 = 秋·橙-铜橙 #c4804a ≠ default #3e6c2c；橙-铜橙域数值锚（hue 22–30°、R−G 55–85 强橙向、G−B 40–70、加权亮度 130–155——Spec §6「秋色……色系以橙-铜橙-红为主，非朴树的黄-橙」Verified [7][8]）', () => {
+    const autumn = track(createZelkovaLeafMaterial('high', 'autumn'));
+    expect(autumn.color.getHex()).not.toBe(0x3e6c2c); // 卡存在（基色 ≠ default）
+    expect(autumn.color.getHex()).toBe(0xc4804a); // 秋·橙-铜橙（工程合成：Spec §6 [7][8]——主相橙-铜橙读向）
+    // JS 数值锚镜像：sRGB hue（R 最大橙域分支）+ 变奏端点复合（端点被 program 红线冻结——双端复合均守橙-铜橙域）
+    const mul = (hex: number, m: readonly [number, number, number]): [number, number, number] => [
+      ((hex >> 16) & 0xff) * m[0],
+      ((hex >> 8) & 0xff) * m[1],
+      (hex & 0xff) * m[2],
+    ];
+    const hueOf = (c: readonly [number, number, number]): number => {
+      const max = Math.max(c[0], c[1], c[2]);
+      const min = Math.min(c[0], c[1], c[2]);
+      return max === min ? 0 : (60 * (c[1] - c[2])) / (max - min);
+    };
+    const base = mul(0xc4804a, [1, 1, 1]);
+    const warm = mul(0xc4804a, [1.07, 1.03, 0.91]); // 暖端复合（最坏红向）
+    const cold = mul(0xc4804a, [0.93, 1.0, 1.05]); // 冷端复合（最坏黄向）
+    expect(hueOf(base)).toBeGreaterThanOrEqual(22); // 橙-铜橙域下沿（不入 triadica 绯红域）
+    expect(hueOf(base)).toBeLessThanOrEqual(30); // 橙-铜橙域上沿（不入 celtis 黄域）
+    expect(hueOf(warm)).toBeGreaterThanOrEqual(22); // 暖端复合守域
+    expect(hueOf(cold)).toBeLessThanOrEqual(30); // 冷端复合守域（双端无出域向——zelkova 变奏乘子温和）
+    // 秋色谱系三分化：celtis 黄 46.9 ↔ zelkova 橙 26.6 ↔ triadica 绯红 14.1
+    expect(hueOf(base)).toBeGreaterThan(hueOf([0xc6, 0x5e, 0x3e])); // hue 高于 triadica 绯红（14.1）
+    const luma = (c: readonly number[]): number => 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2];
+    expect(luma(base)).toBeGreaterThanOrEqual(130); // 锚域下沿（铜橙中亮）
+    expect(luma(base)).toBeLessThanOrEqual(155); // 锚域上沿
+    expect(luma(base)).toBeGreaterThan(luma([0xc6, 0x5e, 0x3e])); // 亮于 triadica 绯红 #c65e3e（≈121.4——hue+亮度双分离可辨轴）
+    expect(base[0] - base[1]).toBeGreaterThanOrEqual(55); // R−G 强橙向分离（高于黄族 ≤32）
+    expect(base[0] - base[1]).toBeLessThanOrEqual(85);
+    expect(base[0] - base[1]).toBeLessThan(104); // 低于 triadica 绯红 R−G（橙 vs 绯红的分离锚）
+    expect(base[1] - base[2]).toBeGreaterThanOrEqual(40); // G−B 中弱黄向（铜橙的褐底分量）
+    expect(base[1] - base[2]).toBeLessThanOrEqual(70);
+  });
+
+  it('默认卡零变化（结构锁）：缺省 / 显式 default / 未知 id 回退——色值、键、GLSL 全文与现行一致', () => {
+    const variants = [
+      track(createZelkovaLeafMaterial()),
+      track(createZelkovaLeafMaterial('high')),
+      track(createZelkovaLeafMaterial('high', 'default')),
+      track(createZelkovaLeafMaterial('high', 'no-such-preset')), // 未知 id 回退 default（值域校验归 Renderer resolvePoolKey 单一 choke point——工厂不做双写校验）
+    ];
+    for (const material of variants) {
+      expect(material.color.getHex()).toBe(0x3e6c2c); // 现行数值（ZELKOVA_LEAF_PRESETS.default 单一定义源）
+      expect(material.customProgramCacheKey()).toBe('zelkova:leaf+dither'); // 键与现行一致
+    }
+    const base = assemble(variants[0]!, THREE.ShaderLib.physical);
+    for (const material of variants.slice(1)) {
+      const shader = assemble(material, THREE.ShaderLib.physical);
+      expect(shader.vertexShader).toBe(base.vertexShader); // GLSL 全文与现行一致
+      expect(shader.fragmentShader).toBe(base.fragmentShader);
+    }
+  });
+
+  it('program 不增红线：default 与 autumn 键相等且 GLSL 全文逐位相等（同键必同源——色值只走构造色 uniform 通道；透射/变奏域字面量跨卡冻结）', () => {
+    for (const level of ['high', 'mid', 'low'] as const) {
+      const base = track(createZelkovaLeafMaterial(level));
+      const autumn = track(createZelkovaLeafMaterial(level, 'autumn'));
+      expect(autumn.customProgramCacheKey()).toBe(base.customProgramCacheKey()); // 同键（programs 不增——D44 #3）
+      const a = assemble(base, THREE.ShaderLib.physical);
+      const b = assemble(autumn, THREE.ShaderLib.physical);
+      expect(b.vertexShader).toBe(a.vertexShader); // 同键 ⇒ GLSL 必须同源（Three.js 同键复用程序——异源 = 错挂程序暴雷路径）
+      expect(b.fragmentShader).toBe(a.fragmentShader);
+      expect(b.fragmentShader).toContain('vec3(0.93, 1.00, 1.05), vec3(1.07, 1.03, 0.91)'); // hue 两端跨卡冻结
+      if (level !== 'low') {
+        expect(b.fragmentShader).toContain('vec3(0.60, 0.92, 0.34)'); // 透射色跨卡冻结（程序红线代价记档；Low 去透光注入故仅 high/mid 断言）
+      }
+    }
+  });
+
+  it('三档 level × autumn 组合不崩 + 基调-only（alphaTest/侧向/糙度/金属度与 default 一致——色卡不碰质地与叶形）', () => {
+    for (const level of ['high', 'mid', 'low'] as const) {
+      const autumn = track(createZelkovaLeafMaterial(level, 'autumn'));
+      const base = track(createZelkovaLeafMaterial(level));
+      const shader = assemble(autumn, THREE.ShaderLib.physical); // 不崩 = 组装通过
+      expect(shader.fragmentShader).toContain('zlkLeafAlpha('); // SDF 叶形照常（形态不随卡——冠变干不变）
+      expect(autumn.color.getHex()).not.toBe(base.color.getHex()); // 唯一差异 = 基调色
+      expect(autumn.alphaTest).toBe(base.alphaTest);
+      expect(autumn.alphaToCoverage).toBe(base.alphaToCoverage);
+      expect(autumn.side).toBe(base.side);
+      expect(autumn.roughness).toBe(base.roughness); // 无秋相质地证据——糙度不投机造数（记档）
+      expect(autumn.metalness).toBe(base.metalness);
+    }
+  });
+});

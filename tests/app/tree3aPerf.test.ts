@@ -27,7 +27,10 @@
  *   seed 序列与网格公式不变、同参两次资产序列逐位一致）+ 缺省路径双锁（单元素
  *   assetIds ≡ 不传）+ assetId 冲突 / 空数组 / 未注册 id 硬失败抛错（场景零变更）；
  * - T021.8 扩展 B（distribution）：注桩 Renderer 透传不变形（同引用零防御委托）+
- *   无渲染依赖全零计数形状（沿 stats() 零值先例）。
+ *   无渲染依赖全零计数形状（沿 stats() 零值先例）；
+ * - T024.3 扩展（preset 色卡携带）：place 携 preset 逐枚落盘 asset.preset（seed/网格/
+ *   归层语义不随卡变）+ 缺省路径双锁（不传与 'default' 均不落盘——旧对象结构逐位不变，
+ *   createModelObjectAt 省略规则经产品驱动面复验）。
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createId } from '../../src/core/id';
@@ -287,6 +290,44 @@ describe('T021.8 扩展 B：distribution（表示分布即时快照，Phase C §
       shadowCasterInstances: 0,
       transition: { instances: 0, buckets: 0, dualSubmitBuckets: 0 },
     });
+    facade.dispose();
+  });
+});
+
+describe('T024.3 扩展：preset 色卡携带（Contact Sheet「13 树 × 全卡」取证依赖）', () => {
+  it('place 携 preset：批量对象 asset.preset 逐枚落盘；seed / 网格 / 归层语义不随卡变化', () => {
+    const { facade, handle } = makeHandle();
+    const opts = { count: 5, seedBase: 21, spacing: 6, jitter: false } as const;
+    expect(handle.place({ ...opts, preset: 'autumn' })).toBe(true);
+    const models = modelsOf(facade);
+    expect(models).toHaveLength(5);
+    models.forEach((m, i) => {
+      expect(m.asset.preset).toBe('autumn'); // 色卡 id 逐枚落盘（池分桶换材质基调的驱动面）
+      expect(m.asset.seed).toBe(21 + i); // seed 序列语义不随卡变
+      expect(m.asset.assetId).toBe(TREE_ID); // 资产路由不随卡变
+    });
+    // 同参无卡两次对账基准：除 preset 外整对象逐位一致（transform/归层由 stripId 投影承重）
+    expect(handle.place(opts)).toBe(true);
+    const plain = modelsOf(facade).map(stripId);
+    expect(plain.every((m) => !('preset' in m.asset))).toBe(true); // 缺省不落盘
+    expect(handle.place({ ...opts, preset: 'autumn' })).toBe(true);
+    const withCard = modelsOf(facade).map((m) => ({ ...stripId(m), asset: { ...m.asset } }));
+    plain.forEach((p, i) => {
+      expect(withCard[i]!.asset.preset).toBe('autumn');
+      expect(withCard[i]!.asset.seed).toBe(p.asset.seed);
+      expect(withCard[i]!.transform).toEqual(p.transform);
+    });
+    facade.dispose();
+  });
+
+  it("缺省路径双锁：不传 preset 与显式 'default' 均不落盘（createModelObjectAt 省略规则经驱动面复验）", () => {
+    const { facade, handle } = makeHandle();
+    expect(handle.place({ count: 4, seedBase: 3 })).toBe(true);
+    let models = modelsOf(facade);
+    expect(models.every((m) => !('preset' in m.asset))).toBe(true); // 旧对象结构零变化
+    expect(handle.place({ count: 4, seedBase: 3, preset: 'default' })).toBe(true);
+    models = modelsOf(facade);
+    expect(models.every((m) => !('preset' in m.asset))).toBe(true); // 默认卡省略不落盘（旧场景零迁移口径）
     facade.dispose();
   });
 });

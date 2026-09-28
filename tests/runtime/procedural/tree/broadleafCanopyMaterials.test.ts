@@ -20,10 +20,12 @@
  * - 色卡 preset + uTime 注入（T024.1，D44 #1/#3——「冠变干不变」推广到远景表示）：
  *   ginkgo autumn 冠色覆写生效（与 ginkgoMaterials 秋卡基调同源同值 #d4b737；干柱色不
  *   随卡；键与注入 GLSL 零变化——program 不增）；**T024.2 批一新增 platanus/koelreuteria/
- *   sophora/triadica 四行 + 批二新增 fraxinus/salix 两行**（各与该树 *Materials.ts 叶卡
- *   autumn 基调同源同值——远近基调一致 drift-lock；批二两树经 Step R 补证 Spec 1.1 增量
- *   后建卡）；未命中（缺省/显式 default/未知 id/无行树种）回物种表且键不随
- *   卡分叉；uTime 注入三材质同引用（干柱/冠卡/深度程序）、缺省自建套内同源跨套独立。
+ *   sophora/triadica 四行 + 批二新增 fraxinus/salix 两行 + 024.3 批二回补 tree3a/celtis/
+ *   zelkova/bischofia 四行**（各与该树 *Materials.ts 叶卡 autumn 基调同源同值——远近
+ *   基调一致 drift-lock；fraxinus/salix/bischofia 经 Step R 补证 Spec 1.1 增量后建卡）；
+ *   未命中（缺省/
+ *   显式 default/未知 id/无行树种）回物种表且键不随卡分叉；uTime 注入三材质同引用
+ *  （干柱/冠卡/深度程序）、缺省自建套内同源跨套独立。
  */
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
@@ -355,7 +357,7 @@ describe('Canopy Depth Material（轮廓-only）', () => {
 
 // ── 色卡 preset（冠色覆写表）+ uTime 注入（T024.1，D44 #1/#3——冠变干不变推广到远景表示）──
 
-/** 覆写表有行树种的 autumn 叶材质工厂（远近基调同源同值 drift-lock 参照——T024.2 批一扩至 5 树 + 批二扩至 7 树） */
+/** 覆写表有行树种的 autumn 叶材质工厂（远近基调同源同值 drift-lock 参照——T024.2 批一扩至 5 树 + 批二扩至 7 树 + 024.3 批二回补扩至 11 树） */
 const SPECIES_LEAF_AUTUMN: Record<string, () => THREE.MeshStandardMaterial> = {
   asset_tree_ginkgo: () => createGinkgoLeafMaterial('high', 'autumn'),
   asset_tree_platanus: () => createPlatanusLeafMaterial('high', 'autumn'),
@@ -364,10 +366,14 @@ const SPECIES_LEAF_AUTUMN: Record<string, () => THREE.MeshStandardMaterial> = {
   asset_tree_triadica: () => createTriadicaLeafMaterial('high', 'autumn'),
   asset_tree_fraxinus: () => createFraxinusLeafMaterial('high', 'autumn'),
   asset_tree_salix: () => createSalixLeafMaterial('high', 'autumn'),
+  asset_tree_3a: () => createTree3aLeafMaterial('high', 'autumn'),
+  asset_tree_celtis: () => createCeltisLeafMaterial('high', 'autumn'),
+  asset_tree_zelkova: () => createZelkovaLeafMaterial('high', 'autumn'),
+  asset_tree_bischofia: () => createBischofiaLeafMaterial('high', 'autumn'),
 };
 
-describe('色卡 preset（冠色覆写表）+ uTime 注入（T024.1；T024.2 批一扩 4 树 + 批二扩 2 树）', () => {
-  it('autumn 有行树种（ginkgo + 批一 platanus/koelreuteria/sophora/triadica + 批二 fraxinus/salix）：冠卡色覆写生效（= 该树种材质秋卡基调同源同值）≠ 物种表；干柱色不随卡；键与注入 GLSL 零变化（program 不增）', () => {
+describe('色卡 preset（冠色覆写表）+ uTime 注入（T024.1；T024.2 批一扩 4 树 + 批二扩 2 树；024.3 批二回补扩 4 树）', () => {
+  it('autumn 有行树种（ginkgo + 024.2 批一 platanus/koelreuteria/sophora/triadica + 024.2 批二 fraxinus/salix + 024.3 批二 tree3a/celtis/zelkova/bischofia〔Step R 补证 Spec @1.1〕）：冠卡色覆写生效（= 该树种材质秋卡基调同源同值）≠ 物种表；干柱色不随卡；键与注入 GLSL 零变化（program 不增）', () => {
     for (const id of Object.keys(SPECIES_LEAF_AUTUMN)) {
       const def = createBroadleafCanopyMaterials(id);
       const autumn = createBroadleafCanopyMaterials(id, 'autumn');
@@ -392,7 +398,7 @@ describe('色卡 preset（冠色覆写表）+ uTime 注入（T024.1；T024.2 批
     }
     for (const id of BROADLEAF_CANOPY_MATERIAL_ASSET_IDS) {
       const def = createBroadleafCanopyMaterials(id);
-      const autumn = createBroadleafCanopyMaterials(id, 'autumn'); // 7 树有行（ginkgo + 批一 4 树 + 批二 2 树），其余回物种表
+      const autumn = createBroadleafCanopyMaterials(id, 'autumn'); // 11 树有行（ginkgo + 024.2 批一 4 树 + 024.2 批二 2 树 + 024.3 批二 4 树），其余回物种表
       const expected = SPECIES_LEAF_AUTUMN[id] !== undefined
         ? SPECIES_LEAF_AUTUMN[id]!().color.getHex()
         : BROADLEAF_CANOPY_MATERIAL_SPECIES[id]!.crownColor;

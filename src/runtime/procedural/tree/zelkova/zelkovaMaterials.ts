@@ -164,6 +164,20 @@
  *   （TimeUniformService 的扫描面）与 onBeforeCompile 里 shader.uniforms.uTime 挂同一对象
  *   引用——服务写一次，程序 uniform 即时生效，不触发重编译。
  *
+ * 【色卡 preset（T024.3 批二，D44 #1/#2——冠变干不变）】createZelkovaLeafMaterial 追加
+ *   可选 preset 参（导出签名冻结的扩展 = 只追加可选参；ginkgo T024.1 试点法复制 /
+ *   platanus T024.2 批一同款）：preset = 材质基调变体，只改叶基调构造色
+ *   （ZELKOVA_LEAF_PRESETS 模块私有表——default 行 = 现行数值的**单一定义源**，缺省路径
+ *   经表消费保证「default = 现行」由结构成立；autumn 行 = 秋·橙-铜橙，证据链与数值推导
+ *   见表注释）；皮/深度/风动/SDF/变奏域/透射色零改动（冠变干不变 + 深度材质色无关、将被
+ *   Runtime 跨卡共享——另一 Step）。**program 不增红线（D44 #3）**：default 与 autumn
+ *   共享同一 customProgramCacheKey ⇒ GLSL 逐位同源——hue/luma 两端、透射色
+ *   (0.60,0.92,0.34)、峰值 0.40 字面量跨卡冻结，秋相差异全部由构造色（uniform 通道）
+ *   承载。卡 id 域 {'default','autumn'}（024.2 定稿）；不可表达面记档：OSU 秋色变幅宽
+ *   （黄端 / 红紫端）与 11 月样木 20–35% 残绿混叶不可表达——橙-铜橙主相单基调 + 变奏
+ *   冻结口径（沿 triadica 多色并存不可表达先例）。未知卡 id 回退 default（值域校验归
+ *   Renderer resolvePoolKey 单一 choke point——工厂不做第二套校验）。
+ *
  * 边界：工厂每次调用 new 全部材质（D17 所有权随调用移交，禁止模块级共享对象）；零贴图/
  *   零 DataTexture（D13）；GLSL float 字面量全带小数点；aSeed=0（DEV 普通 Mesh 无该属性，
  *   WebGL 缺省属性值 0）路径相位退化为正常数——hash 无除法无 NaN；与 celtis/camphor/
@@ -172,6 +186,7 @@
  */
 import * as THREE from 'three';
 import { FACILITY_GLSL_NOISE } from '../../materials/facilityGlsl';
+import { DEFAULT_COLOR_PRESET_ID } from '../../../../domain/assets'; // 默认卡 id 单一真相源（值导入——ginkgo T024.1 先例）
 import type { ProceduralLevel } from '../../../../domain/assets';
 import { applyTreeFadeDither } from '../treeFadeDither';
 
@@ -415,6 +430,52 @@ zlkBarkMul *= mix(vec3(1.0), vec3(1.05, 0.99, 0.97), zlkBarkHigh); // 上部紫�
 diffuseColor.rgb *= zlkBarkMul;
 `;
 
+// ── 色卡 preset 表（T024.3 批二——叶基调随卡，GLSL 不分叉）────────────────────────
+
+/** 叶基调色卡配方行（T024.3 批二，D44 #2——色值配方归树材质工厂私有域） */
+interface ZelkovaLeafPreset {
+  /** 叶基调构造色（material.color = uniform 通道，不进 GLSL——program 不增的载体面） */
+  color: number;
+}
+
+/**
+ * 叶基调色卡配方表（模块私有；卡集与 meta.presets 声明对应——asset_tree_zelkova 双卡）。
+ * default 行 = 现行数值的**单一定义源**（缺省路径经本表消费——「default = 现行」由结构
+ * 保证而非抄写保证）；变奏域/透射色**不随卡**：program 不增红线（D44 #3）要求 autumn 与
+ * default 同 customProgramCacheKey ⇒ GLSL 字面量不分叉 ⇒ hue 两端 (0.93,1.00,1.05)↔
+ * (1.07,1.03,0.91)、luma 0.92±0.08、透射色 (0.60,0.92,0.34)、峰值 0.40 跨卡冻结，秋相
+ * 读向 = 橙-铜橙基色 × 现行变奏乘子复合（推导见 autumn 行注释）。未知卡 id 回退 default
+ * （值域校验归 Renderer resolvePoolKey 单一 choke point——工厂不做第二套校验）。
+ */
+const ZELKOVA_LEAF_PRESETS: Readonly<Record<string, Readonly<ZelkovaLeafPreset>>> = {
+  [DEFAULT_COLOR_PRESET_ID]: {
+    // 现行数值（T011.3 工程设定）：深绿——OSU "dark green" Verified [7] + §5 冠层中绿-
+    // 深绿 Inferred [8] 交叉（六树亮度链：银杏 > 朴树 > 悬铃木 > 夏栎 > **榉** > 樟——
+    // 黄绿量级近朴树暗一档）
+    color: 0x3e6c2c,
+  },
+  autumn: {
+    // 秋·橙-铜橙 #c4804a（工程合成，双源：Spec §6「秋色联动：OSU 记秋色变幅宽——黄、
+    // 黄/橙铜、橙、红、红紫；照片 11 月双样木主体橙-橙红（60–70%）混绿 20–35%；**秋色
+    // 是榉树最强季节信号，色系以橙-铜橙-红为主，非朴树的黄-橙**」Verified [7][8]——
+    // 主相橙-铜橙读向）：四锚——
+    // - hue ≈26.6°（sRGB）橙-铜橙域中带（provisional 域 22–30）——秋色谱系三分化：
+    //   celtis 黄 46.9 ↔ zelkova 橙 26.6 ↔ triadica 绯红 14.1；变奏暖端复合
+    //   ×(1.07,1.03,0.91) ≈27.2° / 冷端 ×(0.93,1.00,1.05) ≈28.9° 双端均守域（端点冻结
+    //   下无出域向）；
+    // - R−G 68 强橙向分离（provisional 55–85——高于黄族 ≤32、低于 triadica 104）；
+    // - G−B 54 中弱黄向（provisional 40–70——铜橙的褐底分量）；
+    // - 加权亮度 ≈142.2（0.299R+0.587G+0.114B）铜橙中亮（provisional ≈130–155）；亮于
+    //   triadica 绯红 #c65e3e（≈121.4）一档——横向可辨轴 = hue（橙 vs 绯红）+ 亮度双
+    //   分离；
+    // - 变幅宽（黄端/红紫端）与样木 20–35% 残绿不可表达记档（单基调 + 变奏冻结口径，
+    //   沿 triadica 多色并存不可表达先例——见模块头【色卡 preset】段）；
+    // - 透射色维持 (0.60,0.92,0.34)、峰值 0.40：同程序红线（D44 #3）的代价（透射字面量
+    //   进 GLSL，分叉即 +1 program）；秋相透射偏暖的解锁需后续统一决策，不在本 Step。
+    color: 0xc4804a,
+  },
+};
+
 // ── 工厂（每次调用 new 材质 + 独立注入闭包；键不变则共享 program）──────────────────
 
 /**
@@ -428,10 +489,21 @@ diffuseColor.rgb *= zlkBarkMul;
  * 最暗与朴树亮之间、黄绿量级近朴树暗一档）/ m 0 / r 0.62（半光泽微糙——Spec §5
  * "somewhat rough above" Verified [7][8]；介于香樟革质 0.50 与朴树半光泽 0.72 之间）/
  * DoubleSide（卡面双面可见，背面法线由 three 双面光照自动翻转）。
+ * preset（T024.3 可选参，缺省 = 默认卡）：查 ZELKOVA_LEAF_PRESETS 覆写基调构造色
+ * （autumn = 秋·橙-铜橙 #c4804a，Spec §6「秋色……色系以橙-铜橙-红为主，非朴树的黄-橙」
+ * Verified [7][8]——主相读向，数值推导见该表注释）；缺省/'default'/未知 id = default 行
+ * = 现行行为逐位一致；program 不增红线 = preset 只走构造色，GLSL/defines/键与 default
+ * 全同（皮/深度材质无 preset 参不随卡——见模块头【色卡 preset】段）。
  */
-export function createZelkovaLeafMaterial(level: ProceduralLevel = 'high'): THREE.MeshStandardMaterial {
+export function createZelkovaLeafMaterial(
+  level: ProceduralLevel = 'high',
+  preset?: string,
+): THREE.MeshStandardMaterial {
+  // 色卡解析（T024.3 批二）：缺省 / 'default' / 未知 id → default 行（现行数值单一定义源）
+  const recipe = (preset !== undefined ? ZELKOVA_LEAF_PRESETS[preset] : undefined)
+    ?? ZELKOVA_LEAF_PRESETS[DEFAULT_COLOR_PRESET_ID]!;
   const material = new THREE.MeshStandardMaterial({
-    color: 0x3e6c2c, // 深绿（工程设定：OSU dark green [7] + 冠层中绿-深绿 [8] 交叉；Spec §5 Verified [1][2][3][4]）
+    color: recipe.color, // 基调随卡（default = 深绿现行值 / autumn = 秋·橙-铜橙——ZELKOVA_LEAF_PRESETS 表注释引 Spec）
     metalness: 0,
     roughness: 0.62, // 半光泽微糙（Spec §5 "somewhat rough above" Verified [7][8]；vs 香樟 0.50 革质亮 / 朴树 0.72 半光泽）
     side: THREE.DoubleSide,

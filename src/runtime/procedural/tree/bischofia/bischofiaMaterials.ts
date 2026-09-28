@@ -6,8 +6,9 @@
  * 职责：复制八先例已验收的配方方法（onBeforeCompile 注入工厂全套纪律：replaceOnce
  * 缺失即抛 / customProgramCacheKey 必写且键唯一 / 原生 chunk 原句保留后追加 /
  * <color_fragment> 绝不触碰），物种配方按重阳木自己的 Reference Spec 换装——
- * Spec docs/research/bischofia-reference.md **1.0**（任务书锚点 1.0，开工前已校验
- * 一致；生产一律以文末「终审记档（主代理）」④ 生产口径终版为唯一事实源：①体量锚
+ * Spec docs/research/bischofia-reference.md **1.1**（任务书锚点 1.0 → 1.1 为 T024.3
+ * Step R 秋色补证 append-only 增量——正文 1.0 结构证据零改动；生产一律以文末「终审记档
+ * （主代理）」④ 生产口径终版为唯一事实源：①体量锚
  * 树高 ≈10m slot-0 / 生产域 8–12m / 冠幅比 0.8–1.0 / 单干干高占比 0.25–0.33；
  * ②叶 = 三出复叶卡语言（复叶第二型，1 卡承载整枚三出复叶）；③树皮第 9 语言
  * 「褐-深灰褐纵裂深沟宽脊 + 裂纹扭转/局部网状、细枝红褐光滑皮孔」；④花/果序
@@ -219,6 +220,26 @@
  *   （TimeUniformService 的扫描面）与 onBeforeCompile 里 shader.uniforms.uTime 挂同一对象
  *   引用——服务写一次，程序 uniform 即时生效，不触发重编译。
  *
+ * 【色卡 preset（T024.3 批二，D44 #1/#2——冠变干不变）】createBischofiaLeafMaterial 追加
+ *   可选 preset 参（导出签名冻结的扩展 = 只追加可选参；ginkgo T024.1 试点法复制 /
+ *   celtis 同批 T024.3 同款）：preset = 材质基调变体，只改叶基调构造色
+ *   （BISCHOFIA_LEAF_PRESETS 模块私有表——default 行 = 现行数值的**单一定义源**，缺省
+ *   路径经表消费保证「default = 现行」由结构成立；autumn 行 = 秋·红-红橙 #c57551，
+ *   Spec @1.1 增量节逐条引注 + 四锚推导见表注释）；皮/深度/风动/SDF/变奏域/透射色零
+ *   改动（冠变干不变 + 深度材质色无关、将被 Runtime 跨卡共享——另一 Step）。
+ *   **program 不增红线（D44 #3）**：default 与 autumn 共享同一 customProgramCacheKey ⇒
+ *   GLSL 逐位同源——hue/luma 两端、透射色 (0.55,0.89,0.34)、峰值 0.31、flush 铜红
+ *   ≈6.3% 字面量跨卡冻结，秋相差异全部由构造色（uniform 通道）承载。卡 id 域
+ *   {'default','autumn'}（024.2 定稿）；不可表达面记档：红相表达的个体/立地差异（同旬
+ *   全绿/黄绿落叶个体多源 [12]——autumn-a 武汉 11-23 全绿 / autumn-b 绍兴 11-29 绿黄 /
+ *   autumn-d 南京 12-21 黄绿 vs 变色个体 autumn-c 杭州 12-07）+ 内膛滞绿混绿（autumn-c/c2
+ *   双帧「受光梢红 60–70%、内膛滞绿」）+ 变色中段黄绿过渡（fruit-b 上海 11-19 黄 40–50%
+ *   + autumn-d 黄绿——11 月中旬过渡态，主代理裁定不作卡基调）在单基调 + 变奏冻结下
+ *   不可表达（沿 triadica/zelkova 先例）。**果域不随卡（任务书裁定）**：本资产无花果域
+ *   分支（组 0 单域皮——终审 ③-2 裁决花/果不做）——「果序不随卡」天然成立。未知卡 id
+ *   回退 default（值域校验归 Renderer resolvePoolKey 单一 choke point——工厂不做第二套
+ *   校验）。
+ *
  * 边界：工厂每次调用 new 全部材质（D17 所有权随调用移交，禁止模块级共享对象）；零贴图/
  *   零 DataTexture（D13）；GLSL float 字面量全带小数点；aSeed=0（DEV 普通 Mesh 无该属性，
  *   WebGL 缺省属性值 0）路径相位退化为正常数——hash 无除法无 NaN；与 zelkova/camphor/
@@ -227,6 +248,7 @@
  */
 import * as THREE from 'three';
 import { FACILITY_GLSL_NOISE } from '../../materials/facilityGlsl';
+import { DEFAULT_COLOR_PRESET_ID } from '../../../../domain/assets'; // 默认卡 id 单一真相源（值导入——ginkgo T024.1 先例）
 import type { ProceduralLevel } from '../../../../domain/assets';
 import { applyTreeFadeDither } from '../treeFadeDither';
 
@@ -531,6 +553,63 @@ bisBarkMul = mix(bisBarkMul, bisBarkMul * vec3(0.88, 1.16, 0.74), bisTwigHi * 0.
 diffuseColor.rgb *= bisBarkMul;
 `;
 
+// ── 色卡 preset 表（T024.3 批二——叶基调随卡，GLSL 不分叉）────────────────────────
+
+/** 叶基调色卡配方行（T024.3 批二，D44 #2——色值配方归树材质工厂私有域） */
+interface BischofiaLeafPreset {
+  /** 叶基调构造色（material.color = uniform 通道，不进 GLSL——program 不增的载体面） */
+  color: number;
+}
+
+/**
+ * 叶基调色卡配方表（模块私有；卡集与 meta.presets 声明对应——asset_tree_bischofia
+ * 双卡）。default 行 = 现行数值的**单一定义源**（缺省路径经本表消费——「default =
+ * 现行」由结构保证而非抄写保证）；变奏域/透射色/flush **不随卡**：program 不增红线
+ * （D44 #3）要求 autumn 与 default 同 customProgramCacheKey ⇒ GLSL 字面量不分叉 ⇒
+ * hue 两端 (0.95,1.00,1.03)↔(1.05,1.05,0.93)、luma 0.92±0.08、透射色 (0.55,0.89,0.34)、
+ * 峰值 0.31、flush ×(1.78,0.62,0.30) 跨卡冻结，秋相读向 = 红橙基色 × 现行变奏乘子
+ * 复合（推导见 autumn 行注释）。未知卡 id 回退 default（值域校验归 Renderer
+ * resolvePoolKey 单一 choke point——工厂不做第二套校验）。
+ */
+const BISCHOFIA_LEAF_PRESETS: Readonly<Record<string, Readonly<BischofiaLeafPreset>>> = {
+  [DEFAULT_COLOR_PRESET_ID]: {
+    // 现行数值（T011.8 工程设定）：中绿-深绿——Spec §5 正面中绿-深绿（照片 leaf-b 单源
+    // Inferred——文献无种级叶色句，如实降档记档）+ 九树亮度链自定位（栾 > 重阳木 > 乌桕）
+    color: 0x517c35,
+  },
+  autumn: {
+    // 秋·红-红橙 #c57551（工程合成，Spec @1.1 增量节「消费结论」——主相读向裁决：红相
+    // （红-红橙）为园艺/期刊主流峰值读向，四源 Verified：[8]《浙江农林大学学报》2014
+    // 表 4 原句「4｜重阳木 Bischofia polycarpa｜11月中旬-12月上旬｜红」（期刊硬锚：秋色
+    // 红 + 变色窗口）+ [9] 百度百科园艺「秋叶转红，艳丽夺目」（1.0 缺口园艺红相文献锚）
+    // + [10] 浦东发布「深秋时节，叶片从绿色转变为红色，颜色艳丽」+ [11] 江苏网「叶色
+    // 红橙明艳」（红橙端直证）+ iNat [12] autumn-c/c2 杭州 12-07 双帧红相直证（受光梢红
+    // 60–70%、绯红-橙红 tip 集中、内膛滞绿）；1.0 照片「黄主导」（fruit-b 上海 11-19）
+    // 重定位为 11 月中旬变色中段过渡态不作卡基调——主代理裁定）：
+    // - hue ≈18.6°（sRGB）红-红橙域橙端（Spec @1.1 增量节 hue 域 ≈8–20° Inferred：
+    //   autumn-c2 绯红目判 ≈0–10° + [11]「红橙明艳」橙端——取 16–20 红橙端偏置 = 与
+    //   乌桕猩红分离的优先轴）；变奏两端复合 ×(0.95,1.00,1.03) ≈19.4° / ×(1.05,1.05,0.93)
+    //   ≈21.7°——复合最坏端整体**远离**乌桕猩红（≥5.3°，邻域判据 hue<2° 且亮度<8 不触发）；
+    // - R−G 80 中强红向（provisional 域 70–100——低于乌桕 104 = 第二分离轴）；
+    // - G−B 36 弱橙黄向（provisional 域 25–50——红橙非猩红非金黄）；
+    // - 加权亮度 ≈136.8（0.299R+0.587G+0.114B）中亮（provisional 域 120–145；Spec @1.1
+    //   「红相中-高饱和、中亮」autumn-c2 阴天亮红——高于乌桕 121.4 = 第三分离轴；暗于
+    //   zelkova 铜橙 #c4804a ≈142 同段一档——秋色谱系定位：celtis 黄 46.9° → zelkova 橙
+    //   26.6° → 重阳木红橙 18.6° → 乌桕猩红 14.1°）；
+    // - **种间分离专项核对（Step R 谱系警示承接——硬要求）**：vs triadica #c65e3e（hue
+    //   14.1° / R−G 104 / 亮度 121.4）三轴分离成立——hue +4.5°（优先轴）+ R−G −24 +
+    //   亮度 +15.4，复合最坏端复核不入邻域；表注释记「重阳木红-红橙 vs 乌桕猩红：hue/
+    //   R−G/亮度三轴分离」；
+    // - 不可表达面（单基调 + 变奏冻结口径，沿 triadica/zelkova 先例）：红相表达个体/立地
+    //   差异（同旬全绿/黄绿落叶个体多源 [12]）+ 内膛滞绿混绿（autumn-c/c2 双帧）+ 变色
+    //   中段黄绿过渡（fruit-b 黄 40–50% + autumn-d 黄绿——11 月中旬过渡态）不入卡；
+    // - flush 铜红 ≈6.3% 叶域跨卡冻结继续作用 = 秋相深红叶域的既有弱贡献（同程序红线
+    //   代价，沿 triadica 口径）；透射色维持黄绿 (0.55,0.89,0.34)、峰值 0.31：透射字面量
+    //   进 GLSL，分叉即 +1 program；秋相透射偏暖的解锁需后续统一决策，不在本 Step。
+    color: 0xc57551,
+  },
+};
+
 // ── 工厂（每次调用 new 材质 + 独立注入闭包；键不变则共享 program）──────────────────
 
 /**
@@ -545,10 +624,21 @@ diffuseColor.rgb *= bisBarkMul;
  * Inferred〕；九树亮度链：银杏 > 朴 > 悬 > 栾 > **重阳木** > 乌桕 > 夏栎 > 榉 >
  * 樟）/ m 0 / r 0.70（「小叶片纸质」FRPS Verified [1][3]——与栾纸质同档哑光）/
  * DoubleSide（卡面双面可见，背面法线由 three 双面光照自动翻转）。
+ * preset（T024.3 可选参，缺省 = 默认卡）：查 BISCHOFIA_LEAF_PRESETS 覆写基调构造色
+ * （autumn = 秋·红-红橙 #c57551，Spec @1.1 增量节四源 Verified 红相主相读向——数值推导
+ * 见该表注释）；缺省/'default'/未知 id = default 行 = 现行行为逐位一致；program 不增
+ * 红线 = preset 只走构造色，GLSL/defines/键与 default 全同（皮/深度材质无 preset 参
+ * 不随卡——见模块头【色卡 preset】段）。
  */
-export function createBischofiaLeafMaterial(level: ProceduralLevel = 'high'): THREE.MeshStandardMaterial {
+export function createBischofiaLeafMaterial(
+  level: ProceduralLevel = 'high',
+  preset?: string,
+): THREE.MeshStandardMaterial {
+  // 色卡解析（T024.3 批二）：缺省 / 'default' / 未知 id → default 行（现行数值单一定义源）
+  const recipe = (preset !== undefined ? BISCHOFIA_LEAF_PRESETS[preset] : undefined)
+    ?? BISCHOFIA_LEAF_PRESETS[DEFAULT_COLOR_PRESET_ID]!;
   const material = new THREE.MeshStandardMaterial({
-    color: 0x517c35, // 中绿-深绿（工程设定：Spec §5 Inferred + leaf-b [7] 交叉——九树链栾乌之间；中距色块与栾中绿/乌桕深绿相邻档区分）
+    color: recipe.color, // 基调随卡（default = 中绿-深绿现行值 / autumn = 秋·红-红橙——BISCHOFIA_LEAF_PRESETS 表注释引 Spec @1.1 增量节）
     metalness: 0,
     roughness: 0.70, // 纸质复叶哑光（「小叶片纸质」Verified [1][3]——悬铃木厚实 0.66 < 0.70 = 栾 0.70 < 朴树近革质 0.72）
     side: THREE.DoubleSide,

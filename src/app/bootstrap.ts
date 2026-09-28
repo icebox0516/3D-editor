@@ -570,6 +570,9 @@ function defaultSmokeScatterParams(): ScatterParams {
  * shadowCasterInstances + transition.dualSubmitBuckets）；不并入 stats() 的裁定记档：
  * stats 是「上一完整帧」语义（renderer.info），distribution 是即时快照（两链逐对象
  * 现算）——语义不同不混型；无渲染依赖时返回空计数（沿 stats() 零值先例）。
+ * T024.3 扩展（色卡取证依赖——13 树 × 全卡 Contact Sheet）：place 增 preset 可选参数
+ * （批量对象统一携带色卡 id，经 createModelObjectAt 省略规则落盘——默认卡不落盘，
+ * 缺省路径逐位不变；沿 T011.13 assetId 泛化同款 DEV-only 可选尾参先例）。
  */
 
 /** place 参数（批量确定性放置） */
@@ -595,6 +598,12 @@ export interface Tree3aPerfPlaceOptions {
   spacing?: number;
   /** 变体抖动（缺省 true：以对象 seed 经 domain applyAssetVariants 确定性采样；false 纯网格恒等姿态） */
   jitter?: boolean;
+  /** 色卡 id（T024.3 扩展：批量对象统一携带的 preset——写入 asset.preset 走池分桶换材质
+   *  基调，024.1 全链产品路径；消费先例 = 024.3 Contact Sheet「13 树 × 全卡」统一基线帧）。
+   *  缺省不传 = 默认卡不落盘（缺省调用行为逐位不变）；'default' 经 createModelObjectAt
+   *  省略规则同样不落盘；未知 id 不在此校验——读侧 Renderer 声明面归一 default（系统级
+   *  宽容语义；DEV 驱动不做第二套校验，校验双写会漂移） */
+  preset?: string;
 }
 
 /** view 参数（球坐标固定机位；公式沿 tree3aStage.placeCamera 口径，实现复写在组合根侧不改舞台） */
@@ -804,7 +813,7 @@ export function createTree3aPerfHandle(deps: Tree3aPerfDeps): Tree3aPerfHandle {
             z: asset.defaultScale.z * scaleFactor,
           },
         };
-        objects.push(createModelObjectAt({ asset, layerId, transform, seed }));
+        objects.push(createModelObjectAt({ asset, layerId, transform, seed, preset: opts.preset }));
       }
       const ok = deps.history.execute(new BatchCommand(objects.map((o) => new CreateObjectCommand(o))));
       if (!ok) return false;

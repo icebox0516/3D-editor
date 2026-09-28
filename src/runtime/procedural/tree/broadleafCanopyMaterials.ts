@@ -48,7 +48,10 @@
  *     024.1 填 ginkgo autumn 一行（与 GINKGO_LEAF_PRESETS.autumn 同源同值——远近
  *     基调一致）；**024.2 批一/批二已回填 platanus/koelreuteria/sophora/triadica/
  *     fraxinus/salix 六行 autumn**（各与该树 *_LEAF_PRESETS.autumn 同源同值——
- *     fraxinus/salix 经 Step R 补证 Spec 1.1 增量后建卡）。
+ *     fraxinus/salix 经 Step R 补证 Spec 1.1 增量后建卡）；**024.3 批二回补
+ *     tree3a/celtis/zelkova 三行 autumn**（Verified 秋相证据直接建卡——Spec §6 季相
+ *     记录）+ **bischofia 一行**（Step R 补证 Spec 1.1 秋色增量后建卡——峰相红-红橙，
+ *     文献四源 Verified + iNat 照片直证）。
  *   - uTime：缓存共享层成套契约的接口（几何/深度跨卡共享后，注入同一 uTime、丢弃自建
  *     深度材质改用共享份）。缺省 = 工厂自建（现行行为）；提供时三材质（干柱/冠卡/深度）
  *     统一绑定该对象——TimeUniformService 广播语义不变（写任一主材质即同值到深度程序），
@@ -245,9 +248,11 @@ interface BroadleafCanopyCrownPreset {
 
 /**
  * 种子级冠色覆写表（024.1 ginkgo 试点一行 + 024.2 批一/批二已回填 platanus/
- * koelreuteria/sophora/triadica/fraxinus/salix 六行 autumn——各与该树
- * *Materials.ts 叶卡表 autumn 基调**同源同值**；fraxinus/salix 行经 024.2 Step R
- * 补证 Spec 1.1 增量〔秋色单面〕后建卡，024.3 按需逐树回补）。
+ * koelreuteria/sophora/triadica/fraxinus/salix 六行 autumn + 024.3 批二回补
+ * tree3a/celtis/zelkova 三行 autumn + bischofia 一行〔Step R 补证 Spec 1.1 秋色
+ * 增量后建卡——峰相红-红橙〕——各与该树 *Materials.ts 叶卡表 autumn 基调
+ * **同源同值**；fraxinus/salix/bischofia 行经 024.2/024.3 Step R 补证 Spec 1.1
+ * 增量〔秋色单面〕后建卡）。
  * 未命中 = 现行物种表行为逐位一致；干柱色/风动/变奏参数不随卡。transColor/transPeak
  * 为透射覆写预留位——**至今无填充**（与各树叶材质透射字面量冻结口径一致：近景叶透射
  * 不随卡则远景冠透射亦不随卡，否则近远景背光观感背离；填充时走 GLSL 字面量分叉
@@ -323,6 +328,50 @@ export const BROADLEAF_CANOPY_CROWN_PRESETS: Readonly<
       // SALIX_LEAF_PRESETS.autumn 基调**同源同值**（#789632：hue ≈78.0° 黄绿、R<G
       // 绿向主导、G−B 100、亮度 ≈129.6 亮于夏相——推导见该表注释）。
       crownColor: 0x789632,
+    },
+  },
+  asset_tree_3a: {
+    autumn: {
+      // 秋·黄褐（russet）冠卡（Spec §5「秋季叶色：转黄褐色后脱落」Verified [3]（Forestry
+      // England）+ §6「秋黄褐（季节联动）」Verified [3][6] + form-b 老树秋色整树照 [6]
+      // 沉稳暗端读向）——与 tree3aMaterials TREE3A_LEAF_PRESETS.autumn 基调**同源同值**
+      //（#99792b：hue ≈42.5° 黄褐、R−G 32 入褐向、G−B 78、亮度 ≈121.7 暗于 platanus
+      // 秋黄褐 #a88a44 一档——推导见该表注释）。
+      crownColor: 0x99792b,
+    },
+  },
+  asset_tree_celtis: {
+    autumn: {
+      // 秋·黄冠卡（Spec §6「秋黄至橙色（OSU "yellow leaf fall color" + 温州秋色照片
+      // 黄橙棕）后脱落」Verified [5][6]——黄主相读向，橙端不入基色）——与 celtisMaterials
+      // CELTIS_LEAF_PRESETS.autumn 基调**同源同值**（#b89c38：hue ≈46.9° 黄主相、R−G 28
+      // 不入橙红、G−B 100、亮度 ≈153 亮于 platanus 黄褐、深于 sophora 秋金 #c4a83a 一档
+      // ——推导见该表注释）。
+      crownColor: 0xb89c38,
+    },
+  },
+  asset_tree_zelkova: {
+    autumn: {
+      // 秋·橙-铜橙冠卡（Spec §6「秋色联动：OSU 秋色变幅宽——黄、黄/橙铜、橙、红、红紫 +
+      // 11 月双样木主体橙-橙红 60–70% + 色系以橙-铜橙-红为主，非朴树的黄-橙」Verified
+      // [7][8]——主相橙-铜橙读向）——与 zelkovaMaterials ZELKOVA_LEAF_PRESETS.autumn 基调
+      // **同源同值**（#c4804a：hue ≈26.6° 橙-铜橙、R−G 68 强橙向、G−B 54、亮度 ≈142——
+      // 推导见该表注释；变幅宽/残绿不可表达记档同源）。
+      crownColor: 0xc4804a,
+    },
+  },
+  asset_tree_bischofia: {
+    autumn: {
+      // 秋·红-红橙冠卡（Spec @1.1 增量节主相读向裁决：红相（红-红橙）为园艺/期刊主流
+      // 峰值读向——[8]《浙江农林大学学报》2014 表 4「红」+ 时序窗口「11月中旬-12月上旬」
+      // + [9] 百度百科园艺「秋叶转红，艳丽夺目」+ [10] 浦东发布「转变为红色」+ [11] 江苏网
+      // 「红橙明艳」四源 Verified + iNat [12] autumn-c/c2 杭州 12-07 双帧红相直证；
+      // 1.0 照片「黄主导」重定位为 11 月中旬变色中段过渡态不作卡基调）——与
+      // bischofiaMaterials BISCHOFIA_LEAF_PRESETS.autumn 基调**同源同值**（#c57551：
+      // hue ≈18.6° 红橙端、R−G 80、G−B 36、亮度 ≈136.8 中亮；与乌桕猩红 #c65e3e 三轴
+      // 分离〔hue/R−G/亮度〕——推导见该表注释；个体差异/内膛滞绿/黄绿过渡不可表达
+      // 记档同源）。
+      crownColor: 0xc57551,
     },
   },
 };

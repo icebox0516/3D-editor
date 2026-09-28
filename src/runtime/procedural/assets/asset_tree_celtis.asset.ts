@@ -20,11 +20,16 @@
  * 材质分层表（materialIndex → 部件 → 材质；配方在 ./tree/celtis/celtisMaterials——
  *      park-shader-agent 并行交付，导出签名冻结（与 tree3aMaterials 同构）：
  *      createCeltisBarkMaterial / createCeltisLeafMaterial /
- *      createCeltisLeafDepthMaterial，均 (level?: ProceduralLevel) => 材质）：
+ *      createCeltisLeafDepthMaterial，均 (level?: ProceduralLevel) => 材质；
+ *      T024.3 起叶工厂追加可选 preset 尾参（createCeltisLeafMaterial(level?, preset?)，
+ *      向后兼容））：
  *      0 树皮（主干+五级枝+底盖）—— createCeltisBarkMaterial(level)：朴树灰白-灰褐
  *        平滑-浅裂小斑块低浮雕皮（Spec bark_archetype Verified [1][2][5][6]——与夏栎
  *        脊沟语言分化；几何侧微起伏幅度 0.016 / 谐波 {4,5,6} / drift 16 见 profile）
- *      1 叶簇卡（L4/L5 枝梢簇内烘焙）—— createCeltisLeafMaterial(level)：夏绿中-深绿
+ *      1 叶簇卡（L4/L5 枝梢簇内烘焙）—— createCeltisLeafMaterial(level, preset)
+ *        （T024.3：preset = 色卡 id，缺省/'default' = 现行夏绿基调；'autumn' = 秋·黄——
+ *        色值配方与 Spec §5/§6 证据链在 celtisMaterials 秋卡私有域，冠变干不变）：
+ *        夏绿中-深绿
  *        双面区分 + SDF 卵形叶（三出脉基部 + 上半部齿——Spec 叶形节）+ aLeafRand 逐叶
  *        变奏 + 风动（aSeed 整树缓摆 + aBend 快颤）
  *      注：层间 mergeGeometries useGroups=true → 恰 2 组（皮 0 / 叶 1，D15 免组膨胀）；
@@ -34,7 +39,9 @@
  *      值）、aBend（风动摆幅权重，卡内根→尖非降；树皮组恒 0）。
  * 边界：每次调用 new 全部 geometry/material/深度材质（所有权随调用移交调用方，缓存会
  *      dispose，禁止模块级共享对象，D17）；不建模记档（Spec 有事实、本资产不表达）：
- *      核果 5–7mm（面数尺度不可辨）、秋色季相（交付夏绿冠层）、叶柄、弱水平层纹
+ *      核果 5–7mm（面数尺度不可辨）、秋色季相（**T024.3 起经叶材质色卡 'autumn' 表达**
+ *      ——黄主相单基调近似；季相不进几何/树皮维持「冠变干不变」，原「不建模记档」的
+ *      几何侧口径不变）、叶柄、弱水平层纹
  *      （低置信）——详见 celtisShapeProfile 模块头。
  * LOD（T011.1 三档交付，夏栎 T009.6 方法逐位复制）：build 透传 params.level（缺省
  *      'high'——旧无参路径逐位不变）到几何与皮/叶材质工厂；三档同 rng 流同骨架决策
@@ -80,7 +87,14 @@ export const meta: ProceduralAssetMeta = {
   // CanopySourceCache 经 broadleafCanopyProxy 工厂提供（021.6，恒 487 面）
   representations: ['high', 'mid', 'canopy'],
   taxonomy: { category: 'plant', family: 'broadleaf' }, // 阔叶家族契约第二实例（tree/broadleaf/，T010.1）
-  presets: [{ id: 'default', label: '默认', swatch: '#5a8340' }], // 色卡占位（T024.1）：默认卡 = 现行材质基调；季相卡 024.2/024.3 按 Spec 证据回补（D44 #7 无证据不建卡）
+  // 色卡（T024.3 批二真卡，D44）：default = 现行夏绿基调（swatch = 叶材质构造色
+  // #5a8340）；autumn = 秋·黄（OSU "yellow leaf fall color" [5] + 温州秋色照片黄橙棕
+  // [6] + §6 季节联动 Verified [5][6]——黄主相读向不入橙红）；色值配方在 celtisMaterials
+  // 秋卡私有域（冠变干不变——皮/几何不动）
+  presets: [
+    { id: 'default', label: '默认', swatch: '#5a8340' },
+    { id: 'autumn', label: '秋·黄', swatch: '#b89c38' }, // swatch = 秋卡基色（celtisMaterials CELTIS_LEAF_PRESETS autumn 行同源——批二定稿 #b89c38）
+  ],
   proceduralProfile: {
     // 跨 8 槽细模包围盒实测带（T011.1 探针：h 7.562–9.820 / w 6.065–9.896）。
     // 物种锚 slot-0 ≈8.57m 高 / 7.39m 冠幅（≈8m 中龄公园个体，Spec §2 弱 Inferred）；
@@ -112,7 +126,10 @@ export function build(params?: ProceduralBuildParams): InstanceSource {
   const rng = mulberry32(seed);
   const { geometry } = buildCeltisGeometry(rng, profileForSeed(seed), level);
   const bark = createCeltisBarkMaterial(level); // 组 0（契约序 [皮, 叶]——mergeGeometries 层序）
-  const leaf = createCeltisLeafMaterial(level);
+  // params.preset = 色卡 id（T024.3 批二透传，D44 #1——冠变干不变）：仅叶材质消费；
+  // 皮材质与深度材质不传（干不变；深度材质色无关、被 Runtime 跨卡共享——024.1 机制）
+  const preset = params?.preset;
+  const leaf = createCeltisLeafMaterial(level, preset);
   // 影 pass 叶影裁切走 InstanceSource 契约通道——工厂每次 new（build 契约「每次调用 new
   // 全部资源」天然满足），档位随 level 匹配；归源所有（缓存 dispose）
   return {

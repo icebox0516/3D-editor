@@ -82,6 +82,13 @@
  *   回归；
  * - 结构完整性：include 全展开后花括号配平差值与原版一致（注入不破坏 GLSL 结构）；
  * - TimeUniformService.freeze：冻结期间广播仍写当前值（uTime 常量——树静止）+ 材质兼容。
+ * - 色卡 preset（T024.3 批二——冠变干不变）：autumn 卡 = 秋·红-红橙 #c57551（Spec @1.1
+ *   增量节主相读向裁决四源 Verified [8][9][10][11] + iNat [12] 照片直证——峰相红-红橙
+ *   基调，四锚 hue 13–20°/R−G 70–100/G−B 25–50/亮度 120–145 + **与乌桕猩红 #c65e3e
+ *   三轴分离核对**〔Step R 谱系警示承接：hue ≥4° 优先轴 + R−G ≥15 + 亮度 ≥12；复合
+ *   最坏端不入邻域〕）；default 零变化结构锁（缺省/'default'/未知 id 回退 = 现行逐位
+ *   ——既有测试零适配即机械证明）；program 不增红线（default/autumn 同键同 GLSL——
+ *   色值只走构造色通道，透射/变奏域/flush 字面量跨卡冻结）；三档 × autumn 基调-only。
  * 边界：材质登记 afterEach 统一 dispose 兜底，不跨测试泄漏。
  */
 import { afterEach, describe, expect, it } from 'vitest';
@@ -994,5 +1001,110 @@ describe('TimeUniformService 兼容（冻结风相位——固定机位取证纪
     const scene = new THREE.Scene().add(new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material));
     clock.apply(scene);
     expect(materialUniformsOf(material).uTime!.value).toBeCloseTo(0.5, 10); // 静止在冻结帧
+  });
+});
+
+describe('色卡 preset（T024.3 批二——冠变干不变：叶基调随卡，皮/深度/风动/GLSL 零变化；program 不增红线）', () => {
+  // JS 数值锚镜像（celtis 色卡测试块同款）：sRGB hue（R 最大红域分支）+ 加权亮度
+  const mul = (hex: number, m: readonly [number, number, number]): [number, number, number] => [
+    ((hex >> 16) & 0xff) * m[0],
+    ((hex >> 8) & 0xff) * m[1],
+    (hex & 0xff) * m[2],
+  ];
+  const hueOf = (c: readonly [number, number, number]): number => {
+    const max = Math.max(c[0], c[1], c[2]);
+    const min = Math.min(c[0], c[1], c[2]);
+    return max === min ? 0 : (60 * (c[1] - c[2])) / (max - min);
+  };
+  const luma = (c: readonly number[]): number => 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2];
+
+  it('autumn 卡存在：基色 = 秋·红-红橙 #c57551 ≠ default #517c35；峰相红-红橙四锚（hue 13–20° 红橙端偏置、R−G 70–100、G−B 25–50、加权亮度 120–145——Spec @1.1 增量节：[8] 期刊表「红」+ 时序 11月中旬-12月上旬 / [9] 园艺「秋叶转红」/ [10]「转变为红色」/ [11]「红橙明艳」/ [12] autumn-c/c2 红相直证）', () => {
+    const autumn = track(createBischofiaLeafMaterial('high', 'autumn'));
+    expect(autumn.color.getHex()).not.toBe(0x517c35); // 卡存在（基色 ≠ default）
+    expect(autumn.color.getHex()).toBe(0xc57551); // 秋·红-红橙（工程合成：Spec @1.1 增量节主相读向裁决——红-红橙基调）
+    const base = mul(0xc57551, [1, 1, 1]);
+    const warm = mul(0xc57551, [1.05, 1.05, 0.93]); // 暖端复合 = 端点冻结下的最坏橙向
+    const cold = mul(0xc57551, [0.95, 1.0, 1.03]); // 冷端复合 = 最坏暗向
+    expect(hueOf(base)).toBeGreaterThanOrEqual(13); // 红-红橙域下沿（Spec @1.1 hue 域 ≈8–20° 内取 13–20 provisional 域）
+    expect(hueOf(base)).toBeLessThanOrEqual(20); // 域上沿（zelkova 橙 22–30° 之下——秋色谱系不越位）
+    expect(hueOf(warm)).toBeGreaterThanOrEqual(18); // 复合暖端偏橙向仍 ≥18（远离猩红域）
+    expect(hueOf(cold)).toBeGreaterThanOrEqual(18); // 复合冷端仍 ≥18（变奏全域不入猩红域）
+    expect(base[0] - base[1]).toBeGreaterThanOrEqual(70); // R−G 中强红向（provisional 域）
+    expect(base[0] - base[1]).toBeLessThanOrEqual(100);
+    expect(base[1] - base[2]).toBeGreaterThanOrEqual(25); // G−B 弱橙黄向（红橙非猩红非金黄）
+    expect(base[1] - base[2]).toBeLessThanOrEqual(50);
+    expect(luma(base)).toBeGreaterThanOrEqual(120); // 中亮锚域（Spec @1.1「红相中-高饱和、中亮」——autumn-c2 阴天亮红）
+    expect(luma(base)).toBeLessThanOrEqual(145);
+  });
+
+  it('种间分离专项（Step R 谱系警示承接——硬要求）：vs 乌桕猩红 #c65e3e 三轴分离（hue ≥4° 优先轴 + R−G ≥15 + 亮度 ≥12）；复合最坏端不入 triadica 色点邻域（hue 差 <2° 且亮度差 <8 视为邻域）', () => {
+    const base = mul(0xc57551, [1, 1, 1]);
+    const warm = mul(0xc57551, [1.05, 1.05, 0.93]);
+    const cold = mul(0xc57551, [0.95, 1.0, 1.03]);
+    const tri = mul(0xc65e3e, [1, 1, 1]); // triadica autumn #c65e3e = hue 14.1° / R−G 104 / 亮度 121.4（Step 派遣简报核对值）
+    const triHue = hueOf(tri);
+    expect(triHue).toBeCloseTo(14.1, 0); // 派遣简报核对值复算锁定（猩红-红橙域）
+    expect(tri[0] - tri[1]).toBe(104); // R−G 复算锁定
+    expect(luma(tri)).toBeCloseTo(121.4, 0); // 亮度复算锁定
+    // 三轴分离（重阳木红-红橙 vs 乌桕猩红：hue/R−G/亮度三轴分离——任一轴达标即合规，本卡三轴全过）
+    expect(hueOf(base) - triHue).toBeGreaterThanOrEqual(4); // hue 轴分离（优先轴——18.6° vs 14.1°）
+    expect((base[0] - base[1]) - (tri[0] - tri[1])).toBeLessThanOrEqual(-15); // R−G 轴分离（80 vs 104）
+    expect(luma(base) - luma(tri)).toBeGreaterThanOrEqual(12); // 亮度轴分离（136.8 vs 121.4）
+    // 复合最坏端（GLSL 冻结乘子两端点）不入邻域——两端 hue/亮度双轴均出邻域（强于「至少一轴」判据）
+    for (const [label, end] of [['warm', warm], ['cold', cold]] as const) {
+      expect(Math.abs(hueOf(end) - triHue), `${label} 端 hue 差出邻域`).toBeGreaterThanOrEqual(2);
+      expect(Math.abs(luma(end) - luma(tri)), `${label} 端亮度差出邻域`).toBeGreaterThanOrEqual(8);
+    }
+  });
+
+  it('默认卡零变化（结构锁）：缺省 / 显式 default / 未知 id 回退——色值、键、GLSL 全文与现行一致', () => {
+    const variants = [
+      track(createBischofiaLeafMaterial()),
+      track(createBischofiaLeafMaterial('high')),
+      track(createBischofiaLeafMaterial('high', 'default')),
+      track(createBischofiaLeafMaterial('high', 'no-such-preset')), // 未知 id 回退 default（值域校验归 Renderer resolvePoolKey 单一 choke point——工厂不做双写校验）
+    ];
+    for (const material of variants) {
+      expect(material.color.getHex()).toBe(0x517c35); // 现行数值（BISCHOFIA_LEAF_PRESETS.default 单一定义源）
+      expect(material.customProgramCacheKey()).toBe('bischofia:leaf+dither'); // 键与现行一致
+    }
+    const base = assemble(variants[0]!, THREE.ShaderLib.physical);
+    for (const material of variants.slice(1)) {
+      const shader = assemble(material, THREE.ShaderLib.physical);
+      expect(shader.vertexShader).toBe(base.vertexShader); // GLSL 全文与现行一致
+      expect(shader.fragmentShader).toBe(base.fragmentShader);
+    }
+  });
+
+  it('program 不增红线：default 与 autumn 键相等且 GLSL 全文逐位相等（同键必同源——色值只走构造色 uniform 通道；透射/变奏域/flush 字面量跨卡冻结）', () => {
+    for (const level of ['high', 'mid', 'low'] as const) {
+      const base = track(createBischofiaLeafMaterial(level));
+      const autumn = track(createBischofiaLeafMaterial(level, 'autumn'));
+      expect(autumn.customProgramCacheKey()).toBe(base.customProgramCacheKey()); // 同键（programs 不增——D44 #3）
+      const a = assemble(base, THREE.ShaderLib.physical);
+      const b = assemble(autumn, THREE.ShaderLib.physical);
+      expect(b.vertexShader).toBe(a.vertexShader); // 同键 ⇒ GLSL 必须同源（Three.js 同键复用程序——异源 = 错挂程序暴雷路径）
+      expect(b.fragmentShader).toBe(a.fragmentShader);
+      expect(b.fragmentShader).toContain('vec3(0.95, 1.00, 1.03), vec3(1.05, 1.05, 0.93)'); // hue 两端跨卡冻结
+      expect(b.fragmentShader).toContain('vec3(1.78, 0.62, 0.30)'); // flush 铜红跨卡冻结（秋相深红叶域既有弱贡献——沿 triadica 口径）
+      if (level !== 'low') {
+        expect(b.fragmentShader).toContain('vec3(0.55, 0.89, 0.34)'); // 透射色跨卡冻结（程序红线代价记档；Low 去透光注入故仅 high/mid 断言）
+      }
+    }
+  });
+
+  it('三档 level × autumn 组合不崩 + 基调-only（alphaTest/侧向/糙度/金属度与 default 一致——色卡不碰质地与叶形）', () => {
+    for (const level of ['high', 'mid', 'low'] as const) {
+      const autumn = track(createBischofiaLeafMaterial(level, 'autumn'));
+      const base = track(createBischofiaLeafMaterial(level));
+      const shader = assemble(autumn, THREE.ShaderLib.physical); // 不崩 = 组装通过
+      expect(shader.fragmentShader).toContain('bisLeafAlpha('); // SDF 三出叶形照常（形态不随卡——冠变干不变）
+      expect(autumn.color.getHex()).not.toBe(base.color.getHex()); // 唯一差异 = 基调色
+      expect(autumn.alphaTest).toBe(base.alphaTest);
+      expect(autumn.alphaToCoverage).toBe(base.alphaToCoverage);
+      expect(autumn.side).toBe(base.side);
+      expect(autumn.roughness).toBe(base.roughness); // 无秋相质地证据——糙度不投机造数（记档）
+      expect(autumn.metalness).toBe(base.metalness);
+    }
   });
 });

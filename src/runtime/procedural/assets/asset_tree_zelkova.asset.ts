@@ -27,12 +27,17 @@
  * 材质分层表（materialIndex → 部件 → 材质；配方在 ./tree/zelkova/zelkovaMaterials——
  *      park-shader-agent 并行交付，导出签名冻结（与 camphorMaterials 同构）：
  *      createZelkovaBarkMaterial / createZelkovaLeafMaterial /
- *      createZelkovaLeafDepthMaterial，均 (level?: ProceduralLevel) => 材质）：
+ *      createZelkovaLeafDepthMaterial，均 (level?: ProceduralLevel) => 材质；
+ *      T024.3 起叶工厂追加可选 preset 尾参（createZelkovaLeafMaterial(level?, preset?)，
+ *      向后兼容））：
  *      0 树皮（主干+五级枝+底盖）—— createZelkovaBarkMaterial(level)：灰白-灰绿光滑
  *        基底 + 奶油白-浅褐-锈橙暖色薄片剥落斑驳（Spec bark_archetype 四源 Verified
  *        [1][2][3][4][7]——四资产唯一带橙锈新斑的树皮语言，斑色归材质层；几何侧微起伏
  *        幅度 0.015 / 谐波 {3,5,6} / drift 11 见 profile）
- *      1 叶簇卡（L4/L5 枝梢簇内烘焙）—— createZelkovaLeafMaterial(level)：中绿-深绿
+ *      1 叶簇卡（L4/L5 枝梢簇内烘焙）—— createZelkovaLeafMaterial(level, preset)
+ *        （T024.3：preset = 色卡 id，缺省/'default' = 现行中绿基调；'autumn' = 秋·橙-铜橙
+ *        ——色值配方与 Spec §5/§6 证据链在 zelkovaMaterials 秋卡私有域，冠变干不变）：
+ *        中绿-深绿
  *        细质密叶基调 + SDF 卵形渐尖叶（叶基稍偏斜 + 全缘尖头单锯齿 + 羽状脉直伸齿尖
  *        ——榆科三件套，Spec §4 叶形节 Verified）+ 两面区分（上面半光泽微糙/背面浅绿
  *        无粉感）+ aLeafRand 逐叶变奏 + 风动（aSeed 整树缓摆 + aBend 快颤）
@@ -43,8 +48,10 @@
  *      值）、aBend（风动摆幅权重，卡内根→尖非降；树皮组恒 0）。
  * 边界：每次调用 new 全部 geometry/material/深度材质（所有权随调用移交调用方，缓存会
  *      dispose，禁止模块级共享对象，D17）；不建模记档（Spec 有事实、本资产不表达）：
- *      核果 2.5–3.5mm（面数尺度不可辨）、秋色叶橙-橙红（季相归材质/风格层，任务书
- *      「秋色不建模记档」）、花小绿色（不显眼）、叶柄（叶卡抽象）、叶基偏斜/单尖锯齿/
+ *      核果 2.5–3.5mm（面数尺度不可辨）、秋色叶橙-铜橙（**T024.3 起经叶材质色卡
+ *      'autumn' 表达**——单基调橙-铜橙近似〔变幅宽/残绿取舍记档见 zelkovaMaterials〕；
+ *      季相不进几何/树皮维持「冠变干不变」，原「不建模记档」的几何侧口径不变）、
+ *      花小绿色（不显眼）、叶柄（叶卡抽象）、叶基偏斜/单尖锯齿/
  *      羽状脉直伸齿尖（归材质 SDF）、冬芽圆锥状卵形（冬季裸枝语义不在常绿态观感资产）、
  *      苔藓地衣少量（归树皮材质）、两榉辨析轴（叶背毛被/冬芽并生/当年生枝色——近景
  *      材质变体维度记档）——详见 zelkovaShapeProfile 模块头。
@@ -94,7 +101,15 @@ export const meta: ProceduralAssetMeta = {
   // CanopySourceCache 经 broadleafCanopyProxy 工厂提供（021.6，恒 487 面）
   representations: ['high', 'mid', 'canopy'],
   taxonomy: { category: 'plant', family: 'broadleaf' }, // 阔叶家族契约第四实例（tree/broadleaf/，T010.1；落叶阔叶第二实例——落叶性无家族字段，由材质/季相层表达，记档同香樟常绿先例）
-  presets: [{ id: 'default', label: '默认', swatch: '#3e6c2c' }], // 色卡占位（T024.1）：默认卡 = 现行材质基调；季相卡 024.2/024.3 按 Spec 证据回补（D44 #7 无证据不建卡）
+  // 色卡（T024.3 批二真卡，D44）：default = 现行中绿基调（swatch = 叶材质构造色
+  // #3e6c2c）；autumn = 秋·橙-铜橙（OSU 秋色变幅「黄、黄/橙铜、橙、红、红紫」[7] +
+  // 11 月双样木主体橙-橙红 60–70% 混绿 20–35% [8] + §6「色系以橙-铜橙-红为主，非朴树
+  // 的黄-橙」[7][8] Verified）；色值配方在 zelkovaMaterials 秋卡私有域（冠变干不变
+  // ——皮/几何不动）
+  presets: [
+    { id: 'default', label: '默认', swatch: '#3e6c2c' },
+    { id: 'autumn', label: '秋·橙铜', swatch: '#c4804a' }, // swatch = 秋卡基色（zelkovaMaterials ZELKOVA_LEAF_PRESETS autumn 行同源——批二定稿 #c4804a）
+  ],
   proceduralProfile: {
     // 跨 8 槽细模包围盒实测带（T011.3 探针：h 7.47–9.68 / w 4.96–8.52）。
     // 物种锚 slot-0 ≈7.96m 高 / 6.59m 冠幅（≈8m 中龄公园个体，Spec §2 弱 Inferred——
@@ -127,7 +142,10 @@ export function build(params?: ProceduralBuildParams): InstanceSource {
   const rng = mulberry32(seed);
   const { geometry } = buildZelkovaGeometry(rng, profileForSeed(seed), level);
   const bark = createZelkovaBarkMaterial(level); // 组 0（契约序 [皮, 叶]——mergeGeometries 层序）
-  const leaf = createZelkovaLeafMaterial(level);
+  // params.preset = 色卡 id（T024.3 批二透传，D44 #1——冠变干不变）：仅叶材质消费；
+  // 皮材质与深度材质不传（干不变；深度材质色无关、被 Runtime 跨卡共享——024.1 机制）
+  const preset = params?.preset;
+  const leaf = createZelkovaLeafMaterial(level, preset);
   // 影 pass 叶影裁切走 InstanceSource 契约通道——工厂每次 new（build 契约「每次调用 new
   // 全部资源」天然满足），档位随 level 匹配；归源所有（缓存 dispose）
   return {

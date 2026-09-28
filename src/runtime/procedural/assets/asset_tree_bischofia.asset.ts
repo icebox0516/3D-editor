@@ -47,14 +47,18 @@
  * 材质分层表（materialIndex → 部件 → 材质；配方在 ./tree/bischofia/
  *      bischofiaMaterials——park-shader-agent 并行交付，导出签名冻结（与
  *      triadicaMaterials 同构）：createBischofiaLeafMaterial / createBischofiaBarkMaterial
- *      / createBischofiaLeafDepthMaterial，均 (level?: ProceduralLevel) => 材质）：
+ *      / createBischofiaLeafDepthMaterial，均 (level?: ProceduralLevel) => 材质；
+ *      T024.3 起叶工厂追加可选 preset 尾参（createBischofiaLeafMaterial(level?, preset?)，
+ *      向后兼容））：
  *      0 树皮（主干+五级枝+底盖——**无花果资产：组 0 = 纯皮拓扑**）——
  *        createBischofiaBarkMaterial(level)：褐-深灰褐纵裂深沟宽脊 + 裂纹扭转（FRPS
  *        「树皮褐色，厚6毫米，纵裂」Verified [1] + bark-a/b 照片 [7]——九资产第 9 树皮
  *        语言；几何侧仅主干起伏浮雕 + 抬档地板下分枝管光滑，**褐色基调/宽脊扭转纹/
  *        细枝红褐皮孔色序/当年生枝绿色近景身份点主体在材质层**）
- *      1 三出复叶卡（L4/L5 末级枝散簇烘焙）—— createBischofiaLeafMaterial(level)：
- *        中绿-深绿复叶基调（正叶中绿-深绿 Inferred [7]）+ **三出复叶 SDF**（放射对称
+ *      1 三出复叶卡（L4/L5 末级枝散簇烘焙）—— createBischofiaLeafMaterial(level, preset)
+ *        （T024.3：preset = 色卡 id，缺省/'default' = 现行中绿基调；'autumn' = 秋·红-红橙
+ *        ——色值配方与 Spec @1.1 增量节证据链在 bischofiaMaterials 秋卡私有域，冠变干
+ *        不变）：中绿-深绿复叶基调（正叶中绿-深绿 Inferred [7]）+ **三出复叶 SDF**（放射对称
  *        型——三叶场并集 + 总柄裸段 v∈[0,0.35] 裸柄线域：顶生大（柄 1.5–4(–6)cm）+
  *        两侧小（近无柄 3–14mm）、小叶卵形-椭圆状卵形、先端突尖-短渐尖、基圆-浅心、
  *        缘钝细齿 4–5/cm——vs 栾树两级窗列的复叶第二型材质侧表达）+ aLeafRand 逐叶
@@ -71,7 +75,11 @@
  *      三出复叶内部结构（顶大侧小/小叶柄差/小叶三相/缘钝细齿/纸质——归材质 SDF）、
  *      总柄裸段（归材质 SDF 裸柄线域）、**花**（4–5 月春相总状绿穗——相外，终审 ③-2
  *      不做）、**夏相幼果/秋冬红果串**（幼果 2–3mm 亚厘米显著性极低 + 熟期 10–11 月
- *      相外——终审 ③-2 不做，身份标志记档）、秋色黄主导带橙红（归材质/风格层）、新叶
+ *      相外——终审 ③-2 不做，身份标志记档）、秋色红-红橙（**T024.3 起经叶材质色卡
+ *      'autumn' 表达**——峰相红-红橙单基调近似〔个体/立地差异 + 内膛滞绿 + 黄绿过渡
+ *      取舍记档见 bischofiaMaterials；Spec 1.1 文献四源红相裁决，1.0「黄主导」= 11 月
+ *      中旬变色中段过渡态不作卡基调〕；季相不进几何/树皮维持「冠变干不变」，原「不建模
+ *      记档」的几何侧口径不变）、新叶
  *      红褐 flush（归材质变奏候选）、当年生枝绿色皮孔色序与芽（归材质/毫米级）、托叶
  *      （早落）、叶背面色差（Unknown 弱差归材质）、倾斜个体（变体档）、心材红色
  *      （不可见）——详见 bischofiaShapeProfile 模块头。
@@ -126,7 +134,16 @@ export const meta: ProceduralAssetMeta = {
   // CanopySourceCache 经 broadleafCanopyProxy 工厂提供（021.6，恒 487 面）
   representations: ['high', 'mid', 'canopy'],
   taxonomy: { category: 'plant', family: 'broadleaf' }, // 阔叶家族契约第九实例（tree/broadleaf/，T010.1；大戟科（Euphorbiaceae）被子植物按家族形态域归 broadleaf——落叶阔叶第五例、复叶第二型（三出放射对称），记档见资产模块头）
-  presets: [{ id: 'default', label: '默认', swatch: '#517c35' }], // 色卡占位（T024.1）：默认卡 = 现行材质基调；季相卡 024.2/024.3 按 Spec 证据回补（D44 #7 无证据不建卡）
+  // 色卡（T024.3 批二真卡，D44）：default = 现行中绿基调（swatch = 叶材质构造色
+  // #517c35）；autumn = 秋·红-红橙（Spec @1.1 增量节：文献四源红相裁决 Verified——
+  // 浙农林期刊「11 月中旬-12 月上旬｜红」[8] + 百度百科园艺「秋叶转红，艳丽夺目」[9] +
+  // 浦东发布 [10] / 江苏网「红橙明艳」[11] + iNat 杭州双帧红相直证 [12]；1.0 照片
+  // 「黄主导」重定位为 11 月中旬变色中段过渡态不作卡基调）；色值配方在 bischofiaMaterials
+  // 秋卡私有域（冠变干不变——皮/几何不动）
+  presets: [
+    { id: 'default', label: '默认', swatch: '#517c35' },
+    { id: 'autumn', label: '秋·红橙', swatch: '#c57551' }, // swatch = 秋卡基色（bischofiaMaterials BISCHOFIA_LEAF_PRESETS autumn 行同源——批二定稿 #c57551；与 triadica 猩红三轴分离记档见材质表）
+  ],
   proceduralProfile: {
     // 跨 8 槽细模包围盒实测带（T011.8 终测 2026-09-21：h 8.78–10.73 / w 7.16–9.64，
     // 声明带外沿放宽——实测带全含）。
@@ -163,7 +180,10 @@ export function build(params?: ProceduralBuildParams): InstanceSource {
   const rng = mulberry32(seed);
   const { geometry } = buildBischofiaGeometry(rng, profileForSeed(seed), level);
   const bark = createBischofiaBarkMaterial(level); // 组 0（契约序 [皮, 复叶卡]——mergeGeometries 层序；无花果资产：组 0 = 纯皮拓扑，无附加块材质接口）
-  const leaf = createBischofiaLeafMaterial(level);
+  // params.preset = 色卡 id（T024.3 批二透传，D44 #1——冠变干不变）：仅叶材质消费；
+  // 皮材质与深度材质不传（干不变；深度材质色无关、被 Runtime 跨卡共享——024.1 机制）
+  const preset = params?.preset;
+  const leaf = createBischofiaLeafMaterial(level, preset);
   // 影 pass 叶影裁切走 InstanceSource 契约通道——工厂每次 new（build 契约「每次调用 new
   // 全部资源」天然满足），档位随 level 匹配；归源所有（缓存 dispose）
   return {

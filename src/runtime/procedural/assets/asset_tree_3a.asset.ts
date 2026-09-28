@@ -20,7 +20,9 @@
  *        （T009.4 灰度校正，Spec bark_color Verified [6]）/ m 0 /
  *        r 0.93 / FrontSide；脊-沟-板+节疤+苔痕（uv 域+位置域门控）+ 整树缓摆（与叶同
  *        公式同相位；aBend 恒 0 快颤层天然不作用）
- *      1 叶簇卡（L4/L5 枝梢簇内烘焙——T009.2 枝梢驱动叶簇）—— createTree3aLeafMaterial：
+ *      1 叶簇卡（L4/L5 枝梢簇内烘焙——T009.2 枝梢驱动叶簇）—— createTree3aLeafMaterial(
+ *        level, preset)（T024.3：preset = 色卡 id，缺省/'default' = 现行叶绿基调；'autumn'
+ *        = 秋·黄褐——色值配方与 Spec 证据链在 tree3aMaterials 秋卡私有域，冠变干不变）：
  *        叶绿 #4e7c33 / m 0 / r 0.85 /
  *        DoubleSide（卡面双面可见；three 双面光照自动翻背面法线）；SDF 橡叶形 alpha
  *        （alphaTest 0.5 + alphaToCoverage 抗锯边）+ 背光透射 + aLeafRand 逐叶变奏 +
@@ -77,7 +79,14 @@ export const meta: ProceduralAssetMeta = {
   // canopy 源由 CanopySourceCache 经 broadleafCanopyProxy 工厂提供（021.6，恒 487 面）
   representations: ['high', 'mid', 'canopy'],
   taxonomy: { category: 'plant', family: 'broadleaf' }, // 阔叶家族契约第一实例（tree/broadleaf/，T010.1）；T011 首批阔叶乔木同族
-  presets: [{ id: 'default', label: '默认', swatch: '#4e7c33' }], // 色卡占位（T024.1）：默认卡 = 现行材质基调；季相卡 024.2/024.3 按 Spec 证据回补（D44 #7 无证据不建卡）
+  // 色卡（T024.3 批二真卡，D44）：default = 现行叶绿基调（swatch = 叶材质构造色
+  // #4e7c33）；autumn = 秋·黄褐（Forestry England「叶秋转黄褐」Verified [3] + Spec §6
+  // 「秋黄褐（季节联动）」[3][6] + form-b 老树秋色整树 [6]）；色值配方在 tree3aMaterials
+  // 秋卡私有域（冠变干不变——皮/几何不动）
+  presets: [
+    { id: 'default', label: '默认', swatch: '#4e7c33' },
+    { id: 'autumn', label: '秋·黄褐', swatch: '#99792b' }, // swatch = 秋卡基色（tree3aMaterials TREE3A_LEAF_PRESETS autumn 行同源——批二定稿 #99792b）
+  ],
   proceduralProfile: {
     // 跨 8 槽细模包围盒实测带（T010.2 探针：h 7.3869–9.1183 / w 4.4415–9.8035）。
     // 模块头「总高 7.4–8.5m、冠幅 5.4–6.6m」为 T008.2 slot-0 锚点描述（slot-0 实测
@@ -109,7 +118,10 @@ export function build(params?: ProceduralBuildParams): InstanceSource {
   const rng = mulberry32(seed);
   const { geometry } = buildTree3aGeometry(rng, profileForSeed(seed), level);
   const bark = createTree3aBarkMaterial(level); // 组 0（契约序 [皮, 叶]——mergeGeometries 层序）
-  const leaf = createTree3aLeafMaterial(level);
+  // params.preset = 色卡 id（T024.3 批二透传，D44 #1——冠变干不变）：仅叶材质消费；
+  // 皮材质与深度材质不传（干不变；深度材质色无关、被 Runtime 跨卡共享——024.1 机制）
+  const preset = params?.preset;
+  const leaf = createTree3aLeafMaterial(level, preset);
   // T009.5：影 pass 叶影裁切走 InstanceSource 契约通道——工厂每次 new（build 契约
   // 「每次调用 new 全部资源」天然满足），档位随 level 匹配；归源所有（缓存 dispose）
   return {

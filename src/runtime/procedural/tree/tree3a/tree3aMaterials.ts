@@ -117,12 +117,26 @@
  *   - 皮 Mid 片元 = 6× + 去节疤核/愈伤环 ALU ≈ 1.2× ≈ 7.2×（脊沟/板块/苔痕保留）；
  *   - 皮 Low 片元 = 1× vnoise（脊线游走）= 3× + 脊沟/沟内 AO ALU ≈ 1× ≈ 4.0×
  *     （去板块采样 1× vnoise + 节疤/苔痕门控 ALU）。
+ * 【色卡 preset（T024.3 批二，D44 #1/#2——冠变干不变）】createTree3aLeafMaterial 追加
+ *   可选 preset 参（导出签名冻结的扩展 = 只追加可选参；ginkgo T024.1 试点法复制 /
+ *   platanus T024.2 批一同款）：preset = 材质基调变体，只改叶基调构造色
+ *   （TREE3A_LEAF_PRESETS 模块私有表——default 行 = 现行数值的**单一定义源**，缺省路径
+ *   经表消费保证「default = 现行」由结构成立；autumn 行 = 秋·黄褐（russet），证据链与
+ *   数值推导见表注释）；皮/深度/风动/SDF/变奏域/透射色零改动（冠变干不变 + 深度材质色
+ *   无关、将被 Runtime 跨卡共享——另一 Step）。**program 不增红线（D44 #3）**：default
+ *   与 autumn 共享同一 customProgramCacheKey ⇒ GLSL 逐位同源——hue/luma 两端、透射色
+ *   (0.62,0.94,0.34)、峰值 0.65 字面量跨卡冻结，秋相差异全部由构造色（uniform 通道）
+ *   承载。卡 id 域 {'default','autumn'}（024.2 定稿）；不可表达面记档：秋色深浅个体变幅
+ *   未定量（Spec §6 仅「秋黄褐（季节联动）」定性 [3][6]）——黄褐相内深浅由既有 hue·luma
+ *   变奏近似承载，不做定量主张（单基调 + 变奏冻结口径）。未知卡 id 回退 default（值域
+ *   校验归 Renderer resolvePoolKey 单一 choke point——工厂不做第二套校验）。
  * 边界：工厂每次调用 new 全部材质（D17 所有权随调用移交，禁止模块级共享对象）；零贴图/
  *   零 DataTexture（D13）；GLSL float 字面量全带小数点；aSeed=0（DEV 普通 Mesh 无该属性，
  *   WebGL 缺省属性值 0）路径相位退化为正常数——hash 无除法无 NaN。
  */
 import * as THREE from 'three';
 import { FACILITY_GLSL_NOISE } from '../../materials/facilityGlsl';
+import { DEFAULT_COLOR_PRESET_ID } from '../../../../domain/assets'; // 默认卡 id 单一真相源（值导入——ginkgo T024.1 先例）
 import type { ProceduralLevel } from '../../../../domain/assets';
 import { applyTreeFadeDither } from '../treeFadeDither';
 
@@ -345,6 +359,50 @@ t3aBarkMul *= mix(vec3(0.89, 0.87, 0.97), vec3(1.05, 1.02, 0.98), smoothstep(0.0
 diffuseColor.rgb *= t3aBarkMul;
 `;
 
+// ── 色卡 preset 表（T024.3 批二——叶基调随卡，GLSL 不分叉）────────────────────────
+
+/** 叶基调色卡配方行（T024.3 批二，D44 #2——色值配方归树材质工厂私有域） */
+interface Tree3aLeafPreset {
+  /** 叶基调构造色（material.color = uniform 通道，不进 GLSL——program 不增的载体面） */
+  color: number;
+}
+
+/**
+ * 叶基调色卡配方表（模块私有；卡集与 meta.presets 声明对应——asset_tree_3a 双卡）。
+ * default 行 = 现行数值的**单一定义源**（缺省路径经本表消费——「default = 现行」由结构
+ * 保证而非抄写保证）；变奏域/透射色**不随卡**：program 不增红线（D44 #3）要求 autumn 与
+ * default 同 customProgramCacheKey ⇒ GLSL 字面量不分叉 ⇒ hue 两端 (0.88,1.00,1.10)↔
+ * (1.10,1.03,0.82)、luma 0.90±0.10、透射色 (0.62,0.94,0.34)、峰值 0.65 跨卡冻结，秋相
+ * 读向 = 黄褐基色 × 现行变奏乘子复合（推导见 autumn 行注释）。未知卡 id 回退 default
+ * （值域校验归 Renderer resolvePoolKey 单一 choke point——工厂不做第二套校验）。
+ */
+const TREE3A_LEAF_PRESETS: Readonly<Record<string, Readonly<Tree3aLeafPreset>>> = {
+  [DEFAULT_COLOR_PRESET_ID]: {
+    // 现行数值（T008.3 工程设定）：叶绿——Spec §5「叶面淡绿色、叶背粉绿色」Verified
+    // [1][2][6] + 照片健康冠层中-深绿 [6]（六树亮度链：银杏 > 朴树 > 悬铃木 > **夏栎** >
+    // 榉 > 樟——中档；中距色块与银杏淡绿/樟浓绿区分）
+    color: 0x4e7c33,
+  },
+  autumn: {
+    // 秋·黄褐（russet）#99792b（工程合成，双源：Spec §5「秋季叶色：转黄褐色后脱落」
+    // Verified [3]（Forestry England）+ §6「秋黄褐（季节联动）」Verified [3][6] + form-b
+    // 老树秋色整树照 [6] 整体沉稳暗端判读——无金黄/鲜亮秋色主张）：四锚——
+    // - hue ≈42.5°（sRGB）黄褐域中带（provisional 域 38–45，russet 褐向）；变奏暖端复合
+    //   ×(1.10,1.03,0.82) ≈40.3° = 端点冻结下的最坏橙向，仍守黄褐域（≥38）；
+    // - R−G 32 入褐向（黄褐 ≠ 金黄的褐分量锚；略强于 platanus 秋卡 R−G 30——同域异档的
+    //   褐向微差）；G−B 78 黄向中弱（黄褐非金黄的饱和锚，弱于金黄卡 100+）；
+    // - 加权亮度 ≈121.7（0.299R+0.587G+0.114B）暗端（provisional ≈118–140）——老树秋照
+    //   整体沉稳（form-b [6]）；暗于 platanus 秋黄褐 #a88a44（同式 ≈139）一档 = 同域异档
+    //   可辨轴（更深褐）；与 triadica 绯红 #c65e3e（≈121.4）同亮度带但 hue 42.5 vs 14.1
+    //   强分离不混；
+    // - 变奏冷端复合 ×(0.88,1.00,1.10) ≈50.6° 偏黄向 = 未转尽叶弱近似（Spec 无残绿占比
+    //   证据——不做定量主张，仅变奏域方向记档；沿 ginkgo/platanus 冷端口径）；
+    // - 透射色维持暖绿 (0.62,0.94,0.34)、峰值 0.65：同程序红线（D44 #3）的代价（透射字面量
+    //   进 GLSL，分叉即 +1 program）；秋相透射偏暖的解锁需后续统一决策，不在本 Step。
+    color: 0x99792b,
+  },
+};
+
 // ── 工厂（每次调用 new 材质 + 独立注入闭包；键不变则共享 program）──────────────────
 
 /**
@@ -355,10 +413,21 @@ diffuseColor.rgb *= t3aBarkMul;
  * （TREE3A_WIND 同一常量——档间风相位一致 = 身份一致）。
  * 底参：叶绿 #4e7c33 / m 0 / r 0.85（注入 -0.05 → ~0.80 微缎面域）/ DoubleSide
  * （卡面双面可见，背面法线由 three 双面光照自动翻转）。
+ * preset（T024.3 可选参，缺省 = 默认卡）：查 TREE3A_LEAF_PRESETS 覆写基调构造色
+ * （autumn = 秋·黄褐 #99792b，Spec §5「转黄褐色后脱落」[3] + §6「秋黄褐（季节联动）」
+ * [3][6] + form-b 老树秋照沉稳暗端——数值推导见该表注释）；缺省/'default'/未知 id =
+ * default 行 = 现行行为逐位一致；program 不增红线 = preset 只走构造色，GLSL/defines/键
+ * 与 default 全同（皮/深度材质无 preset 参不随卡——见模块头【色卡 preset】段）。
  */
-export function createTree3aLeafMaterial(level: ProceduralLevel = 'high'): THREE.MeshStandardMaterial {
+export function createTree3aLeafMaterial(
+  level: ProceduralLevel = 'high',
+  preset?: string,
+): THREE.MeshStandardMaterial {
+  // 色卡解析（T024.3 批二）：缺省 / 'default' / 未知 id → default 行（现行数值单一定义源）
+  const recipe = (preset !== undefined ? TREE3A_LEAF_PRESETS[preset] : undefined)
+    ?? TREE3A_LEAF_PRESETS[DEFAULT_COLOR_PRESET_ID]!;
   const material = new THREE.MeshStandardMaterial({
-    color: 0x4e7c33,
+    color: recipe.color, // 基调随卡（default = 叶绿现行值 / autumn = 秋·黄褐——TREE3A_LEAF_PRESETS 表注释引 Spec）
     metalness: 0,
     roughness: 0.85,
     side: THREE.DoubleSide,

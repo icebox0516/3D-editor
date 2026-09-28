@@ -152,6 +152,20 @@
  *   （TimeUniformService 的扫描面）与 onBeforeCompile 里 shader.uniforms.uTime 挂同一对象
  *   引用——服务写一次，程序 uniform 即时生效，不触发重编译。
  *
+ * 【色卡 preset（T024.3 批二，D44 #1/#2——冠变干不变）】createCeltisLeafMaterial 追加
+ *   可选 preset 参（导出签名冻结的扩展 = 只追加可选参；ginkgo T024.1 试点法复制 /
+ *   platanus T024.2 批一同款）：preset = 材质基调变体，只改叶基调构造色
+ *   （CELTIS_LEAF_PRESETS 模块私有表——default 行 = 现行数值的**单一定义源**，缺省路径
+ *   经表消费保证「default = 现行」由结构成立；autumn 行 = 秋·黄（黄至橙的黄主相读向），
+ *   证据链与数值推导见表注释）；皮/深度/风动/SDF/变奏域/透射色零改动（冠变干不变 +
+ *   深度材质色无关、将被 Runtime 跨卡共享——另一 Step）。**program 不增红线（D44 #3）**：
+ *   default 与 autumn 共享同一 customProgramCacheKey ⇒ GLSL 逐位同源——hue/luma 两端、
+ *   透射色 (0.58,0.90,0.38)、峰值 0.30 字面量跨卡冻结，秋相差异全部由构造色（uniform
+ *   通道）承载。卡 id 域 {'default','autumn'}（024.2 定稿）；不可表达面记档：温州秋照
+ *   「黄橙棕」混相的棕端与个体橙端不入卡（Spec 无占比定量——黄主相单基调 + 变奏冻结
+ *   口径）。未知卡 id 回退 default（值域校验归 Renderer resolvePoolKey 单一 choke
+ *   point——工厂不做第二套校验）。
+ *
  * 边界：工厂每次调用 new 全部材质（D17 所有权随调用移交，禁止模块级共享对象）；零贴图/
  *   零 DataTexture（D13）；GLSL float 字面量全带小数点；aSeed=0（DEV 普通 Mesh 无该属性，
  *   WebGL 缺省属性值 0）路径相位退化为正常数——hash 无除法无 NaN；与 tree3a 的通用段
@@ -159,6 +173,7 @@
  */
 import * as THREE from 'three';
 import { FACILITY_GLSL_NOISE } from '../../materials/facilityGlsl';
+import { DEFAULT_COLOR_PRESET_ID } from '../../../../domain/assets'; // 默认卡 id 单一真相源（值导入——ginkgo T024.1 先例）
 import type { ProceduralLevel } from '../../../../domain/assets';
 import { applyTreeFadeDither } from '../treeFadeDither';
 
@@ -388,6 +403,50 @@ t3cBarkMul *= mix(vec3(0.93, 0.92, 0.97), vec3(1.03, 1.02, 0.99), smoothstep(0.1
 diffuseColor.rgb *= t3cBarkMul;
 `;
 
+// ── 色卡 preset 表（T024.3 批二——叶基调随卡，GLSL 不分叉）────────────────────────
+
+/** 叶基调色卡配方行（T024.3 批二，D44 #2——色值配方归树材质工厂私有域） */
+interface CeltisLeafPreset {
+  /** 叶基调构造色（material.color = uniform 通道，不进 GLSL——program 不增的载体面） */
+  color: number;
+}
+
+/**
+ * 叶基调色卡配方表（模块私有；卡集与 meta.presets 声明对应——asset_tree_celtis 双卡）。
+ * default 行 = 现行数值的**单一定义源**（缺省路径经本表消费——「default = 现行」由结构
+ * 保证而非抄写保证）；变奏域/透射色**不随卡**：program 不增红线（D44 #3）要求 autumn 与
+ * default 同 customProgramCacheKey ⇒ GLSL 字面量不分叉 ⇒ hue 两端 (0.92,1.00,1.06)↔
+ * (1.10,1.04,0.84)、luma 0.90±0.10、透射色 (0.58,0.90,0.38)、峰值 0.30 跨卡冻结，秋相
+ * 读向 = 黄基色 × 现行变奏乘子复合（推导见 autumn 行注释）。未知卡 id 回退 default
+ * （值域校验归 Renderer resolvePoolKey 单一 choke point——工厂不做第二套校验）。
+ */
+const CELTIS_LEAF_PRESETS: Readonly<Record<string, Readonly<CeltisLeafPreset>>> = {
+  [DEFAULT_COLOR_PRESET_ID]: {
+    // 现行数值（T011.1 工程设定）：中绿偏黄——照片 canopy-a/b 受光-半受光折减 + leaf-a/b
+    // 上表面交叉标定「比夏栎更黄更亮」（Spec §5 中-深绿 Verified [3][5][6]；六树亮度链：
+    // 银杏 > **朴树** > 悬铃木 > 夏栎 > 榉 > 樟——亮一档）
+    color: 0x5a8340,
+  },
+  autumn: {
+    // 秋·黄 #b89c38（工程合成，双源：Spec §6「叶色季节联动：……秋**黄至橙色**（OSU
+    // "yellow leaf fall color" + 温州秋色照片黄橙棕）后脱落」Verified [5][6] + §7 中距
+    // 「秋色季整体转黄橙为强季节信号」[5][6]——黄主相读向，橙端不入基色）：四锚——
+    // - hue ≈46.9°（sRGB）黄主相域（provisional 域 43–49）；变奏暖端复合 ×(1.10,1.04,0.84)
+    //   ≈44.5° = 端点冻结下的最坏橙向，仍守黄主相域（≥43）；
+    // - R−G 28 不入橙红（黄族分离锚——与 sophora 秋金同值、远低于 zelkova 橙 68 /
+    //   triadica 绯红 104）；
+    // - G−B 100 黄向中饱和（provisional 95–120——弱于 sophora 110，黄亮档非深金档）；
+    // - 加权亮度 ≈153.0（0.299R+0.587G+0.114B）谱系中间档（provisional ≈150–170）：黄亮
+    //   于 platanus 秋黄褐 #a88a44（≈139）、深于 sophora 秋金 #c4a83a（≈163.8）同段一档
+    //   ——横向可辨轴 = 同黄相族的亮度分档；
+    // - 变奏冷端复合 ×(0.92,1.00,1.06) ≈52.8° 偏黄绿向 = 未转尽叶弱近似（Spec 无残绿占比
+    //   证据——不做定量主张，仅变奏域方向记档；沿 ginkgo/platanus 冷端口径）；
+    // - 透射色维持 (0.58,0.90,0.38)、峰值 0.30：同程序红线（D44 #3）的代价（透射字面量进
+    //   GLSL，分叉即 +1 program）；秋相透射偏暖的解锁需后续统一决策，不在本 Step。
+    color: 0xb89c38,
+  },
+};
+
 // ── 工厂（每次调用 new 材质 + 独立注入闭包；键不变则共享 program）──────────────────
 
 /**
@@ -399,10 +458,21 @@ diffuseColor.rgb *= t3cBarkMul;
  * 底参：中绿偏黄 #5a8340（工程设定——照片 canopy-a/b + leaf-a/b 交叉标定，较夏栎更黄更亮；
  * Spec §5 中-深绿 Verified [3][5][6]）/ m 0 / r 0.72（半光泽——近革质，Spec §5 Inferred [6]，
  * vs 夏栎 0.85）/ DoubleSide（卡面双面可见，背面法线由 three 双面光照自动翻转）。
+ * preset（T024.3 可选参，缺省 = 默认卡）：查 CELTIS_LEAF_PRESETS 覆写基调构造色
+ * （autumn = 秋·黄 #b89c38，Spec §6「秋黄至橙色」Verified [5][6]——黄主相读向，数值推导
+ * 见该表注释）；缺省/'default'/未知 id = default 行 = 现行行为逐位一致；program 不增红线
+ * = preset 只走构造色，GLSL/defines/键与 default 全同（皮/深度材质无 preset 参不随卡——
+ * 见模块头【色卡 preset】段）。
  */
-export function createCeltisLeafMaterial(level: ProceduralLevel = 'high'): THREE.MeshStandardMaterial {
+export function createCeltisLeafMaterial(
+  level: ProceduralLevel = 'high',
+  preset?: string,
+): THREE.MeshStandardMaterial {
+  // 色卡解析（T024.3 批二）：缺省 / 'default' / 未知 id → default 行（现行数值单一定义源）
+  const recipe = (preset !== undefined ? CELTIS_LEAF_PRESETS[preset] : undefined)
+    ?? CELTIS_LEAF_PRESETS[DEFAULT_COLOR_PRESET_ID]!;
   const material = new THREE.MeshStandardMaterial({
-    color: 0x5a8340, // 中绿偏黄（工程设定：照片交叉标定「比夏栎更黄更亮」；Spec §5 中-深绿 Verified）
+    color: recipe.color, // 基调随卡（default = 中绿偏黄现行值 / autumn = 秋·黄——CELTIS_LEAF_PRESETS 表注释引 Spec）
     metalness: 0,
     roughness: 0.72, // 半光泽（近革质——Spec §5 Inferred [6]；vs 夏栎 0.85 哑光）
     side: THREE.DoubleSide,
