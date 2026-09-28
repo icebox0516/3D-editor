@@ -1,0 +1,214 @@
+{
+ "result": {
+  "tests": {
+   "canopyPick": {
+    "distance": 300,
+    "blobs": [
+     {
+      "cx": 953.5,
+      "cy": 545.4,
+      "x0": 907,
+      "x1": 1000,
+      "n": 1702
+     }
+    ],
+    "target": {
+     "cx": 953.5,
+     "cy": 545.4,
+     "x0": 907,
+     "x1": 1000,
+     "n": 1702
+    },
+    "before": 0,
+    "after": 1,
+    "hit": true
+   },
+   "ditherPick": {
+    "distance": 185,
+    "blobs": [
+     {
+      "cx": 949.5,
+      "cy": 539.3,
+      "x0": 873,
+      "x1": 1026,
+      "n": 3774
+     }
+    ],
+    "target": {
+     "cx": 949.5,
+     "cy": 539.3,
+     "x0": 873,
+     "x1": 1026,
+     "n": 3774
+    },
+    "transitionState": {
+     "tInst": 1,
+     "dual": 1,
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 3,
+      "culled": 0
+     }
+    },
+    "after": 0,
+    "hit": false
+   },
+   "cullDistance": {
+    "distance": 880,
+    "blobs": [
+     {
+      "cx": 949.5,
+      "cy": 552.2,
+      "x0": 942,
+      "x1": 957,
+      "n": 142
+     }
+    ],
+    "state": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1,
+      "culled": 2
+     },
+     "shadow": 1
+    },
+    "alivePick": {
+     "at": [
+      949.5,
+      552.2
+     ],
+     "after": 1,
+     "hit": true
+    },
+    "culledSpotPick": {
+     "at": [
+      970.5,
+      552.2
+     ],
+     "after": 0,
+     "hit": false
+    }
+   }
+  }
+ },
+ "driverConsoleLog": [
+  {
+   "kind": "console",
+   "type": "debug",
+   "text": "[vite] connecting...",
+   "timestamp": 1790257860233.207
+  },
+  {
+   "kind": "console",
+   "type": "debug",
+   "text": "[vite] connected.",
+   "timestamp": 1790257860254.022
+  },
+  {
+   "kind": "console",
+   "type": "info",
+   "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+   "timestamp": 1790257860507.707
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at OrbitControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_OrbitControls__js.js?v=d53dc4e6:927:19)\n    at <anonymous>:3:12\n    at <anonymous>:6:5",
+   "timestamp": 1790257866174.228
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at TransformControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_TransformControls__js.js?v=d53dc4e6:662:52)\n    at <anonymous>:3:12\n    at <anonymous>:6:5",
+   "timestamp": 1790257866174.608
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at OrbitControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_OrbitControls__js.js?v=d53dc4e6:927:19)\n    at <anonymous>:3:12\n    at <anonymous>:5:5",
+   "timestamp": 1790257867061.408
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at TransformControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_TransformControls__js.js?v=d53dc4e6:662:52)\n    at <anonymous>:3:12\n    at <anonymous>:5:5",
+   "timestamp": 1790257867061.785
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at OrbitControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_OrbitControls__js.js?v=d53dc4e6:927:19)\n    at <anonymous>:3:12\n    at <anonymous>:6:5",
+   "timestamp": 1790257868720.64
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at TransformControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_TransformControls__js.js?v=d53dc4e6:662:52)\n    at <anonymous>:3:12\n    at <anonymous>:6:5",
+   "timestamp": 1790257868720.833
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at OrbitControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_OrbitControls__js.js?v=d53dc4e6:927:19)\n    at <anonymous>:3:12\n    at <anonymous>:5:5",
+   "timestamp": 1790257869745.673
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at TransformControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_TransformControls__js.js?v=d53dc4e6:662:52)\n    at <anonymous>:3:12\n    at <anonymous>:5:5",
+   "timestamp": 1790257869745.859
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at OrbitControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_OrbitControls__js.js?v=d53dc4e6:927:19)\n    at <anonymous>:3:12\n    at <anonymous>:6:5",
+   "timestamp": 1790257871753.727
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at TransformControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_TransformControls__js.js?v=d53dc4e6:662:52)\n    at <anonymous>:3:12\n    at <anonymous>:6:5",
+   "timestamp": 1790257871753.89
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at OrbitControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_OrbitControls__js.js?v=d53dc4e6:927:19)\n    at <anonymous>:3:12\n    at <anonymous>:5:5",
+   "timestamp": 1790257872256.824
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at TransformControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_TransformControls__js.js?v=d53dc4e6:662:52)\n    at <anonymous>:3:12\n    at <anonymous>:5:5",
+   "timestamp": 1790257872256.989
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at OrbitControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_OrbitControls__js.js?v=d53dc4e6:927:19)\n    at <anonymous>:3:12\n    at <anonymous>:6:5",
+   "timestamp": 1790257872659.334
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at TransformControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_TransformControls__js.js?v=d53dc4e6:662:52)\n    at <anonymous>:3:12\n    at <anonymous>:6:5",
+   "timestamp": 1790257872659.57
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at OrbitControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_OrbitControls__js.js?v=d53dc4e6:927:19)\n    at <anonymous>:3:12\n    at <anonymous>:5:5",
+   "timestamp": 1790257873162.153
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at TransformControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_TransformControls__js.js?v=d53dc4e6:662:52)\n    at <anonymous>:3:12\n    at <anonymous>:5:5",
+   "timestamp": 1790257873162.589
+  }
+ ]
+}

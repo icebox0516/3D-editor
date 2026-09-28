@@ -56,7 +56,7 @@ representations?: RuntimeRepresentation[]               // T021.1（D41 §三.2�
 
 缺省语义（T021.1 起三态）：不写 `representations` = 从 `levels` 派生（构建档位即表示能力；不写 `levels` = 单档细模，与显式 `[{ id: 'high' }]` 等价）；两字段均未声明 = 单档 high。`representations` 声明优先于 `levels` 派生（有效链按声明能力生成、不硬编码全链，Runtime 侧纯函数 = domain/lod effectiveRepresentationChain）。
 
-缓存口径现状（声明面快照，键收敛归 021.7）：**未声明多档（不写 `levels` 或单档声明）且未声明 shapeFamily 的资产 = 恒单档**（缓存走纯 assetId 键、build 无参调用、level 一并忽略——ProceduralSourceCache 现行为）；未声明 shapeFamily 但声明多档的资产缓存键 = `assetId::level`、build 以 `build({ level })` 调用（level 只作缓存档位维度，不掺形态身份，D23.2）。streetlamp 先例更新（T021.1）：`asset_streetlamp` 已声明 `representations: ['high', 'low']`——「未声明多档」中间态的唯一消费者由本声明**收编入第一分支**（021.7 键收敛为 `sourceKey + representation` 双维时方可删除该中间分支，收编完成前禁删，D41 §10.2；021.1 本身不改 ProceduralSourceCache 键逻辑——streetlamp 现行为逐位不变）。
+缓存口径现状（**021.7 键收敛已落地**，声明面快照，D41 §10.2）：**二分支**——① 声明表示能力（representations 非空 ∨ levels 多档 ∨ shapeFamily——即有效链多表示）→ 缓存键 = `sourceKey::representation`（无 shapeFamily 时 sourceKey 退化为 assetId）；② 未声明（恒单档且无 shapeFamily）→ 纯 assetId 键、build 无参调用（level 一并忽略）。旧「未声明多档」中间态（`assetId::level`）**已删除**——其唯一消费者 streetlamp 已由 T021.1 的 `representations: ['high', 'low']` 声明收编入第一分支，键字面量 `asset_streetlamp::high` / `::low` 新旧逐位一致（收敛安全判据，断言测试锁定）。表示维度纪律：representation 只作缓存条目后缀，**永不掺入 sourceKey / 形态身份**（D23.2）；canopy 永不路由进 ProceduralSourceCache（非构建档）——RepresentationSourceRouter 门面分流至 CanopySourceCache，canopy 条目键 `sourceKey::canopy` 同构双维口径（运行面 §十一）。
 
 不完整链：资产可声明任意非空子集（路灯两档、消防栓仅 high 均合法）；选档遇到未声明档的跳档语义（取最近已声明档）归 Runtime（006.1 实装）。
 
@@ -68,16 +68,16 @@ representations?: RuntimeRepresentation[]               // T021.1（D41 §三.2�
 - 未声明档位的回落由资产 build 自行决定（如仅 high 的资产被请求 low → 回 high）；Runtime 侧只请求已声明档（§6），回落是防御面不是协议依赖。
 - **成套交付（D27.4）**：geometry + material + customDepthMaterial 随 sourceKey + level 整体成套——Shader LOD 与 Shadow LOD 因此天然成立，Runtime 无需独立「Shader 档 / 影档」切换机制。材质档位变体在资产材质工厂内（夏栎先例：叶 Mid 去脉三线、叶 Low 去透光、皮 Mid 去节疤、皮 Low 去板块采样/节疤/苔痕、深度 Mid=High SDF / Low=Low SDF）；`customProgramCacheKey` 档位唯一（配方变即键变——夏栎 9 键先例 = 三材质工厂 × 三档，High 三键沿用原键）。
 
-### 2.4 缓存与所有权——level 独立维度（D23.2，已落地）
+### 2.4 缓存与所有权——representation 独立维度（D23.2 → T021.7 键收敛，D41 §10.2）
 
 | 维度 | 键 | 语义 |
 |---|---|---|
-| 形态身份 | `sourceKey`（assetId[:preset]:slot-N） | 不变量；level 不掺入 |
-| 缓存条目 | `sourceKey::level`（ProceduralSourceCache 内部后缀编码） | 双维档位缓存；load/evict 同键规则（resolveEntry 单一真相） |
+| 形态身份 | `sourceKey`（assetId[:preset]:slot-N） | 不变量；representation 不掺入 |
+| 缓存条目 | `sourceKey::representation`（ProceduralSourceCache 内部后缀编码；h/m/l 与构建档同名同值，canopy 条目由 CanopySourceCache 以 `sourceKey::canopy` 同构持有——门面分流见 representation-runtime.md §十一） | 双维表示缓存；load/evict 同键规则（resolveEntry 单一真相）；未声明能力资产 = 纯 assetId 单条目 |
 
-- 每档独立缓存（条目间 geometry / material 不共享）、独立释放（`evict` 单档单槽精确释放——T006 换档释放旧档的消费面；幂等，未命中返回 false）。
-- 条目资源归 Cache 实例所有（dispose / evict 释放 geometry / material / customDepthMaterial）；池不 dispose Source、Ghost 借缓存 Source 不 dispose（既有契约原样保留）。
-- 缓存不淘汰（每资产至多 槽数 × 档数 条目，天然有界——D19.4 同推）。
+- 每表示独立缓存（条目间 geometry / material 不共享）、独立释放（`evict` 单档单槽精确释放——h/m/l 构建档换档释放的消费面；幂等，未命中返回 false；canopy 缓存不淘汰、无 evict——天然有界，随会话 dispose 释放）。
+- 条目资源归 Cache 实例所有（dispose / evict 释放 geometry / material / customDepthMaterial / bounds）；池不 dispose Source、Ghost 借缓存 Source 不 dispose（既有契约原样保留，canopy 条目同规）。
+- 缓存不淘汰（每资产至多 槽数 × 表示数 条目，天然有界——D19.4 同推）。
 
 ### 2.5 默认消费口径（D27.14，默认可否决）
 
@@ -102,7 +102,7 @@ representations?: RuntimeRepresentation[]               // T021.1（D41 §三.2�
 
 ## 4. 选档语义规范（Runtime 侧，T006 实施依据）
 
-> （2026-09-23 D41 起：本节为 T006 时期实施依据快照——度量 `m`、稳定基准球、正交退化、chunk 代表口径继续有效；表示链阈值与 screenFraction 口径、Selection / Transition Granularity、Bounds 契约以 `representation-runtime.md` §四 为准，阈值重锁归 T021.8。）
+> （2026-09-23 D41 起：本节为 T006 时期实施依据快照——度量 `m`、稳定基准球、正交退化、chunk 代表口径继续有效；表示链阈值与 screenFraction 口径、Selection / Transition Granularity、Bounds 契约以 `representation-runtime.md` §四 为准。阈值与迟滞已于 021.8 实测锁定维持〔2026-09-24，证据锚 `docs/acceptance/t021/021.8/calibration/README.md`〕。）
 
 ### 4.1 度量 = 归一化视距（张角，D27.2）
 
@@ -111,7 +111,7 @@ representations?: RuntimeRepresentation[]               // T021.1（D41 §三.2�
 - 为什么：与分辨率 / DPR / 视口尺寸解耦——同一阈值在 1080p 与 4K、不同视口下语义不变。
 - 像素口径（如「> 180px 取 High」）仅用于验收报表与调试显示，**不作选档输入**。
 - 禁止全资产统一距离阈值（「0–25m High」这类）——建筑 40m 与消防栓 0.8m 同距屏幕占比完全不同。
-- 阈值数值 = Runtime 全局策略常量（`LOD_THRESHOLDS` 6/16/60/0.15），**T006.5 验收门实测锁定**（2026-09-19，docs/acceptance/t006/006.5/：双档验收 + 换档序列单调无震荡 + 视觉核验过；数值变更须重开实测记档）。
+- 阈值数值 = Runtime 全局策略常量（`LOD_THRESHOLDS` 6/16/60/0.15），**T006.5 验收门实测锁定**（2026-09-19，docs/acceptance/t006/006.5/：双档验收 + 换档序列单调无震荡 + 视觉核验过）→ 新链（midToCanopy/canopyToCulled）经 **T021.8 全项 A/B 标定实测维持**（2026-09-24，`docs/acceptance/t021/021.8/calibration/README.md`；含 T006.6 Step 3 平移量实测 ≤0.42% 记档）；数值变更须重开实测记档并连带更新「一次锁全量」测试断言。
 
 ### 4.2 正交退化口径
 
@@ -177,20 +177,22 @@ representations?: RuntimeRepresentation[]               // T021.1（D41 §三.2�
 
 ## 6. T006 接缝——职责边界表
 
-> （2026-09-23 D41 起：本表 `level` 维度由 `representation` 接替、`culled` 转为 submit state、新增双表示共存与编辑态 pin——见 `representation-runtime.md` §四.4 / §五 / §十 / §十二；021.1 / 021.7 落地时本表同步改写，历史表述在此之前仅作 T006 语境快照。）
+> （2026-09-23 D41 立项、2026-09-24 T021.7 改写：本表 `level` 维度已由 `representation` 接替、`culled` 转为提交终态（submit state）、新增双表示共存与编辑态 pin 行——运行面正文 = `representation-runtime.md` §四.4 / §五 / §十 / §十二，两面互指不复制；021.7 前的 T006 语境表述见 git 历史。）
 
-| 事项 | 资产侧（声明与内容交付，T009.6 型任务） | Runtime 侧（调度与消费，T006） |
+| 事项 | 资产侧（声明与内容交付，T009.6 型任务） | Runtime 侧（调度与消费，T006 → T021） |
 |---|---|---|
-| 档位声明 | `levels` meta（§2） | 读声明构造候选档位链；不完整链跳档（006.1） |
-| 档位内容 | `build({level})` 几何+材质+深度材质成套、档间不变量、预算账目（§5） | — |
-| 选档 | — | 归一化视距评估器（domain 纯函数）+ 正交退化 + chunk 代表口径 + hysteresis（006.1） |
-| 切换 | — | 散布 = 确定性重撒重建；放置 = 实例跨桶迁移（池已有跨池迁移）——复用既有机制，**不引入「桶键不含 level、桶内换 Source」新机制**（D27.4）（006.3） |
-| 分桶 | — | 散布 = chunk × source × level；放置 = source × level（006.3） |
-| 批次控制 | — | 块尺寸自适应 + 远处合并/密度降级 + draw call 预算上限常量化，防「块×资产×档」批次爆炸（006.4） |
-| 缓存 | — | `sourceKey::level` 双维缓存 + evict 换档释放（已落地，T009.6） |
-| 裁剪 | — | chunk cull → frustum cull → 选档（看不见的对象不进 LOD；Culled 是调度结果） |
-| 拾取 | — | 跨档一致：任意档实例映射回同一业务对象/区域 |
-| 总开关 | — | LOD off = 全 High（回退对比与兜底） |
+| 档位声明 | `levels` / `representations` meta（§2.2——representations 声明优先、levels 派生回退） | 读声明构造有效表示链（effectiveRepresentationChain）；不完整链跳档（006.1 → 021.2 泛化） |
+| 档位内容 | `build({level})` 几何+材质+深度材质成套、档间不变量、预算账目（§5）；canopy 内容 = BroadleafCanopyProxy 工厂（T021.6，非 build 档） | — |
+| 选档 | — | 归一化视距评估器（domain 纯函数）+ 正交退化 + chunk 代表口径 + hysteresis（006.1 → 021.2 表示链选档） |
+| 切换 | — | 散布 = 确定性重撒重建；放置 = 实例跨桶迁移（池已有跨池迁移）——复用既有机制，**不引入「桶键不含表示、桶内换 Source」新机制**（D27.4）（006.3） |
+| 分桶 | — | 散布 = region × chunk × asset × representation；放置 = sourceKey × representation（桶键 `sourceKey::representation`，021.3 宽化 + 021.7 接线；`culled` 是提交状态不是桶类型，D41 §10.2） |
+| 双表示共存 | — | 过渡期 Current/Target 双表示桶并存（dither 交叉 / fade-out 退场，剔除边界 = Union）——分型与预算红线归运行面 §五（021.3 落地） |
+| 编辑态 pin | — | 选中 / 变换中 / gizmo 目标 / 聚焦飞行目标每帧强制 High + Shadow full + Fade 1（Scheduler 面 frameLod/frame 消费，不经源路由）；运行面指针 = representation-runtime.md §十二（落地归 Step B） |
+| 批次控制 | — | 块尺寸自适应 + 远处合并 + 批次键绑 representation（isBatchMergeAllowed），防「块×资产×表示」批次爆炸（006.4 → 021.4）；draw call 预算 **021.8 重锁 1500**（legacy 650 历史记档；最重合法包络 = 2000 混植真近机位实测 1011 DC，实测见 `docs/acceptance/t021/021.8/`） |
+| 缓存 | — | `sourceKey::representation` 双维缓存（021.7 二分支收敛，§2.2/§2.4）+ evict 换档释放（h/m/l 构建档）；canopy 源走 CanopySourceCache（门面分流，不淘汰、随会话释放） |
+| 裁剪 | — | chunk cull → frustum cull → 选档（看不见的对象不进 LOD；culled 是提交终态 LodSubmitState，非表示非档位） |
+| 拾取 | — | 跨表示一致：任意表示实例映射回同一业务对象/区域；过渡期可拾取、真剔除后不可拾取（§十二） |
+| 总开关 | — | LOD off = 全 High（回退对比与兜底；canopy/culled 一并旁路） |
 | 档位状态 | — | 每帧派生态：不进 Scene / Command / 持久缓存；块剔除后、render 前（§4.6） |
 | 验证面 | 强制档位生成（DEV mountLevels 型出图面）+ 档间取证（T009.6 先例） | 七项观测（D27.9：FPS / frame time p95·p99 / draw calls / triangles / visible instances / LOD 分布双口径 / 各 Representation 桶数）；跳变口径（D27.10：连续相机移动机器 diff + 换档点前后帧人工复核，判「无 pop / 无闪烁」不判「两档图像一致」）；同场景 LOD 开/关对照组（D27.13） |
 

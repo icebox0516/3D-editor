@@ -1,0 +1,311 @@
+{
+ "result": {
+  "env": {
+   "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 2080 Ti (0x00001E07) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+   "viewport": [
+    1920,
+    1080
+   ],
+   "dpr": 1,
+   "canvasClient": [
+    1920,
+    1048
+   ],
+   "pure3d": true,
+   "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36"
+  },
+  "mixedNearClose": {
+   "sample": {
+    "fps": 123.55057976809277,
+    "mean": 8.093851132686083,
+    "p50": 7.80000000000291,
+    "p95": 9.80000000000291,
+    "max": 15.099999999998545,
+    "frames": 618
+   },
+   "stats": {
+    "drawCalls": 1011,
+    "triangles": 17807084,
+    "geometries": 325,
+    "textures": 5,
+    "programs": 146,
+    "objects": 2000
+   },
+   "distribution": {
+    "instances": {
+     "high": 107,
+     "mid": 684,
+     "low": 0,
+     "canopy": 1209,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 66,
+     "mid": 104,
+     "low": 0,
+     "canopy": 104,
+     "culled": 0
+    },
+    "transitionInstances": 0,
+    "transitionTargets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "shadowCasterInstances": 2000,
+    "transition": {
+     "instances": 0,
+     "buckets": 0,
+     "dualSubmitBuckets": 0
+    }
+   }
+  },
+  "mixedFar449": {
+   "sample": {
+    "fps": 226.8321442132823,
+    "mean": 4.4085462555066055,
+    "p50": 4.30000000000291,
+    "p95": 6.100000000002183,
+    "max": 8.299999999995634,
+    "frames": 1135
+   },
+   "stats": {
+    "drawCalls": 445,
+    "triangles": 1905804,
+    "geometries": 325,
+    "textures": 5,
+    "programs": 146,
+    "objects": 2000
+   },
+   "distribution": {
+    "instances": {
+     "high": 0,
+     "mid": 15,
+     "low": 0,
+     "canopy": 1769,
+     "culled": 216
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 11,
+     "low": 0,
+     "canopy": 104,
+     "culled": 63
+    },
+    "transitionInstances": 0,
+    "transitionTargets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "shadowCasterInstances": 1784,
+    "transition": {
+     "instances": 0,
+     "buckets": 0,
+     "dualSubmitBuckets": 0
+    }
+   }
+  },
+  "mixedFar449AA": {
+   "sample": {
+    "fps": 240.17598240175982,
+    "mean": 4.163613655287261,
+    "p50": 4.099999999998545,
+    "p95": 5.900000000001455,
+    "max": 8.69999999999709,
+    "frames": 1201
+   },
+   "stats": {
+    "drawCalls": 445,
+    "triangles": 1905804,
+    "geometries": 325,
+    "textures": 5,
+    "programs": 146,
+    "objects": 2000
+   },
+   "distribution": {
+    "instances": {
+     "high": 0,
+     "mid": 15,
+     "low": 0,
+     "canopy": 1769,
+     "culled": 216
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 11,
+     "low": 0,
+     "canopy": 104,
+     "culled": 63
+    },
+    "transitionInstances": 0,
+    "transitionTargets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "shadowCasterInstances": 1784,
+    "transition": {
+     "instances": 0,
+     "buckets": 0,
+     "dualSubmitBuckets": 0
+    }
+   }
+  },
+  "tier1000At319": {
+   "sample": {
+    "fps": 1024.8770147582293,
+    "mean": 0.9757268292682924,
+    "p50": 0.8000000000029104,
+    "p95": 1.6999999999970896,
+    "max": 8.799999999995634,
+    "frames": 5125
+   },
+   "stats": {
+    "drawCalls": 67,
+    "triangles": 1483398,
+    "geometries": 325,
+    "textures": 5,
+    "programs": 146,
+    "objects": 1000
+   },
+   "distribution": {
+    "instances": {
+     "high": 0,
+     "mid": 33,
+     "low": 0,
+     "canopy": 966,
+     "culled": 1
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 8,
+     "low": 0,
+     "canopy": 8,
+     "culled": 1
+    },
+    "transitionInstances": 0,
+    "transitionTargets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "shadowCasterInstances": 999,
+    "transition": {
+     "instances": 0,
+     "buckets": 0,
+     "dualSubmitBuckets": 0
+    }
+   }
+  },
+  "tier1000At319AA": {
+   "sample": {
+    "fps": 985.6028794241151,
+    "mean": 1.014607425441266,
+    "p50": 0.8000000000029104,
+    "p95": 1.8000000000029104,
+    "max": 11.30000000000291,
+    "frames": 4929
+   },
+   "stats": {
+    "drawCalls": 67,
+    "triangles": 1483398,
+    "geometries": 325,
+    "textures": 5,
+    "programs": 146,
+    "objects": 1000
+   },
+   "distribution": {
+    "instances": {
+     "high": 0,
+     "mid": 33,
+     "low": 0,
+     "canopy": 966,
+     "culled": 1
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 8,
+     "low": 0,
+     "canopy": 8,
+     "culled": 1
+    },
+    "transitionInstances": 0,
+    "transitionTargets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "shadowCasterInstances": 999,
+    "transition": {
+     "instances": 0,
+     "buckets": 0,
+     "dualSubmitBuckets": 0
+    }
+   }
+  },
+  "interruptedRunNotes": {
+   "mixedNearOriginalParams": "view({}) 缺省自适应 → distance = max(lastExtent,25) = 449（2000 网格 extent）, az 35°, el 16°",
+   "mixedNearOriginalResult": {
+    "fps": 324.6,
+    "dc": 445,
+    "tri": 1905804,
+    "instances": {
+     "mid": 15,
+     "canopy": 1769,
+     "culled": 216
+    }
+   },
+   "mixedFarChosen": 449,
+   "identityExplanation": "near 缺省距离与 far 搜索选中距离同为 449 → 两机位同一位置，stats 逐位相同是必然，非捕获时序 bug"
+  }
+ },
+ "driverConsoleLog": [
+  {
+   "kind": "console",
+   "type": "debug",
+   "text": "[vite] connecting...",
+   "timestamp": 1790558983759.699
+  },
+  {
+   "kind": "console",
+   "type": "debug",
+   "text": "[vite] connected.",
+   "timestamp": 1790558983773.124
+  },
+  {
+   "kind": "console",
+   "type": "info",
+   "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+   "timestamp": 1790558984065.664
+  },
+  {
+   "kind": "console",
+   "type": "warning",
+   "text": "THREE.WebGLProgram: Program Info Log: (111,1): warning X4000: use of potentially uninitialized variable (f_koeDepthAlpha)\n\n\n\u0000",
+   "timestamp": 1790558994434.998
+  },
+  {
+   "kind": "console",
+   "type": "warning",
+   "text": "[Renderer] draw calls 超预算：1011 > 650（BATCH_POLICY.drawCallBudget，Legacy Baseline——T006.5 锁定值沿用作对照基线，T021 加入 Canopy/双表示/Shadow 表示后重测重锁归 021.8，D41 §九）——批次治理观测告警，非降级",
+   "timestamp": 1790559003233.799
+  },
+  {
+   "kind": "console",
+   "type": "warning",
+   "text": "[Renderer] draw calls 超预算：1011 > 650（BATCH_POLICY.drawCallBudget，Legacy Baseline——T006.5 锁定值沿用作对照基线，T021 加入 Canopy/双表示/Shadow 表示后重测重锁归 021.8，D41 §九）——批次治理观测告警，非降级",
+   "timestamp": 1790559008238.526
+  }
+ ]
+}

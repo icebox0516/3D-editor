@@ -13,15 +13,21 @@
  *      契约（domain/scatter）不经参数扩展——抽稀在 runtime 消费侧按实例稳定序过滤
  *      （006.4 记档裁定沿）。
  *
- * ✅ 数值状态 = **已锁定 + 一处降格**（T006.5 验收门，2026-09-19，
- *   docs/acceptance/t006/006.5/）：
+ * ✅ 数值状态 = **已锁定（drawCallBudget 021.8 重测重锁）**（T006.5 验收门
+ *   2026-09-19 docs/acceptance/t006/006.5/；重锁 2026-09-24）：
  *   - sparseMergeMaxInstances / mergeGroupFactor / budgetAlertIntervalMs：锁定值不动
  *     （合并桶压缩 4,096 → ~300 桶运行实测通过）；数值变更须重开实测锁定记档（沿
  *     「一次锁全量」测试断言联动）。
- *   - drawCallBudget = 650：T021.4 起降格为 **Legacy Baseline（对照基线）**——T021
- *     加入 Canopy / 双表示 / Shadow 表示后预算重测重锁归 021.8（连同 Frame Time
- *     p95 / Triangle Budget / Shadow Cost，D41 §九）。消费面（budgetAlert 超限告警）
- *     保留不删——纯观测治理面，重锁前以 legacy 对照语义运行。
+ *   - drawCallBudget = 1500：**021.8 重测重锁**（D41 §九）——T021 加入 Canopy /
+ *     双表示 / Shadow 表示后 DC 包络重测（证据锚：docs/acceptance/t021/021.8/
+ *     acceptance/README.md Phase C 与 docs/acceptance/t021/021.8/calibration/
+ *     README.md Phase A）：2000 混植 13 种最重合法包络 = 真近机位(D150) DC 1011
+ *     （far 449m DC 445 / 中景过渡带 895；单树种 1000 far(319m) 与单种 500 near
+ *     均 67——桶 = 槽位 × 表示，量级不变）。legacy 650（T006.4 十万路灯口径，
+ *     历史标定叙述见下）在混植近景/中景合法机位持续误报观测告警（budgetAlert 是
+ *     批次治理观测告警、非降级——误报本身污染信号）→ 重锁值 = 最重实测 1011 ×
+ *     ~1.5 余量：正常包络（≤1011）零误报，结构性批次爆炸（千级以上）仍触发。
+ *     消费面（budgetAlert 超限告警）保留不删——纯观测治理面。
  *   - batchMergeAllowed：第一版 = legacy 等值面（high 恒否、其余允许）——批次键从
  *     level 迁移到 representation，允许面本身不变（§九「第一版保留不动」）；canopy
  *     桶实测数过多时才提升区域级合批（021.8 判定）。
@@ -46,9 +52,8 @@ export interface BatchControlPolicy {
    * draw call 预算上限（renderer.info.render.calls 口径，主遍 + 影遍合计——分遍渲染模式下
    * 为最后遍口径，与 getViewportStats 同源）。超限 = console 节流告警（不做运行时降级——
    * 治理观测面，降级手段归表示/密度策略）。006.4 实测标定 + 006.5 验收门锁定（见
-   * docs/acceptance/t006/006.4 与 006.5）；**T021.4 起降格 Legacy Baseline**——T021
-   * 加入 Canopy / 双表示 / Shadow 表示后重测重锁归 021.8（D41 §九），重锁前为对照
-   * 基线语义（数值不动，消费面 budgetAlert 保留）。
+   * docs/acceptance/t006/006.4 与 006.5）；021.8 重测重锁 1500（D41 §九——最重
+   * 合法包络实测 1011 × ~1.5 余量，重锁记档与证据锚见模块头注）。
    */
   drawCallBudget: number;
   /** 预算超限告警最小间隔（毫秒）：连续超限帧至多每 interval 一次告警，不刷屏 */
@@ -71,14 +76,19 @@ export interface BatchControlPolicy {
 }
 
 /**
- * Runtime 全局批次控制策略（T006.5 实测锁定——锁定与降格依据见模块头注）。
+ * Runtime 全局批次控制策略（T006.5 实测锁定 + drawCallBudget 021.8 重测重锁——依据
+ * 见模块头注）。
  * drawCallBudget 依据 006.4 压力实测标定（RTX 2080 Ti / 10 万路灯散布 / 远近混合视角）：
  * LOD on 峰值 531（近景混合机位：92 内容桶 × 6 材质组 × 主遍+影遍）+ ~20% 余量 → 650
- * （Legacy Baseline，021.8 重锁）；LOD off 同场景对照 7773（批次治理效果 93%↓）。
- * 见 docs/acceptance/t006/006.4。
+ * （legacy 历史口径）；LOD off 同场景对照 7773（批次治理效果 93%↓）。见
+ * docs/acceptance/t006/006.4。
+ * 021.8 重测重锁追加段：T021 加入 Canopy / 双表示 / Shadow 表示后 DC 包络重测（Phase A
+ * 标定 + Phase C 实测，docs/acceptance/t021/021.8/）——2000 混植 13 种最重合法包络 =
+ * 真近机位(D150) DC 1011，legacy 650 在混植近景/中景合法机位持续误报 → 1500 =
+ * 1011 × ~1.5 余量（正常包络零误报、千级以上结构性批次爆炸仍触发，D41 §九）。
  */
 export const BATCH_POLICY: BatchControlPolicy = {
-  drawCallBudget: 650,
+  drawCallBudget: 1500,
   budgetAlertIntervalMs: 5000,
   batchMergeAllowed: { high: false, mid: true, low: true, canopy: true },
   sparseMergeMaxInstances: 32,

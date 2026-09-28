@@ -104,6 +104,10 @@
  *      （aFadeOut，缺省 0 = 完整呈现）。过渡期剔除并集（D41 §四.3）：本池按
  *      three 逐网格自身包围球剔除——双表示两网格各按自身真实边界判交，其并集
  *      语义天然成立（一侧被裁只发生在其自身几何必在视锥外时，零像素损失）。
+ * 编辑态优先级 pin（T021.7，D41 §十二）：frameLod 第三参 pinIds = 组合根装配的
+ *      四类编辑目标并集（每帧派生、结构见 runtime/services/EditingPinHub），逐对象
+ *      经 domain pinnedSelectionOutcome 覆盖为链内 high（含解除 culled）；Shadow
+ *      full / Fade 1 由高档策略与硬切完成语义承载；零 Scene / Command 改动（§十五.10）。
  */
 import type { ID, Transform } from '../../core/types';
 import { aSeedValueOf } from '../../domain/assets';
@@ -117,6 +121,7 @@ import type {
 } from '../../domain/lod/representation';
 import { effectiveRepresentationChain } from '../../domain/lod/representation';
 import { evaluateLodRepresentation, normalizedViewDistance } from '../../domain/lod/lodEvaluation';
+import { pinnedSelectionOutcome } from '../../domain/lod/editingPin';
 import {
   steadySelectionState,
   stepTransition,
@@ -158,8 +163,8 @@ export interface InstanceSource {
    * 消费方（池/散布/拾取/生命周期）只挂引用不 dispose（与 customDepthMaterial
    * 同规）。与选档基准 SelectionBounds（恒 High 派生稳定基准球，runtime/lodReference
    * 派生缓存，D28.4 非资产声明）分别命名、互不替代。可选字段：GLB loader 与既有
-   * 程序化源不填（缺省 = 沿用 geometry.boundingSphere 路径，行为零变化）；内容由
-   * Source 侧（Canopy 源起）成套提供，填充归后续任务（021.7 接线）。
+   * 程序化源不填（缺省 = 沿用 geometry.boundingSphere 路径，行为零变化）；canopy
+   * 源起成套提供（T021.7 CanopySourceCache——bounds = 几何包围球逐值转录）。
    */
   bounds?: RenderBounds;
 }
@@ -188,11 +193,11 @@ export function shadowDepthMaterialOf(
   return representation === 'canopy' ? source.customDepthMaterial : undefined;
 }
 
-/** 源提供者：assetId + 对象 seed + 表示 → 实例化源（Renderer 注入复合源路由
- *  AssetSourceRouter；seed 供源端槽路由定 sourceKey，表示为桶维度（缓存
- *  sourceKey::representation 键，T021.3 起宽化到 RuntimeRepresentation——canopy
- *  目标位执行路径落代码、真实资产 021.7 接线前不可达）。无 seed / 无表示调用兼容，
- *  散布等无 seed 消费方照旧） */
+/** 源提供者：assetId + 对象 seed + 表示 → 实例化源（Renderer 注入表示门面
+ *  RepresentationSourceRouter（T021.7）：h/m/l → ProceduralSourceCache、canopy →
+ *  CanopySourceCache；seed 供源端槽路由定 sourceKey，表示为桶维度（缓存
+ *  sourceKey::representation 键，T021.3 宽化 + T021.7 真接线——13 乔木已声明
+ *  canopy 能力）。无 seed / 无表示调用兼容，散布等无 seed 消费方照旧） */
 export type InstanceSourceProvider = (
   assetId: string,
   seed?: number,
@@ -630,9 +635,19 @@ export class InstancedAssetPool {
    *    dither 位 = 客座镜像双表示；fade-out 位 = 逐实例 aFadeOut 退场 + 终态零提交。
    *  - lodEnabled=false（总开关关）→ 评估器语义恒 High + culled 旁路：全部过渡收敛
    *    拆客座、迁回 high 桶（回退对比与兜底）。
+   *  - pinIds（T021.7 编辑态优先级，D41 §十二）：组合根装配的四类编辑目标并集
+   *    （selected / transforming / gizmo target / focus 短窗口——形态见
+   *    runtime/services/EditingPinHub），逐对象经 domain pinnedSelectionOutcome 合成
+   *    ——pinned 强制该资产链内 high（覆盖任何选档产出含 culled，解除超远裁剪），
+   *    按既有硬切路径升档（canopy/mid/low → high；源未就绪排队保持当前表示，
+   *    sourceReady 语义不变）；Shadow full / Fade 1 由 high 档策略与硬切完成语义
+   *    自然承载（迁入 high 桶即 {cast,receive,depth:'full'} + 满呈现）。pin 是
+   *    每帧派生覆盖：退出 pin 集下一帧恢复正常调度（迟滞参考已随 pin 期收敛高档，
+   *    按当帧距离重判）；与 LOD 总开关正交（off 本就恒 high，同值幂等）。不进
+   *    Scene / Command / 撤销重做（§十五.10）。
    * 迁移会改写池集合（扩桶/拆空桶），故对 pools 与 entries 均取快照遍历。
    */
-  frameLod(camera: THREE.Camera, lodEnabled: boolean): void {
+  frameLod(camera: THREE.Camera, lodEnabled: boolean, pinIds?: ReadonlySet<ID>): void {
     if (this.disposed || this.pools.size === 0) return;
     camera.updateMatrixWorld();
     const view = lodViewOfCamera(camera);
@@ -660,13 +675,17 @@ export class InstancedAssetPool {
           radius: sphere.radius,
           scale,
         };
-        const next = evaluateLodRepresentation({
-          view,
-          subject,
-          representations: chain,
-          current: entry.currentLod,
-          lodEnabled,
-        });
+        const next = pinnedSelectionOutcome(
+          evaluateLodRepresentation({
+            view,
+            subject,
+            representations: chain,
+            current: entry.currentLod,
+            lodEnabled,
+          }),
+          pinIds !== undefined && pinIds.size > 0 && pinIds.has(entry.id),
+          chain,
+        );
         const metric = normalizedViewDistance(view, subject);
         entry.currentLod = next;
         this.stepEntryTransition(pool, entry, next, metric);

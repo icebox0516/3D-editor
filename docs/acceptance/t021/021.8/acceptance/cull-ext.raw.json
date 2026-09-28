@@ -1,0 +1,140 @@
+{
+ "result": {
+  "frames": [
+   {
+    "file": "02-cull-celtis-d795.png",
+    "distance": 795,
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 1
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 0
+    },
+    "stats": {
+     "drawCalls": 3,
+     "triangles": 14
+    }
+   },
+   {
+    "file": "02-cull-celtis-d820.png",
+    "distance": 820,
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 1
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 0
+    },
+    "stats": {
+     "drawCalls": 3,
+     "triangles": 14
+    }
+   },
+   {
+    "file": "02-cull-celtis-d850.png",
+    "distance": 850,
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 1
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 0
+    },
+    "stats": {
+     "drawCalls": 3,
+     "triangles": 14
+    }
+   },
+   {
+    "file": "02-cull-celtis-d880.png",
+    "distance": 880,
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 1
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 0
+    },
+    "stats": {
+     "drawCalls": 3,
+     "triangles": 14
+    }
+   },
+   {
+    "file": "02-cull-celtis-d920.png",
+    "distance": 920,
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 1
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 0
+    },
+    "stats": {
+     "drawCalls": 3,
+     "triangles": 14
+    }
+   },
+   {
+    "file": "02-cull-celtis-d960.png",
+    "distance": 960,
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 1
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 0
+    },
+    "stats": {
+     "drawCalls": 3,
+     "triangles": 14
+    }
+   }
+  ]
+ },
+ "driverConsoleLog": [
+  {
+   "kind": "console",
+   "type": "debug",
+   "text": "[vite] connecting...",
+   "timestamp": 1790256922029.97
+  },
+  {
+   "kind": "console",
+   "type": "debug",
+   "text": "[vite] connected.",
+   "timestamp": 1790256922044.03
+  },
+  {
+   "kind": "console",
+   "type": "info",
+   "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+   "timestamp": 1790256922285.229
+  }
+ ]
+}

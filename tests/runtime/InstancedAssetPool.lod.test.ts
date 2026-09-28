@@ -22,9 +22,9 @@
  *   档位平移）；迁档后同机位零二次换档；临界推拉零 churn；单档资产基准 = 唯一源
  *   （行为不变，既有单档测试即回归面）。
  * - canopy 产出持有（T021.2）：假想声明 canopy 能力资产（representations
- *   ['high','mid','canopy']——真实 13 树种未声明、canopy 不可达是正确行为）在 canopy
- *   名义带的调度产出 canopy——021.7 接线前持有现状（不迁移、当档桶持续渲染、
- *   canopy 源零请求、迟滞参考已记录）。
+ *   ['high','mid','canopy']；真实 13 树种自 T021.7 起已声明该链——canopy 可达）
+ *   在 canopy 名义带的调度产出 canopy（迁移/过渡执行归源就绪；本文件假想源保持
+ *   单测零工厂依赖）。
  * - 分布 §十三升级位（T021.4）：transitionInstances（顶层镜像）、transitionTargets
  *   （目标表示口径——dither 期按 SelectionState.target 归档）、shadowCasterInstances
  *   （T021.5 策略驱动真值口径：caster = renderable ∧ isShadowCasterFor(桶表示,
@@ -73,7 +73,7 @@ const LEVEL_CENTER: Record<RuntimeRepresentation, THREE.Vector3> = {
   high: new THREE.Vector3(0, 3, 0),
   mid: new THREE.Vector3(0, 3, 0.5),
   low: new THREE.Vector3(0, 3, -0.5),
-  canopy: new THREE.Vector3(0, 3, 0.25), // T021.3 假想 canopy 源（真实资产 021.7 前不可达）
+  canopy: new THREE.Vector3(0, 3, 0.25), // T021.3 起假想 canopy 源（真实树种 021.7 已接线；单测用假想源隔离工厂）
 };
 /** 相机定标基准球心（= High 档；机位与期望读数的折算口径） */
 const SOURCE_CENTER = LEVEL_CENTER.high;
@@ -547,6 +547,12 @@ describe('InstancedAssetPool LOD：culled', () => {
       6,
     );
     expect(lowMesh.visible).toBe(true); // 退场带内正常提交
+    // T021.7 D1 回归：fade 换装包装几何不丢 groups（BoxGeometry 源默认 6 组——渲染器
+    // projectObject 材质数组路径按 geometry.groups 逐组推渲染项，空组 = 零渲染项即整
+    // 树消失；单材质 fixture 不受缺陷影响，此处锁「包装面忠实于源」的链级闭环）
+    expect(lowMesh.geometry.groups).toHaveLength(
+      sourceOf(sources, 'asset_tree', 7, 'low').geometry.groups.length,
+    );
 
     // 终态线（canopyToCulled × (1+W) 之上）：零缩放提交（真值保留）
     pool.frameLod(cameraForM(cullTerminalM()), true);
@@ -752,10 +758,10 @@ describe('InstancedAssetPool LOD：单档资产', () => {
   });
 });
 
-// ── canopy 目标位过渡执行（T021.3：假想声明资产——真实 canopy 表示 021.7 前不可达）──
+// ── canopy 目标位过渡执行（T021.3：假想声明资产——真实 13 树种 021.7 起已声明 canopy）──
 
 describe('InstancedAssetPool LOD：canopy dither 执行（假想声明资产）', () => {
-  /** 假想 canopy 池（representations 声明优先——真实 13 树种未声明 canopy） */
+  /** 假想 canopy 池（representations 声明优先——真实 13 树种 021.7 起已声明 canopy 链） */
   function makeCanopyPool(provider: ReturnType<typeof makeLeveledProvider>['provider']) {
     return new InstancedAssetPool({
       provideSource: provider,

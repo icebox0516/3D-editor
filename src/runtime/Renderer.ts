@@ -74,6 +74,8 @@ import { createDefaultRendererRegistry } from './renderers/RendererRegistry';
 import type { RendererRegistry } from './renderers/RendererRegistry';
 import { AssetLoader } from './loaders/AssetLoader';
 import { AssetSourceRouter } from './loaders/AssetSourceRouter';
+import { RepresentationSourceRouter } from './loaders/RepresentationSourceRouter';
+import { CanopySourceCache } from './procedural/CanopySourceCache';
 import { ProceduralSourceCache } from './procedural/ProceduralSourceCache';
 import { ScatterChunkManager } from './scatter/ScatterChunkManager';
 import { RegionScatterSync } from './scatter/RegionScatterSync';
@@ -133,6 +135,21 @@ export interface RendererDeps {
    * 总开关 + gizmo rotate 角度步进 + translate Y 高度层吸附。
    */
   snapTiers?: SnapTiersSource;
+  /**
+   * 编辑态 pin id 集（T021.7，D41 §十二，可选——组合根装配注入）：四类编辑目标
+   * （selected / transforming / gizmo target / focus 短窗口）的每帧派生并集只读视图
+   * （装配形态 = runtime/services/EditingPinHub——Renderer 不依赖任何具体编辑服务，
+   * 只见窄回调）。每帧 renderFrame 读一次透传放置链 frameLod 逐对象消费；未注入 =
+   * 无 pin（行为零变化）。散布链无对象身份、不消费 pin（映射回区域是 T003.3 语义）。
+   */
+  getEditingPinIds?: () => ReadonlySet<ID>;
+  /**
+   * 相机聚焦目标通知（T021.7，可选——透传 CameraController 的 onFocusObjects）：
+   * focusObjects 解析到目标时回调；组合根接 EditingPinHub.pinFocus 登记短窗口 pin
+   * （「相机飞行期间」的最小合规裁定：现状 focusBox 瞬时跳变无飞行动画，见
+   * FOCUS_PIN_WINDOW_MS 注）。focusAll 不回调（规范只点名 focusObjects——记档裁定）。
+   */
+  onFocusObjects?: (ids: readonly ID[]) => void;
 }
 
 /**
@@ -248,8 +265,12 @@ export class Renderer {
   private readonly assetLoader: AssetLoader | null;
   /** 程序化源缓存（T002.3；会话私有，与 AssetLoader 同生命周期——绝不模块级单例，D17） */
   private readonly proceduralCache: ProceduralSourceCache | null;
+  /** canopy 表示源缓存（T021.7，D41 §十一）：021.6 工厂产物会话私有缓存——随 dispose 链在 proceduralCache 相邻位置释放 */
+  private readonly canopySourceCache: CanopySourceCache | null;
   /** 复合源路由（T002.3）：kind 分派 GLB loader / 程序化缓存；池与 Ghost 的同源入口 */
   private readonly assetRouter: AssetSourceRouter | null;
+  /** 表示感知源路由门面（T021.7，D41 §十一）：两链 provideSource 的统一后端——h/m/l 走 assetRouter、canopy 走 canopySourceCache */
+  private readonly representationRouter: RepresentationSourceRouter | null;
   /** 重复资产实例化渲染池（同 assetId ≥2 → 单个 InstancedMesh；单例退化普通 Mesh） */
   private readonly instancedPool: InstancedAssetPool | null;
   /**
@@ -364,9 +385,10 @@ export class Renderer {
    */
   private lodEnabled = true;
   /**
-   * draw call 预算告警（T006.4）：每帧 render 后喂 renderer.info.render.calls，超
-   * BATCH_POLICY.drawCallBudget 且过节流间隔告警一次（console 日志侧；状态栏 UI 不在
-   * 本任务）。纯观测面——不做运行时降级（降级手段归档位策略，006.5 验收门裁定）。
+   * draw call 预算告警（T006.4；预算值 021.8 重测重锁 1500，D41 §九）：每帧 render
+   * 后喂 renderer.info.render.calls，超 BATCH_POLICY.drawCallBudget 且过节流间隔
+   * 告警一次（console 日志侧；状态栏 UI 不在本任务）。纯观测面——不做运行时降级
+   * （降级手段归档位策略，006.5 验收门裁定）。
    */
   private readonly budgetAlert = new BudgetAlert();
   private disposed = false;
@@ -427,6 +449,7 @@ export class Renderer {
     // 停留占位盒），现统一改接路由——GLB 路径经路由透传 loader，行为不变。
     const assets = deps.assets;
     this.proceduralCache = assets ? new ProceduralSourceCache() : null;
+    this.canopySourceCache = assets ? new CanopySourceCache() : null;
     this.assetRouter =
       this.assetLoader && this.proceduralCache && assets
         ? new AssetSourceRouter({
@@ -435,12 +458,25 @@ export class Renderer {
             procedural: this.proceduralCache,
           })
         : null;
+    // T021.7（D41 §十一）：表示感知门面架在 assetRouter 之上（渐进扩展不重写）——
+    // high/mid/low 直落既有路由（GLB file 分支忽略 level 恒 high，D28.5）；canopy 行
+    // 注册 CanopySourceCache（021.6 BroadleafCanopyProxy 工厂——成套材质 + 深度材质 +
+    // bounds；未支持资产的 canopy 请求在源端 reject，对象停留当前表示不静默回 high）。
+    // canopy 缓存会话私有（D17），随 dispose 链释放。
+    const canopySourceCache = this.canopySourceCache;
+    this.representationRouter =
+      this.assetRouter && canopySourceCache
+        ? new RepresentationSourceRouter({
+            assetRouter: this.assetRouter,
+            providers: { canopy: (assetId, seed) => canopySourceCache.load(assetId, seed) },
+          })
+        : null;
     // 模型对象改走实例化池（业务层无感：仍逐个 ModelObject attach，
     // 池内同池键 ≥2 合并为一个 InstancedMesh；无资产注册表时保留占位 Group 路径）。
     // T008.1（D19.4）：池键 = sourceKey——查注册表 meta，procedural 且声明 shapeFamily
     // 时按对象 seed 槽路由（seed 缺省按 0，与 ProceduralSourceCache 路由同一约定），
     // 与源缓存共用 domain/assets/shapeFamily 单一真相源；GLB/未声明资产回退 assetId。
-    const assetRouter = this.assetRouter;
+    const representationRouter = this.representationRouter;
     // T006.3：源请求携带 level（缓存 sourceKey::level 档位维度）；已声明表示能力查询与
     // 池键路由同源（注册表 meta 单一真相源——T021.2 起选档输入 = 表示能力驱动：
     // representations 声明优先、levels 派生回退，effectiveRepresentationChain 在两链
@@ -455,17 +491,15 @@ export class Renderer {
           meta.levels && meta.levels.length > 0 ? meta.levels.map((item) => item.id) : undefined,
       };
     };
-    this.instancedPool = assetRouter
+    this.instancedPool = representationRouter
       ? new InstancedAssetPool({
-          // T021.3：桶维度宽化到 RuntimeRepresentation（canopy 目标位执行路径落代码）。
-          // canopy 源路由归 021.7（§11 provideSource 签名演化——ProceduralSourceCache
-          // 二分支收敛）；生产 canopy 不可达（真实资产未声明 canopy 能力，021.2 记档），
-          // 假想声明资产在 021.7 前经本窄化回退 high 源（保守侧——high 是最全表示）
+          // T021.7：canopy 窄化回退（021.3 过渡期保守侧）已拆除——两链 provideSource
+          // 统一走表示门面真路由：h/m/l → ProceduralSourceCache（sourceKey::
+          // representation 双维，021.7 键收敛）；canopy → CanopySourceCache（021.6
+          // 工厂 + bounds 成套）；未支持资产的 canopy 请求 reject（sourceReady 保持
+          // false、对象停留当前表示，不静默回 high）
           provideSource: (assetId, seed, representation) =>
-            assetRouter.provideInstanceSource(assetId, {
-              seed,
-              level: representation === 'canopy' ? undefined : representation,
-            }),
+            representationRouter.provideRepresentationSource(assetId, seed, representation),
           resolvePoolKey: (assetId, seed) => {
             const descriptor = assets?.get(assetId);
             if (!descriptor || descriptor.kind !== 'procedural') return assetId;
@@ -480,13 +514,12 @@ export class Renderer {
     // 注册表的程序化 meta（hueJitter>0 → 逐实例色相微差，同 T002.3 语义只吃色相）。
     // root 挂 scene 而非 contentGroup——RuntimeViewport 拾取根只含 contentGroup.children，
     // 散布实例天然不参与拾取（映射回区域是 003.3 的事）。会话私有，随 dispose 链拆除。
-    this.scatter = assetRouter
+    this.scatter = representationRouter
       ? new ScatterChunkManager({
-          // T021.3 canopy 窄化边界同放置池：canopy 源路由归 021.7，此前回退 high 源
+          // T021.7：canopy 真路由（窄化回退拆除）——散布无 seed（assetId 粒度，D41 §4.4），
+          // canopy 源槽路由按 seed 0 确定性单槽；h/m/l 走 ProceduralSourceCache 双维键
           provideSource: (assetId, representation) =>
-            assetRouter.provideInstanceSource(assetId, {
-              level: representation === 'canopy' ? undefined : representation,
-            }),
+            representationRouter.provideRepresentationSource(assetId, undefined, representation),
           getAssetVariants: (assetId) => {
             const descriptor = assets!.get(assetId);
             return descriptor && descriptor.kind === 'procedural' ? descriptor.asset.variants : undefined;
@@ -523,7 +556,12 @@ export class Renderer {
         ? { root: this.scatter.root, resolvePick: (hit) => this.scatter!.resolvePick(hit) }
         : undefined,
     );
-    this.cameraController = new CameraController(this.camera, this.controls, this.map);
+    this.cameraController = new CameraController(
+      this.camera,
+      this.controls,
+      this.map,
+      deps.onFocusObjects, // T021.7：focus 目标通知（组合根接 EditingPinHub.pinFocus）
+    );
     // 园区导航小地图（T7.7）：宿主与轴指示器同源（主画布容器 = .ed-viewport）；
     // 独立小上下文渲染派生轮廓 + 视野 overlay，主 renderer.info 口径不受污染
     this.minimap = new MinimapRenderer(canvas.parentElement, {
@@ -845,7 +883,10 @@ export class Renderer {
     this.alignGuides.frame(this.camera, this.canvas.clientHeight); // 参考线端点屏幕恒定尺寸（T8.1；无激活 O(1) 早退）
     this.measureOverlay.frame(this.camera, this.canvas.clientHeight); // 测量端点/标签屏幕恒定尺寸（T10.1；无激活 O(1) 早退）
     this.scatter?.frame(this.camera, this.lodEnabled); // 散布逐块视锥剔除 + 块粒度 LOD 选档（T003.2/T006.3；无源 O(1) 早退）
-    this.instancedPool?.frameLod(this.camera, this.lodEnabled); // 放置逐对象 LOD 选档与跨桶迁移（T006.3；无池对象 O(1) 早退）
+    // T021.7 编辑态 pin（D41 §十二）：组合根装配的四类编辑目标并集每帧派生（零缓存），
+    // 透传放置链逐对象合成（散布链无对象身份不消费）；未注入 = undefined（池内快进零开销）
+    const editingPinIds = this.deps.getEditingPinIds?.();
+    this.instancedPool?.frameLod(this.camera, this.lodEnabled, editingPinIds); // 放置逐对象 LOD 选档与跨桶迁移（T006.3；无池对象 O(1) 早退）
     if (this.renderModes.current === 'shaded') {
       // 着色模式：单遍照旧（零开销零回归）；相机开全 layer（内容 0 + 环境 2 + 辅助 3 + 诊断 4）
       this.camera.layers.enableAll();
@@ -988,6 +1029,9 @@ export class Renderer {
     // T002.3：程序化源缓存紧随 loader 释放（两者资源不相交，顺序无耦合；池已先行拆除）。
     // 会话私有实例（D17）——释放后 StrictMode 后挂载的下一渲染器重建自己的缓存，互不影响
     this.proceduralCache?.dispose();
+    // T021.7：canopy 源缓存同链释放（canopy 条目资源归其所有——池只挂引用；先于释放
+    // 已由上方池/散布拆除保证消费方不再持引用）
+    this.canopySourceCache?.dispose();
     this.renderModes.dispose(); // 场景级 override 材质释放（T6.4 R7）
     this.clearEnvironment();
     this.controls.dispose();

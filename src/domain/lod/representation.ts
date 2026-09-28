@@ -133,8 +133,9 @@ export interface RepresentationCapability {
  *  - 均未声明 / 派生后为空 → 单档 ['high']（缺省单档语义，lod-spec §2.2）；
  *  - 越类型值（JS 侧手写声明的脏值）防御过滤——全滤空按未声明回单档。
  * culled 是提交终态不在链中（链的末端裁剪语义归选档/提交侧，不混入表示类型）。
- * 不感知资产类型、零 THREE；021.1 只落契约（本函数无运行时消费方——接线归 021.7
- * RepresentationSourceRouter / 选档消费归 021.2）。
+ * 不感知资产类型、零 THREE；消费方 = 两链选档（T021.2 起按资产缓存有效链）与
+ * RepresentationSourceRouter 门面链（T021.7：h/m/l → ProceduralSourceCache、
+ * canopy → CanopySourceCache）。
  */
 export function effectiveRepresentationChain(
   capability: RepresentationCapability,

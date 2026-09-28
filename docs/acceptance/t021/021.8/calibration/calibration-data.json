@@ -1,0 +1,168 @@
+{
+  "$schema-note": "T021.8 Phase A 全项 A/B 标定测量原始读数（确定性计数 + 像素探针；零 FPS/frame-time——本 Phase 禁测）。执行日 2026-09-24。环境：Chromium CDP / viewport 1920x1080 / DPR 1 / canvas 恰满视口（harness 页金丝雀 PASS）；T018 day 链、uTime 恒 0 静态帧；产品路径主视口 canvas 1292x712（编辑器带面板布局，DC/分布计数不受影响）。固定 seed：celtis 101(slot-1, r=4.542) / camphor 202(slot-2, r=5.303) / salix 303(slot-2, r=7.174)；High 派生稳定基准球口径 m=(d/r)·tan(fov/2)，fov 50°（harness 与产品相机一致）。",
+  "item1_thresholds": {
+    "constants": { "highToMid": 6, "midToCanopy": 16, "canopyToCulled": 60, "hysteresisBand": 0.15, "transitionBandRatio": 0.25 },
+    "h2m_natural_scan": [
+      { "m": 4.5, "mPerTree": { "celtis": 4.5, "camphor": 3.324, "salix": 3.53 }, "current": { "celtis": "high", "camphor": "high", "salix": "high" }, "tri": 107308, "dc": 7, "green": 0.007073 },
+      { "m": 5.5, "mPerTree": { "celtis": 5.5, "camphor": 4.124, "salix": 4.148 }, "current": { "celtis": "high", "camphor": "high", "salix": "high" }, "tri": 107308, "dc": 7, "green": 0.003726 },
+      { "m": 6.0, "mPerTree": { "celtis": 6, "camphor": 4.531, "salix": 4.459 }, "current": { "celtis": "high", "camphor": "high", "salix": "high" }, "tri": 107308, "dc": 7, "green": 0.002904 },
+      { "m": 6.5, "mPerTree": { "celtis": 6.5, "camphor": 4.943, "salix": 4.77 }, "current": { "celtis": "mid", "camphor": "high", "salix": "high" }, "tri": 79670, "dc": 7, "green": 0.001632 },
+      { "m": 8.0, "mPerTree": { "celtis": 8, "camphor": 6.19, "salix": 5.707 }, "current": { "celtis": "mid", "camphor": "mid", "salix": "high" }, "tri": 53214, "dc": 7, "green": 0.000562 }
+    ],
+    "h2m_sameM_ab": { "m": 6.5, "mid_side": { "tri": 79670, "dc": 7, "green": 0.001632 }, "high_side_pinned": { "tri": 107308, "dc": 7, "green": null }, "diff": { "changedPixels": 3466, "changedPct": 0.001671, "meanChannelDelta": 0.0174 }, "judgement": "m=6（16.7% 屏占比）硬切 pop 账目级 0.167% 视口像素、读图判读=可感知但轻微（冠密度/边缘柔和度差），与 T006.5 锁定一致——维持 6" },
+    "m2c_natural_scan": [
+      { "m": 12, "mPerTree": { "celtis": 12, "camphor": 9.565, "salix": 8.22 }, "celtisState": "mid 稳态", "tri": 25810, "dc": 7, "green": 0.00013 },
+      { "m": 14, "mPerTree": { "celtis": 14, "camphor": 11.264, "salix": 9.481 }, "celtisState": "mid 稳态", "tri": 25810, "dc": 7, "green": 0.000075 },
+      { "m": 16, "mPerTree": { "celtis": 16, "camphor": 12.966, "salix": 10.743 }, "celtisState": "mid 稳态（边界下侧归 mid）", "tri": 25810, "dc": 7, "green": 0.000042 },
+      { "m": 18, "mPerTree": { "celtis": 18, "camphor": 14.671, "salix": 12.005 }, "celtisState": "dither f=0.5（dualSubmitBuckets=1, dc=9, tri=26297）", "green": 0.000197 },
+      { "m": 20, "mPerTree": { "celtis": 20, "camphor": 16.378, "salix": 13.269 }, "celtisState": "canopy 完成（f=1）", "tri": 18153, "dc": 7, "green": 0.0003 },
+      { "m": 24, "mPerTree": { "celtis": 24, "camphor": 19.794, "salix": 15.797 }, "celtisState": "canopy 稳态；camphor dither t=0.9486（=(19.794-16)/4 精确吻合）", "tri": 18640, "dc": 9, "green": 0.000414 }
+    ],
+    "m2c_sameM_ab_pairs": [
+      { "T": 12, "diffPx": 3594, "diffPct": 0.001733, "greenMid": 0.00013, "greenCanopy": 0.001365 },
+      { "T": 14, "diffPx": 2700, "diffPct": 0.001302, "greenMid": 0.000075, "greenCanopy": 0.00101 },
+      { "T": 16, "diffPx": 2141, "diffPct": 0.001033, "greenMid": 0.000042, "greenCanopy": 0.000779 },
+      { "T": 18, "diffPx": 1728, "diffPct": 0.000833, "greenMid": 0.000023, "greenCanopy": 0.000622 },
+      { "T": 20, "diffPx": 1450, "diffPct": 0.000699, "greenMid": 0.000014, "greenCanopy": 0.000513 },
+      { "T": 24, "diffPx": 1023, "diffPct": 0.000493, "greenMid": 0.000005, "greenCanopy": 0.000364 }
+    ],
+    "m2c_judgement": "m=16（6.25% 屏占比）canopy 487 面可接受：剪影/体量/绿覆盖保持（绿覆盖率反高于 mid——卡片实心绿质量 vs mid 叶簇空隙）、zoom 读图无接缝/破洞、树种级差异部分保持（salix 垂幕特征弱化记档）；m=12 也可接受（形态完整）= 有提前空间，但无强证据要求变更且 legacy 直承 + 保守偏高档口径——维持 16",
+    "c2c_natural_scan": [
+      { "m": 45, "celtisF": 0, "tri": 1463, "dc": 7, "green": 0.000313 },
+      { "m": 55, "celtisF": 0, "tri": 1463, "dc": 7, "green": 0.000213 },
+      { "m": 60, "celtisF": 0, "tri": 1463, "dc": 7, "green": 0.000178 },
+      { "m": 65, "celtisF": 0.3333, "tri": 1463, "dc": 7, "green": 0.000137 },
+      { "m": 67.5, "celtisF": 0.5, "tri": 1463, "dc": 7, "green": 0.000122 },
+      { "m": 70, "celtisF": 0.6667, "tri": 1463, "dc": 7, "green": 0.000117 },
+      { "m": 75, "celtisF": 1, "celtis": "culled", "tri": 976, "dc": 5, "green": 0.00009 },
+      { "m": 80, "celtisF": 1, "celtis": "culled", "camphorF": 0.5149, "tri": 976, "dc": 5, "green": 0.000072 }
+    ],
+    "c2c_judgement": "m=60（1.67% 屏占比 ≈18px）起退场合理：fade-out 带内绿覆盖单调消解（0.000178→0.00009），树可辨但已近像素级；带末 m=75 彻底无感（带末对照 diff 1500px=0.072% 视口，含相机位移与 camphor dither 推进）——维持 60",
+    "t0066_step3_shift_measurements": {
+      "method": "细扫（步长 0.02-0.1 m）+ 逐对象状态直读（pool entries current/target/transition/culled）；每树以其自身 m 读数为判据（r 差异自然铺开）",
+      "results": [
+        { "boundary": "highToMid 降档", "nominal": 6, "measured_fromM": 6.0, "measured_toM": 6.02, "shiftPct": 0.33 },
+        { "boundary": "highToMid 升档（迟滞线 6×0.85=5.1）", "nominal": 5.1, "measured_fromM": 5.1, "measured_toM": 5.08, "shiftPct": 0.39 },
+        { "boundary": "midToCanopy 决策起坡（dither onset）", "nominal": 16, "measured_fromM": 16.02, "measured_toM": 16.04, "shiftPct": 0.25 },
+        { "boundary": "midToCanopy 完成（带末 16×1.25=20）", "nominal": 20, "measured_fromM": 19.95, "measured_toM": 20.0, "shiftPct": 0.25 },
+        { "boundary": "canopy→mid 升档完成（迟滞线 13.6 − 带宽 4 = 9.6）", "nominal": 9.6, "measured_celtis": "9.64→9.60", "measured_camphor": "9.633→9.599", "shiftPct": 0.42 },
+        { "boundary": "canopyToCulled fade 起坡", "nominal": 60, "measured_fromM": 60.0, "measured_toM": 60.02, "shiftPct": 0.03 },
+        { "boundary": "un-cull（f<1 解除）", "nominal": 75, "measured_fromM": 75.0, "measured_toM": 74.9, "shiftPct": 0.13 }
+      ],
+      "conclusion": "全部边界平移量 ≤0.42%（均在细扫步长分辨率内）——High 派生稳定基准球（T006.6 Step 2）使 m 恒定、无旧实现档间平移反馈环，实证成立"
+    }
+  },
+  "item2_hysteresis": {
+    "method": "名义线 ±5% 往返 8 轮（16 步），双侧起步；升档线另由细扫确认",
+    "results": [
+      { "nominal": 6, "lo": 5.7, "hi": 6.3, "fromBelow_flips": 1, "fromAbove_flips": 0, "note": "近侧起步：首次越线沉降 high→mid 后 16 步零回翻；远侧起步全程零翻转" },
+      { "nominal": 16, "lo": 15.2, "hi": 16.8, "fromBelow_flips": 0, "fromAbove_flips": 0, "note": "±5% 偏离被 dither 带吞没（current 不变，仅 t 值摆动）" },
+      { "nominal": 60, "lo": 57, "hi": 63, "fromBelow_flips": 0, "fromAbove_flips": 0, "note": "63 < 75（f=1 线）——fade-out 带吞没偏移，current 恒 canopy" }
+    ],
+    "upgrade_line_check": "实测升档线 5.08–5.10 = 6×(1−0.15) 精确（细扫直证）",
+    "conclusion": "0.15 充分——三边界 ±5% 振荡零翻转（硬切位至多一次沉降）、dither/fade 带天然吞没带内偏移；维持 0.15"
+  },
+  "item3_band_ratio": {
+    "band_end_dither": { "pair": [19.7, 20.3], "a": "f=0.925 双提交（dc=11）", "b": "canopy 稳态（dc=9）", "diffPx": 3245, "diffPct": 0.001565, "note": "含相机 0.6m 位移与 camphor dither 入带（f 0.031→0.158）的合成差异——带完成瞬间无可辨跳变" },
+    "band_end_fadeout": { "pair": [74.7, 75.3], "a": "f=0.98", "b": "culled", "diffPx": 1500, "diffPct": 0.000723, "note": "带末退场彻底无感" },
+    "dither_grain_f050": { "zoom": "10.7x @m=18（原生 ~60px 树高）", "judgement": "颗粒为像素级盐椒混合、原生分辨率下融入纹理（静态帧不显著、运动中或呈轻微 shimmer）；颗粒不过粗、冠剪影完整" },
+    "band_width_note": "0.25 → m=16 档位带 m 跨度 4（屏占比 6.25%→5%）；带内双表示持续并存（静止相机停带内持续双提交——021.7 已记档，DC 面 ⑦ 实测零增量）",
+    "conclusion": "维持 0.25——带端连续（两处 diff ≤0.16% 视口）、颗粒可接受；无强证据支持 0.15/0.40"
+  },
+  "item4_low_reinsert": {
+    "face_counts": { "celtis": { "low": 2358, "canopy": 487, "ratio": 4.84 }, "camphor": { "low": 2234, "canopy": 487, "ratio": 4.59 }, "salix": { "low": 1740, "canopy": 487, "ratio": 3.57 } },
+    "green_coverage_matrix": {
+      "m16": { "celtis": { "low": 0.000315, "canopy": 0.000445 }, "camphor": { "low": 0.000096, "canopy": 0.000334 }, "salix": { "low": 0.000066, "canopy": 0.000635 } },
+      "m20": { "celtis": { "low": 0.000176, "canopy": 0.000292 }, "camphor": { "low": 0.000047, "canopy": 0.000209 }, "salix": { "low": 0.00003, "canopy": 0.00041 } },
+      "m30": { "celtis": { "low": 0.000054, "canopy": 0.000128 }, "camphor": { "low": 0.000018, "canopy": 0.000091 }, "salix": { "low": 0.000003, "canopy": 0.000186 } },
+      "m45": { "celtis": { "low": 0.000014, "canopy": 0.000061 }, "camphor": { "low": 0.000006, "canopy": 0.000041 }, "salix": { "low": 0, "canopy": 0.000083 } }
+    },
+    "dc_per_frame": { "low": 3, "canopy": 3, "note": "同为 2 材质组（[皮,叶] vs [干柱,冠卡]）+地面——单树 DC 等价；差异在 tri（3.4-4.8×）与链成本" },
+    "zoom_judgements": {
+      "celtis_m16": "16x zoom：low 有叶片轮廓/冠内通透/壳层带状结构；canopy 丢失叶级细节但冠质量/剪影/体量保持——原生 67px 树高下人眼不可辨（分析判读两读一致）",
+      "salix_m16": "low 垂幕帘状枝特征清晰；canopy 保留部分下垂形态但泛化——原生分辨率下柳特征损失不可辨，zoom 级可辨（记档：树种级冠形差异在 canopy 侧为弱保持，远景验收第 4 条的已知折衷）",
+      "m30_m45": "low 绿覆盖趋零（camphor 6e-6/salix 0 @m45）——远距 low 读作像素尘"
+    },
+    "cost_account": "low 面 3.4-4.8× canopy + 回插=分段链两次过渡（mid→low→canopy 两个 pop 窗口 + 桶维度 +1（sourceKey::low 全树种重建）+ 过渡期双表示窗口 ×2",
+    "conclusion": "不回插——屏占比 ≤6.25% 下 low 视觉增益人眼不可辨（m=16 边界档 zoom 级才可辨）、绿覆盖反低于 canopy（壳卡空隙）；成本面纯增。无分段建议"
+  },
+  "item5_canopy_receive": {
+    "shadow_constants": "照抄 Renderer.ts 1036-1055：2048²/±160/near 1/far 400/bias −0.0004 + PCFShadowMap（一个数不改）",
+    "m16": { "receiveFalse": { "crownMeanLum": 179.33, "crownStdLum": 49.86, "dc": 17, "programs": 10 }, "receiveTrue": { "crownMeanLum": 178.49, "crownStdLum": 50.95, "dc": 17, "programs": 12 }, "diff": { "changedPixels": 321, "changedPct": 0.000155 } },
+    "m30": { "receiveFalse": { "crownMeanLum": 180.19, "crownStdLum": 48.29 }, "receiveTrue": { "crownMeanLum": 179.38, "crownStdLum": 49.34 }, "diff": { "changedPixels": 90, "changedPct": 0.000043 } },
+    "mechanism_check": "读图确认：caster 群地面影清晰在场 + 冠区 321px 差异集中在接收树冠（影确实落冠、receive 通道真实生效）——差异不可辨是距离尺度问题非机制缺失",
+    "conclusion": "维持 false——m≥16 冠均亮度差 0.5%、90-321px（0.004-0.016% 视口）不可辨；成本 programs +2（冠卡两材质组阴影采样变体）+ 阴影采样 fragment 开销"
+  },
+  "item6_mid_depth": {
+    "method": "mid celtis 直挂（真实源经路由），full=挂源 SDF（celtis:leaf-depth:mid）/ simplified=不挂（three 缺省实心深度）；影子落读向底（影足迹矩形 + 亮底 0.75 阈）",
+    "results": {
+      "m3_near_reference": { "full": { "darkPct": 0.0183, "stdLum": 15.06 }, "simplified": { "darkPct": 0.0287, "stdLum": 16.59 }, "diffPx": 9449, "diffPct": 0.004557, "note": "近距对照（mid 区外）——实心卡影更致密（无叶形缺刻裁切），与 021.5 low 结论同向" },
+      "m8": { "full": { "darkPct": 0.0209, "stdLum": 16.32 }, "simplified": { "darkPct": 0.0307, "stdLum": 17.66 }, "diffPx": 804, "diffPct": 0.000388 },
+      "m16": { "full": { "darkPct": 0.0209, "stdLum": 16.01 }, "simplified": { "darkPct": 0.0289, "stdLum": 17.27 }, "diffPx": 172, "diffPct": 0.000083 }
+    },
+    "cost_account": { "dc_both": 5, "tri_both": 16290, "programs": "full 需 SDF 深度程序；simplified 用缺省——会话内两种变体累积 16→18；shadow pass tri 等价（SDF 改 fragment 不改几何）" },
+    "resolution_note": "shadow map 2048/320m = 0.156 m/txel；mid 叶簇卡 ~0.3-0.5m ≈ 2-3 txel/卡——缺刻结构在 texel 极限，这是 mid 距离段不可辨的物理原因",
+    "conclusion": "维持 full——m≥8 视觉不可辨（804/172px）成立，但 m=6 带缘处外推 ~2500px（0.13%）处边缘可辨，且确定性成本账目（DC/tri/programs）无明确收益（收益仅在 shadow pass fragment 内、本 Phase 禁 FPS 无法量化）——变更证据不完整，保守维持"
+  },
+  "item7_dual_submit_dc": {
+    "stats_shape_dump": "__scatterSmoke.stats().lod = { instances, buckets }——无 transition 计数面（dualSubmitBuckets 不暴露，如实记档）；DC 读数经 __tree3aPerf.stats().drawCalls（getViewportStats 上一完整帧）",
+    "product_1000trees_sweep": {
+      "scenario": "place(1000)（夏栎 8 槽，网格 32×32@11m，extent 341m），d 120→240 逐档拉远穿 dither 带",
+      "series_dc": [95, 97, 97, 95, 91, 91, 91, 91, 89, 87, 87, 89, 87, 85, 83, 79, 75, 71, 67],
+      "buckets": "mid 8 / canopy 8 恒定（高桶随距降 8→0）",
+      "instances_shift": "canopy 497→724 / mid 450→276（单调迁移）",
+      "peak_increment": "零——DC 全程单调下降，dither 客座并入既有 canopy 桶（同 sourceKey::canopy 槽桶），不产生新桶"
+    },
+    "compact_100trees_worst_case": {
+      "scenario": "place(100, spacing 8)（紧缩网格 extent 72m，variants 小尺度树使带入口 canopy 桶 5→8 渐建）",
+      "pre_wave_steady_dc": 55,
+      "peak_dc": 67,
+      "peak_at": "d=195（mid 57/canopy 43 全双提交窗口）",
+      "decomposition": "+12 中 +6 为 canopy 桶 5→8 结构性增长（随迁移完成永久化、非过渡成本），纯双表示份额 ≤ +6；同位稳态假想 DC ≈ 同值（混合槽桶结构相同）",
+      "hard_upper_bound": "双表示客座桶 ≤ sourceKey 槽数 = 8 → DC 增量上界 +16（8 桶 × 2 材质组）"
+    },
+    "conclusion": "红线 +30 PASS 且余量大：产品 1000 树场景实测零增量（客座并入既有桶）；最坏构造场景峰值 +12（含结构性）、纯双表示份额 ≤+6、理论上界 +16"
+  },
+  "item8_focus_pin_window": {
+    "trigger_path": "产品路径：大纲行点击选中（SelectionManager）→ F 键（input.ts L276-279 → camera.focusObjects → RendererDeps.onFocusObjects → EditingPinHub.pinFocus）；窗口内取消选中用页内合成 canvas 空白点击（RuntimeViewport pick→deselect，产品 DOM/事件处理器同路）",
+    "timeline_rec4": {
+      "t0": 0,
+      "focus_effective_ms": 384,
+      "near_phase": "h=45/c=5 @dt 383（focusBox 相机跳近，目标 m≈1.4）",
+      "yank_ms": 384,
+      "far_restored": "h=1/c=49 @dt 484（回拉 canopy 距离 d=400，pin 目标仍强制 high）",
+      "deselect_ms": 510,
+      "pin_drop_ms": 991,
+      "measured_window_ms": 607,
+      "note": "掉档帧 = 选中 pin（t≤510 已撤）与 focus 窗口均已到期后的首个 frameLod 帧——607ms ≈ 600 + 帧粒度（rAF 16ms + 采样分辨率）"
+    },
+    "observed_behaviors": [
+      "选中 pin：选中即在 canopy 距离强制 high（h=1/c=49 同帧，编辑目标高档其余正常调度并存——产品路径证据帧 08）",
+      "撤选中（窗口外）：立即硬切降档（h=1→0 同帧，021.7 帧 11 语义复现）",
+      "focus 窗口：F 触发后即使相机被拉回 canopy 距离，目标在 600ms 内保持 high；到期自动降档恢复调度"
+    ],
+    "conclusion": "维持 600ms——实测 607ms 与名义一致；focusBox 取景 m≈1.4 天然 high、窗口为迟滞带兜底 + 窗口内取消选中的过渡覆盖，0.6s 量级 = 「刚聚焦完」余韵（过短看不到细节、过长非编辑态占高档），未见偏短/偏长证据"
+  },
+  "item9_batch_config": {
+    "placement_1000_far_view": { "distance": 420, "bucketsCanopy": 8, "bucketsMid": 1, "bucketsCulled": 7, "drawCalls": 39, "instances": { "canopy": 962, "mid": 1, "culled": 37 } },
+    "scatter_3species_300m": {
+      "params": "polygon ±150m（300×300m）/ density 0.03（2700 实例）/ 3 树种（celtis+camphor+salix）/ seed 20260924 / scale 0.85-1.15",
+      "distance": 450,
+      "totalChunks": 100,
+      "bucketsCanopy": 111,
+      "bucketsMid": 4,
+      "drawCalls": 441,
+      "instances": { "canopy": 2660, "mid": 40 }
+    },
+    "per_species_bucket_rate": "~37 canopy 桶/树种/300m 见方区域（(300/64+边缘)² 量级——2×2 稀疏合并生效：300/32=10²=100 chunk → 111 桶 ≈ 3×37）",
+    "legacy_compare": "drawCalls 441 < legacy 650（单树种放置链 39 远低于）",
+    "extrapolation_note": "13 树种同规模混植外推 ~480 canopy 桶 / DC ~1900+（超 legacy 650）——混植多树种大区域是 Phase B 性能梯队（draw call 重锁基线）的判定面，非本 Phase 结论范围；如实记档供重锁参考",
+    "conclusion": "现有 32m chunk + 2×2 稀疏合并够用（实测代表负载 111 桶 / DC 441 < 650 且单树种 8 桶）——无需区域级合批；多树种大区域外推超线记档归 Phase B DC 重锁"
+  },
+  "console_errors": "三轮会话（chain 页 / AB 页 / 产品路径）全程 0 错误 0 警告（页内 consoleDump 复核 + UI 无错误 toast）",
+  "tools": {
+    "chain_page": "tools/calib-chain.html + calib-chain-page.ts（真实调度路径 harness——021.7 chain-smoke 同构 + 阈值覆写 A/B 通道 + 逐对象状态直读 + 帧捕获/diff/zoom）",
+    "ab_page": "tools/calib-ab.html + calib-ab-page.ts（直挂 A/B 舞台——真实源经路由、策略经交付原语、Shadow 冻结常量照抄）",
+    "product_path": "http://localhost:5173 主应用 + window.__tree3aPerf / __scatterSmoke / F 键 / 大纲行选中"
+  }
+}

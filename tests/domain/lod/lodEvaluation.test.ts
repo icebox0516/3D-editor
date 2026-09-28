@@ -19,15 +19,17 @@
  *   等距 tie-break 取更远端（序数更大——保守省面）、序数最近表示、单档恒定（culled 线内）、
  *   culled 线不跳档、representations 缺省/空 = 单档 high 语义；canopy 名义档的承接
  *   （legacy [high,mid,low] → low）与直达（声明 canopy → canopy）；
- * - 表示能力驱动组合（T021.2）：effectiveRepresentationChain 产物作为评估器输入——
- *   representations 声明优先 / levels 派生回退语义经组合断言（13 树种形态 = levels
- *   派生分支，canopy 不可达是正确行为——canopy 可达性由 021.6 接入 + 021.7 接线成立）；
+ * - 表示能力驱动组合（T021.2 → T021.7 声明接线）：effectiveRepresentationChain 产物
+ *   作为评估器输入——representations 声明优先 / levels 派生回退语义经组合断言
+ *   （13 树种自 021.7 起声明 ['high','mid','canopy']——canopy 可达、low 不进链；
+ *   legacy levels 派生链 canopy 带承接 low 语义保持为回归锁）；
  * - LOD 总开关（D27.13）：false = 恒 'high'（经跳档映射）、culled 旁路（含 current='culled'）、
  *   奇异声明 ['low'] 回 'low' 的取舍回归锁；true 显式开启 = 缺省行为；
  * - 纯函数性：同输入重复调用逐位同输出；
  * - 输入防御：radius/scale 非正（radius × scale ≤ 0）、透视 fovY ∉ (0, π) 抛 Error；
- * - 策略常量：LOD_THRESHOLDS 一次锁全量候选值（T021.2 新链候选初值 = legacy 三数
- *   同值直承，**候选状态、021.8 A/B 重锁**；数值变更须走实测锁定记档）+ thresholds 覆写。
+ * - 策略常量：LOD_THRESHOLDS 一次锁全量（T021.2 新链候选初值 = legacy 三数
+ *   同值直承，**021.8 实测维持转锁定**——证据锚 docs/acceptance/t021/021.8/calibration/
+ *   README.md 结论总表①②；数值变更须走实测锁定记档）+ thresholds 覆写。
  * 边界：纯函数零 THREE（check:layers 语义：domain 无渲染依赖）。阈值穿越断言一律以
  *      LOD_THRESHOLDS 常量为参照构造边界（相对语义 ±ε），不散落硬编码绝对值。
  *
@@ -116,7 +118,7 @@ describe('统一度量 m：透视口径', () => {
     // 非平凡组合同锚：d/r = 2、tan(fovY/2) = 0.5 → m = 1
     const fovY = 2 * Math.atan(0.5);
     expect(normalizedViewDistance(perspective(4, fovY), subject(2))).toBeCloseTo(1, 12);
-    // 解释口径锚点：m = 6（候选 highToMid）↔ screenFraction = 1/6 ≈ 16.7%
+    // 解释口径锚点：m = 6（锁定 highToMid，021.8 实测维持）↔ screenFraction = 1/6 ≈ 16.7%
     expect(1 / normalizedViewDistance(perspective(12, Math.PI / 2), subject(2))).toBeCloseTo(
       1 / 6,
       12,
@@ -400,8 +402,26 @@ describe('不完整链跳档（resolveDeclaredRepresentation，T021.2 泛化到�
 });
 
 describe('表示能力驱动组合（T021.2：effectiveRepresentationChain 产物 = 评估器输入）', () => {
-  it('13 树种形态（levels 派生分支）：levels [high,mid,low] 派生链下 canopy 不可达——canopy 带承接 low（正确行为，可达性由 021.6/021.7 成立）', () => {
-    // 真实 13 树种未声明 representations（levels 派生分支）——组合断言其选档语义
+  it('13 树种形态（T021.7 声明接线后）：representations ["high","mid","canopy"] 声明优先 → canopy 可达（canopy 带 (midToCanopy, canopyToCulled] 真 canopy）、low 不可达（构建档保留、不进有效链）', () => {
+    // 真实 13 树种自 021.7 起声明 representations ['high','mid','canopy']（levels 三档
+    // 保留为构建档位）——声明优先覆盖 levels 派生，canopy 名义区间真可达
+    const chain = effectiveRepresentationChain({
+      representations: ['high', 'mid', 'canopy'],
+      levels: ['high', 'mid', 'low'], // 派生源存在但被声明覆盖（low 不进链）
+    });
+    expect(chain).toEqual(['high', 'mid', 'canopy']);
+    const canopyBand = (T.midToCanopy + T.canopyToCulled) / 2;
+    for (const m of [T.highToMid * 0.5, T.highToMid * 1.5, canopyBand, T.canopyToCulled * 0.99]) {
+      expect(run(orthoAtM(m), subject(1), { representations: chain })).not.toBe('low');
+    }
+    expect(run(orthoAtM(T.highToMid * 1.5), subject(1), { representations: chain })).toBe('mid');
+    expect(run(orthoAtM(canopyBand), subject(1), { representations: chain })).toBe('canopy');
+    expect(run(orthoAtM(T.canopyToCulled * 1.001), subject(1), { representations: chain })).toBe(
+      'culled',
+    );
+  });
+
+  it('legacy levels 派生链（[high,mid,low]）语义回归锁：canopy 带承接 low——真实 13 树种自 021.7 起改走 representations 声明链，派生语义保持（未声明资产的缺省路径）', () => {
     const chain = effectiveRepresentationChain({ levels: ['high', 'mid', 'low'] });
     expect(chain).toEqual(['high', 'mid', 'low']);
     const canopyBand = (T.midToCanopy + T.canopyToCulled) / 2;
@@ -539,7 +559,7 @@ describe('输入防御（调用方 bug 早暴露）', () => {
 });
 
 describe('策略常量与阈值覆写', () => {
-  it('LOD_THRESHOLDS 字段齐全且候选值 = 6/16/60/0.15（一次锁全量；T021.2 新链候选初值 = legacy 三数同值直承，**候选状态、021.8 A/B 重锁**——重锁须重开实测记档并连带更新本断言）', () => {
+  it('LOD_THRESHOLDS 字段齐全且锁定值 = 6/16/60/0.15（一次锁全量；T021.2 候选初值 = legacy 三数同值直承，**021.8 实测维持转锁定**——改值须重开实测记档并连带更新本断言）', () => {
     expect(LOD_THRESHOLDS).toEqual({
       highToMid: 6,
       midToCanopy: 16,

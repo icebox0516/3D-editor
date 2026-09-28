@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>T021.8 Phase C Fade 专项 harness（chain 页——真实调度路径六运动模式 × 四判据）</title>
+  <script>
+    // console 捕获（先于 three/材质模块加载注入——021.3/021.6/021.7/021.8A 先例同款）
+    window.__CALIB_ERRORS = [];
+    window.__CALIB_WARNINGS = [];
+    (function () {
+      var oe = console.error, ow = console.warn;
+      console.error = function () {
+        window.__CALIB_ERRORS.push(Array.prototype.map.call(arguments, String).join(' '));
+        oe.apply(console, arguments);
+      };
+      console.warn = function () {
+        window.__CALIB_WARNINGS.push(Array.prototype.map.call(arguments, String).join(' '));
+        ow.apply(console, arguments);
+      };
+      window.addEventListener('error', function (e) { window.__CALIB_ERRORS.push('window.onerror: ' + e.message); });
+      window.addEventListener('unhandledrejection', function (e) { window.__CALIB_ERRORS.push('unhandledrejection: ' + String(e.reason)); });
+    })();
+  </script>
+  <style>
+    html, body { margin: 0; padding: 0; background: #20242a; overflow: hidden; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <script type="module" src="./fade-chain-page.ts"></script>
+</body>
+</html>

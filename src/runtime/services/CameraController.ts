@@ -26,13 +26,26 @@ export class CameraController {
   private readonly camera: THREE.PerspectiveCamera;
   private readonly controls: OrbitControls;
   private readonly map: RuntimeObjectMap;
+  /**
+   * 聚焦目标通知（T021.7，D41 §十二，可选——组合根注入）：focusObjects 解析到对象后
+   * 回调目标 id 集（消费面 = EditingPinHub.pinFocus 短窗口 pin；Renderer 透传注入）。
+   * focusAll **不回调**：规范 pin 四类目标只点名 focusObjects（全场景聚焦无「编辑目标」
+   * 语义，pin 全集会瞬间拉爆高档实例数——记档裁定）。
+   */
+  private readonly onFocusObjects?: (ids: readonly ID[]) => void;
   /** 当前机位模式（setMode 写入；启动默认 perspective；getMode 读取——T4.1 B3 契约增补） */
   private mode: CameraMode = 'perspective';
 
-  constructor(camera: THREE.PerspectiveCamera, controls: OrbitControls, map: RuntimeObjectMap) {
+  constructor(
+    camera: THREE.PerspectiveCamera,
+    controls: OrbitControls,
+    map: RuntimeObjectMap,
+    onFocusObjects?: (ids: readonly ID[]) => void,
+  ) {
     this.camera = camera;
     this.controls = controls;
     this.map = map;
+    this.onFocusObjects = onFocusObjects;
   }
 
   getMode(): CameraMode {
@@ -95,14 +108,18 @@ export class CameraController {
 
   focusObjects(ids: ID[]): void {
     const box = new THREE.Box3();
-    let found = false;
+    const found: ID[] = [];
     for (const id of ids) {
       const object = this.map.get(id);
       if (!object) continue;
       box.expandByObject(object);
-      found = true;
+      found.push(id);
     }
-    if (found) this.focusBox(box);
+    if (found.length > 0) {
+      // T021.7：解析到目标的 focus 通知（短窗口 pin 装配面——空目标集无「飞行」语义）
+      this.onFocusObjects?.(found);
+      this.focusBox(box);
+    }
   }
 
   focusAll(): void {

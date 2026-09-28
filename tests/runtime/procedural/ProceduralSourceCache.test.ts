@@ -15,10 +15,15 @@
  *   load 命中不重建；缺省 level 与显式 'high' 同键同条目；level 透传 build；evict
  *   单档精确释放（另一档不受影响、未命中 false、幂等）；未声明 shapeFamily 带 level
  *   仍无参 build 单条目（现状逐位一致）；sourceKeyOf 输出形态原样（level 不掺形态身份）。
- * - 无 shapeFamily 多档资产键规则（T006.2）：声明多档（levels.length > 1——设施资产
- *   两档先例）→ 键 = assetId::level、build 恰收 {level}（seed/preset 不透传）、seed
- *   不参与键、evict 单档独立释放；单档声明（levels 恰 1）与未声明 levels 一致保持
- *   恒单档行为（纯 assetId 键 + 无参 build，现状逐位一致回归锁）。
+ * - 无 shapeFamily 多档资产键规则（T006.2 → T021.7 收敛记档）：声明多档
+ *   （levels.length > 1）或 representations 非空（T021.1 声明面）→ 键 = assetId::level、
+ *   build 恰收 {level}（seed/preset 不透传）、seed 不参与键、evict 单档独立释放；
+ *   单档声明（levels 恰 1）与未声明 levels 一致保持恒单档行为（纯 assetId 键 +
+ *   无参 build，现状逐位一致回归锁）。
+ * - 键收敛二分支（T021.7，D41 §10.2）：旧「未声明多档」中间分支删除——
+ *   representations 声明资产收编入第一分支；streetlamp 真实资产键字面量
+ *   assetId::level 新旧逐位一致（收敛安全判据锁死）；representations 单档声明
+ *   也入键分支（字面规则「representations 非空」——边界记档）。
  * - customDepthMaterial 释放（T009.5）：evict 单条目与 dispose 全量均释放源所持影
  *   pass 深度材质（恰一次、互不误伤、幂等）。
  * 边界：绝无模块级单例——每测试 new 独立实例（D17 StrictMode 双挂载裁定）。
@@ -26,6 +31,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import type { ProceduralAssetMeta } from '../../../src/domain/assets';
+import type { RuntimeRepresentation } from '../../../src/domain/lod/representation';
 import { morphSeedOf, shapeSlotOf, sourceKeyOf } from '../../../src/domain/assets';
 import { ProceduralSourceCache } from '../../../src/runtime/procedural/ProceduralSourceCache';
 import type { InstanceSource } from '../../../src/runtime/instancing/InstancedAssetPool';
@@ -499,6 +505,69 @@ describe('无 shapeFamily 多档资产（T006.2：键 = assetId::level、build({
     expect(cache.size).toBe(1);
     expect(log.calls).toBe(1);
     expect(log.params).toEqual([undefined]); // 无参调用（恒单档语义不变）
+  });
+});
+
+// ── 键收敛二分支（T021.7，D41 §10.2——「未声明多档」中间分支删除）──────────
+
+/** 无 shapeFamily、仅声明 representations 的最小 meta（T021.1 声明面形态） */
+function bareRepresentationsMeta(
+  id: string,
+  representations: RuntimeRepresentation[],
+): ProceduralAssetMeta {
+  return {
+    id,
+    name: `临时表示声明资产 ${id}`,
+    category: 'test',
+    taxonomy: { category: 'dev' }, // T010.2 必填分类（临时管线测试资产 → dev）
+    tags: ['test'],
+    defaultScale: { x: 1, y: 1, z: 1 },
+    defaultRotation: { x: 0, y: 0, z: 0 },
+    representations,
+  };
+}
+
+describe('键收敛二分支（T021.7：声明能力 → sourceKey::representation；未声明 → 纯 assetId）', () => {
+  it('representations 声明（无 levels / 无 shapeFamily）→ 键 = assetId::level：两表示独立条目、build 恰收 { level }（与旧中间分支行为同形——streetlamp 收编后第一分支统一承接）', async () => {
+    const id = 'test.key_converge_repr';
+    tempIds.push(id);
+    const log = { calls: 0, params: [] as (ProceduralBuildParams | undefined)[] };
+    registerProceduralRoute(id, recordingBuild(log), bareRepresentationsMeta(id, ['high', 'low']));
+    const cache = newCache();
+    const high = await cache.load(id); // 缺省 level
+    expect(log.params[0]).toEqual({ level: 'high' }); // 恰 { level }——无 seed/preset
+    expect(cache.size).toBe(1);
+    expect(await cache.load(id, { level: 'high' })).toBe(high); // 缺省 = high 同键
+    const low = await cache.load(id, { level: 'low' });
+    expect(log.params[1]).toEqual({ level: 'low' });
+    expect(cache.size).toBe(2); // 两表示不撞同键
+    expect(low.geometry).not.toBe(high.geometry);
+    // seed 不参与键（无 shapeFamily 即无 seed 声明面）
+    expect(await cache.load(id, { seed: 424242, level: 'low' })).toBe(low);
+    expect(log.calls).toBe(2);
+  });
+
+  it('representations 单档声明（["high"]）也入键分支（字面规则「representations 非空」——边界记档：build 收 { level: "high" } 与无参契约等价〔level 缺省即 high〕）', async () => {
+    const id = 'test.key_converge_repr_single';
+    tempIds.push(id);
+    const log = { calls: 0, params: [] as (ProceduralBuildParams | undefined)[] };
+    registerProceduralRoute(id, recordingBuild(log), bareRepresentationsMeta(id, ['high']));
+    const cache = newCache();
+    await cache.load(id);
+    expect(log.params).toEqual([{ level: 'high' }]); // 声明即键维（非纯 assetId）
+    expect(cache.size).toBe(1);
+  });
+
+  it('streetlamp 真实资产收敛锁：representations + levels 双声明下两档独立条目、缺省 = high 同键——键字面量 asset_streetlamp::high / ::low 新旧逐位一致（021.1 收编 → 021.7 删中间分支，行为零变化）', async () => {
+    // 真实路由经 routes glob 自动注册（streetlamp levels [{high},{low}] + representations
+    // ['high','low'] 双声明——旧中间分支唯一消费者，收敛安全判据）
+    const cache = newCache();
+    const high = await cache.load('asset_streetlamp');
+    expect(cache.size).toBe(1);
+    expect(await cache.load('asset_streetlamp', { level: 'high' })).toBe(high);
+    const low = await cache.load('asset_streetlamp', { level: 'low' });
+    expect(cache.size).toBe(2); // 键含 level 后缀：两档不塌缩（防 streetlamp 双档缓存静默塌缩为单档）
+    expect(low.geometry).not.toBe(high.geometry);
   });
 });
 

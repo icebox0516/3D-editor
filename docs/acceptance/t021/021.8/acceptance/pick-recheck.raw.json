@@ -1,0 +1,120 @@
+{
+ "result": {
+  "tests": {
+   "canopyPick280": {
+    "distance": 280,
+    "preState": {
+     "tInst": 0,
+     "dual": 0,
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "shadow": 1
+    },
+    "blobs": [
+     {
+      "cx": 960.5,
+      "cy": 548.8,
+      "x0": 949,
+      "x1": 972,
+      "n": 282
+     }
+    ],
+    "target": {
+     "cx": 960.5,
+     "cy": 548.8,
+     "x0": 949,
+     "x1": 972,
+     "n": 282
+    },
+    "highAfter": 1,
+    "hit": true
+   },
+   "ditherPick": {
+    "distance": 130,
+    "aim": {
+     "cx": 961.5,
+     "cy": 540.7,
+     "x0": 936,
+     "x1": 987,
+     "n": 884
+    },
+    "farState": {
+     "tInst": 0,
+     "dual": 0,
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "shadow": 1
+    },
+    "preState": {
+     "tInst": 1,
+     "dual": 1,
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "shadow": 1
+    },
+    "highAfter": 1,
+    "postState": {
+     "tInst": 0,
+     "dual": 0,
+     "instances": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "shadow": 1
+    },
+    "hit": true,
+    "inBandWhenClicked": true,
+    "postDeselect": {
+     "tInst": 0,
+     "dual": 0,
+     "instances": {
+      "high": 0,
+      "mid": 1,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "shadow": 1
+    }
+   }
+  }
+ },
+ "driverConsoleLog": [
+  {
+   "kind": "console",
+   "type": "debug",
+   "text": "[vite] connecting...",
+   "timestamp": 1790559524448.282
+  },
+  {
+   "kind": "console",
+   "type": "debug",
+   "text": "[vite] connected.",
+   "timestamp": 1790559524460.747
+  },
+  {
+   "kind": "console",
+   "type": "info",
+   "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+   "timestamp": 1790559524692.997
+  }
+ ]
+}

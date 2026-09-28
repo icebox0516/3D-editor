@@ -6,9 +6,10 @@
  * 覆盖（阈值一律经 LOD_THRESHOLDS / TRANSITION_BAND_RATIO 相对构造——锁值不碎测试）：
  * - 各表示 mesh 三字段独立断言（自有桶）：high/mid = full（挂源 SDF 深度材质）；
  *   **low = simplified 且跳过源提供的 LOW SDF 深度材质**（three 缺省实心几何深度——
- *   本任务唯一生产可见行为变化的机制面，021.8 A/B 复核位）；culled 终态
+ *   本任务唯一生产可见行为变化的机制面；021.8 收口记档：乔木链 low 不回插
+ *   〔结论总表④〕，low 影仅 legacy 链可达，未单列标定项，沿现状）；culled 终态
  *   visible=false 之外 cast/receive 一并 false（belt-and-braces 零残影）+ 回视复原；
- * - 假想 canopy 声明资产（021.3 先例——真实资产 021.7 前不可达）：canopy 稳态
+ * - 假想 canopy 声明资产（021.3 先例——真实 13 树种 021.7 起已声明 canopy）：canopy 稳态
  *   receive=false + 深度材质挂载（simplified = canopy 源深度材质即轮廓级构造）；
  *   dither 中点 caster 翻转恰一侧（自有 mid 桶 / incoming 客座桶 mesh 级双侧断言）；
  *   shadowCasterInstances 两侧恒 = 全量实例数；fade-out 退场期 cast 持续到 culled
@@ -195,7 +196,7 @@ function truthCount(params: ScatterParams, assetId: string): number {
 const T = LOD_THRESHOLDS;
 const W = TRANSITION_BAND_RATIO;
 
-/** 假想 canopy 管理器（representations 声明优先——真实 13 树种未声明 canopy，021.3 先例） */
+/** 假想 canopy 管理器（representations 声明优先——真实 13 树种 021.7 起已声明 canopy 链） */
 function makeCanopyManager(
   provider: ReturnType<typeof makeLeveledProvider>['provider'],
   options: Partial<ConstructorParameters<typeof ScatterChunkManager>[0]> = {},
@@ -230,7 +231,7 @@ describe('ScatterChunkManager 阴影策略：各表示三字段（自有桶）',
     expect(entry.mesh.receiveShadow).toBe(true);
     expect(entry.mesh.customDepthMaterial).toBe(sourceOf(sources, 'asset_tree', 'high').customDepthMaterial);
 
-    // mid：同 full 挂载（021.8 A/B 候选位——表值可调即断言跟随表）
+    // mid：同 full 挂载（021.8 复核维持 full——表值可调即断言跟随表）
     await settle(m, cameraAtM(T.highToMid * 1.5));
     entry = ownMeshOf(m, sources, 'asset_tree')!;
     expect(entry.level).toBe('mid');
@@ -239,7 +240,7 @@ describe('ScatterChunkManager 阴影策略：各表示三字段（自有桶）',
     expect(entry.mesh.customDepthMaterial).toBe(sourceOf(sources, 'asset_tree', 'mid').customDepthMaterial);
 
     // low：cast/receive true + **不挂**（源携带 LOW SDF 深度材质也跳过——实心几何
-    // 深度，本任务唯一生产可见行为变化，021.8 A/B 复核位）
+    // 深度，本任务唯一生产可见行为变化；021.8 收口：乔木链 low 不回插，沿现状）
     await settle(m, cameraAtM(T.midToCanopy * 1.125));
     entry = ownMeshOf(m, sources, 'asset_tree')!;
     expect(entry.level).toBe('low');
@@ -292,7 +293,7 @@ describe('ScatterChunkManager 阴影策略：canopy（假想声明资产，021.3
     expect(guest).toBeDefined();
     expect(own.mesh.castShadow).toBe(true);
     expect(guest!.castShadow).toBe(false);
-    expect(guest!.receiveShadow).toBe(false); // canopy 受影初始关闭（021.8 A/B 可开项）
+    expect(guest!.receiveShadow).toBe(false); // canopy 受影初始关闭（021.8 复核维持 false）
     expect(guest!.customDepthMaterial).toBe(
       sourceOf(sources, 'asset_canopy_tree', 'canopy').customDepthMaterial,
     );

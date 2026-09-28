@@ -1,11 +1,14 @@
 /**
  * runtime/procedural/ProceduralSourceCache —— 程序化资产构建缓存（T002.1，D17；T008.1 槽路由；T009.6 档位维度）。
  *
- * 职责：程序化 Source 双维档位缓存（T009.6，D23.2/D27）——**形态身份由 sourceKey 定义，
- *      具体几何 Source 由 sourceKey + level 决定**（level 只作缓存档位维度后缀 `::level`，
- *      内部编码——不进 sourceKeyOf、不掺形态身份）；读缓存，未命中经 routes 的
- *      getProceduralBuild 同步构建并缓存（build 契约：每次调用 new 全部资源，所有权
- *      移交调用方——本类即调用方，缓存条目资源归本实例所有）。
+ * 职责：程序化源构建缓存的双维表示缓存（T009.6 D23.2/D27 → T021.7 键收敛 D41 §10.2）
+ *      ——**形态身份由 sourceKey 定义，具体几何 Source 由 sourceKey + representation
+ *      决定**（表示维度只作缓存条目后缀 `::level` 内部编码——**永不进 sourceKeyOf、
+ *      永不掺形态身份**，D19/D23.2 重申；high/mid/low 与构建档位同名同值，load 入参
+ *      level 语义保持 ProceduralLevel，canopy 永不路由进本缓存——非构建档，
+ *      RepresentationSourceRouter 门面在缓存之外分流，T021.7）；读缓存，未命中经
+ *      routes 的 getProceduralBuild 同步构建并缓存（build 契约：每次调用 new 全部
+ *      资源，所有权移交调用方——本类即调用方，缓存条目资源归本实例所有）。
  *      槽路由（D19）：资产 meta 声明 shapeFamily 时，load 的 seed 形参 = **对象 seed**
  *      （asset.seed，仅供内部路由定 sourceKey，seed 缺省按 0 参与路由——确定性回退），
  *      slot = shapeSlotOf(seed, size)；**构建时一律以 morphSeed 调用**
@@ -17,11 +20,13 @@
  *      T006 换档释放旧档的消费面）；资产未声明该档时的回落由资产 build 自行决定，
  *      选档/距离切换策略归 T006，Cache 只透传。
  *      LOD 声明/调度规范真相源 = docs/procedural-assets/lod-spec.md（T010.3）。
- *      未声明 shapeFamily 的资产（T006.2 键规则细化）：恒单档（未声明 levels 或单档
- *      声明）→ 键 = 纯 assetId、build 以无参 `build()` 调用（preset/level 一并忽略，
- *      行为与现状逐位一致）；声明多档（levels.length > 1——设施资产两档先例
- *      asset_streetlamp）→ 键 = `${assetId}::${level}`、build 以 `build({ level })`
- *      调用（只透传 level——无 shapeFamily 即无 seed/preset 声明面）。
+ *      键规则二分支（T021.7 收敛，D41 §10.2——旧「未声明多档」中间分支删除，
+ *      其唯一消费者 asset_streetlamp 已由 021.1 representations 声明收编）：
+ *      ① **声明表示能力**（shapeFamily ∨ representations 非空 ∨ levels 多档——即
+ *      有效链多表示）→ 键 = `${sourceKey}::${level}`（无 shapeFamily 时 sourceKey
+ *      退化为 assetId——streetlamp 先例键字面量 `assetId::level` 新旧逐位一致，
+ *      收敛安全判据）；② **未声明**（恒单档且无 shapeFamily）→ 键 = 纯 assetId、
+ *      build 以无参 `build()` 调用（preset/level 一并忽略，行为与现状逐位一致）。
  *      失败语义镜像 AssetLoader：未注册 id 与 build 抛错均 reject 且**不缓存坏
  *      结果**（下次 load 重试）。
  * 边界：**绝不模块级单例**（D17——StrictMode 双挂载 createEditor(A)→dispose(A)→
@@ -44,16 +49,17 @@ export interface ProceduralSourceLoadParams {
 }
 
 export class ProceduralSourceCache {
-  /** sourceKey::level（未声明 shapeFamily 时：恒单档 = 纯 assetId、多档声明 = assetId::level）→ 构建产物（本实例所持资源；dispose/evict 释放） */
+  /** `sourceKey::level`（未声明表示能力时 = 纯 assetId）→ 构建产物（本实例所持资源；dispose/evict 释放） */
   private readonly cache = new Map<string, InstanceSource>();
 
   /**
    * 键/槽/档归一（load 与 evict 共用的单一真相——两 API 键规则逐位一致）：
-   * 声明 shapeFamily → slot = shapeSlotOf(seed ?? 0, size)、键 = `${sourceKey}::${level}`
-   * （level 只作档位维度后缀，sourceKeyOf 零改动）；未声明 shapeFamily 的恒单档资产
-   * （未声明 levels 或单档声明）→ 键 = 纯 assetId（无 level 后缀——行为与现状逐位
-   * 一致）；未声明 shapeFamily 但声明多档（levels.length > 1，T006.2 设施资产两档）
-   * → 键 = `${assetId}::${level}`（两档不撞同键）。level 缺省按 'high' 归一。
+   * **声明表示能力**（shapeFamily ∨ representations 非空 ∨ levels 多档——T021.7
+   * 收敛后的统一第一分支）→ 键 = `${sourceKey}::${level}`：声明 shapeFamily 时
+   * slot = shapeSlotOf(seed ?? 0, size)、sourceKeyOf 零改动；无 shapeFamily 时
+   * sourceKey 退化为 assetId（键字面量 `${assetId}::${level}`——streetlamp 先例
+   * 新旧逐位一致）；**未声明**（恒单档且无 shapeFamily）→ 键 = 纯 assetId（无
+   * level 后缀——行为与现状逐位一致）。level 缺省按 'high' 归一。
    */
   private resolveEntry(
     assetId: string,
@@ -66,17 +72,19 @@ export class ProceduralSourceCache {
       const slot = shapeSlotOf(params?.seed ?? 0, family.size);
       return { key: `${sourceKeyOf(assetId, slot, params?.preset)}::${level}`, slot, level, levelKeyed: true };
     }
-    // 未声明 shapeFamily：恒单档 → 纯 assetId 键（现状逐位一致）；声明多档 → level 后缀
-    const levelKeyed = (routeMeta?.levels?.length ?? 0) > 1;
+    // 无 shapeFamily：声明表示能力（representations 非空 ∨ levels 多档）→ assetId::level；未声明 → 纯 assetId
+    const levelKeyed =
+      (routeMeta?.representations?.length ?? 0) > 0 || (routeMeta?.levels?.length ?? 0) > 1;
     return { key: levelKeyed ? `${assetId}::${level}` : assetId, slot: undefined, level, levelKeyed };
   }
 
   /**
    * 读缓存；未命中经 getProceduralBuild 构建并缓存。未注册 id reject；build 抛错 reject 且不缓存。
    * seed 语义 = 对象 seed（槽路由用；缺省按 0 路由）；声明 shapeFamily 的资产以
-   * morphSeedOf(assetId, slot) 调用 build（契约第一锁）；未声明 shapeFamily 的恒单档
-   * 资产无参调用（现状）；未声明 shapeFamily 但声明多档的资产以 build({ level }) 调用
-   * （T006.2——只透传 level，seed/preset 无声明面）。level 缺省 'high'，参与缓存键
+   * morphSeedOf(assetId, slot) 调用 build（契约第一锁）；无 shapeFamily 的声明能力
+   * 资产（representations 非空 ∨ levels 多档）以 build({ level }) 调用（只透传
+   * level——无 shapeFamily 即无 seed/preset 声明面）；未表示能力资产无参调用
+   * （preset/level 一并忽略——恒单档现状）。level 缺省 'high'，参与缓存键
    * （sourceKey::level / assetId::level 后缀）并透传 build。
    */
   load(assetId: string, params?: ProceduralSourceLoadParams): Promise<InstanceSource> {
@@ -91,8 +99,8 @@ export class ProceduralSourceCache {
         slot !== undefined
           ? build({ seed: morphSeedOf(assetId, slot), preset: params?.preset, level })
           : levelKeyed
-            ? build({ level }) // 未声明 shapeFamily 多档资产：只透传 level（T006.2）
-            : build(); // 恒单档资产：无参调用（preset/level 一并忽略——行为与现状逐位一致）
+            ? build({ level }) // 声明能力但无 shapeFamily（representations / levels 多档）：只透传 level
+            : build(); // 未声明资产：无参调用（preset/level 一并忽略——行为与现状逐位一致）
     } catch (err) {
       const reason = err instanceof Error ? err.message : String(err);
       return Promise.reject(new Error(`程序化资产构建失败: ${assetId}（${reason}）`));

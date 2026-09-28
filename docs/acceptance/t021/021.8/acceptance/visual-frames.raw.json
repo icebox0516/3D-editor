@@ -1,0 +1,1848 @@
+{
+ "result": {
+  "frames": [
+   {
+    "file": "02-M25-celtis.png",
+    "view": "{ distance: 25, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 63126
+    }
+   },
+   {
+    "file": "02-M25-camphor.png",
+    "view": "{ distance: 25, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 58418
+    }
+   },
+   {
+    "file": "02-M25-salix.png",
+    "view": "{ distance: 25, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 71234
+    }
+   },
+   {
+    "file": "02-F50-3a.png",
+    "view": "{ distance: 50, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 57522
+    }
+   },
+   {
+    "file": "02-F50-celtis.png",
+    "view": "{ distance: 50, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 63126
+    }
+   },
+   {
+    "file": "02-F50-camphor.png",
+    "view": "{ distance: 50, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 58418
+    }
+   },
+   {
+    "file": "02-F50-zelkova.png",
+    "view": "{ distance: 50, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 64310
+    }
+   },
+   {
+    "file": "02-F50-ginkgo.png",
+    "view": "{ distance: 50, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 55798
+    }
+   },
+   {
+    "file": "02-F50-platanus.png",
+    "view": "{ distance: 50, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 58022
+    }
+   },
+   {
+    "file": "02-F50-koelreuteria.png",
+    "view": "{ distance: 50, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 48282
+    }
+   },
+   {
+    "file": "02-F50-triadica.png",
+    "view": "{ distance: 50, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 59738
+    }
+   },
+   {
+    "file": "02-F50-bischofia.png",
+    "view": "{ distance: 50, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 56578
+    }
+   },
+   {
+    "file": "02-F50-sophora.png",
+    "view": "{ distance: 50, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 64874
+    }
+   },
+   {
+    "file": "02-F50-fraxinus.png",
+    "view": "{ distance: 50, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 62634
+    }
+   },
+   {
+    "file": "02-F50-ligustrum.png",
+    "view": "{ distance: 50, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 62078
+    }
+   },
+   {
+    "file": "02-F50-salix.png",
+    "view": "{ distance: 50, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 71234
+    }
+   },
+   {
+    "file": "02-overview-far.png",
+    "view": "{ distance: 449 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 46,
+      "low": 0,
+      "canopy": 1921,
+      "culled": 33
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 25,
+      "low": 0,
+      "canopy": 104,
+      "culled": 5
+     },
+     "transitionInstances": 216,
+     "shadowCasterInstances": 1967,
+     "transition": {
+      "instances": 216,
+      "buckets": 101,
+      "dualSubmitBuckets": 33
+     }
+    },
+    "stats": {
+     "drawCalls": 491,
+     "triangles": 2541368
+    }
+   },
+   {
+    "file": "02-overview-mid.png",
+    "view": "{ distance: 180 }",
+    "distribution": {
+     "instances": {
+      "high": 71,
+      "mid": 218,
+      "low": 0,
+      "canopy": 1711,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 44,
+      "mid": 104,
+      "low": 0,
+      "canopy": 104,
+      "culled": 0
+     },
+     "transitionInstances": 266,
+     "shadowCasterInstances": 2000,
+     "transition": {
+      "instances": 266,
+      "buckets": 192,
+      "dualSubmitBuckets": 265
+     }
+    },
+    "stats": {
+     "drawCalls": 927,
+     "triangles": 12827290
+    }
+   },
+   {
+    "file": "02-probe-d25.png",
+    "view": "{ distance: 25 }",
+    "distribution": {
+     "instances": {
+      "high": 134,
+      "mid": 449,
+      "low": 0,
+      "canopy": 1417,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 77,
+      "mid": 104,
+      "low": 0,
+      "canopy": 104,
+      "culled": 0
+     },
+     "transitionInstances": 364,
+     "shadowCasterInstances": 2000,
+     "transition": {
+      "instances": 364,
+      "buckets": 276,
+      "dualSubmitBuckets": 364
+     }
+    },
+    "stats": {
+     "drawCalls": 1069,
+     "triangles": 21591934
+    }
+   },
+   {
+    "file": "02-probe-d60.png",
+    "view": "{ distance: 60 }",
+    "distribution": {
+     "instances": {
+      "high": 124,
+      "mid": 481,
+      "low": 0,
+      "canopy": 1395,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 72,
+      "mid": 104,
+      "low": 0,
+      "canopy": 104,
+      "culled": 0
+     },
+     "transitionInstances": 239,
+     "shadowCasterInstances": 2000,
+     "transition": {
+      "instances": 239,
+      "buckets": 208,
+      "dualSubmitBuckets": 239
+     }
+    },
+    "stats": {
+     "drawCalls": 1065,
+     "triangles": 20140498
+    }
+   },
+   {
+    "file": "02-probe-d100.png",
+    "view": "{ distance: 100 }",
+    "distribution": {
+     "instances": {
+      "high": 105,
+      "mid": 510,
+      "low": 0,
+      "canopy": 1385,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 63,
+      "mid": 104,
+      "low": 0,
+      "canopy": 104,
+      "culled": 0
+     },
+     "transitionInstances": 182,
+     "shadowCasterInstances": 2000,
+     "transition": {
+      "instances": 182,
+      "buckets": 182,
+      "dualSubmitBuckets": 182
+     }
+    },
+    "stats": {
+     "drawCalls": 1029,
+     "triangles": 18352140
+    }
+   },
+   {
+    "file": "02-probe-d140.png",
+    "view": "{ distance: 140 }",
+    "distribution": {
+     "instances": {
+      "high": 86,
+      "mid": 531,
+      "low": 0,
+      "canopy": 1383,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 61,
+      "mid": 104,
+      "low": 0,
+      "canopy": 104,
+      "culled": 0
+     },
+     "transitionInstances": 215,
+     "shadowCasterInstances": 2000,
+     "transition": {
+      "instances": 215,
+      "buckets": 240,
+      "dualSubmitBuckets": 215
+     }
+    },
+    "stats": {
+     "drawCalls": 1007,
+     "triangles": 17014730
+    }
+   },
+   {
+    "file": "02-probe-d180.png",
+    "view": "{ distance: 180 }",
+    "distribution": {
+     "instances": {
+      "high": 52,
+      "mid": 535,
+      "low": 0,
+      "canopy": 1413,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 37,
+      "mid": 104,
+      "low": 0,
+      "canopy": 104,
+      "culled": 0
+     },
+     "transitionInstances": 210,
+     "shadowCasterInstances": 2000,
+     "transition": {
+      "instances": 210,
+      "buckets": 254,
+      "dualSubmitBuckets": 209
+     }
+    },
+    "stats": {
+     "drawCalls": 925,
+     "triangles": 14672952
+    }
+   },
+   {
+    "file": "02-probe-d220.png",
+    "view": "{ distance: 220 }",
+    "distribution": {
+     "instances": {
+      "high": 32,
+      "mid": 506,
+      "low": 0,
+      "canopy": 1462,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 25,
+      "mid": 104,
+      "low": 0,
+      "canopy": 104,
+      "culled": 0
+     },
+     "transitionInstances": 167,
+     "shadowCasterInstances": 2000,
+     "transition": {
+      "instances": 167,
+      "buckets": 220,
+      "dualSubmitBuckets": 163
+     }
+    },
+    "stats": {
+     "drawCalls": 887,
+     "triangles": 12105340
+    }
+   },
+   {
+    "file": "02-probe-d260.png",
+    "view": "{ distance: 260 }",
+    "distribution": {
+     "instances": {
+      "high": 12,
+      "mid": 450,
+      "low": 0,
+      "canopy": 1538,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 10,
+      "mid": 102,
+      "low": 0,
+      "canopy": 104,
+      "culled": 0
+     },
+     "transitionInstances": 159,
+     "shadowCasterInstances": 2000,
+     "transition": {
+      "instances": 159,
+      "buckets": 198,
+      "dualSubmitBuckets": 155
+     }
+    },
+    "stats": {
+     "drawCalls": 825,
+     "triangles": 9767416
+    }
+   },
+   {
+    "file": "02-probe-d300.png",
+    "view": "{ distance: 300 }",
+    "distribution": {
+     "instances": {
+      "high": 4,
+      "mid": 360,
+      "low": 0,
+      "canopy": 1634,
+      "culled": 2
+     },
+     "buckets": {
+      "high": 3,
+      "mid": 97,
+      "low": 0,
+      "canopy": 104,
+      "culled": 0
+     },
+     "transitionInstances": 140,
+     "shadowCasterInstances": 1998,
+     "transition": {
+      "instances": 140,
+      "buckets": 173,
+      "dualSubmitBuckets": 123
+     }
+    },
+    "stats": {
+     "drawCalls": 791,
+     "triangles": 7783064
+    }
+   },
+   {
+    "file": "02-probe-d340.png",
+    "view": "{ distance: 340 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 268,
+      "low": 0,
+      "canopy": 1729,
+      "culled": 3
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 87,
+      "low": 0,
+      "canopy": 104,
+      "culled": 0
+     },
+     "transitionInstances": 138,
+     "shadowCasterInstances": 1997,
+     "transition": {
+      "instances": 138,
+      "buckets": 153,
+      "dualSubmitBuckets": 99
+     }
+    },
+    "stats": {
+     "drawCalls": 731,
+     "triangles": 6072436
+    }
+   },
+   {
+    "file": "02-probe-d380.png",
+    "view": "{ distance: 380 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 195,
+      "low": 0,
+      "canopy": 1801,
+      "culled": 4
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 80,
+      "low": 0,
+      "canopy": 104,
+      "culled": 0
+     },
+     "transitionInstances": 181,
+     "shadowCasterInstances": 1996,
+     "transition": {
+      "instances": 181,
+      "buckets": 162,
+      "dualSubmitBuckets": 106
+     }
+    },
+    "stats": {
+     "drawCalls": 663,
+     "triangles": 4755856
+    }
+   },
+   {
+    "file": "02-probe-d420.png",
+    "view": "{ distance: 420 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 119,
+      "low": 0,
+      "canopy": 1869,
+      "culled": 12
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 59,
+      "low": 0,
+      "canopy": 104,
+      "culled": 0
+     },
+     "transitionInstances": 218,
+     "shadowCasterInstances": 1988,
+     "transition": {
+      "instances": 218,
+      "buckets": 159,
+      "dualSubmitBuckets": 84
+     }
+    },
+    "stats": {
+     "drawCalls": 587,
+     "triangles": 3569694
+    }
+   },
+   {
+    "file": "02-probe-d449.png",
+    "view": "{ distance: 449 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 68,
+      "low": 0,
+      "canopy": 1905,
+      "culled": 27
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 42,
+      "low": 0,
+      "canopy": 104,
+      "culled": 0
+     },
+     "transitionInstances": 242,
+     "shadowCasterInstances": 1973,
+     "transition": {
+      "instances": 242,
+      "buckets": 135,
+      "dualSubmitBuckets": 53
+     }
+    },
+    "stats": {
+     "drawCalls": 527,
+     "triangles": 2750494
+    }
+   },
+   {
+    "file": "02-probe-d500.png",
+    "view": "{ distance: 500 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 18,
+      "low": 0,
+      "canopy": 1921,
+      "culled": 61
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 14,
+      "low": 0,
+      "canopy": 104,
+      "culled": 0
+     },
+     "transitionInstances": 310,
+     "shadowCasterInstances": 1939,
+     "transition": {
+      "instances": 310,
+      "buckets": 97,
+      "dualSubmitBuckets": 15
+     }
+    },
+    "stats": {
+     "drawCalls": 451,
+     "triangles": 2152582
+    }
+   },
+   {
+    "file": "02-probe-d560.png",
+    "view": "{ distance: 560 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 5,
+      "low": 0,
+      "canopy": 1851,
+      "culled": 144
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 4,
+      "low": 0,
+      "canopy": 104,
+      "culled": 0
+     },
+     "transitionInstances": 415,
+     "shadowCasterInstances": 1856,
+     "transition": {
+      "instances": 415,
+      "buckets": 93,
+      "dualSubmitBuckets": 5
+     }
+    },
+    "stats": {
+     "drawCalls": 427,
+     "triangles": 1994870
+    }
+   },
+   {
+    "file": "02-probe-d620.png",
+    "view": "{ distance: 620 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1728,
+      "culled": 272
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 104,
+      "culled": 0
+     },
+     "transitionInstances": 521,
+     "shadowCasterInstances": 1728,
+     "transition": {
+      "instances": 521,
+      "buckets": 100,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 419,
+     "triangles": 1948014
+    }
+   },
+   {
+    "file": "02-probe-d660.png",
+    "view": "{ distance: 660 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1618,
+      "culled": 382
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 104,
+      "culled": 0
+     },
+     "transitionInstances": 574,
+     "shadowCasterInstances": 1618,
+     "transition": {
+      "instances": 574,
+      "buckets": 101,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 419,
+     "triangles": 1948014
+    }
+   },
+   {
+    "file": "02-probe-d700.png",
+    "view": "{ distance: 700 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1512,
+      "culled": 488
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 104,
+      "culled": 0
+     },
+     "transitionInstances": 642,
+     "shadowCasterInstances": 1512,
+     "transition": {
+      "instances": 642,
+      "buckets": 102,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 419,
+     "triangles": 1948014
+    }
+   },
+   {
+    "file": "02-probe-d760.png",
+    "view": "{ distance: 760 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1313,
+      "culled": 687
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 103,
+      "culled": 1
+     },
+     "transitionInstances": 682,
+     "shadowCasterInstances": 1313,
+     "transition": {
+      "instances": 682,
+      "buckets": 103,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 415,
+     "triangles": 1938274
+    }
+   },
+   {
+    "file": "02-probe-d800.png",
+    "view": "{ distance: 800 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1150,
+      "culled": 850
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 102,
+      "culled": 2
+     },
+     "transitionInstances": 655,
+     "shadowCasterInstances": 1150,
+     "transition": {
+      "instances": 655,
+      "buckets": 102,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 411,
+     "triangles": 1917820
+    }
+   },
+   {
+    "file": "02-crown-celtis-d140.png",
+    "view": "{ distance: 140, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 1,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 1,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 13578
+    }
+   },
+   {
+    "file": "02-crown-celtis-d150.png",
+    "view": "{ distance: 150, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 1,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 1,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 13578
+    }
+   },
+   {
+    "file": "02-crown-celtis-d158.png",
+    "view": "{ distance: 158, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 1,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 1,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 13578
+    }
+   },
+   {
+    "file": "02-crown-celtis-d165.png",
+    "view": "{ distance: 165, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 1,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 1,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 13578
+    }
+   },
+   {
+    "file": "02-crown-celtis-d172.png",
+    "view": "{ distance: 172, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 1,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 1,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 13578
+    }
+   },
+   {
+    "file": "02-crown-celtis-d180.png",
+    "view": "{ distance: 180, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 1,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 1,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "transitionInstances": 1,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 1,
+      "buckets": 2,
+      "dualSubmitBuckets": 1
+     }
+    },
+    "stats": {
+     "drawCalls": 9,
+     "triangles": 14065
+    }
+   },
+   {
+    "file": "02-crown-celtis-d190.png",
+    "view": "{ distance: 190, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 1,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 1,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "transitionInstances": 1,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 1,
+      "buckets": 2,
+      "dualSubmitBuckets": 1
+     }
+    },
+    "stats": {
+     "drawCalls": 9,
+     "triangles": 14065
+    }
+   },
+   {
+    "file": "02-crown-celtis-d200.png",
+    "view": "{ distance: 200, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 1,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 1,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "transitionInstances": 1,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 1,
+      "buckets": 2,
+      "dualSubmitBuckets": 1
+     }
+    },
+    "stats": {
+     "drawCalls": 9,
+     "triangles": 7770
+    }
+   },
+   {
+    "file": "02-crown-celtis-d210.png",
+    "view": "{ distance: 210, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 1,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 1,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "transitionInstances": 1,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 1,
+      "buckets": 2,
+      "dualSubmitBuckets": 1
+     }
+    },
+    "stats": {
+     "drawCalls": 9,
+     "triangles": 7770
+    }
+   },
+   {
+    "file": "02-crown-celtis-d220.png",
+    "view": "{ distance: 220, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 1,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 1,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "transitionInstances": 1,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 1,
+      "buckets": 2,
+      "dualSubmitBuckets": 1
+     }
+    },
+    "stats": {
+     "drawCalls": 9,
+     "triangles": 7770
+    }
+   },
+   {
+    "file": "02-crown-celtis-d235.png",
+    "view": "{ distance: 235, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 988
+    }
+   },
+   {
+    "file": "02-crown-celtis-d250.png",
+    "view": "{ distance: 250, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 988
+    }
+   },
+   {
+    "file": "02-cull-celtis-d600.png",
+    "view": "{ distance: 600, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 988
+    }
+   },
+   {
+    "file": "02-cull-celtis-d620.png",
+    "view": "{ distance: 620, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 988
+    }
+   },
+   {
+    "file": "02-cull-celtis-d640.png",
+    "view": "{ distance: 640, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 988
+    }
+   },
+   {
+    "file": "02-cull-celtis-d655.png",
+    "view": "{ distance: 655, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 988
+    }
+   },
+   {
+    "file": "02-cull-celtis-d670.png",
+    "view": "{ distance: 670, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "transitionInstances": 1,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 1,
+      "buckets": 1,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 988
+    }
+   },
+   {
+    "file": "02-cull-celtis-d690.png",
+    "view": "{ distance: 690, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "transitionInstances": 1,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 1,
+      "buckets": 1,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 988
+    }
+   },
+   {
+    "file": "02-cull-celtis-d710.png",
+    "view": "{ distance: 710, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "transitionInstances": 1,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 1,
+      "buckets": 1,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 988
+    }
+   },
+   {
+    "file": "02-cull-celtis-d740.png",
+    "view": "{ distance: 740, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "transitionInstances": 1,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 1,
+      "buckets": 1,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 988
+    }
+   },
+   {
+    "file": "02-cull-celtis-d780.png",
+    "view": "{ distance: 780, azimuthDeg: 35, elevationDeg: 8 }",
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "transitionInstances": 1,
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 1,
+      "buckets": 1,
+      "dualSubmitBuckets": 0
+     }
+    },
+    "stats": {
+     "drawCalls": 7,
+     "triangles": 988
+    }
+   }
+  ],
+  "canvasRect": {
+   "x": 0,
+   "y": 32,
+   "w": 1920,
+   "h": 1048
+  }
+ },
+ "driverConsoleLog": [
+  {
+   "kind": "console",
+   "type": "debug",
+   "text": "[vite] connecting...",
+   "timestamp": 1790256762078.06
+  },
+  {
+   "kind": "console",
+   "type": "debug",
+   "text": "[vite] connected.",
+   "timestamp": 1790256762089.058
+  },
+  {
+   "kind": "console",
+   "type": "info",
+   "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+   "timestamp": 1790256762335.076
+  },
+  {
+   "kind": "console",
+   "type": "warning",
+   "text": "[Renderer] draw calls 超预算：927 > 650（BATCH_POLICY.drawCallBudget，Legacy Baseline——T006.5 锁定值沿用作对照基线，T021 加入 Canopy/双表示/Shadow 表示后重测重锁归 021.8，D41 §九）——批次治理观测告警，非降级",
+   "timestamp": 1790256800254.999
+  },
+  {
+   "kind": "console",
+   "type": "warning",
+   "text": "[Renderer] draw calls 超预算：1007 > 650（BATCH_POLICY.drawCallBudget，Legacy Baseline——T006.5 锁定值沿用作对照基线，T021 加入 Canopy/双表示/Shadow 表示后重测重锁归 021.8，D41 §九）——批次治理观测告警，非降级",
+   "timestamp": 1790256805259.897
+  },
+  {
+   "kind": "console",
+   "type": "warning",
+   "text": "[Renderer] draw calls 超预算：731 > 650（BATCH_POLICY.drawCallBudget，Legacy Baseline——T006.5 锁定值沿用作对照基线，T021 加入 Canopy/双表示/Shadow 表示后重测重锁归 021.8，D41 §九）——批次治理观测告警，非降级",
+   "timestamp": 1790256810262.919
+  }
+ ]
+}

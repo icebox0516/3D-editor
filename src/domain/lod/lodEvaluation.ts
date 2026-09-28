@@ -14,8 +14,8 @@
  *
  * screenFraction 解释口径（T021.2，D41 §4.1）：screenFraction（资产直径 / 视口高度）
  * = **1 / m**——调试与验收的统一解释口径，不作选档输入（选档只消费 m；像素口径仅
- * 验收报表，禁止进选档）。锚点：m = 1 ↔ screenFraction 100%；候选阈值 6 / 16 / 60
- * ↔ 屏占比 16.7% / 6.25% / 1.67%（lodPolicy legacy 对照）。
+ * 验收报表，禁止进选档）。锚点：m = 1 ↔ screenFraction 100%；锁定阈值（021.8 实测
+ * 维持）6 / 16 / 60 ↔ 屏占比 16.7% / 6.25% / 1.67%（lodPolicy legacy 对照）。
  *
  * 职责：纯数据入（视图 + 主体 + 有效表示链 + 迟滞参考）→ 目标表示 / 提交终态出。
  *      评估器无状态、选档是每帧派生态（D27.6）：结果不缓存进持久状态、不进 Scene /
@@ -77,7 +77,7 @@ export interface LodEvaluationInput {
   /** 当前展示档位（hysteresis 参考，由调用方持有——评估器本身无状态 D27.6）；
    *  缺省 = 无迟滞参考，按名义档起步 */
   current?: LodSelectionOutcome;
-  /** 缺省 LOD_THRESHOLDS（候选值，021.8 重锁） */
+  /** 缺省 LOD_THRESHOLDS（已锁定，021.8 实测维持——见 lodPolicy 模块头注） */
   thresholds?: LodThresholds;
   /** LOD 总开关（本层定义、接线消费）：false = 目标恒 resolveDeclaredRepresentation('high')
    *  （经跳档映射，见 evaluateLodRepresentation 注），culled 一并旁路——回退对比与兜底

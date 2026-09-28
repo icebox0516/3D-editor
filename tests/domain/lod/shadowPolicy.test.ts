@@ -4,7 +4,8 @@
  * 覆盖：
  * - 初始策略表「一次锁全量」：四表示三字段逐表示断言（数值变更须记档并连带更新本
  *   断言——沿 LOD_THRESHOLDS / BATCH_POLICY 锁值先例；mid depth 与 canopy receive
- *   是 021.8 A/B 点名复核位，模块头注生产足迹记档同文）；
+ *   经 021.8 复核维持——证据锚 docs/acceptance/t021/021.8/calibration/README.md
+ *   结论总表⑤⑥，模块头注同文）；
  * - culled 提交终态 = off：CULLED_SHADOW_POLICY 三字段 + 不进 byRepresentation 表
  *   （终态非表示，D41 §三.1——经查询函数宽化入参映射到达）；
  * - shadowPolicyOf 查询：逐表示查表返回表值（零克隆同引用）；入参宽化
@@ -33,7 +34,7 @@ import type { RuntimeRepresentation } from '../../../src/domain/lod/representati
 const REPRESENTATIONS: readonly RuntimeRepresentation[] = ['high', 'mid', 'low', 'canopy'];
 
 describe('SHADOW_POLICY 初始策略表（D41 §七 + T021.5 裁定）', () => {
-  it('一次锁全量：四表示三字段（mid depth simplified 化与 canopy receive=false 是 021.8 A/B 复核位——改值须记档并连带更新本断言）', () => {
+  it('一次锁全量：四表示三字段（mid depth 与 canopy receive 经 021.8 复核维持——改值须记档并连带更新本断言）', () => {
     expect(SHADOW_POLICY).toEqual({
       high: { cast: true, receive: true, depth: 'full' },
       mid: { cast: true, receive: true, depth: 'full' },
@@ -56,7 +57,7 @@ describe('shadowPolicyOf 查询（入参宽化 LodSelectionOutcome；覆盖注�
     }
   });
 
-  it('覆盖注入：021.8 A/B 通道形态——mid depth simplified（表值候选位）与 canopy receive 开', () => {
+  it('覆盖注入：A/B 对照通道形态——mid depth simplified（默认表 full 的对照位）与 canopy receive 开', () => {
     const ab: ShadowPolicyTable = {
       ...SHADOW_POLICY,
       mid: { cast: true, receive: true, depth: 'simplified' },

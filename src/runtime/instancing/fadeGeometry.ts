@@ -23,7 +23,14 @@
  *  ProceduralSourceCache 与散布链共享（默认槽），池容量 ≠ 散布桶容量，越界读。
  *  解法 = 包装 BufferGeometry：**共享全部顶点属性对象与索引的引用**（零顶点数据
  *  复制——§10.3「同 sourceKey 不重复 Geometry」按数据面遵守），独占 aFadeOut 实例
- *  缓冲。包装几何由 FadeGeometryPool 池化复用（按源几何的 position 属性对象键），
+ *  缓冲。共享之外还有**值拷贝义务面：groups / drawRange / morphAttributes 键图**
+ *  ——材质数组网格（乔木 [皮,叶] / canopy [干柱,冠卡] / GLB 合并件）经渲染器
+ *  projectObject 按 geometry.groups 逐组推渲染项，**空组 = 零渲染项 = 整树静默消失**
+ *  （021.7 视觉冒烟 D1），故 groups 必须随包装值拷贝（组对象不共享引用）；
+ *  drawRange 与 morphAttributes 同为渲染路径消费面（renderBufferDirect 无条件
+ *  读 drawRange 与 group 求交；morph 按 presence 进 program 参数），缺省即零值
+ *  语义同属「包装后行为偏离源」的静默缺陷类。
+ *  包装几何由 FadeGeometryPool 池化复用（按源几何的 position 属性对象键），
  *  桶拆除时归还而非 dispose（dispose 会连带释放共享顶点缓冲，触发全使用方重上传）；
  *  会话结束随 GL 上下文消亡（不显式释放，池 clear 即可）。
  *
@@ -44,8 +51,10 @@ export class FadeGeometryPool {
   private readonly idle = new Map<THREE.BufferAttribute, THREE.BufferGeometry[]>();
 
   /**
-   * 取或建包装几何：共享源几何全部顶点属性 / 索引 / 包围盒球引用 + 独占 aFadeOut
-   * 实例缓冲（capacity 项，缺省 0 = 完整呈现）。复用路径容量不足时原地换新缓冲。
+   * 取或建包装几何：共享源几何全部顶点属性 / 索引 / 包围盒球引用，值拷贝
+   * groups / drawRange / morphAttributes 键图（渲染路径消费面，见头注），独占
+   * aFadeOut 实例缓冲（capacity 项，缺省 0 = 完整呈现）。复用路径容量不足时
+   * 原地换新缓冲（groups 等包装面不动）。
    */
   acquire(source: THREE.BufferGeometry, capacity: number): THREE.BufferGeometry {
     const key = source.attributes.position as THREE.BufferAttribute | undefined;
@@ -59,6 +68,18 @@ export class FadeGeometryPool {
       wrapper.setAttribute(name, source.attributes[name]!);
     }
     wrapper.setIndex(source.index);
+    // 组值拷贝（D1 修复）：材质数组网格经渲染器 projectObject 逐组推渲染项——
+    // 空 groups = 零渲染项（整树静默消失）；addGroup 逐组建新对象，不共享组引用
+    //（消费方改包装组不殃及源几何与池复用方）；空组保持空（单材质语义零变化）
+    for (const group of source.groups) {
+      wrapper.addGroup(group.start, group.count, group.materialIndex);
+    }
+    // drawRange 值拷贝（renderBufferDirect 无条件读 drawRange 并与 group 区间求交
+    //——缺拷贝会多画）；morphAttributes 键图浅拷 + 条目引用共享（渲染路径按 presence
+    // 消费；GLB 合并链可能带 morph——条目零复制纪律同顶点属性）；相对形态标志随拷
+    wrapper.setDrawRange(source.drawRange.start, source.drawRange.count);
+    wrapper.morphAttributes = { ...source.morphAttributes };
+    wrapper.morphTargetsRelative = source.morphTargetsRelative;
     // 包围引用共享（computeBoundingSphere/Box 在包装上零重复计算；源侧惰性计算
     // 先行保证——两链建桶路径均先算包围）
     if (source.boundingBox) wrapper.boundingBox = source.boundingBox;

@@ -1,0 +1,197 @@
+{
+ "result": {
+  "steps": {
+   "glb": {
+    "card": {
+     "x": 0,
+     "y": 0
+    },
+    "canvas": {
+     "x": 954,
+     "y": 644
+    },
+    "ghostState": {
+     "dc": 3,
+     "tri": 14,
+     "objects": 0,
+     "inst": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "outlinerHasPavilion": false
+    },
+    "placed": {
+     "dc": 3,
+     "tri": 14,
+     "objects": 0,
+     "inst": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "outlinerHasPavilion": false
+    },
+    "ok": false
+   },
+   "streetlamp": {
+    "near": {
+     "dc": 15,
+     "tri": 830,
+     "objects": 3,
+     "inst": {
+      "high": 0,
+      "mid": 0,
+      "low": 3,
+      "canopy": 0,
+      "culled": 0
+     },
+     "outlinerHasPavilion": false
+    },
+    "far": {
+     "dc": 3,
+     "tri": 14,
+     "objects": 3,
+     "inst": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 3
+     },
+     "outlinerHasPavilion": false
+    }
+   },
+   "pickAcrossRep": {
+    "nearSel": {
+     "dc": 7,
+     "tri": 67418,
+     "objects": 1,
+     "inst": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "outlinerHasPavilion": false
+    },
+    "farSel": {
+     "dc": 7,
+     "tri": 67418,
+     "objects": 1,
+     "inst": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "outlinerHasPavilion": false
+    },
+    "backSel": {
+     "dc": 7,
+     "tri": 67418,
+     "objects": 1,
+     "inst": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "outlinerHasPavilion": false
+    },
+    "identityHeld": true
+   },
+   "undoRedo": {
+    "placed": {
+     "dc": 15,
+     "tri": 189578,
+     "objects": 5,
+     "inst": {
+      "high": 2,
+      "mid": 3,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "outlinerHasPavilion": false
+    },
+    "undone": {
+     "dc": 3,
+     "tri": 14,
+     "objects": 0,
+     "inst": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "outlinerHasPavilion": false
+    },
+    "redone": {
+     "dc": 15,
+     "tri": 189578,
+     "objects": 5,
+     "inst": {
+      "high": 2,
+      "mid": 3,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "outlinerHasPavilion": false
+    },
+    "ok": true
+   },
+   "renderModes": [
+    {
+     "mode": "wireframe",
+     "dc": 0,
+     "tri": 0
+    },
+    {
+     "mode": "xray",
+     "dc": 0,
+     "tri": 0
+    },
+    {
+     "mode": "clay",
+     "dc": 0,
+     "tri": 0
+    },
+    {
+     "mode": "shaded",
+     "dc": 51,
+     "tri": 1376574
+    }
+   ]
+  }
+ },
+ "driverConsoleLog": [
+  {
+   "kind": "console",
+   "type": "debug",
+   "text": "[vite] connecting...",
+   "timestamp": 1790560585678.136
+  },
+  {
+   "kind": "console",
+   "type": "debug",
+   "text": "[vite] connected.",
+   "timestamp": 1790560585691.219
+  },
+  {
+   "kind": "console",
+   "type": "info",
+   "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+   "timestamp": 1790560585944.928
+  }
+ ]
+}

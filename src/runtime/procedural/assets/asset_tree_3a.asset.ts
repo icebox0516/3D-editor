@@ -71,6 +71,11 @@ export const meta: ProceduralAssetMeta = {
   variants: { scaleJitter: 0.16, rotationJitter: 180, hueJitter: 9 }, // 参照 asset_oak 量级
   triangleCount: 35058, // 实数 = slot-0 锚点 High 档结构计数（皮 20724 恒定 + 叶簇卡 7167×2，簇级剔除 + 冠内通透规则确定；多档起声明面取细模档；见完成记录）
   levels: [{ id: 'high' }, { id: 'mid' }, { id: 'low' }], // LOD 三档（T009.6 夏栎内容交付；D27 首版最小化 [{id}]——阈值归 Runtime 常量，不进 Profile）
+  // Runtime 表示能力声明（T021.7 接线，D41 §三.2）：乔木 canopy 链 High → Mid → Canopy →
+  // Culled（representation-runtime.md §三.2 有效链示例）。low 不进有效链——保留为构建档位
+  // （levels 三档声明与构建代码零触碰——零回退基线；low 回插经 021.8 标定裁定为不回插（证据锚 docs/acceptance/t021/021.8/calibration/README.md ④））；
+  // canopy 源由 CanopySourceCache 经 broadleafCanopyProxy 工厂提供（021.6，恒 487 面）
+  representations: ['high', 'mid', 'canopy'],
   taxonomy: { category: 'plant', family: 'broadleaf' }, // 阔叶家族契约第一实例（tree/broadleaf/，T010.1）；T011 首批阔叶乔木同族
   proceduralProfile: {
     // 跨 8 槽细模包围盒实测带（T010.2 探针：h 7.3869–9.1183 / w 4.4415–9.8035）。

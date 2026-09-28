@@ -32,7 +32,7 @@ import { EventBus } from '../core/events/EventBus';
 import { createId } from '../core/id';
 import type { ID, Transform, Vec3 } from '../core/types';
 import { deepClone } from '../core/utils';
-import type { AssetDescriptor, ModelAsset, ModelObject } from '../domain/assets';
+import type { AssetDescriptor, ModelAsset, ModelObject, ProceduralAssetMeta } from '../domain/assets';
 import { MODEL_BASE_HEIGHT, MODEL_LAYER_NAME, applyAssetVariants } from '../domain/assets';
 import { SEMANTIC_DEFINITIONS } from '../domain/regions';
 import type { RegionObject } from '../domain/regions';
@@ -93,6 +93,9 @@ import { createVertexSnapPipeline } from '../editor/tools/vertexSnapPipeline';
 import { createSnapTiersConfig } from '../editor/services/snapTiersConfig';
 import type { SnapTiersConfig } from '../editor/services/snapTiersConfig';
 import { Renderer } from '../runtime/Renderer';
+import { EditingPinHub } from '../runtime/services/EditingPinHub';
+import { emptyLodDistribution } from '../runtime/lodDistribution';
+import type { LodDistribution } from '../runtime/lodDistribution';
 import type { SkyAtmosphereParams } from '../runtime/environment/skyCore';
 import type { PmremStats } from '../runtime/environment/pmremEnvironment';
 import type { SkyTuningParams, SkyTuningPort } from '../runtime/environment/skyTuning';
@@ -559,6 +562,14 @@ function defaultSmokeScatterParams(): ScatterParams {
  * （id 除外——createId 每次新掷）；seed = seedBase + i 经槽路由自然铺开 8 形态槽。
  * T011.13 泛化：place 增 assetId 可选参数（族级验收门 12 阔叶树种共用本驱动面），
  * 缺省夏栎逐位不变（009.7 复现脚本兼容性保持）；未注册 id 抛错带资产名——验收循环防错。
+ * T021.8 扩展 A（Phase C 依赖——13 乔木混植验收档）：place 增 assetIds 可选参数
+ * （round-robin 混植，语义见 Tree3aPerfPlaceOptions.assetIds 注）；缺省路径逐位不变。
+ * T021.8 扩展 B（Phase C 依赖——§十四 representation distribution 逐梯队取证）：
+ * 句柄增 distribution() 即时快照（直接委托 Renderer.getLodDistribution() 完整
+ * LodDistribution——instances/buckets 双口径 + transitionInstances/transitionTargets/
+ * shadowCasterInstances + transition.dualSubmitBuckets）；不并入 stats() 的裁定记档：
+ * stats 是「上一完整帧」语义（renderer.info），distribution 是即时快照（两链逐对象
+ * 现算）——语义不同不混型；无渲染依赖时返回空计数（沿 stats() 零值先例）。
  */
 
 /** place 参数（批量确定性放置） */
@@ -567,6 +578,14 @@ export interface Tree3aPerfPlaceOptions {
    *  查找，未注册/非程序化 id 抛错带资产名——族级验收循环防错；seed/spacing/jitter 语义
    *  对各阔叶树同契约——seed = seedBase + i 经槽路由自然铺开形态槽） */
   assetId?: string;
+  /** 混植树种 id 列表（T021.8 扩展 A——13 乔木混植验收档）：对象 i 的资产 =
+   *  assetIds[i % assetIds.length]（round-robin 确定性——同参两次放置资产序列逐位
+   *  一致；同网格混排防同种扎堆）。与 assetId 互斥（同时给出抛错——显式冲突按硬
+   *  失败处理，沿「拼错 id 硬失败」防错哲学；静默取后者会掩盖脚本 bug）；空数组
+   *  同理抛错；逐 id 校验注册与 kind（未注册/非程序化抛错带 id——全列表先验证后
+   *  放置，失败零半批）。不传 = 单资产路径逐位不变。seed 语义不变（seedBase + i
+   *  经各资产槽路由自然铺开） */
+  assetIds?: string[];
   /** 棵数（缺省 100；验收档 1/20/100/500/1000） */
   count?: number;
   /** seed 基（缺省 1；对象 i 的 seed = seedBase + i） */
@@ -624,6 +643,13 @@ export interface Tree3aPerfHandle {
   clear(): boolean;
   /** 性能快照（形状见 Tree3aPerfStats；无头/未注入视口依赖时渲染字段为零值） */
   stats(): Tree3aPerfStats;
+  /** 表示分布读出（T021.8 扩展 B——Phase C §十四逐梯队 representation distribution
+   *  取证）：即时快照，直接委托 Renderer.getLodDistribution() 完整 LodDistribution
+   *  （instances/buckets 双口径 + transitionInstances/transitionTargets/
+   *  shadowCasterInstances + transition.dualSubmitBuckets）；独立方法而非并入 stats()
+   *  的裁定见段首记档（「上一完整帧」vs 即时快照语义不同不混型）；无渲染依赖时
+   *  返回空计数（沿 stats() 零值先例） */
+  distribution(): LodDistribution;
   /** rAF 帧间隔采样（缺省 5000ms；先丢 30 帧预热再计窗——放置/切阴影后的材质与灯重编译等一次性成本不进统计） */
   sampleFrames(durationMs?: number): Promise<Tree3aPerfFrameStats>;
   /** 太阳 castShadow 切换（Shadow 成本 A/B 用；切换后的重编译属一次性，采样方自行 warmup） */
@@ -652,6 +678,9 @@ export interface Tree3aPerfDeps {
       getViewportStats(): { drawCalls: number; triangles: number };
       getResourceStats(): { geometries: number; textures: number; programs: number };
     };
+    /** LOD 分布读出（T021.8 扩展 B——即时快照；Renderer.getLodDistribution 结构类型，
+     *  组合根注入 renderer 实件；缺省无头退化空计数） */
+    lod?: { getLodDistribution(): LodDistribution };
   };
 }
 
@@ -698,20 +727,36 @@ export function createTree3aPerfHandle(deps: Tree3aPerfDeps): Tree3aPerfHandle {
 
   return {
     place(opts = {}) {
-      // T011.13 泛化：assetId 可选（缺省夏栎逐位不变）；对象创建/归层/变体全从该
-      // descriptor 派生（createModelObjectAt 以 meta.id 落 asset.assetId），下游零特判
-      const assetId = opts.assetId ?? TREE3A_PERF_ASSET_ID;
-      const descriptor = deps.assets.get(assetId);
-      if (!descriptor || descriptor.kind !== 'procedural') {
-        // 显式传入的 assetId 未注册/非程序化 → 抛错带资产名（族级验收循环防错——
-        // 拼错 id 硬失败而非静默 no-op）；缺省路径（未传 assetId）保持 009.7 行为不变
-        if (opts.assetId !== undefined) {
-          throw new Error(`[tree3aPerf] 资产未注册或非程序化: ${assetId}——place 拒绝（T011.13 验收循环防错）`);
-        }
-        console.warn(`[tree3aPerf] 资产未注册或非程序化: ${assetId}——place no-op`);
-        return false;
+      // T011.13 泛化：assetId 可选（缺省夏栎逐位不变）；对象创建/归层/变体全从各对象
+      // 的 descriptor 派生（createModelObjectAt 以 meta.id 落 asset.assetId），下游零特判。
+      // T021.8 扩展 A：assetIds 混植（round-robin）与 assetId 互斥——冲突/空数组按硬
+      // 失败抛错（显式矛盾是脚本 bug，静默取后者会掩盖；沿「拼错 id 硬失败」防错
+      // 哲学，语义记档见 Tree3aPerfPlaceOptions.assetIds 注）
+      if (opts.assetIds !== undefined && opts.assetId !== undefined) {
+        throw new Error('[tree3aPerf] assetId 与 assetIds 同时给出——参数冲突，place 拒绝（T021.8 混植防错）');
       }
-      const asset = descriptor.asset;
+      if (opts.assetIds !== undefined && opts.assetIds.length === 0) {
+        throw new Error('[tree3aPerf] assetIds 为空数组——混植至少一个资产 id（T021.8 混植防错）');
+      }
+      const assetId = opts.assetId ?? TREE3A_PERF_ASSET_ID;
+      // 参与本次放置的资产序列（单资产路径 = 缺省/显式单 id；混植 = assetIds 原序）
+      const rotationIds: readonly ID[] = opts.assetIds ?? [assetId];
+      // 逐 id 解析 meta（全列表先验证后放置——失败零半批）：显式传入的 id（assetId 或
+      // assetIds 成员）未注册/非程序化 → 抛错带资产名（族级验收循环防错——拼错 id
+      // 硬失败而非静默 no-op）；缺省路径（两者都未传）保持 009.7 行为不变（warn + no-op）
+      const explicit = opts.assetId !== undefined || opts.assetIds !== undefined;
+      const rotation: ProceduralAssetMeta[] = [];
+      for (const id of rotationIds) {
+        const descriptor = deps.assets.get(id);
+        if (!descriptor || descriptor.kind !== 'procedural') {
+          if (explicit) {
+            throw new Error(`[tree3aPerf] 资产未注册或非程序化: ${id}——place 拒绝（T011.13 验收循环防错）`);
+          }
+          console.warn(`[tree3aPerf] 资产未注册或非程序化: ${id}——place no-op`);
+          return false;
+        }
+        rotation.push(descriptor.asset);
+      }
       const count = Math.max(1, Math.floor(opts.count ?? 100));
       const seedBase = Math.floor(opts.seedBase ?? 1);
       const spacing =
@@ -733,6 +778,11 @@ export function createTree3aPerfHandle(deps: Tree3aPerfDeps): Tree3aPerfHandle {
       const rows = Math.ceil(count / columns);
       const objects: ModelObject[] = [];
       for (let i = 0; i < count; i++) {
+        // T021.8 扩展 A：对象 i 的资产 = rotation[i % n]（round-robin 确定性——同参
+        // 两次放置资产序列逐位一致；相邻网格单元 i 连续 → 相邻异种，同网格混排防扎堆；
+        // 不传 assetIds 时 n=1 逐位同旧）。seed 语义不变：seed = seedBase + i，经各资产
+        // 槽路由自然铺开形态槽
+        const asset = rotation[i % rotation.length]!; // n ≥ 1（空数组已在入口抛错）
         const seed = seedBase + i;
         const variant = jitter ? applyAssetVariants(asset.variants, seed) : null;
         const scaleFactor = variant?.scaleFactor ?? 1;
@@ -776,6 +826,11 @@ export function createTree3aPerfHandle(deps: Tree3aPerfDeps): Tree3aPerfHandle {
         programs: resources?.programs ?? 0,
         objects,
       };
+    },
+    distribution() {
+      // T021.8 扩展 B：即时快照直接透传（Renderer.getLodDistribution 本就返回深冻结
+      // 只读拷贝——零防御零拷贝委托）；无渲染依赖时空计数（沿 stats() 零值先例）
+      return deps.view?.lod?.getLodDistribution() ?? emptyLodDistribution();
     },
     sampleFrames(durationMs = TREE3A_PERF_SAMPLE_MS) {
       return new Promise<Tree3aPerfFrameStats>((resolve, reject) => {
@@ -918,9 +973,28 @@ export function createEditor(canvas: HTMLCanvasElement | null, opts: CreateEdito
   // 对象吸附共享配置（T7.6）：gizmo translate 边/面对齐开关与容差——组合根构造一份
   // 注入 Renderer → GizmoImpl 与 EditorHandle（设置面板「吸附」组读写同一对象即时生效）
   const objectSnap = createObjectSnapConfig();
+  // ── 编辑态 pin 信号装配（T021.7，D41 §十二）────────────────────────────
+  // 四类目标的并集每帧派生（零状态残留、零 Scene 数据改动）：
+  //  1. selected：选中服务活源（也覆盖非 gizmo 变换路径——属性面板/键盘 nudge/阵列
+  //     作用于选中集）；2. transforming ⊆ gizmo target（拖拽仅发生于 attach 集），
+  //     经 gizmo 活源一并覆盖（renderer 创建后注册，见下方）；3. gizmo target：attach
+  //     集；4. focusObjects 目标：经 RendererDeps.onFocusObjects → pinFocus 短窗口
+  //     （「相机飞行期间」最小合规裁定——现状瞬时跳变，见 FOCUS_PIN_WINDOW_MS 注）。
+  // Renderer 只见 getEditingPinIds 窄回调，不依赖任何具体编辑服务。
+  const editingPins = new EditingPinHub();
+  editingPins.addSource((into) => {
+    for (const id of selection.getSelectedIds()) into.add(id);
+  });
   const renderer = canvas
-    ? new Renderer(canvas, { eventBus, sceneManager, assets, environment: initial.environment, vertexSnap, objectSnap, gridSnap: drawGrid, snapTiers })
+    ? new Renderer(canvas, { eventBus, sceneManager, assets, environment: initial.environment, vertexSnap, objectSnap, gridSnap: drawGrid, snapTiers, getEditingPinIds: () => editingPins.getIds(), onFocusObjects: (ids) => editingPins.pinFocus(ids) })
     : null;
+  // gizmo target / transforming 信号（gizmo 实例在 Renderer 内部创建——构造后注册活源，
+  // 闭包 live 读 attach 集；无头无 Renderer 时 getIds 不被调用，源为空转）
+  if (renderer) {
+    editingPins.addSource((into) => {
+      for (const id of renderer.gizmo.getTargetIds()) into.add(id);
+    });
+  }
   // T006.3 LOD 总开关 URL 入口（最小面：?lod=0/off/false 关闭——渲染派生态，不进
   // Scene/Command/持久状态；无头/缺参缺省开）。回退对比与兜底的调试/验收通道。
   if (renderer && typeof window !== 'undefined') {
@@ -1188,6 +1262,7 @@ export function createEditor(canvas: HTMLCanvasElement | null, opts: CreateEdito
         camera: renderer.camera,
         controls: renderer.controls,
         stats: renderer,
+        lod: renderer, // T021.8 扩展 B：distribution() 即时快照数据源（结构类型命中）
       },
     });
     window.__tree3aPerf = tree3aPerf;

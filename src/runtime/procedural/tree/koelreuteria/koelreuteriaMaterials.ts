@@ -408,17 +408,23 @@ float koeFlowerAlpha(vec2 koeF, out float koeFCen, out float koeFVar) {
  * 深度 alpha 三分支（组 0+组 1 多材质网格共用叶影深度材质的域路由）：
  * v<4.5 叶/皮域（aLeafRand>0 → 叶卡 SDF；组 0 rand≡0 → 实心守卫——platanus 先例）；
  * v∈[4.5,6) 花卡 alpha 裁切（域即身份）；v≥6 果实心（八面体无裁切）。
+ * 单返回形态（T021.8 X4000 修复）：改前是全家族唯一多早退 return 函数——FXC 内联多
+ * 早退函数时返回值临时变量（f_koeDepthAlpha，即验收异常 7 警告名）触发 X4000 保守
+ * 误报（011.6 终裁口径）；改声明处初始化 koeD = 1.0 + 分支赋值 + 尾部单 return
+ * （011.6 ⑨ 家族纪律）。初值 1.0 语义：v≥6 果八面体实心 = 兜底域值，且 1.0 是深度
+ * alpha 的保守方向（万一有未初始化读，绝不 < alphaTest 0.5 误裁影几何）。三分支
+ * 表达式与求值顺序逐位不变（首分支 return 原隔离语义 = else if 等价）。
  */
 const KOE_DEPTH_ALPHA = /* glsl */ `
 float koeDepthAlpha(vec2 koeUv, float koeRand) {
+  float koeD = 1.0; // 果八面体实心兜底（单返回守卫初值——T021.8 X4000 修复）
   if (koeUv.y < 4.5) {
-    return mix(1.0, koeLeafAlpha(koeUv, koeRand), step(0.0001, koeRand)); // 皮/果实心守卫（组 0 aLeafRand 恒 0）
-  }
-  if (koeUv.y < 6.0) {
+    koeD = mix(1.0, koeLeafAlpha(koeUv, koeRand), step(0.0001, koeRand)); // 皮/果实心守卫（组 0 aLeafRand 恒 0）
+  } else if (koeUv.y < 6.0) {
     float koeDCen = 0.0; float koeDVar = 0.0; // ANGLE X4000 冷启动「潜在未初始化」告警静默（哑元 out 参：callee 无条件覆写 + 深度路径零回读——零语义变化，验证轮校准项 2026-09-21）
-    return koeFlowerAlpha(vec2(koeUv.x, koeUv.y - 5.0), koeDCen, koeDVar); // 花卡裁切（Color/Depth 同源 GLSL）
+    koeD = koeFlowerAlpha(vec2(koeUv.x, koeUv.y - 5.0), koeDCen, koeDVar); // 花卡裁切（Color/Depth 同源 GLSL）
   }
-  return 1.0; // 果八面体实心
+  return koeD; // 果八面体实心（初值直通）
 }
 `;
 

@@ -884,7 +884,7 @@ describe('ScatterChunkManager LOD：代表 scale 全集口径（T021.4 记档—
   });
 });
 
-// ── canopy 目标位过渡执行（T021.3：假想声明资产——真实 canopy 表示 021.7 前不可达）──
+// ── canopy 目标位过渡执行（T021.3：假想声明资产——真实 13 树种 021.7 起已声明 canopy）──
 
 describe('ScatterChunkManager LOD：canopy dither 执行（假想声明资产）', () => {
   /** 假想 canopy 源：几何包围 ±2（大于 mid/low 的 ±1——Union 剔除判别位） */

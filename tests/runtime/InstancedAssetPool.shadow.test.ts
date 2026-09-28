@@ -6,10 +6,11 @@
  * - 各表示 mesh 三字段独立断言（cast/receive/customDepthMaterial 按表示策略落值）：
  *   high/mid = full（挂源 SDF 深度材质）；**low = simplified 且跳过源提供的 LOW SDF
  *   深度材质**（不挂 → three 缺省实心几何深度——本任务唯一生产可见行为变化的机制面：
- *   low 影从叶形裁切变实心壳卡影，021.8 A/B 复核位）；
+ *   low 影从叶形裁切变实心壳卡影；021.8 收口记档：乔木链 low 不回插〔结论总表④〕，
+ *   low 影仅 legacy 链可达，未单列标定项，沿现状）；
  * - culled 提交终态 belt-and-braces：终态整桶 visible=false 之外 cast/receive 一并
  *   false（零残影）；回视同帧复原策略值；
- * - 假想 canopy 声明资产（021.3 先例——真实资产 021.7 前不可达）：canopy 稳态
+ * - 假想 canopy 声明资产（021.3 先例——真实 13 树种 021.7 起已声明 canopy）：canopy 稳态
  *   receive=false + 深度材质挂载（simplified = canopy 源深度材质本身即轮廓级构造）；
  *   dither 中点 caster 翻转**恰一侧**（mesh 级 castShadow：中点前 mid 桶 cast /
  *   canopy 客座不 cast，中点后反向——§5.4 不做双 Shadow 交叉渐变）；shadowCasterInstances
@@ -38,7 +39,7 @@ const LEVEL_CENTER: Record<RuntimeRepresentation, THREE.Vector3> = {
   high: new THREE.Vector3(0, 3, 0),
   mid: new THREE.Vector3(0, 3, 0.5),
   low: new THREE.Vector3(0, 3, -0.5),
-  canopy: new THREE.Vector3(0, 3, 0.25), // 假想 canopy 源（真实资产 021.7 前不可达）
+  canopy: new THREE.Vector3(0, 3, 0.25), // 假想 canopy 源（真实树种 021.7 已接线；单测用假想源隔离工厂）
 };
 const LEVEL_RADIUS: Record<RuntimeRepresentation, number> = {
   high: 2,
@@ -155,7 +156,7 @@ function makeLodPool(provider: ReturnType<typeof makeLeveledProvider>['provider'
   });
 }
 
-/** 假想 canopy 池（representations 声明优先——真实 13 树种未声明 canopy） */
+/** 假想 canopy 池（representations 声明优先——真实 13 树种 021.7 起已声明 canopy 链） */
 function makeCanopyPool(provider: ReturnType<typeof makeLeveledProvider>['provider']) {
   return new InstancedAssetPool({
     provideSource: provider,
@@ -188,7 +189,7 @@ describe('InstancedAssetPool 阴影策略：各表示三字段（策略驱动落
     expect(highMesh.receiveShadow).toBe(true);
     expect(highMesh.customDepthMaterial).toBe(sourceOf(sources, 'asset_tree', 3, 'high').customDepthMaterial);
 
-    // mid：同 full 挂载（021.8 A/B 候选位——表值可调即断言跟随表）
+    // mid：同 full 挂载（021.8 复核维持 full——表值可调即断言跟随表）
     pool.frameLod(cameraForM(T.highToMid * 1.5), true);
     await flush();
     const midMesh = meshHolding(pool, sourceOf(sources, 'asset_tree', 3, 'mid').geometry)!;
@@ -197,7 +198,7 @@ describe('InstancedAssetPool 阴影策略：各表示三字段（策略驱动落
     expect(midMesh.customDepthMaterial).toBe(sourceOf(sources, 'asset_tree', 3, 'mid').customDepthMaterial);
 
     // low：cast/receive true + **不挂**（源携带 LOW SDF 深度材质也跳过——simplified
-    // = 实心壳卡影，本任务唯一生产可见行为变化，021.8 A/B 复核位）
+    // = 实心壳卡影，本任务唯一生产可见行为变化；021.8 收口：乔木链 low 不回插，沿现状）
     pool.frameLod(cameraForM(T.midToCanopy * 1.125), true);
     await flush();
     const lowMesh = meshHolding(pool, sourceOf(sources, 'asset_tree', 3, 'low').geometry)!;
@@ -252,7 +253,7 @@ describe('InstancedAssetPool 阴影策略：canopy（假想声明资产，021.3 
     expect(guest).toBeDefined();
     expect(midMesh.castShadow).toBe(true);
     expect(guest.castShadow).toBe(false);
-    expect(guest.receiveShadow).toBe(false); // canopy 受影初始关闭（021.8 A/B 可开项）
+    expect(guest.receiveShadow).toBe(false); // canopy 受影初始关闭（021.8 复核维持 false）
     expect(guest.customDepthMaterial).toBe(
       sourceOf(sources, 'asset_canopy_tree', 1, 'canopy').customDepthMaterial,
     );

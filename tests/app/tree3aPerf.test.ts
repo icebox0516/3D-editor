@@ -22,12 +22,18 @@
  * - view：球坐标公式复算（tree3aStage.placeCamera 口径）+ place 后缺省距离按网格
  *   extent 自适应；无头 no-op 不抛；
  * - sampleFrames：假 rAF 时序注入——30 帧预热丢弃、nearest-rank 百分位、fps=1000/mean、
- *   durationMs 截窗（0 → 至少 1 帧）；无 rAF 环境 reject。
+ *   durationMs 截窗（0 → 至少 1 帧）；无 rAF 环境 reject；
+ * - T021.8 扩展 A（assetIds 混植）：round-robin 确定性（对象 i 资产 = assetIds[i%n]、
+ *   seed 序列与网格公式不变、同参两次资产序列逐位一致）+ 缺省路径双锁（单元素
+ *   assetIds ≡ 不传）+ assetId 冲突 / 空数组 / 未注册 id 硬失败抛错（场景零变更）；
+ * - T021.8 扩展 B（distribution）：注桩 Renderer 透传不变形（同引用零防御委托）+
+ *   无渲染依赖全零计数形状（沿 stats() 零值先例）。
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createId } from '../../src/core/id';
 import { MODEL_BASE_HEIGHT, applyAssetVariants } from '../../src/domain/assets';
 import type { ModelObject } from '../../src/domain/assets';
+import type { LodDistribution } from '../../src/runtime/lodDistribution';
 import { createEditor, createTree3aPerfHandle, importElements } from '../../src/app/bootstrap';
 import type { Tree3aPerfDeps, Tree3aPerfHandle } from '../../src/app/bootstrap';
 import manifestJson from '../../assets/manifest.json';
@@ -200,6 +206,87 @@ describe('place（产品放置路径：真命令管线）', () => {
     const BAD_ID = 'asset_tree_no_such';
     expect(() => handle.place({ count: 3, assetId: BAD_ID })).toThrow(BAD_ID);
     expect(modelsOf(facade)).toHaveLength(0); // 抛错在命令执行前——场景零变更
+    facade.dispose();
+  });
+});
+
+describe('T021.8 扩展 A：assetIds 混植（round-robin 确定性）', () => {
+  it('对象 i 资产 = assetIds[i % n]：资产序列 / name / seed 序列确定，同参两次逐位一致', () => {
+    const { facade, handle } = makeHandle();
+    const IDS = ['asset_tree_3a', 'asset_tree_celtis', 'asset_tree_camphor'];
+    expect(handle.place({ count: 10, seedBase: 5, spacing: 6, assetIds: IDS })).toBe(true);
+    const first = modelsOf(facade).map(stripId);
+    expect(first).toHaveLength(10);
+    first.forEach((m, i) => {
+      const id = IDS[i % IDS.length]!;
+      expect(m.asset.assetId).toBe(id); // round-robin 确定性（相邻 i 异种——同网格混排防扎堆）
+      expect(m.name).toBe(facade.registries.assets.get(id)!.asset.name); // name = 各资产名惯例
+      expect(m.asset.seed).toBe(5 + i); // seed 序列语义不变（seedBase + i）
+    });
+    // 同参两次 place：资产序列逐位一致（id 除外整对象一致——幂等 + 确定性）
+    expect(handle.place({ count: 10, seedBase: 5, spacing: 6, assetIds: IDS })).toBe(true);
+    expect(modelsOf(facade).map(stripId)).toEqual(first);
+    facade.dispose();
+  });
+
+  it('缺省路径双锁：不传 assetIds = 单资产路径逐位同旧（单元素 assetIds 与缺省等价）', () => {
+    const { facade, handle } = makeHandle();
+    const opts = { count: 6, seedBase: 9, spacing: 7, jitter: true } as const;
+    expect(handle.place(opts)).toBe(true);
+    const single = modelsOf(facade).map(stripId);
+    expect(single.every((m) => m.asset.assetId === TREE_ID)).toBe(true);
+    expect(handle.place({ ...opts, assetIds: [TREE_ID] })).toBe(true); // n=1 round-robin ≡ 不传
+    expect(modelsOf(facade).map(stripId)).toEqual(single);
+    facade.dispose();
+  });
+
+  it('assetId 与 assetIds 同时给出 / 空数组：抛错（显式冲突硬失败）且场景零变更', () => {
+    const { facade, handle } = makeHandle();
+    expect(() => handle.place({ count: 3, assetId: TREE_ID, assetIds: [TREE_ID] })).toThrow(
+      'assetIds',
+    );
+    expect(() => handle.place({ count: 3, assetIds: [] })).toThrow('空数组');
+    expect(modelsOf(facade)).toHaveLength(0); // 抛错在命令执行前——场景零变更
+    facade.dispose();
+  });
+
+  it('assetIds 含未注册 id：抛错带 id、场景不变（全列表先验证后放置——零半批）', () => {
+    const { facade, handle } = makeHandle();
+    const BAD_ID = 'asset_tree_no_such';
+    expect(() =>
+      handle.place({ count: 5, assetIds: [TREE_ID, 'asset_tree_celtis', BAD_ID] }),
+    ).toThrow(BAD_ID);
+    expect(modelsOf(facade)).toHaveLength(0);
+    facade.dispose();
+  });
+});
+
+describe('T021.8 扩展 B：distribution（表示分布即时快照，Phase C §十四取证依赖）', () => {
+  it('注桩 Renderer 返回已知 LodDistribution → 直接透传不变形（同引用零防御委托）', () => {
+    const known: LodDistribution = {
+      instances: { high: 3, mid: 0, low: 0, canopy: 47, culled: 50 },
+      buckets: { high: 2, mid: 0, low: 0, canopy: 8, culled: 0 },
+      transitionInstances: 7,
+      transitionTargets: { high: 0, mid: 0, low: 0, canopy: 7, culled: 0 },
+      shadowCasterInstances: 12,
+      transition: { instances: 7, buckets: 3, dualSubmitBuckets: 2 },
+    };
+    const { facade, handle } = makeHandle({ lod: { getLodDistribution: () => known } });
+    expect(handle.distribution()).toBe(known); // 快照本就深冻结只读——同引用即透传不变形
+    expect(handle.distribution().transition.dualSubmitBuckets).toBe(2); // §十四指标面在场
+    facade.dispose();
+  });
+
+  it('无渲染依赖（无头）：返回全零计数的完整 LodDistribution 形状，不抛错', () => {
+    const { facade, handle } = makeHandle();
+    expect(handle.distribution()).toEqual({
+      instances: { high: 0, mid: 0, low: 0, canopy: 0, culled: 0 },
+      buckets: { high: 0, mid: 0, low: 0, canopy: 0, culled: 0 },
+      transitionInstances: 0,
+      transitionTargets: { high: 0, mid: 0, low: 0, canopy: 0, culled: 0 },
+      shadowCasterInstances: 0,
+      transition: { instances: 0, buckets: 0, dualSubmitBuckets: 0 },
+    });
     facade.dispose();
   });
 });

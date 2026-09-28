@@ -4,8 +4,9 @@
  * 覆盖：
  * - 分型表（transitionKindOf）：High↔Mid / Mid↔Low 硬切；{mid|low}↔canopy 双向 dither；
  *   canopy/low → culled fade-out；high/mid → culled 与多级跳档硬切；同值 none；
- * - 过渡带宽度候选常量锁（TRANSITION_BAND_RATIO = 0.25，**候选、021.8 重锁**——
- *   重锁须连带更新本断言并记档）；
+ * - 过渡带宽度常量锁（TRANSITION_BAND_RATIO = 0.25，**021.8 实测维持转锁定**——
+ *   证据锚 docs/acceptance/t021/021.8/calibration/README.md 结论总表③；改值须
+ *   连带更新本断言并记档）；
  * - 稳态 / 决策回落：full 提交、状态归位（SelectionState 五字段）；
  * - 硬切：源就绪瞬时完成（completed + 状态折叠 target）；未就绪排队（不开始过渡、
  *   不切提交、transition 0 / active false）；排队后就绪 → 当帧完成；
@@ -97,8 +98,8 @@ describe('过渡分型表（D41 §五.1 第一阶段默认 + 021.3 既有链验�
   });
 });
 
-describe('策略常量（候选锁）', () => {
-  it('TRANSITION_BAND_RATIO = 0.25（候选值，021.8 A/B 重锁——重锁须重开实测记档并连带更新本断言）', () => {
+describe('策略常量（锁定锁）', () => {
+  it('TRANSITION_BAND_RATIO = 0.25（锁定值，021.8 实测维持——改值须重开实测记档并连带更新本断言）', () => {
     expect(TRANSITION_BAND_RATIO).toBe(0.25);
   });
 });

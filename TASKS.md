@@ -8,6 +8,11 @@
 
 ## Done（近）
 
+- [x] T021 LOD → Representation 运行体系重构（9/9 epic 收官 2026-09-28；D41——运行面真相源 docs/procedural-assets/representation-runtime.md）→ [tasks/021-lod-representation.md](tasks/021-lod-representation.md)
+  - [x] T021.8 标定与验收门（done 2026-09-28：九项标定全维持 + T006.6 Step 3 吸收〔平移量 ≤0.42%〕+ 六面验收全 PASS + 预算四线重锁〔DC 1500 / p95 10ms / tri 12M / shadow ≤15%〕+ 收官双修复〔koe X4000 / drawCallBudget 1500〕，4243 全绿）→ [tasks/021.8-calibration-acceptance.md](tasks/021.8-calibration-acceptance.md)
+  - [x] T021.7 两链接线 + 编辑态 pin（done 2026-09-24）→ [tasks/021.7-wiring-editing-pin.md](tasks/021.7-wiring-editing-pin.md)
+  - （021.0–021.6 见 epic 子任务表）
+
 - [x] T020 任务执行体系收敛（第二批：执行协议整体切换；两阶段均 done 2026-09-23——阶段一 rule 层原子切换 / 阶段二 code 面独立提交）→ [tasks/020-task-system-reform.md](tasks/020-task-system-reform.md)
   - [x] 阶段二 code 面（done 2026-09-23：共享 harness 三模块 + 39 文件去重 / O(n²) 碰撞断言收容 assetTaxonomy / 16 软跳过清除——宽读法经审核追认记档任务书）→ [tasks/020-task-system-reform.md](tasks/020-task-system-reform.md)
 
@@ -81,25 +86,18 @@
 
 > Next 仅表示已排入路线图的后续任务，不代表执行顺序；实际启动顺序由任务文件中的依赖、当前项目状态及有效架构裁定决定（D31.8）。
 
-- [ ] T021 LOD → Representation 运行体系重构（021.0–021.6 done——021.5 done 2026-09-24；下一步 021.7，其后 021.8——D41，运行面真相源 docs/procedural-assets/representation-runtime.md）→ [tasks/021-lod-representation.md](tasks/021-lod-representation.md)
-  - [x] T021.5 Shadow Representation（done 2026-09-24：ShadowPolicy 三字段策略层 / depth 三档〔low 不挂 SDF→实心影〕/ 两链策略驱动 + 合并桶 OR / 中点切换钩子接通 / culled 零残影 + 九帧取证，4160 全绿）→ [tasks/021.5-shadow-representation.md](tasks/021.5-shadow-representation.md)
-  - [x] T021.4 Density / Batch 解耦（done 2026-09-24：levelInstanceKeep 废止密度恒全量 / 批次键迁移 representation / 分布口径升级，4141 全绿）→ [tasks/021.4-density-batch.md](tasks/021.4-density-batch.md)
-  - [x] T021.3 Transition Runtime（done 2026-09-24：metric 步进过渡状态机 / aFadeOut 属性缝 / 两链客座双表示 + Union 剔除 / dither×alphaTest 合成〔A2C 不吃 fade、IGN 镜像互补〕/ 中点切换钩子，4129 全绿）→ [tasks/021.3-transition-runtime.md](tasks/021.3-transition-runtime.md)
-  - [x] T021.6 Broadleaf Canopy Proxy（done 2026-09-23：共享冠层场契约收编 / 统一工厂 487 面 / 材质与深度材质 drift-lock / 13 树种基线帧取证，与 021.2 并行）→ [tasks/021.6-canopy-proxy.md](tasks/021.6-canopy-proxy.md)
-  - [x] T021.2 Selection Runtime（done 2026-09-23：新链候选阈值 / canopy 名义区间落位 / 散布四维粒度 + 代表 scale 全集口径，4073 全绿）→ [tasks/021.2-selection-runtime.md](tasks/021.2-selection-runtime.md)
-  - [x] T021.1 Representation 契约层（done 2026-09-23：表示联合四值 / culled 转提交终态 / representations 声明 / bounds 契约，4041 全绿）→ [tasks/021.1-representation-contract.md](tasks/021.1-representation-contract.md)
+- [ ] T022 资产库清理（浏览器一行大分类化 + 四低模植物删除 + plantMaterials 模块整体删除；记档：T016 取消 / **D19 第 1 条四植物子句废止** / taxonomy 口径修正 + metadata-taxonomy 失真面同步）→ [tasks/022-asset-library-cleanup.md](tasks/022-asset-library-cleanup.md)
+- [ ] T023 生产脊柱 spine 提取（spine + 方法剖面两层 / D36 边界句 + D30 最低可信证据原则记档 / **AGENTS「首例完整 SOP」两句同步**〔P0〕/ 新 workflow 创建纪律与 read-set 体积约束）→ [tasks/023-spine-extraction.md](tasks/023-spine-extraction.md)
+- [ ] T024 资产色卡预设【占位；2026-09-24 共识：激活 D17.2 preset 扩展位（材质基调切换，冠变干不变；instanceColor 继续管 hueJitter 群内微差）；声明契约 + 浏览器名旁色点切换 + 手动放置带 preset；存量 13 种乔木全量回补（色卡以各 Spec 季相记录为证据）；配方 schema 预留 preset 字段位，散布份额消费归散布任务；后续各族与车辆出生即带 preset；**立项必答**：preset 声明硬钩子（契约测试整表锁或 meta 必填 + typecheck 闸）/ D19.2「preset 不启用」子句修订记档 / sourceKey×preset 缓存增殖裁定（lod-spec sourceKey 语义下 13 树 × 槽 × N 色卡的 Source 增殖）】
+- [ ] T012 针叶族【占位；立项按 D30：012.1 雪松 = ConiferShapeProfile 家族首例走完整 SOP 口径，后续资产增量口径，族末集体验收门；候选池（D34 摘要，docs/research/urban-tree-candidates.md §2）：强 9——圆柏/龙柏/侧柏/白皮松/黑松/水杉/落羽杉/池杉/罗汉松，中 2（油松/华山松），弱 1（马尾松需补园艺文献或降优先级）】
+- [ ] T013 花木族【占位；候选池（D34 摘要，§3/§4）：乔木型观花强 8——东京樱花/紫叶李/碧桃/梅花/海棠花/西府海棠/紫薇/桂花 + 灌木型观花强 8——月季/杜鹃/山茶/栀子/木槿/紫荆/紫丁香/夹竹桃 + D34 自阔叶候选分流 7（玉兰/广玉兰/合欢/凤凰木/蓝花楹/羊蹄甲/洋紫荆——乔木观花为纲）】
+- [ ] T014 灌木族【占位；候选池（D34 摘要，§5）：强 4——冬青卫矛（「大叶黄杨」口径立项须钉死 Euonymus japonicus）/海桐/珊瑚树/南天竹，中 2（金森女贞/红花檵木），弱 2（小叶女贞/Buxus 口径大叶黄杨），Unknown 1（红叶石楠立项须补园艺权威来源）】
+- [ ] T015 地被/草本族【占位；候选池（D34 摘要，§6）：强 4——狗牙根（暖季草坪）/草地早熟禾（冷季草坪）/鸢尾/萱草，中 1（麦冬——园林地被用途无志书明文），弱 3（结缕草/高羊茅——学名口径立项须钉死/二月兰）】
 - [ ] T019 颜色管线（Tone Mapping 应急出口 / ACES 素材指针——D29.3 / D39 语义保留；占位行 2026-09-23 补登，D41 会话核实此前未同步）【占位】
 - [ ] T003 收官路径（冻结 2026-09-17；剩余 003.3 验收续走 / 003.5 / 003.6 / 设施返工）→ [tasks/003-scatter-styles.md](tasks/003-scatter-styles.md)
 - [ ] T004 Style Gallery（0/3）→ [tasks/004-style-gallery.md](tasks/004-style-gallery.md)
 - [ ] T005 Animation Pathway（0/3）→ [tasks/005-animation-pathway.md](tasks/005-animation-pathway.md)
 - [ ] T007 Bake Scatter（可选；启动前 grill 拷问门见任务书）→ [tasks/007-bake-scatter.md](tasks/007-bake-scatter.md)
-- [ ] T012 针叶族【占位；立项按 D30：012.1 雪松 = ConiferShapeProfile 家族首例走完整 SOP 口径，后续资产增量口径，族末集体验收门；候选池（D34 摘要，docs/research/urban-tree-candidates.md §2）：强 9——圆柏/龙柏/侧柏/白皮松/黑松/水杉/落羽杉/池杉/罗汉松，中 2（油松/华山松），弱 1（马尾松需补园艺文献或降优先级）】
-- [ ] T013 花木族【占位；候选池（D34 摘要，§3/§4）：乔木型观花强 8——东京樱花/紫叶李/碧桃/梅花/海棠花/西府海棠/紫薇/桂花 + 灌木型观花强 8——月季/杜鹃/山茶/栀子/木槿/紫荆/紫丁香/夹竹桃 + D34 自阔叶候选分流 7（玉兰/广玉兰/合欢/凤凰木/蓝花楹/羊蹄甲/洋紫荆——乔木观花为纲）】
-- [ ] T014 灌木族【占位；候选池（D34 摘要，§5）：强 4——冬青卫矛（「大叶黄杨」口径立项须钉死 Euonymus japonicus）/海桐/珊瑚树/南天竹，中 2（金森女贞/红花檵木），弱 2（小叶女贞/Buxus 口径大叶黄杨），Unknown 1（红叶石楠立项须补园艺权威来源）】
-- [ ] T015 地被/草本族【占位；候选池（D34 摘要，§6）：强 4——狗牙根（暖季草坪）/草地早熟禾（冷季草坪）/鸢尾/萱草，中 1（麦冬——园林地被用途无志书明文），弱 3（结缕草/高羊茅——学名口径立项须钉死/二月兰）】
-- [ ] T022 资产库清理（浏览器一行大分类化 + 四低模植物删除 + plantMaterials 模块整体删除；记档：T016 取消 / **D19 第 1 条四植物子句废止** / taxonomy 口径修正 + metadata-taxonomy 失真面同步）→ [tasks/022-asset-library-cleanup.md](tasks/022-asset-library-cleanup.md)
-- [ ] T023 生产脊柱 spine 提取（spine + 方法剖面两层 / D36 边界句 + D30 最低可信证据原则记档 / **AGENTS「首例完整 SOP」两句同步**〔P0〕/ 新 workflow 创建纪律与 read-set 体积约束）→ [tasks/023-spine-extraction.md](tasks/023-spine-extraction.md)
-- [ ] T024 资产色卡预设【占位；2026-09-24 共识：激活 D17.2 preset 扩展位（材质基调切换，冠变干不变；instanceColor 继续管 hueJitter 群内微差）；声明契约 + 浏览器名旁色点切换 + 手动放置带 preset；存量 13 种乔木全量回补（色卡以各 Spec 季相记录为证据）；配方 schema 预留 preset 字段位，散布份额消费归散布任务；后续各族与车辆出生即带 preset；**立项必答**：preset 声明硬钩子（契约测试整表锁或 meta 必填 + typecheck 闸）/ D19.2「preset 不启用」子句修订记档 / sourceKey×preset 缓存增殖裁定（lod-spec sourceKey 语义下 13 树 × 槽 × N 色卡的 Source 增殖）】
 - [ ] T025 园区设施扩充【占位；花箱/防撞柱/护栏/停车设施/充电桩等；轻量批量任务制（T002.4 先例：同方法一批 3–5 个一会话，共用方法与测试基建）；首例批次触发创建 simple-asset workflow（引用 spine 只写差异剖面）；候选清单见 docs/research/facility-device-candidates.md §1（P1 骨架件 + 四批切分建议，规划级枚举、逐资产立项时过 Research Gate）；**立项必答**：批次 Spec 口径（建议一批一合并 Spec + 逐资产 Gate 留痕——T002.4 为 pre-Gate 时代先例不可直接沿用）/ category 值收敛策略（程序化 facility 单栏 vs GLB 细分 slug 分栏终态裁定）】
 - [ ] T026 人物与车辆【占位；行人/工作人员 + 轿车/SUV/接驳车/货车/自行车，少量高复用变体；车辆复用 preset 车身色；全新资产域，立项过 Research Gate + Family 判定】
 - [ ] T027 自然小物【占位；景观石/岩石/树桩等】

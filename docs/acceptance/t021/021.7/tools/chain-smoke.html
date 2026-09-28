@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>canopy 全链调度冒烟（T021.7 两链接线——真实 InstancedAssetPool + RepresentationSourceRouter 取证）</title>
+  <script>
+    // console 捕获（先于 three/材质模块加载注入——沿 021.3 fade-smoke / 021.6 canopy-baseline 先例）
+    window.__CHAIN_ERRORS = [];
+    window.__CHAIN_WARNINGS = [];
+    (function () {
+      var oe = console.error, ow = console.warn;
+      console.error = function () {
+        window.__CHAIN_ERRORS.push(Array.prototype.map.call(arguments, String).join(' '));
+        oe.apply(console, arguments);
+      };
+      console.warn = function () {
+        window.__CHAIN_WARNINGS.push(Array.prototype.map.call(arguments, String).join(' '));
+        ow.apply(console, arguments);
+      };
+      window.addEventListener('error', function (e) { window.__CHAIN_ERRORS.push('window.onerror: ' + e.message); });
+      window.addEventListener('unhandledrejection', function (e) { window.__CHAIN_ERRORS.push('unhandledrejection: ' + String(e.reason)); });
+    })();
+  </script>
+  <style>
+    html, body { margin: 0; padding: 0; background: #20242a; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <script type="module" src="./chain-smoke-page.ts"></script>
+</body>
+</html>

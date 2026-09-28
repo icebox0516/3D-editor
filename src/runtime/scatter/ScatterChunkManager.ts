@@ -129,9 +129,9 @@ export interface ScatterChunkKey {
 /** 依赖注入窄接口（仿 AssetSourceRouter：Renderer 注入真实路由，测试注 fake 工厂） */
 export interface ScatterChunkManagerOptions {
   /** assetId + 表示 → 实例化源（与 InstancedAssetPool 同源路由；表示为桶维度，
-   *  缺省 'high'——无档资产的源路由行为与现状逐位一致；T021.3 起宽化到
-   *  RuntimeRepresentation——canopy 目标位执行路径落代码，真实资产 021.7 接线前
-   *  不可达；几何/材质共享，本管绝不 dispose） */
+   *  缺省 'high'——无档资产的源路由行为与现状逐位一致；T021.3 宽化到
+   *  RuntimeRepresentation、T021.7 起 canopy 真路由（13 乔木已声明、门面分流至
+   *  CanopySourceCache）；几何/材质共享，本管绝不 dispose） */
   provideSource: (
     assetId: string,
     representation?: RuntimeRepresentation,

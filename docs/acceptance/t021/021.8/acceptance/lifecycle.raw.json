@@ -1,0 +1,557 @@
+{
+ "result": {
+  "placement": [
+   {
+    "round": 1,
+    "farRound": false,
+    "afterPlace": {
+     "geo": 118,
+     "tex": 5,
+     "prog": 56,
+     "dc": 419,
+     "tri": 34096706,
+     "objects": 520,
+     "inst": {
+      "high": 41,
+      "mid": 231,
+      "low": 0,
+      "canopy": 248,
+      "culled": 0
+     }
+    },
+    "afterClear": {
+     "geo": 301,
+     "tex": 5,
+     "prog": 146,
+     "dc": 3,
+     "tri": 14,
+     "objects": 0,
+     "inst": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     }
+    }
+   },
+   {
+    "round": 2,
+    "farRound": false,
+    "afterPlace": {
+     "geo": 301,
+     "tex": 5,
+     "prog": 146,
+     "dc": 803,
+     "tri": 6011087,
+     "objects": 520,
+     "inst": {
+      "high": 41,
+      "mid": 231,
+      "low": 0,
+      "canopy": 248,
+      "culled": 0
+     }
+    },
+    "afterClear": {
+     "geo": 301,
+     "tex": 5,
+     "prog": 146,
+     "dc": 3,
+     "tri": 14,
+     "objects": 0,
+     "inst": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     }
+    }
+   },
+   {
+    "round": 3,
+    "farRound": true,
+    "afterPlace": {
+     "geo": 313,
+     "tex": 5,
+     "prog": 146,
+     "dc": 419,
+     "tri": 487014,
+     "objects": 520,
+     "inst": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 500,
+      "culled": 20
+     }
+    },
+    "afterClear": {
+     "geo": 313,
+     "tex": 5,
+     "prog": 146,
+     "dc": 3,
+     "tri": 14,
+     "objects": 0,
+     "inst": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     }
+    }
+   },
+   {
+    "round": 4,
+    "farRound": false,
+    "afterPlace": {
+     "geo": 313,
+     "tex": 5,
+     "prog": 146,
+     "dc": 803,
+     "tri": 6011087,
+     "objects": 520,
+     "inst": {
+      "high": 41,
+      "mid": 231,
+      "low": 0,
+      "canopy": 248,
+      "culled": 0
+     }
+    },
+    "afterClear": {
+     "geo": 313,
+     "tex": 5,
+     "prog": 146,
+     "dc": 3,
+     "tri": 14,
+     "objects": 0,
+     "inst": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     }
+    }
+   },
+   {
+    "round": 5,
+    "farRound": false,
+    "afterPlace": {
+     "geo": 313,
+     "tex": 5,
+     "prog": 146,
+     "dc": 803,
+     "tri": 6011087,
+     "objects": 520,
+     "inst": {
+      "high": 41,
+      "mid": 231,
+      "low": 0,
+      "canopy": 248,
+      "culled": 0
+     }
+    },
+    "afterClear": {
+     "geo": 313,
+     "tex": 5,
+     "prog": 146,
+     "dc": 3,
+     "tri": 14,
+     "objects": 0,
+     "inst": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     }
+    }
+   },
+   {
+    "round": 6,
+    "farRound": true,
+    "afterPlace": {
+     "geo": 313,
+     "tex": 5,
+     "prog": 146,
+     "dc": 419,
+     "tri": 487014,
+     "objects": 520,
+     "inst": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 500,
+      "culled": 20
+     }
+    },
+    "afterClear": {
+     "geo": 313,
+     "tex": 5,
+     "prog": 146,
+     "dc": 3,
+     "tri": 14,
+     "objects": 0,
+     "inst": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     }
+    }
+   },
+   {
+    "round": 7,
+    "farRound": false,
+    "afterPlace": {
+     "geo": 313,
+     "tex": 5,
+     "prog": 146,
+     "dc": 803,
+     "tri": 6011087,
+     "objects": 520,
+     "inst": {
+      "high": 41,
+      "mid": 231,
+      "low": 0,
+      "canopy": 248,
+      "culled": 0
+     }
+    },
+    "afterClear": {
+     "geo": 313,
+     "tex": 5,
+     "prog": 146,
+     "dc": 3,
+     "tri": 14,
+     "objects": 0,
+     "inst": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     }
+    }
+   },
+   {
+    "round": 8,
+    "farRound": false,
+    "afterPlace": {
+     "geo": 313,
+     "tex": 5,
+     "prog": 146,
+     "dc": 803,
+     "tri": 6011087,
+     "objects": 520,
+     "inst": {
+      "high": 41,
+      "mid": 231,
+      "low": 0,
+      "canopy": 248,
+      "culled": 0
+     }
+    },
+    "afterClear": {
+     "geo": 313,
+     "tex": 5,
+     "prog": 146,
+     "dc": 3,
+     "tri": 14,
+     "objects": 0,
+     "inst": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     }
+    }
+   },
+   {
+    "round": 9,
+    "farRound": true,
+    "afterPlace": {
+     "geo": 313,
+     "tex": 5,
+     "prog": 146,
+     "dc": 419,
+     "tri": 487014,
+     "objects": 520,
+     "inst": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 500,
+      "culled": 20
+     }
+    },
+    "afterClear": {
+     "geo": 313,
+     "tex": 5,
+     "prog": 146,
+     "dc": 3,
+     "tri": 14,
+     "objects": 0,
+     "inst": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     }
+    }
+   },
+   {
+    "round": 10,
+    "farRound": false,
+    "afterPlace": {
+     "geo": 313,
+     "tex": 5,
+     "prog": 146,
+     "dc": 803,
+     "tri": 6011087,
+     "objects": 520,
+     "inst": {
+      "high": 41,
+      "mid": 231,
+      "low": 0,
+      "canopy": 248,
+      "culled": 0
+     }
+    },
+    "afterClear": {
+     "geo": 313,
+     "tex": 5,
+     "prog": 146,
+     "dc": 3,
+     "tri": 14,
+     "objects": 0,
+     "inst": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     }
+    }
+   }
+  ],
+  "scatter": [
+   {
+    "round": 1,
+    "afterScatter": {
+     "geo": 348,
+     "tex": 5,
+     "prog": 146,
+     "dc": 129,
+     "tri": 7639171,
+     "objects": 0,
+     "inst": {
+      "high": 0,
+      "mid": 468,
+      "low": 0,
+      "canopy": 307,
+      "culled": 0
+     }
+    },
+    "afterClear": {
+     "geo": 348,
+     "tex": 5,
+     "prog": 146,
+     "dc": 3,
+     "tri": 14,
+     "objects": 0,
+     "inst": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     }
+    }
+   },
+   {
+    "round": 2,
+    "afterScatter": {
+     "geo": 348,
+     "tex": 5,
+     "prog": 146,
+     "dc": 71,
+     "tri": 3817768,
+     "objects": 0,
+     "inst": {
+      "high": 0,
+      "mid": 211,
+      "low": 0,
+      "canopy": 325,
+      "culled": 0
+     }
+    },
+    "afterClear": {
+     "geo": 348,
+     "tex": 5,
+     "prog": 146,
+     "dc": 3,
+     "tri": 14,
+     "objects": 0,
+     "inst": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     }
+    }
+   },
+   {
+    "round": 3,
+    "afterScatter": {
+     "geo": 348,
+     "tex": 5,
+     "prog": 146,
+     "dc": 71,
+     "tri": 3967296,
+     "objects": 0,
+     "inst": {
+      "high": 0,
+      "mid": 220,
+      "low": 0,
+      "canopy": 327,
+      "culled": 0
+     }
+    },
+    "afterClear": {
+     "geo": 348,
+     "tex": 5,
+     "prog": 146,
+     "dc": 3,
+     "tri": 14,
+     "objects": 0,
+     "inst": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     }
+    }
+   },
+   {
+    "round": 4,
+    "afterScatter": {
+     "geo": 348,
+     "tex": 5,
+     "prog": 146,
+     "dc": 71,
+     "tri": 4292932,
+     "objects": 0,
+     "inst": {
+      "high": 0,
+      "mid": 241,
+      "low": 0,
+      "canopy": 299,
+      "culled": 0
+     }
+    },
+    "afterClear": {
+     "geo": 348,
+     "tex": 5,
+     "prog": 146,
+     "dc": 3,
+     "tri": 14,
+     "objects": 0,
+     "inst": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     }
+    }
+   },
+   {
+    "round": 5,
+    "afterScatter": {
+     "geo": 348,
+     "tex": 5,
+     "prog": 146,
+     "dc": 71,
+     "tri": 4312680,
+     "objects": 0,
+     "inst": {
+      "high": 0,
+      "mid": 242,
+      "low": 0,
+      "canopy": 303,
+      "culled": 0
+     }
+    },
+    "afterClear": {
+     "geo": 348,
+     "tex": 5,
+     "prog": 146,
+     "dc": 3,
+     "tri": 14,
+     "objects": 0,
+     "inst": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     }
+    }
+   }
+  ]
+ },
+ "driverConsoleLog": [
+  {
+   "kind": "console",
+   "type": "debug",
+   "text": "[vite] connecting...",
+   "timestamp": 1790560398612.021
+  },
+  {
+   "kind": "console",
+   "type": "debug",
+   "text": "[vite] connected.",
+   "timestamp": 1790560398626.878
+  },
+  {
+   "kind": "console",
+   "type": "info",
+   "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+   "timestamp": 1790560398888.536
+  },
+  {
+   "kind": "console",
+   "type": "warning",
+   "text": "[Renderer] draw calls 超预算：803 > 650（BATCH_POLICY.drawCallBudget，Legacy Baseline——T006.5 锁定值沿用作对照基线，T021 加入 Canopy/双表示/Shadow 表示后重测重锁归 021.8，D41 §九）——批次治理观测告警，非降级",
+   "timestamp": 1790560408933.264
+  },
+  {
+   "kind": "console",
+   "type": "warning",
+   "text": "[Renderer] draw calls 超预算：803 > 650（BATCH_POLICY.drawCallBudget，Legacy Baseline——T006.5 锁定值沿用作对照基线，T021 加入 Canopy/双表示/Shadow 表示后重测重锁归 021.8，D41 §九）——批次治理观测告警，非降级",
+   "timestamp": 1790560416238.718
+  },
+  {
+   "kind": "console",
+   "type": "warning",
+   "text": "[Renderer] draw calls 超预算：803 > 650（BATCH_POLICY.drawCallBudget，Legacy Baseline——T006.5 锁定值沿用作对照基线，T021 加入 Canopy/双表示/Shadow 表示后重测重锁归 021.8，D41 §九）——批次治理观测告警，非降级",
+   "timestamp": 1790560425178.066
+  },
+  {
+   "kind": "console",
+   "type": "warning",
+   "text": "[Renderer] draw calls 超预算：803 > 650（BATCH_POLICY.drawCallBudget，Legacy Baseline——T006.5 锁定值沿用作对照基线，T021 加入 Canopy/双表示/Shadow 表示后重测重锁归 021.8，D41 §九）——批次治理观测告警，非降级",
+   "timestamp": 1790560434219.081
+  }
+ ]
+}

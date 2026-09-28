@@ -51,7 +51,7 @@
  * 组序（D15 免组膨胀，恰 2 组）：干柱 0 / 冠卡 1——与各树种 [皮, 叶] 组序同构，
  *      canopy 材质工厂按 [干柱材质, 冠卡材质] 成套。
  * 边界：本模块只交付几何与属性契约，**不做 Runtime 接线**（RepresentationSourceRouter
- *      / CanopySourceCache / provideSource 签名演化 / 选档消费归 021.7）；canopy
+ *      门面 / CanopySourceCache / 选档消费已由 021.7 落位）；canopy
  *      材质与 Canopy Depth Material 工厂归 park-shader-agent（本模块头尾契约即其
  *      输入）；每次调用 new 全部几何（所有权随调用移交调用方，D17）；原点语义与
  *      树种几何一致（minY 精确 0，干柱基底 = 树种树干基部 XZ 原点）。
@@ -396,7 +396,8 @@ function emitCanopyCard(
  * BroadleafCanopyProxy 几何生成入口（全乔木共用，T021.6 几何面）。
  * 输入 = assetId + morphSeed（缺省 slot-0 锚点——assetId 粒度语义）；输出 = canopy
  * BufferGeometry（恰 2 组：干柱 0 / 冠卡 1）+ 账目。确定性：同 (assetId, seed)
- * 逐位同输出（零 rng 后处理）。Runtime 接线（缓存 / 路由 / 选档）归 021.7。
+ * 逐位同输出（零 rng 后处理）。Runtime 接线（缓存 / 路由 / 选档）已由 021.7 落位
+ * （CanopySourceCache 持缓存、门面分流）。
  */
 export function buildBroadleafCanopyGeometry(assetId: string, seed?: number): BroadleafCanopyGeometryResult {
   const species = CANOPY_SPECIES[assetId];

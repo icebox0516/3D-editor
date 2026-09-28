@@ -1,0 +1,462 @@
+{
+ "result": {
+  "scatterSetup": {
+   "stats": {
+    "drawCalls": 91,
+    "triangles": 16556198,
+    "totalChunks": 16,
+    "visibleChunks": 16,
+    "instances": 544,
+    "lod": {
+     "instances": {
+      "high": 142,
+      "mid": 402,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 13,
+      "mid": 9,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     }
+    }
+   },
+   "dist": {
+    "instances": {
+     "high": 142,
+     "mid": 402,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 13,
+     "mid": 9,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "transitionInstances": 0,
+    "transitionTargets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "shadowCasterInstances": 544,
+    "transition": {
+     "instances": 0,
+     "buckets": 0,
+     "dualSubmitBuckets": 0
+    }
+   },
+   "perf": {
+    "dc": 91,
+    "tri": 16556198,
+    "geo": 20,
+    "prog": 29
+   }
+  },
+  "frames": [
+   {
+    "file": "04-scatter-dither-d190.png",
+    "distance": 190,
+    "scatter": {
+     "instances": 724,
+     "visibleChunks": 16,
+     "lod": {
+      "instances": {
+       "high": 0,
+       "mid": 534,
+       "low": 0,
+       "canopy": 190,
+       "culled": 0
+      },
+      "buckets": {
+       "high": 0,
+       "mid": 12,
+       "low": 0,
+       "canopy": 18,
+       "culled": 0
+      }
+     },
+     "dc": 103,
+     "tri": 8958065
+    },
+    "dist": {
+     "instances": {
+      "high": 0,
+      "mid": 534,
+      "low": 0,
+      "canopy": 190,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 12,
+      "low": 0,
+      "canopy": 18,
+      "culled": 0
+     },
+     "tInst": 180,
+     "dual": 16,
+     "shadow": 613
+    },
+    "perf": {
+     "dc": 103,
+     "tri": 8958065
+    }
+   },
+   {
+    "file": "04-scatter-dither-d212.png",
+    "distance": 212,
+    "scatter": {
+     "instances": 767,
+     "visibleChunks": 16,
+     "lod": {
+      "instances": {
+       "high": 0,
+       "mid": 465,
+       "low": 0,
+       "canopy": 302,
+       "culled": 0
+      },
+      "buckets": {
+       "high": 0,
+       "mid": 12,
+       "low": 0,
+       "canopy": 25,
+       "culled": 0
+      }
+     },
+     "dc": 129,
+     "tri": 7599868
+    },
+    "dist": {
+     "instances": {
+      "high": 0,
+      "mid": 465,
+      "low": 0,
+      "canopy": 302,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 12,
+      "low": 0,
+      "canopy": 25,
+      "culled": 0
+     },
+     "tInst": 223,
+     "dual": 20,
+     "shadow": 618
+    },
+    "perf": {
+     "dc": 129,
+     "tri": 7599868
+    }
+   },
+   {
+    "file": "04-scatter-dither-d235.png",
+    "distance": 235,
+    "scatter": {
+     "instances": 780,
+     "visibleChunks": 16,
+     "lod": {
+      "instances": {
+       "high": 0,
+       "mid": 350,
+       "low": 0,
+       "canopy": 430,
+       "culled": 0
+      },
+      "buckets": {
+       "high": 0,
+       "mid": 10,
+       "low": 0,
+       "canopy": 27,
+       "culled": 0
+      }
+     },
+     "dc": 129,
+     "tri": 5828088
+    },
+    "dist": {
+     "instances": {
+      "high": 0,
+      "mid": 350,
+      "low": 0,
+      "canopy": 430,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 10,
+      "low": 0,
+      "canopy": 27,
+      "culled": 0
+     },
+     "tInst": 236,
+     "dual": 18,
+     "shadow": 613
+    },
+    "perf": {
+     "dc": 129,
+     "tri": 5828088
+    }
+   },
+   {
+    "file": "04-scatter-dither-cross.png",
+    "distance": 200,
+    "scatter": {
+     "instances": 583,
+     "visibleChunks": 16,
+     "lod": {
+      "instances": {
+       "high": 0,
+       "mid": 350,
+       "low": 0,
+       "canopy": 233,
+       "culled": 0
+      },
+      "buckets": {
+       "high": 0,
+       "mid": 10,
+       "low": 0,
+       "canopy": 12,
+       "culled": 0
+      }
+     },
+     "dc": 85,
+     "tri": 5997571
+    },
+    "dist": {
+     "instances": {
+      "high": 0,
+      "mid": 350,
+      "low": 0,
+      "canopy": 233,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 10,
+      "low": 0,
+      "canopy": 12,
+      "culled": 0
+     },
+     "tInst": 39,
+     "dual": 3,
+     "shadow": 544
+    },
+    "perf": {
+     "dc": 85,
+     "tri": 5997571
+    }
+   },
+   {
+    "file": "04-scatter-fadeout-d760.png",
+    "distance": 760,
+    "scatter": {
+     "instances": 284,
+     "visibleChunks": 16,
+     "lod": {
+      "instances": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 284,
+       "culled": 260
+      },
+      "buckets": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 11,
+       "culled": 10
+      }
+     },
+     "dc": 47,
+     "tri": 276630
+    },
+    "dist": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 284,
+      "culled": 260
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 11,
+      "culled": 10
+     },
+     "tInst": 190,
+     "dual": 0,
+     "shadow": 284
+    },
+    "perf": {
+     "dc": 47,
+     "tri": 276630
+    }
+   },
+   {
+    "file": "04-scatter-fadeout-d790.png",
+    "distance": 790,
+    "scatter": {
+     "instances": 278,
+     "visibleChunks": 16,
+     "lod": {
+      "instances": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 278,
+       "culled": 266
+      },
+      "buckets": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 11,
+       "culled": 10
+      }
+     },
+     "dc": 47,
+     "tri": 270786
+    },
+    "dist": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 278,
+      "culled": 266
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 11,
+      "culled": 10
+     },
+     "tInst": 241,
+     "dual": 0,
+     "shadow": 278
+    },
+    "perf": {
+     "dc": 47,
+     "tri": 270786
+    }
+   },
+   {
+    "file": "04-scatter-fadeout-d820.png",
+    "distance": 820,
+    "scatter": {
+     "instances": 254,
+     "visibleChunks": 16,
+     "lod": {
+      "instances": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 254,
+       "culled": 290
+      },
+      "buckets": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 11,
+       "culled": 10
+      }
+     },
+     "dc": 47,
+     "tri": 247410
+    },
+    "dist": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 254,
+      "culled": 290
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 11,
+      "culled": 10
+     },
+     "tInst": 247,
+     "dual": 0,
+     "shadow": 254
+    },
+    "perf": {
+     "dc": 47,
+     "tri": 247410
+    }
+   }
+  ],
+  "afterClear": {
+   "scatter": {
+    "drawCalls": 3,
+    "triangles": 14,
+    "totalChunks": 0,
+    "visibleChunks": 0,
+    "instances": 0,
+    "lod": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     }
+    }
+   },
+   "perf": {
+    "dc": 3,
+    "tri": 14,
+    "geo": 62,
+    "tex": 5,
+    "prog": 38
+   }
+  }
+ },
+ "driverConsoleLog": [
+  {
+   "kind": "console",
+   "type": "debug",
+   "text": "[vite] connecting...",
+   "timestamp": 1790560265139.175
+  },
+  {
+   "kind": "console",
+   "type": "debug",
+   "text": "[vite] connected.",
+   "timestamp": 1790560265146.429
+  },
+  {
+   "kind": "console",
+   "type": "info",
+   "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+   "timestamp": 1790560265982.359
+  }
+ ]
+}

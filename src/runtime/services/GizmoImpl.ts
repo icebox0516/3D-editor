@@ -310,6 +310,15 @@ export class GizmoImpl {
   }
 
   /**
+   * 当前挂载的业务 id 集（T021.7 编辑态 pin 信号读取面，只读）：空数组 = 未挂载。
+   * transforming（拖拽中）⊆ 本集合（拖拽仅发生于 attach 集），pin 装配读本 accessor
+   * 即同时覆盖规范四类目标中的「transforming / gizmo target」两类。
+   */
+  getTargetIds(): readonly ID[] {
+    return this.targetIds;
+  }
+
+  /**
    * 挂到给定对象集合（空数组等价 detach；解析不到数据的 id 剔除）。
    * 单目标：代理同步该对象变换；多目标：代理 = 质心位置 + 单位旋转/缩放（组枢轴）。
    */

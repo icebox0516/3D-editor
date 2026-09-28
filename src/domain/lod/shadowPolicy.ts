@@ -12,14 +12,19 @@
  *      （cast / receive / customDepthMaterial 挂载语义在 runtime 执行——「语义在
  *      domain、执行在 runtime」§十三分层惯例），lodDistribution 计数经两链喂入。
  *
- * 初始策略表（D41 §七 + T021.5 主代理裁定；**全部表值 021.8 A/B 可调**——mid depth
- *      与 canopy receive 是点名复核位，改值经覆盖注入或重锁本表并记档）：
+ * 初始策略表（D41 §七 + T021.5 主代理裁定；**021.8 复核结论 = 全表维持**——证据锚
+ *      docs/acceptance/t021/021.8/calibration/README.md 结论总表⑤⑥，两个点名复核位：
+ *      mid depth 维持 'full'（m≥8 视觉不可辨成立，但 m=6 带缘外推 ~0.13% 处边缘可辨
+ *      且确定性账目 DC/tri/programs 无明确收益——收益在 shadow fragment、标定 Phase
+ *      禁 FPS，变更证据不完整，保守维持）；canopy receive 维持 false（影确实落冠
+ *      〔机制验证成立〕但 m≥16 冠均亮度差 0.5%、90–321px 不可辨，成本 programs +2 +
+ *      采样开销）。表值仍可经覆盖注入做 A/B 对照（通道保留），改默认表值须记档并
+ *      连带更新测试断言）：
  *      high   = { cast: true,  receive: true,  depth: 'full' }（现状——High 全开沿承）
- *      mid    = { cast: true,  receive: true,  depth: 'full' }（simplified 为 021.8
- *               A/B 候选——表值可调即可）
+ *      mid    = { cast: true,  receive: true,  depth: 'full' }（021.8 复核维持）
  *      low    = { cast: true,  receive: true,  depth: 'simplified' }
  *      canopy = { cast: true,  receive: false, depth: 'simplified' }（receive=false
- *               是真实行为变化：远景树冠采样阴影成本高、视觉贡献小——021.8 A/B 复核位）
+ *               是真实行为变化：远景树冠采样阴影成本高、视觉贡献小——021.8 复核维持）
  *      culled（提交终态）= off = { cast: false, receive: false, depth: 'none' }
  *               （终态非表示 §三.1，不进 byRepresentation 表——查询函数宽化入参映射）
  *
@@ -50,10 +55,13 @@
  *
  * 生产足迹记档（T021.5，测试同文记档）：
  *      - 本任务生产可见行为变化**仅一项**：low 表示的影从 SDF 叶形裁切变为实心壳卡影
- *        （更致密的远景影）——D41 已裁定初始策略（Low=simplified），与 canopy
- *        receive=false 同组记档为 021.8 A/B 复核位；
- *      - canopy / midpoint 切换路径生产不可达（真实资产未声明 canopy 能力、canopy 源
- *        路由归 021.7）→ 测试用假想声明资产验证执行路径（021.3 先例）；
+ *        （更致密的远景影）——D41 已裁定初始策略（Low=simplified）；021.8 复核结论：
+ *        canopy receive 维持 false（亮度差 0.5% 不可辨、成本 programs +2）；low 实心
+ *        壳卡影未单列标定项（乔木链 low 不回插——021.8 结论总表④，low 影仅 legacy
+ *        链可达），沿现状记档；
+ *      - canopy / midpoint 切换路径自 T021.7 起生产可达（13 乔木已声明 canopy 能力、
+ *        canopy 源路由经 CanopySourceCache 接线）——过渡期路径行为归 021.8 标定验收
+ *        （Phase A 已实测：dither/fade 过渡带 79 帧证据零渲染异常）；
  *      - streetlamp / GLB 零变化（恒 high=full；streetlamp low 档 source 本就无
  *        customDepthMaterial，不挂行为逐位同现状）。
  *
@@ -68,8 +76,8 @@ import type { LodSelectionOutcome, RuntimeRepresentation, ShadowPolicy } from '.
 export type ShadowPolicyTable = Record<RuntimeRepresentation, ShadowPolicy>;
 
 /**
- * Runtime 全局阴影策略初始表（D41 §七 + T021.5 裁定；表值语义与 021.8 复核位见模块
- * 头注。「一次锁全量」：数值变更须记档并连带更新 shadowPolicy 测试断言）。
+ * Runtime 全局阴影策略初始表（D41 §七 + T021.5 裁定；021.8 复核结论 = 全表维持，
+ * 表值语义见模块头注。「一次锁全量」：数值变更须记档并连带更新 shadowPolicy 测试断言）。
  */
 export const SHADOW_POLICY: ShadowPolicyTable = {
   high: { cast: true, receive: true, depth: 'full' },
@@ -100,8 +108,9 @@ function isCleanShadowPolicy(entry: unknown): entry is ShadowPolicy {
 /**
  * 阴影策略查询（纯函数）：调度产出（LodSelectionOutcome——四表示或 'culled' 提交终态）
  * → 三字段策略。'culled' → CULLED_SHADOW_POLICY（off）；表示 → 表值（零克隆，同对象
- * 引用返回）。table 可注入（测试 / 021.8 A/B 通道——如 mid depth 改 simplified 的
- * A/B 对照），缺省 SHADOW_POLICY。JS 侧手写脏表（缺键 / 非布尔 / 非法 depth）防御
+ * 引用返回）。table 可注入（测试 / A/B 对照通道——021.8 标定即经本通道完成 mid depth
+ * simplified 与 canopy receive true 对照，结论维持默认表），缺省 SHADOW_POLICY。JS 侧
+ * 手写脏表（缺键 / 非布尔 / 非法 depth）防御
  * 收 off（保守方向，同 isBatchMergeAllowed 收 false 先例——脏表不产生半吊子影行为）。
  */
 export function shadowPolicyOf(

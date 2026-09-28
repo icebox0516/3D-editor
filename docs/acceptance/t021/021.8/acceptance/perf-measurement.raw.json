@@ -1,0 +1,1442 @@
+{
+ "result": {
+  "env": {
+   "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 2080 Ti (0x00001E07) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+   "vendor": "Google Inc. (NVIDIA)",
+   "disjointTimerAvailable": true,
+   "viewport": [
+    1920,
+    1080
+   ],
+   "dpr": 1,
+   "canvasClient": [
+    1920,
+    1048
+   ],
+   "pure3d": true,
+   "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36"
+  },
+  "assetDump": {
+   "ok": [
+    "asset_tree_3a",
+    "asset_tree_celtis",
+    "asset_tree_camphor",
+    "asset_tree_zelkova",
+    "asset_tree_ginkgo",
+    "asset_tree_platanus",
+    "asset_tree_koelreuteria",
+    "asset_tree_triadica",
+    "asset_tree_bischofia",
+    "asset_tree_sophora",
+    "asset_tree_fraxinus",
+    "asset_tree_ligustrum",
+    "asset_tree_salix"
+   ],
+   "bad": []
+  },
+  "baseline": {
+   "sample": {
+    "fps": 2919.3333333333335,
+    "mean": 0.34254395980817537,
+    "p50": 0.3000000000001819,
+    "p95": 0.6000000000003638,
+    "max": 13.199999999999818,
+    "frames": 8758
+   },
+   "stats": {
+    "drawCalls": 3,
+    "triangles": 14,
+    "geometries": 14,
+    "textures": 5,
+    "programs": 5,
+    "objects": 0
+   },
+   "distribution": {
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "transitionInstances": 0,
+    "transitionTargets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "shadowCasterInstances": 0,
+    "transition": {
+     "instances": 0,
+     "buckets": 0,
+     "dualSubmitBuckets": 0
+    }
+   }
+  },
+  "tiers": [
+   {
+    "count": 1,
+    "spacing": 11,
+    "near": {
+     "sample": {
+      "fps": 2385.023114937032,
+      "mean": 0.41928314813267603,
+      "p50": 0.2999999999992724,
+      "p95": 0.6000000000003638,
+      "max": 91.70000000000073,
+      "frames": 11969
+     },
+     "stats": {
+      "drawCalls": 7,
+      "triangles": 57522,
+      "geometries": 15,
+      "textures": 5,
+      "programs": 9,
+      "objects": 1
+     },
+     "distribution": {
+      "instances": {
+       "high": 1,
+       "mid": 0,
+       "low": 0,
+       "canopy": 0,
+       "culled": 0
+      },
+      "buckets": {
+       "high": 1,
+       "mid": 0,
+       "low": 0,
+       "canopy": 0,
+       "culled": 0
+      },
+      "transitionInstances": 0,
+      "transitionTargets": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 0,
+       "culled": 0
+      },
+      "shadowCasterInstances": 1,
+      "transition": {
+       "instances": 0,
+       "buckets": 0,
+       "dualSubmitBuckets": 0
+      }
+     }
+    },
+    "far": {
+     "chosenDistance": 409,
+     "searchAttempts": [
+      {
+       "distance": 409,
+       "instances": {
+        "high": 0,
+        "mid": 0,
+        "low": 0,
+        "canopy": 1,
+        "culled": 0
+       },
+       "canopyShare": 1,
+       "transitionInstances": 0
+      }
+     ],
+     "sample": {
+      "fps": 2605.3449099888467,
+      "mean": 0.38382633952457407,
+      "p50": 0.2999999999992724,
+      "p95": 0.5999999999985448,
+      "max": 73.49999999999818,
+      "frames": 13083
+     },
+     "stats": {
+      "drawCalls": 7,
+      "triangles": 988,
+      "geometries": 16,
+      "textures": 5,
+      "programs": 12,
+      "objects": 1
+     },
+     "distribution": {
+      "instances": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 1,
+       "culled": 0
+      },
+      "buckets": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 1,
+       "culled": 0
+      },
+      "transitionInstances": 0,
+      "transitionTargets": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 0,
+       "culled": 0
+      },
+      "shadowCasterInstances": 1,
+      "transition": {
+       "instances": 0,
+       "buckets": 0,
+       "dualSubmitBuckets": 0
+      }
+     }
+    }
+   },
+   {
+    "count": 20,
+    "spacing": 11,
+    "near": {
+     "sample": {
+      "fps": 1079.7896799216303,
+      "mean": 0.9261062766154412,
+      "p50": 0.5,
+      "p95": 2.400000000001455,
+      "max": 7,
+      "frames": 5401
+     },
+     "stats": {
+      "drawCalls": 47,
+      "triangles": 956914,
+      "geometries": 27,
+      "textures": 5,
+      "programs": 16,
+      "objects": 20
+     },
+     "distribution": {
+      "instances": {
+       "high": 12,
+       "mid": 8,
+       "low": 0,
+       "canopy": 0,
+       "culled": 0
+      },
+      "buckets": {
+       "high": 6,
+       "mid": 5,
+       "low": 0,
+       "canopy": 0,
+       "culled": 0
+      },
+      "transitionInstances": 0,
+      "transitionTargets": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 0,
+       "culled": 0
+      },
+      "shadowCasterInstances": 20,
+      "transition": {
+       "instances": 0,
+       "buckets": 0,
+       "dualSubmitBuckets": 0
+      }
+     }
+    },
+    "far": {
+     "chosenDistance": 453,
+     "searchAttempts": [
+      {
+       "distance": 453,
+       "instances": {
+        "high": 0,
+        "mid": 0,
+        "low": 0,
+        "canopy": 20,
+        "culled": 0
+       },
+       "canopyShare": 1,
+       "transitionInstances": 0
+      }
+     ],
+     "sample": {
+      "fps": 2547.6980920763167,
+      "mean": 0.39251118612135966,
+      "p50": 0.2999999999992724,
+      "p95": 1,
+      "max": 161.79999999999927,
+      "frames": 12739
+     },
+     "stats": {
+      "drawCalls": 31,
+      "triangles": 19494,
+      "geometries": 33,
+      "textures": 5,
+      "programs": 16,
+      "objects": 20
+     },
+     "distribution": {
+      "instances": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 20,
+       "culled": 0
+      },
+      "buckets": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 7,
+       "culled": 0
+      },
+      "transitionInstances": 0,
+      "transitionTargets": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 0,
+       "culled": 0
+      },
+      "shadowCasterInstances": 20,
+      "transition": {
+       "instances": 0,
+       "buckets": 0,
+       "dualSubmitBuckets": 0
+      }
+     }
+    }
+   },
+   {
+    "count": 100,
+    "spacing": 11,
+    "near": {
+     "sample": {
+      "fps": 825.1339892808572,
+      "mean": 1.2119243819680081,
+      "p50": 0.6999999999970896,
+      "p95": 2.7999999999956344,
+      "max": 12,
+      "frames": 4126
+     },
+     "stats": {
+      "drawCalls": 67,
+      "triangles": 1887336,
+      "geometries": 37,
+      "textures": 5,
+      "programs": 16,
+      "objects": 100
+     },
+     "distribution": {
+      "instances": {
+       "high": 6,
+       "mid": 87,
+       "low": 0,
+       "canopy": 7,
+       "culled": 0
+      },
+      "buckets": {
+       "high": 4,
+       "mid": 8,
+       "low": 0,
+       "canopy": 4,
+       "culled": 0
+      },
+      "transitionInstances": 0,
+      "transitionTargets": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 0,
+       "culled": 0
+      },
+      "shadowCasterInstances": 100,
+      "transition": {
+       "instances": 0,
+       "buckets": 0,
+       "dualSubmitBuckets": 0
+      }
+     }
+    },
+    "far": {
+     "chosenDistance": 508,
+     "searchAttempts": [
+      {
+       "distance": 508,
+       "instances": {
+        "high": 0,
+        "mid": 0,
+        "low": 0,
+        "canopy": 95,
+        "culled": 5
+       },
+       "canopyShare": 0.95,
+       "transitionInstances": 0
+      }
+     ],
+     "sample": {
+      "fps": 2368.9052437902465,
+      "mean": 0.42213592233009745,
+      "p50": 0.3000000000029104,
+      "p95": 1.0999999999985448,
+      "max": 8.900000000001455,
+      "frames": 11845
+     },
+     "stats": {
+      "drawCalls": 35,
+      "triangles": 92544,
+      "geometries": 38,
+      "textures": 5,
+      "programs": 16,
+      "objects": 100
+     },
+     "distribution": {
+      "instances": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 95,
+       "culled": 5
+      },
+      "buckets": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 8,
+       "culled": 3
+      },
+      "transitionInstances": 0,
+      "transitionTargets": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 0,
+       "culled": 0
+      },
+      "shadowCasterInstances": 95,
+      "transition": {
+       "instances": 0,
+       "buckets": 0,
+       "dualSubmitBuckets": 0
+      }
+     }
+    }
+   },
+   {
+    "count": 500,
+    "spacing": 11,
+    "near": {
+     "sample": {
+      "fps": 1121.6878312168783,
+      "mean": 0.8915136387947941,
+      "p50": 0.6999999999970896,
+      "p95": 1.9000000000014552,
+      "max": 10.099999999998545,
+      "frames": 5609
+     },
+     "stats": {
+      "drawCalls": 67,
+      "triangles": 1246690,
+      "geometries": 38,
+      "textures": 5,
+      "programs": 16,
+      "objects": 500
+     },
+     "distribution": {
+      "instances": {
+       "high": 0,
+       "mid": 48,
+       "low": 0,
+       "canopy": 452,
+       "culled": 0
+      },
+      "buckets": {
+       "high": 0,
+       "mid": 8,
+       "low": 0,
+       "canopy": 8,
+       "culled": 0
+      },
+      "transitionInstances": 0,
+      "transitionTargets": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 0,
+       "culled": 0
+      },
+      "shadowCasterInstances": 500,
+      "transition": {
+       "instances": 0,
+       "buckets": 0,
+       "dualSubmitBuckets": 0
+      }
+     }
+    },
+    "far": {
+     "chosenDistance": 371,
+     "searchAttempts": [
+      {
+       "distance": 651,
+       "instances": {
+        "high": 0,
+        "mid": 0,
+        "low": 0,
+        "canopy": 169,
+        "culled": 331
+       },
+       "canopyShare": 0.338,
+       "transitionInstances": 0
+      },
+      {
+       "distance": 551,
+       "instances": {
+        "high": 0,
+        "mid": 0,
+        "low": 0,
+        "canopy": 181,
+        "culled": 319
+       },
+       "canopyShare": 0.362,
+       "transitionInstances": 0
+      },
+      {
+       "distance": 451,
+       "instances": {
+        "high": 0,
+        "mid": 0,
+        "low": 0,
+        "canopy": 366,
+        "culled": 134
+       },
+       "canopyShare": 0.732,
+       "transitionInstances": 0
+      },
+      {
+       "distance": 371,
+       "instances": {
+        "high": 0,
+        "mid": 0,
+        "low": 0,
+        "canopy": 476,
+        "culled": 24
+       },
+       "canopyShare": 0.952,
+       "transitionInstances": 0
+      }
+     ],
+     "sample": {
+      "fps": 1662,
+      "mean": 0.601684717208183,
+      "p50": 0.4000000000014552,
+      "p95": 1.6999999999970896,
+      "max": 10.10000000000582,
+      "frames": 8310
+     },
+     "stats": {
+      "drawCalls": 35,
+      "triangles": 487014,
+      "geometries": 38,
+      "textures": 5,
+      "programs": 16,
+      "objects": 500
+     },
+     "distribution": {
+      "instances": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 500,
+       "culled": 0
+      },
+      "buckets": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 8,
+       "culled": 0
+      },
+      "transitionInstances": 0,
+      "transitionTargets": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 0,
+       "culled": 0
+      },
+      "shadowCasterInstances": 500,
+      "transition": {
+       "instances": 0,
+       "buckets": 0,
+       "dualSubmitBuckets": 0
+      }
+     }
+    }
+   },
+   {
+    "count": 1000,
+    "spacing": 10,
+    "near": {
+     "sample": {
+      "fps": 1002.3398596084229,
+      "mean": 0.9976656025538713,
+      "p50": 0.8000000000029104,
+      "p95": 2,
+      "max": 11.30000000000291,
+      "frames": 5012
+     },
+     "stats": {
+      "drawCalls": 67,
+      "triangles": 1483398,
+      "geometries": 38,
+      "textures": 5,
+      "programs": 16,
+      "objects": 1000
+     },
+     "distribution": {
+      "instances": {
+       "high": 0,
+       "mid": 33,
+       "low": 0,
+       "canopy": 966,
+       "culled": 1
+      },
+      "buckets": {
+       "high": 0,
+       "mid": 8,
+       "low": 0,
+       "canopy": 8,
+       "culled": 1
+      },
+      "transitionInstances": 0,
+      "transitionTargets": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 0,
+       "culled": 0
+      },
+      "shadowCasterInstances": 999,
+      "transition": {
+       "instances": 0,
+       "buckets": 0,
+       "dualSubmitBuckets": 0
+      }
+     }
+    },
+    "far": {
+     "chosenDistance": 319,
+     "searchAttempts": [
+      {
+       "distance": 719,
+       "instances": {
+        "high": 0,
+        "mid": 0,
+        "low": 0,
+        "canopy": 191,
+        "culled": 809
+       },
+       "canopyShare": 0.191,
+       "transitionInstances": 0
+      },
+      {
+       "distance": 619,
+       "instances": {
+        "high": 0,
+        "mid": 0,
+        "low": 0,
+        "canopy": 197,
+        "culled": 803
+       },
+       "canopyShare": 0.197,
+       "transitionInstances": 0
+      },
+      {
+       "distance": 519,
+       "instances": {
+        "high": 0,
+        "mid": 0,
+        "low": 0,
+        "canopy": 469,
+        "culled": 531
+       },
+       "canopyShare": 0.469,
+       "transitionInstances": 0
+      },
+      {
+       "distance": 439,
+       "instances": {
+        "high": 0,
+        "mid": 0,
+        "low": 0,
+        "canopy": 738,
+        "culled": 262
+       },
+       "canopyShare": 0.738,
+       "transitionInstances": 0
+      },
+      {
+       "distance": 379,
+       "instances": {
+        "high": 0,
+        "mid": 0,
+        "low": 0,
+        "canopy": 889,
+        "culled": 111
+       },
+       "canopyShare": 0.889,
+       "transitionInstances": 0
+      },
+      {
+       "distance": 319,
+       "instances": {
+        "high": 0,
+        "mid": 0,
+        "low": 0,
+        "canopy": 972,
+        "culled": 28
+       },
+       "canopyShare": 0.972,
+       "transitionInstances": 9
+      }
+     ],
+     "sample": {
+      "fps": 658.2815093283216,
+      "mean": 1.5191069258809218,
+      "p50": 1.5,
+      "p95": 2,
+      "max": 3.6999999999970896,
+      "frames": 3292
+     },
+     "stats": {
+      "drawCalls": 67,
+      "triangles": 1483398,
+      "geometries": 46,
+      "textures": 5,
+      "programs": 16,
+      "objects": 1000
+     },
+     "distribution": {
+      "instances": {
+       "high": 0,
+       "mid": 33,
+       "low": 0,
+       "canopy": 966,
+       "culled": 1
+      },
+      "buckets": {
+       "high": 0,
+       "mid": 8,
+       "low": 0,
+       "canopy": 8,
+       "culled": 1
+      },
+      "transitionInstances": 0,
+      "transitionTargets": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 0,
+       "culled": 0
+      },
+      "shadowCasterInstances": 999,
+      "transition": {
+       "instances": 0,
+       "buckets": 0,
+       "dualSubmitBuckets": 0
+      }
+     }
+    }
+   },
+   {
+    "count": 2000,
+    "spacing": 10,
+    "near": {
+     "sample": {
+      "fps": 501.1794810283478,
+      "mean": 1.9952931790985229,
+      "p50": 1.9000000000087311,
+      "p95": 2.5,
+      "max": 5.100000000005821,
+      "frames": 2507
+     },
+     "stats": {
+      "drawCalls": 39,
+      "triangles": 1711474,
+      "geometries": 46,
+      "textures": 5,
+      "programs": 16,
+      "objects": 2000
+     },
+     "distribution": {
+      "instances": {
+       "high": 0,
+       "mid": 4,
+       "low": 0,
+       "canopy": 1686,
+       "culled": 310
+      },
+      "buckets": {
+       "high": 0,
+       "mid": 1,
+       "low": 0,
+       "canopy": 8,
+       "culled": 7
+      },
+      "transitionInstances": 0,
+      "transitionTargets": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 0,
+       "culled": 0
+      },
+      "shadowCasterInstances": 1690,
+      "transition": {
+       "instances": 0,
+       "buckets": 0,
+       "dualSubmitBuckets": 0
+      }
+     }
+    },
+    "far": {
+     "chosenDistance": 449,
+     "searchAttempts": [
+      {
+       "distance": 849,
+       "instances": {
+        "high": 0,
+        "mid": 0,
+        "low": 0,
+        "canopy": 142,
+        "culled": 1858
+       },
+       "canopyShare": 0.071,
+       "transitionInstances": 0
+      },
+      {
+       "distance": 749,
+       "instances": {
+        "high": 0,
+        "mid": 0,
+        "low": 0,
+        "canopy": 145,
+        "culled": 1855
+       },
+       "canopyShare": 0.0725,
+       "transitionInstances": 0
+      },
+      {
+       "distance": 649,
+       "instances": {
+        "high": 0,
+        "mid": 0,
+        "low": 0,
+        "canopy": 375,
+        "culled": 1625
+       },
+       "canopyShare": 0.1875,
+       "transitionInstances": 0
+      },
+      {
+       "distance": 569,
+       "instances": {
+        "high": 0,
+        "mid": 0,
+        "low": 0,
+        "canopy": 684,
+        "culled": 1316
+       },
+       "canopyShare": 0.342,
+       "transitionInstances": 0
+      },
+      {
+       "distance": 509,
+       "instances": {
+        "high": 0,
+        "mid": 0,
+        "low": 0,
+        "canopy": 961,
+        "culled": 1039
+       },
+       "canopyShare": 0.4805,
+       "transitionInstances": 0
+      },
+      {
+       "distance": 449,
+       "instances": {
+        "high": 0,
+        "mid": 0,
+        "low": 0,
+        "canopy": 1280,
+        "culled": 720
+       },
+       "canopyShare": 0.64,
+       "transitionInstances": 0
+      }
+     ],
+     "sample": {
+      "fps": 962.3807523849539,
+      "mean": 1.0390897755610955,
+      "p50": 0.8999999999941792,
+      "p95": 2,
+      "max": 18.69999999999709,
+      "frames": 4812
+     },
+     "stats": {
+      "drawCalls": 39,
+      "triangles": 1711474,
+      "geometries": 46,
+      "textures": 5,
+      "programs": 16,
+      "objects": 2000
+     },
+     "distribution": {
+      "instances": {
+       "high": 0,
+       "mid": 4,
+       "low": 0,
+       "canopy": 1686,
+       "culled": 310
+      },
+      "buckets": {
+       "high": 0,
+       "mid": 1,
+       "low": 0,
+       "canopy": 8,
+       "culled": 7
+      },
+      "transitionInstances": 0,
+      "transitionTargets": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 0,
+       "culled": 0
+      },
+      "shadowCasterInstances": 1690,
+      "transition": {
+       "instances": 0,
+       "buckets": 0,
+       "dualSubmitBuckets": 0
+      }
+     }
+    }
+   }
+  ],
+  "mixed": {
+   "near": {
+    "sample": {
+     "fps": 324.5870165193394,
+     "mean": 3.0808379544054203,
+     "p50": 2.900000000008731,
+     "p95": 4.099999999991269,
+     "max": 6.7000000000116415,
+     "frames": 1623
+    },
+    "stats": {
+     "drawCalls": 445,
+     "triangles": 1905804,
+     "geometries": 248,
+     "textures": 5,
+     "programs": 113,
+     "objects": 2000
+    },
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 15,
+      "low": 0,
+      "canopy": 1769,
+      "culled": 216
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 11,
+      "low": 0,
+      "canopy": 104,
+      "culled": 63
+     },
+     "transitionInstances": 0,
+     "transitionTargets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "shadowCasterInstances": 1784,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    }
+   },
+   "far": {
+    "chosenDistance": 449,
+    "searchAttempts": [
+     {
+      "distance": 849,
+      "instances": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 350,
+       "culled": 1650
+      },
+      "canopyShare": 0.175,
+      "transitionInstances": 0
+     },
+     {
+      "distance": 749,
+      "instances": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 352,
+       "culled": 1648
+      },
+      "canopyShare": 0.176,
+      "transitionInstances": 0
+     },
+     {
+      "distance": 649,
+      "instances": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 630,
+       "culled": 1370
+      },
+      "canopyShare": 0.315,
+      "transitionInstances": 0
+     },
+     {
+      "distance": 569,
+      "instances": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 983,
+       "culled": 1017
+      },
+      "canopyShare": 0.4915,
+      "transitionInstances": 0
+     },
+     {
+      "distance": 509,
+      "instances": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 1242,
+       "culled": 758
+      },
+      "canopyShare": 0.621,
+      "transitionInstances": 0
+     },
+     {
+      "distance": 449,
+      "instances": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 1492,
+       "culled": 508
+      },
+      "canopyShare": 0.746,
+      "transitionInstances": 5
+     }
+    ],
+    "sample": {
+     "fps": 348.25373343195815,
+     "mean": 2.871469575200922,
+     "p50": 2.7999999999883585,
+     "p95": 3.7999999999883585,
+     "max": 7.600000000005821,
+     "frames": 1742
+    },
+    "stats": {
+     "drawCalls": 445,
+     "triangles": 1905804,
+     "geometries": 256,
+     "textures": 5,
+     "programs": 113,
+     "objects": 2000
+    },
+    "distribution": {
+     "instances": {
+      "high": 0,
+      "mid": 15,
+      "low": 0,
+      "canopy": 1769,
+      "culled": 216
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 11,
+      "low": 0,
+      "canopy": 104,
+      "culled": 63
+     },
+     "transitionInstances": 0,
+     "transitionTargets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "shadowCasterInstances": 1784,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    }
+   },
+   "mid": {
+    "chosen": 180,
+    "attempts": [
+     {
+      "distance": 240,
+      "transitionInstances": 0,
+      "instances": {
+       "high": 32,
+       "mid": 442,
+       "low": 0,
+       "canopy": 1522,
+       "culled": 4
+      },
+      "transition": {
+       "instances": 0,
+       "buckets": 0,
+       "dualSubmitBuckets": 0
+      }
+     },
+     {
+      "distance": 210,
+      "transitionInstances": 2,
+      "instances": {
+       "high": 30,
+       "mid": 444,
+       "low": 0,
+       "canopy": 1522,
+       "culled": 4
+      },
+      "transition": {
+       "instances": 2,
+       "buckets": 4,
+       "dualSubmitBuckets": 2
+      }
+     },
+     {
+      "distance": 180,
+      "transitionInstances": 85,
+      "instances": {
+       "high": 49,
+       "mid": 425,
+       "low": 0,
+       "canopy": 1522,
+       "culled": 4
+      },
+      "transition": {
+       "instances": 85,
+       "buckets": 116,
+       "dualSubmitBuckets": 85
+      }
+     }
+    ],
+    "sample": {
+     "fps": 131.68674939552017,
+     "mean": 7.593778452200286,
+     "p50": 7.300000000017462,
+     "p95": 9.5,
+     "max": 13.10000000000582,
+     "frames": 659
+    },
+    "stats": {
+     "drawCalls": 895,
+     "triangles": 11748876,
+     "geometries": 447,
+     "textures": 5,
+     "programs": 146,
+     "objects": 2000
+    },
+    "distribution": {
+     "instances": {
+      "high": 49,
+      "mid": 425,
+      "low": 0,
+      "canopy": 1522,
+      "culled": 4
+     },
+     "buckets": {
+      "high": 33,
+      "mid": 104,
+      "low": 0,
+      "canopy": 104,
+      "culled": 4
+     },
+     "transitionInstances": 85,
+     "transitionTargets": {
+      "high": 0,
+      "mid": 84,
+      "low": 0,
+      "canopy": 1,
+      "culled": 0
+     },
+     "shadowCasterInstances": 1996,
+     "transition": {
+      "instances": 85,
+      "buckets": 116,
+      "dualSubmitBuckets": 85
+     }
+    }
+   }
+  },
+  "shadowAB": {
+   "tier1000Near": {
+    "off": {
+     "sample": {
+      "fps": 749.6562929633797,
+      "mean": 1.333944648216072,
+      "p50": 1.2999999999883585,
+      "p95": 1.8999999999941792,
+      "max": 5.400000000023283,
+      "frames": 2999
+     },
+     "stats": {
+      "drawCalls": 35,
+      "triangles": 741706,
+      "geometries": 447,
+      "textures": 5,
+      "programs": 151,
+      "objects": 1000
+     },
+     "distribution": {
+      "instances": {
+       "high": 0,
+       "mid": 33,
+       "low": 0,
+       "canopy": 966,
+       "culled": 1
+      },
+      "buckets": {
+       "high": 0,
+       "mid": 8,
+       "low": 0,
+       "canopy": 8,
+       "culled": 1
+      },
+      "transitionInstances": 0,
+      "transitionTargets": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 0,
+       "culled": 0
+      },
+      "shadowCasterInstances": 999,
+      "transition": {
+       "instances": 0,
+       "buckets": 0,
+       "dualSubmitBuckets": 0
+      }
+     }
+    },
+    "on": {
+     "sample": {
+      "fps": 644.4355564443565,
+      "mean": 1.551745539177655,
+      "p50": 1.5,
+      "p95": 2.1000000000058208,
+      "max": 3.7999999999883585,
+      "frames": 2578
+     },
+     "stats": {
+      "drawCalls": 67,
+      "triangles": 1483398,
+      "geometries": 447,
+      "textures": 5,
+      "programs": 153,
+      "objects": 1000
+     },
+     "distribution": {
+      "instances": {
+       "high": 0,
+       "mid": 33,
+       "low": 0,
+       "canopy": 966,
+       "culled": 1
+      },
+      "buckets": {
+       "high": 0,
+       "mid": 8,
+       "low": 0,
+       "canopy": 8,
+       "culled": 1
+      },
+      "transitionInstances": 0,
+      "transitionTargets": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 0,
+       "culled": 0
+      },
+      "shadowCasterInstances": 999,
+      "transition": {
+       "instances": 0,
+       "buckets": 0,
+       "dualSubmitBuckets": 0
+      }
+     }
+    }
+   },
+   "mixed2000Far": {
+    "off": {
+     "sample": {
+      "fps": 315.67897223124845,
+      "mean": 3.167775138558982,
+      "p50": 3,
+      "p95": 4,
+      "max": 7,
+      "frames": 1263
+     },
+     "stats": {
+      "drawCalls": 233,
+      "triangles": 996487,
+      "geometries": 447,
+      "textures": 5,
+      "programs": 189,
+      "objects": 2000
+     },
+     "distribution": {
+      "instances": {
+       "high": 0,
+       "mid": 15,
+       "low": 0,
+       "canopy": 1769,
+       "culled": 216
+      },
+      "buckets": {
+       "high": 0,
+       "mid": 11,
+       "low": 0,
+       "canopy": 104,
+       "culled": 63
+      },
+      "transitionInstances": 0,
+      "transitionTargets": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 0,
+       "culled": 0
+      },
+      "shadowCasterInstances": 1784,
+      "transition": {
+       "instances": 0,
+       "buckets": 0,
+       "dualSubmitBuckets": 0
+      }
+     }
+    },
+    "on": {
+     "sample": {
+      "fps": 270.1689493152066,
+      "mean": 3.7013876040702893,
+      "p50": 3.6000000000058208,
+      "p95": 4.5,
+      "max": 7.899999999994179,
+      "frames": 1081
+     },
+     "stats": {
+      "drawCalls": 445,
+      "triangles": 1905804,
+      "geometries": 447,
+      "textures": 5,
+      "programs": 191,
+      "objects": 2000
+     },
+     "distribution": {
+      "instances": {
+       "high": 0,
+       "mid": 15,
+       "low": 0,
+       "canopy": 1769,
+       "culled": 216
+      },
+      "buckets": {
+       "high": 0,
+       "mid": 11,
+       "low": 0,
+       "canopy": 104,
+       "culled": 63
+      },
+      "transitionInstances": 0,
+      "transitionTargets": {
+       "high": 0,
+       "mid": 0,
+       "low": 0,
+       "canopy": 0,
+       "culled": 0
+      },
+      "shadowCasterInstances": 1784,
+      "transition": {
+       "instances": 0,
+       "buckets": 0,
+       "dualSubmitBuckets": 0
+      }
+     }
+    }
+   }
+  }
+ },
+ "driverConsoleLog": [
+  {
+   "kind": "console",
+   "type": "debug",
+   "text": "[vite] connecting...",
+   "timestamp": 1790256385676.771
+  },
+  {
+   "kind": "console",
+   "type": "debug",
+   "text": "[vite] connected.",
+   "timestamp": 1790256385688.441
+  },
+  {
+   "kind": "console",
+   "type": "info",
+   "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+   "timestamp": 1790256385944.995
+  },
+  {
+   "kind": "console",
+   "type": "warning",
+   "text": "THREE.WebGLProgram: Program Info Log: (111,1): warning X4000: use of potentially uninitialized variable (f_koeDepthAlpha)\n\n\n\u0000",
+   "timestamp": 1790256493975.199
+  },
+  {
+   "kind": "console",
+   "type": "warning",
+   "text": "[Renderer] draw calls 超预算：849 > 650（BATCH_POLICY.drawCallBudget，Legacy Baseline——T006.5 锁定值沿用作对照基线，T021 加入 Canopy/双表示/Shadow 表示后重测重锁归 021.8，D41 §九）——批次治理观测告警，非降级",
+   "timestamp": 1790256524770.035
+  },
+  {
+   "kind": "console",
+   "type": "warning",
+   "text": "[Renderer] draw calls 超预算：895 > 650（BATCH_POLICY.drawCallBudget，Legacy Baseline——T006.5 锁定值沿用作对照基线，T021 加入 Canopy/双表示/Shadow 表示后重测重锁归 021.8，D41 §九）——批次治理观测告警，非降级",
+   "timestamp": 1790256529771.038
+  }
+ ]
+}

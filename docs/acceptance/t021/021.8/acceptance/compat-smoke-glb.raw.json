@@ -1,0 +1,77 @@
+{
+ "result": {
+  "steps": {
+   "glb": {
+    "expand": {
+     "x": 1864,
+     "y": 1030
+    },
+    "card": {
+     "x": 233,
+     "y": 962
+    },
+    "canvas": {
+     "x": 954,
+     "y": 507
+    },
+    "ghostState": {
+     "dc": 11,
+     "tri": 254,
+     "objects": 0,
+     "outlinerHasPavilion": false
+    },
+    "placed": {
+     "dc": 27,
+     "tri": 734,
+     "objects": 0,
+     "outlinerHasPavilion": true
+    },
+    "ok": true
+   },
+   "streetlamp": {
+    "mid": {
+     "inst": {
+      "high": 2,
+      "mid": 0,
+      "low": 3,
+      "canopy": 0,
+      "culled": 0
+     },
+     "dc": 39,
+     "tri": 2030
+    },
+    "far": {
+     "inst": {
+      "high": 2,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 3
+     },
+     "dc": 27,
+     "tri": 1214
+    }
+   }
+  }
+ },
+ "driverConsoleLog": [
+  {
+   "kind": "console",
+   "type": "debug",
+   "text": "[vite] connecting...",
+   "timestamp": 1790560672628.052
+  },
+  {
+   "kind": "console",
+   "type": "debug",
+   "text": "[vite] connected.",
+   "timestamp": 1790560672644.319
+  },
+  {
+   "kind": "console",
+   "type": "info",
+   "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+   "timestamp": 1790560672921.968
+  }
+ ]
+}

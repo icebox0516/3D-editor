@@ -35,7 +35,7 @@
  *   （服务只扫 node.material，customDepthMaterial 不在遍历面）而只在 onBeforeCompile 里把
  *   shader.uniforms.uTime 绑到同一共享对象——服务写主材质一次，深度程序 uniform 即时同值，
  *   影 pass 风摆与主渲染同相同帧。**成套消费契约：三材质必须同一工厂产物一起用**（拆开挂
- *   depth 会失去 uTime 更新源——021.7 接线注意）。
+ *   depth 会失去 uTime 更新源——CanopySourceCache 整体成套持有三材质，021.7 按此接线）。
  *
  * ── Canopy Depth Material（§七末段：仅保冠层轮廓 + 主要空隙 + 基本体量）──
  * MeshDepthMaterial + RGBADepthPacking，**无 SDF / 无 alphaTest / 无噪声采样**——canopy 卡
@@ -46,7 +46,7 @@
  *   objectNormal 未定义，且该分量 ≤1cm 级在影 texel ~16cm 下不可辨（记档取舍，同 tree3a
  *   「静态影」取舍的放宽版：canopy 保留 xz 风摆进影）。所有权契约同规：Source/Cache 拥有
  *   并释放（D41 §10.3），本工厂只 new（每次调用全新材质，D17），Pool 只挂引用——Runtime
- *   接线归 021.7。
+ *   接线已由 021.7 落位（CanopySourceCache）。
  *
  * ── 成本记账（10 万实例纪律）──
  *   - 冠卡片元 = 0× 噪声采样 / 0× 贴图；hue·luma·shade mix + 透光 dot+pow 纯 ALU ≈ 1×；
@@ -54,7 +54,7 @@
  *   - 深度片元 = 0（零采样零分支）；深度顶点 = 两次 sin。
  *
  * 边界：材质面 only——不接 Runtime（RepresentationSourceRouter / CanopySourceCache /
- *   provideSource 演化归 021.7）；不动几何 / 不动 T018 环境 / Shadow Camera 常量；零贴图
+ *   provideSource 演化已由 021.7 落位）；不动几何 / 不动 T018 环境 / Shadow Camera 常量；零贴图
  *   零 DataTexture（D13）；GLSL float 字面量全带小数点；aSeed=0 路径相位退化为正常数
  *   （hash 无除法无 NaN）。
  */
@@ -291,7 +291,8 @@ export interface BroadleafCanopyMaterialSet {
  * BroadleafCanopyProxy 成套材质工厂（全乔木共用，按 assetId 取树种参数）。
  * 输入 = assetId（散布链 assetId 粒度语义，无 shapeSlot 维度）；输出 = 干柱 + 冠卡 + 深度
  * 三材质，共享同一 uTime 对象（TimeUniformService 扫主材质即三材质同帧——影 pass 风摆与
- * 主渲染同相）。未知 assetId 即抛（可用清单见错误信息）。Runtime 接线归 021.7；所有权随
+ * 主渲染同相）。未知 assetId 即抛（可用清单见错误信息）。Runtime 接线已由 021.7 落位
+ * （CanopySourceCache）；所有权随
  * 调用移交调用方（Source/Cache 拥有释放，Pool 只挂引用——D41 §10.3）。
  */
 export function createBroadleafCanopyMaterials(assetId: string): BroadleafCanopyMaterialSet {

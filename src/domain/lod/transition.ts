@@ -9,14 +9,15 @@
  *      只暴露判定面，策略与接线归 021.5）、不做双 Shadow 交叉渐变（§5.4）。
  *
  * 帧推进口径裁定（任务书留白「deltaTime 或 metric 步进」按规范裁定 = **metric 步进**）：
- *      §5.2「过渡带宽度定义在 metric 空间（候选比例，021.8 锁定）」——过渡进度是
+ *      §5.2「过渡带宽度定义在 metric 空间（比例值，021.8 实测锁定维持）」——过渡进度是
  *      统一度量 m 的纯函数，不是墙钟时间函数。性质：
  *      - 帧率无关、确定性（同 m 同进度）、可逆（相机回退 fade 反向回落）；
  *      - 状态机不引入第二震荡源：所有 fade 值 = 当前决策对 (current, target) 下 m 的
  *        连续单调函数，唯一的状态量是 SelectionState 本身（D41 §10.1 五字段原形，
  *        不设第三字段——pending 并入 target + sourceReady）；
  *      - 代价记档：静止相机停在带内时双表示持续并存（可观测面 =
- *        lodDistribution transition.dualSubmitBuckets，红线 +30 的判定归 021.8）。
+ *        lodDistribution transition.dualSubmitBuckets，红线 +30 经 021.8 标定实测
+ *        PASS：产品 1000 树零增量、最坏构造纯双表示 ≤+6、理论上界 +16 < +30）。
  *
  * 过渡带锚定（防跳变的关键不变量，双向过渡都从 (1,0) 起步、在 (0,1) 完成）：
  *      - 降档带 [B, B·(1+W)]（B = 名义边界，W = TRANSITION_BAND_RATIO）——名义线触发，
@@ -59,11 +60,13 @@ export type TransitionKind = 'none' | 'hard-cut' | 'dither' | 'fade-out';
 const CULL_FADE_OUT_FROM: ReadonlySet<RuntimeRepresentation> = new Set(['low', 'canopy']);
 
 /**
- * 过渡带宽度（**候选值，021.8 A/B 重锁**，D41 §5.2）：metric 空间的相对比例——
+ * 过渡带宽度（**已锁定（021.8 实测维持）**，D41 §5.2；证据锚
+ * docs/acceptance/t021/021.8/calibration/README.md 结论总表③）：metric 空间的相对比例——
  * 带宽 = 触发边界 × RATIO（降档带 / fade-out 带锚定名义边界，升档带锚定迟滞线，
- * 宽度同为 边界 × RATIO）。初值 0.25：与迟滞带 0.15 同量级偏宽（过渡带覆盖迟滞带
- * 之上的一段行程，屏占比 6.25% 档位处 m 跨度 4）；未经实测——021.6 canopy 内容
- * 接入后由 021.8 标定验收门重锁，重锁须连带更新测试「一次锁全量」断言并记档。
+ * 宽度同为 边界 × RATIO）。0.25 实测维持依据：dither 带末 (19.7 f=0.925 → 20.3 稳态)
+ * 像素 diff 0.157%（含相机位移）、fade 带末 (74.7 f=0.98 → 75.3 culled) diff 0.072%
+ * ——带端均无可辨跳变；f=0.5 颗粒像素级融入纹理不过粗（10.7× zoom 判读）。改值须
+ * 重开实测记档并连带更新测试「一次锁全量」断言。
  */
 export const TRANSITION_BAND_RATIO = 0.25;
 
@@ -157,9 +160,9 @@ export interface TransitionStepInput {
   /** 目标表示 Source 是否就绪（排队语义：false = 等待，不开始过渡、不切提交；
    *  'culled' 无目标源恒视为就绪——调用方传 true） */
   sourceReady: boolean;
-  /** 缺省 LOD_THRESHOLDS（候选值，021.8 重锁） */
+  /** 缺省 LOD_THRESHOLDS（已锁定，021.8 实测维持——见 lodPolicy 模块头注） */
   thresholds?: LodThresholds;
-  /** 缺省 TRANSITION_BAND_RATIO（候选值，021.8 重锁） */
+  /** 缺省 TRANSITION_BAND_RATIO（已锁定，021.8 实测维持——见常量注） */
   bandRatio?: number;
 }
 

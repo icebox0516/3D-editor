@@ -1,0 +1,2338 @@
+{
+ "result": {
+  "recede": [
+   {
+    "d": 60,
+    "instances": {
+     "high": 1,
+     "mid": 2,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 1,
+     "mid": 2,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 106694,
+    "geo": 20,
+    "tex": 5,
+    "prog": 29
+   },
+   {
+    "d": 85,
+    "instances": {
+     "high": 1,
+     "mid": 2,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 1,
+     "mid": 2,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 106694,
+    "geo": 20,
+    "tex": 5,
+    "prog": 29
+   },
+   {
+    "d": 110,
+    "instances": {
+     "high": 0,
+     "mid": 3,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 3,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 49270,
+    "geo": 20,
+    "tex": 5,
+    "prog": 29
+   },
+   {
+    "d": 135,
+    "instances": {
+     "high": 0,
+     "mid": 3,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 3,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 49270,
+    "geo": 20,
+    "tex": 5,
+    "prog": 29
+   },
+   {
+    "d": 160,
+    "instances": {
+     "high": 0,
+     "mid": 3,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 3,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 49270,
+    "geo": 20,
+    "tex": 5,
+    "prog": 29
+   },
+   {
+    "d": 185,
+    "instances": {
+     "high": 0,
+     "mid": 3,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 3,
+     "low": 0,
+     "canopy": 2,
+     "culled": 0
+    },
+    "tInst": 2,
+    "dual": 2,
+    "shadow": 3,
+    "dc": 19,
+    "tri": 50244,
+    "geo": 24,
+    "tex": 5,
+    "prog": 33
+   },
+   {
+    "d": 210,
+    "instances": {
+     "high": 0,
+     "mid": 3,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 3,
+     "low": 0,
+     "canopy": 2,
+     "culled": 0
+    },
+    "tInst": 2,
+    "dual": 2,
+    "shadow": 3,
+    "dc": 19,
+    "tri": 36234,
+    "geo": 24,
+    "tex": 5,
+    "prog": 35
+   },
+   {
+    "d": 235,
+    "instances": {
+     "high": 0,
+     "mid": 1,
+     "low": 0,
+     "canopy": 2,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 1,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 1,
+    "dual": 1,
+    "shadow": 3,
+    "dc": 17,
+    "tri": 21737,
+    "geo": 26,
+    "tex": 5,
+    "prog": 37
+   },
+   {
+    "d": 260,
+    "instances": {
+     "high": 0,
+     "mid": 1,
+     "low": 0,
+     "canopy": 2,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 1,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 1,
+    "dual": 1,
+    "shadow": 3,
+    "dc": 17,
+    "tri": 21737,
+    "geo": 26,
+    "tex": 5,
+    "prog": 37
+   },
+   {
+    "d": 285,
+    "instances": {
+     "high": 0,
+     "mid": 1,
+     "low": 0,
+     "canopy": 2,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 1,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 1,
+    "dual": 1,
+    "shadow": 3,
+    "dc": 17,
+    "tri": 12580,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 310,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 335,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 360,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 385,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 410,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 435,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 460,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 485,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 510,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 535,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 560,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 585,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 610,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 635,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 660,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 2,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 685,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 2,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 710,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 2,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 735,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 2,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 760,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 2,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 785,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 2,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 810,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 2,
+     "culled": 1
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 2,
+     "culled": 1
+    },
+    "tInst": 1,
+    "dual": 0,
+    "shadow": 2,
+    "dc": 11,
+    "tri": 1962,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 835,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 1,
+    "dc": 7,
+    "tri": 988,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 860,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 1,
+    "dc": 7,
+    "tri": 988,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 885,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "tInst": 1,
+    "dual": 0,
+    "shadow": 1,
+    "dc": 7,
+    "tri": 988,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 910,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "tInst": 1,
+    "dual": 0,
+    "shadow": 1,
+    "dc": 7,
+    "tri": 988,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 935,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "tInst": 1,
+    "dual": 0,
+    "shadow": 1,
+    "dc": 7,
+    "tri": 988,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 960,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "tInst": 1,
+    "dual": 0,
+    "shadow": 1,
+    "dc": 7,
+    "tri": 988,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 985,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "tInst": 1,
+    "dual": 0,
+    "shadow": 1,
+    "dc": 7,
+    "tri": 988,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   }
+  ],
+  "roundtrip": [
+   {
+    "d": 1000,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "tInst": 1,
+    "dual": 0,
+    "shadow": 1,
+    "dc": 7,
+    "tri": 988,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 975,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "tInst": 1,
+    "dual": 0,
+    "shadow": 1,
+    "dc": 7,
+    "tri": 988,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 950,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "tInst": 1,
+    "dual": 0,
+    "shadow": 1,
+    "dc": 7,
+    "tri": 988,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 925,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "tInst": 1,
+    "dual": 0,
+    "shadow": 1,
+    "dc": 7,
+    "tri": 988,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 900,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "tInst": 1,
+    "dual": 0,
+    "shadow": 1,
+    "dc": 7,
+    "tri": 988,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 875,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "tInst": 1,
+    "dual": 0,
+    "shadow": 1,
+    "dc": 7,
+    "tri": 988,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 850,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 1,
+    "dc": 7,
+    "tri": 988,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 825,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 1,
+     "culled": 2
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 1,
+    "dc": 7,
+    "tri": 988,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 800,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 2,
+     "culled": 1
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 2,
+     "culled": 1
+    },
+    "tInst": 1,
+    "dual": 0,
+    "shadow": 2,
+    "dc": 11,
+    "tri": 1962,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 775,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 2,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 750,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 2,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 725,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 2,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 700,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 2,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 675,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 2,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 650,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 1,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 625,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 600,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 575,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 550,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 525,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 500,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 475,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 450,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 425,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 400,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 375,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 350,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 325,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 300,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 275,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 250,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 225,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 200,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 2936,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 175,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 1,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 1,
+    "dual": 1,
+    "shadow": 3,
+    "dc": 17,
+    "tri": 12580,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 150,
+    "instances": {
+     "high": 0,
+     "mid": 0,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 1,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 1,
+    "dual": 1,
+    "shadow": 3,
+    "dc": 17,
+    "tri": 21737,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 125,
+    "instances": {
+     "high": 0,
+     "mid": 1,
+     "low": 0,
+     "canopy": 2,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 3,
+     "low": 0,
+     "canopy": 2,
+     "culled": 0
+    },
+    "tInst": 2,
+    "dual": 2,
+    "shadow": 3,
+    "dc": 19,
+    "tri": 36234,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 100,
+    "instances": {
+     "high": 0,
+     "mid": 2,
+     "low": 0,
+     "canopy": 1,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 3,
+     "low": 0,
+     "canopy": 1,
+     "culled": 0
+    },
+    "tInst": 1,
+    "dual": 1,
+    "shadow": 3,
+    "dc": 17,
+    "tri": 49757,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 75,
+    "instances": {
+     "high": 0,
+     "mid": 3,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 3,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 49270,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   }
+  ],
+  "dualAccounting": [
+   {
+    "d": 160,
+    "instances": {
+     "high": 0,
+     "mid": 3,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 3,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 49270,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 180,
+    "instances": {
+     "high": 0,
+     "mid": 3,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 3,
+     "low": 0,
+     "canopy": 2,
+     "culled": 0
+    },
+    "tInst": 2,
+    "dual": 2,
+    "shadow": 3,
+    "dc": 19,
+    "tri": 50244,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 200,
+    "instances": {
+     "high": 0,
+     "mid": 3,
+     "low": 0,
+     "canopy": 0,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 3,
+     "low": 0,
+     "canopy": 2,
+     "culled": 0
+    },
+    "tInst": 2,
+    "dual": 2,
+    "shadow": 3,
+    "dc": 19,
+    "tri": 36234,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 220,
+    "instances": {
+     "high": 0,
+     "mid": 1,
+     "low": 0,
+     "canopy": 2,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 1,
+     "low": 0,
+     "canopy": 2,
+     "culled": 0
+    },
+    "tInst": 0,
+    "dual": 0,
+    "shadow": 3,
+    "dc": 15,
+    "tri": 21250,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 240,
+    "instances": {
+     "high": 0,
+     "mid": 1,
+     "low": 0,
+     "canopy": 2,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 1,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 1,
+    "dual": 1,
+    "shadow": 3,
+    "dc": 17,
+    "tri": 21737,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   },
+   {
+    "d": 260,
+    "instances": {
+     "high": 0,
+     "mid": 1,
+     "low": 0,
+     "canopy": 2,
+     "culled": 0
+    },
+    "buckets": {
+     "high": 0,
+     "mid": 1,
+     "low": 0,
+     "canopy": 3,
+     "culled": 0
+    },
+    "tInst": 1,
+    "dual": 1,
+    "shadow": 3,
+    "dc": 17,
+    "tri": 21737,
+    "geo": 26,
+    "tex": 5,
+    "prog": 38
+   }
+  ],
+  "picking": {
+   "canopyPick": {
+    "sx": 960,
+    "sy": 552.8,
+    "before": 0,
+    "after": 0,
+    "hit": false,
+    "dist": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 3,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 3,
+      "culled": 0
+     },
+     "transitionInstances": 0,
+     "transitionTargets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "shadowCasterInstances": 3,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    }
+   },
+   "ditherPick": {
+    "sx": 960,
+    "sy": 550.7,
+    "before": 0,
+    "after": 0,
+    "hit": false,
+    "dist": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 3,
+      "culled": 0
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 1,
+      "low": 0,
+      "canopy": 3,
+      "culled": 0
+     },
+     "transitionInstances": 1,
+     "transitionTargets": {
+      "high": 0,
+      "mid": 1,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "shadowCasterInstances": 3,
+     "transition": {
+      "instances": 1,
+      "buckets": 2,
+      "dualSubmitBuckets": 1
+     }
+    }
+   },
+   "cullMissCeltis": {
+    "sx": 952,
+    "sy": 551.8,
+    "before": 0,
+    "after": 1,
+    "hit": true,
+    "dist": {
+     "instances": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 2
+     },
+     "buckets": {
+      "high": 1,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 2
+     },
+     "transitionInstances": 0,
+     "transitionTargets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "shadowCasterInstances": 1,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    }
+   },
+   "cullAliveSalix": {
+    "sx": 968.1,
+    "sy": 558.1,
+    "before": 0,
+    "after": 0,
+    "hit": false,
+    "dist": {
+     "instances": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 3
+     },
+     "buckets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 3
+     },
+     "transitionInstances": 0,
+     "transitionTargets": {
+      "high": 0,
+      "mid": 0,
+      "low": 0,
+      "canopy": 0,
+      "culled": 0
+     },
+     "shadowCasterInstances": 0,
+     "transition": {
+      "instances": 0,
+      "buckets": 0,
+      "dualSubmitBuckets": 0
+     }
+    }
+   }
+  }
+ },
+ "driverConsoleLog": [
+  {
+   "kind": "console",
+   "type": "debug",
+   "text": "[vite] connecting...",
+   "timestamp": 1790257748095.497
+  },
+  {
+   "kind": "console",
+   "type": "debug",
+   "text": "[vite] connected.",
+   "timestamp": 1790257748124.168
+  },
+  {
+   "kind": "console",
+   "type": "info",
+   "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+   "timestamp": 1790257748373.947
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at OrbitControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_OrbitControls__js.js?v=d53dc4e6:927:19)\n    at <anonymous>:30:14",
+   "timestamp": 1790257777088.411
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at TransformControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_TransformControls__js.js?v=d53dc4e6:662:52)\n    at <anonymous>:30:14",
+   "timestamp": 1790257777088.735
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at OrbitControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_OrbitControls__js.js?v=d53dc4e6:927:19)\n    at <anonymous>:3:14\n    at <anonymous>:5:7",
+   "timestamp": 1790257778084.765
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at TransformControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_TransformControls__js.js?v=d53dc4e6:662:52)\n    at <anonymous>:3:14\n    at <anonymous>:5:7",
+   "timestamp": 1790257778085.016
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at OrbitControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_OrbitControls__js.js?v=d53dc4e6:927:19)\n    at <anonymous>:30:14",
+   "timestamp": 1790257779088.402
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at TransformControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_TransformControls__js.js?v=d53dc4e6:662:52)\n    at <anonymous>:30:14",
+   "timestamp": 1790257779088.704
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at OrbitControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_OrbitControls__js.js?v=d53dc4e6:927:19)\n    at <anonymous>:3:14\n    at <anonymous>:5:7",
+   "timestamp": 1790257779540.701
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at TransformControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_TransformControls__js.js?v=d53dc4e6:662:52)\n    at <anonymous>:3:14\n    at <anonymous>:5:7",
+   "timestamp": 1790257779540.868
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at OrbitControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_OrbitControls__js.js?v=d53dc4e6:927:19)\n    at <anonymous>:30:14",
+   "timestamp": 1790257780543.07
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at TransformControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_TransformControls__js.js?v=d53dc4e6:662:52)\n    at <anonymous>:30:14",
+   "timestamp": 1790257780543.434
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at OrbitControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_OrbitControls__js.js?v=d53dc4e6:927:19)\n    at <anonymous>:3:14\n    at <anonymous>:5:7",
+   "timestamp": 1790257780996.877
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at TransformControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_TransformControls__js.js?v=d53dc4e6:662:52)\n    at <anonymous>:3:14\n    at <anonymous>:5:7",
+   "timestamp": 1790257780997.212
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at OrbitControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_OrbitControls__js.js?v=d53dc4e6:927:19)\n    at <anonymous>:30:14",
+   "timestamp": 1790257782000.672
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at TransformControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_TransformControls__js.js?v=d53dc4e6:662:52)\n    at <anonymous>:30:14",
+   "timestamp": 1790257782000.917
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at OrbitControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_OrbitControls__js.js?v=d53dc4e6:927:19)\n    at <anonymous>:3:14\n    at <anonymous>:5:7",
+   "timestamp": 1790257782453.884
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at TransformControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_TransformControls__js.js?v=d53dc4e6:662:52)\n    at <anonymous>:3:14\n    at <anonymous>:5:7",
+   "timestamp": 1790257782454.15
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at OrbitControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_OrbitControls__js.js?v=d53dc4e6:927:19)\n    at <anonymous>:3:14\n    at <anonymous>:5:7",
+   "timestamp": 1790257784037.675
+  },
+  {
+   "kind": "exception",
+   "type": "error",
+   "text": "NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.\n    at TransformControls.onPointerDown (http://localhost:5173/node_modules/.vite/deps/three_examples_jsm_controls_TransformControls__js.js?v=d53dc4e6:662:52)\n    at <anonymous>:3:14\n    at <anonymous>:5:7",
+   "timestamp": 1790257784037.985
+  }
+ ]
+}

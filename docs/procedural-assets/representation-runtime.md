@@ -82,9 +82,9 @@ export type RuntimeRepresentation = 'high' | 'mid' | 'low' | 'canopy';
 
 禁止固定米数阈值（资产尺寸不同）；禁止像素口径作选档输入（仅验收报表）。
 
-### 4.2 阈值与迟滞（全部候选化）
+### 4.2 阈值与迟滞（021.8 已锁定）
 
-新链初值直接继承 legacy 映射：`highToMid = 6`、`midToCanopy = 16`、`canopyToCulled = 60`、迟滞带 `0.15`。**全部为 A/B 候选而非锁定值**，021.8 重锁；legacy `6/16/60` 仅作对照基线。
+`highToMid = 6`、`midToCanopy = 16`、`canopyToCulled = 60`、迟滞带 `0.15`——021.8 全项 A/B 标定实测**全部维持**（连续 m 扫描 + 同 m A/B 像素判读 + 振荡序列；证据锚 `docs/acceptance/t021/021.8/calibration/README.md`）。T006.6 Step 3 平移量实测并入记档：稳定基准球下七个边界换档平移全部 **≤0.42%**（旧「档间半径差 2-5% 平移」反馈环消除——006.6 Step 2 交付的实证闭环）。改值须重开实测记档并连带更新「一次锁全量」测试断言；legacy `6/16/60` 保留为对照基线叙述。
 
 ### 4.3 Selection Bounds 与 Render Bounds
 
@@ -117,7 +117,7 @@ Canopy → Culled     Fade Out
 
 ### 5.2 双表示共存与性能预算
 
-Transition 期间 `Current` 与 `Target` 两套表示同时提交（dither 交叉）。预算红线：**双表示桶 draw call 增量 ≤ +30**（021.8 标定复核）；过渡带宽度定义在 metric 空间（候选比例，021.8 锁定）。放置链实例数上限暂不设（量级小）。
+Transition 期间 `Current` 与 `Target` 两套表示同时提交（dither 交叉）。预算红线：**双表示桶 draw call 增量 ≤ +30**——021.8 复核 PASS 余量大（产品 1000 树穿带实测**零增量**〔dither 客座并入既有 canopy 槽桶〕、紧缩最坏构造纯双表示份额 ≤+6、理论上界 +16；证据锚 `docs/acceptance/t021/021.8/calibration/README.md` ⑦）。过渡带宽度 = `TRANSITION_BAND_RATIO 0.25`（metric 空间比例；021.8 锁定——dither 带端像素 diff 0.157% / fade 带端 0.072%，无跳变无感）。放置链实例数上限暂不设（量级小）。
 
 ### 5.3 Fade 技术
 
@@ -175,7 +175,7 @@ interface ShadowPolicy {
 }
 ```
 
-初始策略：High = `{cast: true, receive: true, depth: 'full'}`（现状）；Mid = depth `full / simplified` 由 A/B 定；Low / Canopy = `simplified`；Cull = `off`。**Canopy 初始 `receive = false`**（远景树冠采样阴影成本高、视觉贡献小——021.8 A/B 可开项；现状两链 cast/receive 统一 true，此为真实行为变化，必须进 A/B）。现状 cast/receive 由池建网格统一设 true，与档位无关——策略层落位后由表示驱动。
+初始策略（021.8 复核后锁定）：High = `{cast: true, receive: true, depth: 'full'}`；Mid = `{cast: true, receive: true, depth: 'full'}`（021.8 A/B：m≥8 SDF 叶形缺刻在 0.156m/txel 下不可辨，但确定性账目无明确成本收益、m=6 带缘外推边缘可辨——变更证据不完整，保守维持 full；shadow cost 线实测 −14/−15% 记档于验收证据）；Low / Canopy = `simplified`；Cull = `off`。**Canopy `receive = false`**（021.8 A/B 复核维持：影确实落冠〔机制验证〕但 m≥16 冠均亮度差 0.5%、90–321px 不可辨，成本 programs +2；证据锚 Phase A ⑤）。现状 cast/receive 由池建网格统一设 true，与档位无关——策略层落位后由表示驱动。
 
 Canopy 不使用高成本叶片 SDF 深度材质，使用 Canopy Depth Material（仅保留冠层轮廓 + 主要空隙 + 基本体量）；**禁止远景 Shadow Pass 继续计算完整叶片级 SDF**。
 
@@ -189,7 +189,13 @@ Canopy 不使用高成本叶片 SDF 深度材质，使用 Canopy Depth Material�
 
 ## 九 · 批次（Batch Policy）
 
-批次策略从绑定 `high/mid/low` 改为绑定 **representation**（`isBatchMergeAllowed(representation)` 形态）。Canopy 天然适合 `chunk × asset × canopy` 远景合批；第一版保留现有 32m chunk + 2×2 sparse merge（`sparseMergeMaxInstances 32` / `mergeGroupFactor 2`），实测 Canopy 桶数过多才提升区域级合批。`drawCallBudget = 650` 降格为 **Legacy Baseline**，T021 加入 Canopy / 双表示 / Shadow 表示后重测重锁（连同 Frame Time p95 / Triangle Budget / Shadow Cost）。
+批次策略从绑定 `high/mid/low` 改为绑定 **representation**（`isBatchMergeAllowed(representation)` 形态）。Canopy 天然适合 `chunk × asset × canopy` 远景合批；32m chunk + 2×2 sparse merge（`sparseMergeMaxInstances 32` / `mergeGroupFactor 2`）经 021.8 复核**维持**（单种 1000 棵 8 canopy 桶、3 种散布 2700 实例 111 桶 / DC 441——无需区域级合批）。
+
+**021.8 预算四线重锁**（实测证据 `docs/acceptance/t021/021.8/acceptance/`；环境见 §十四）：
+- `drawCallBudget = 1500`：最重合法包络 = 2000 混植 13 种真近机位实测 1011 DC（legacy 650 = T006.4 十万路灯口径，保留历史记档）——1500 ≈ 1.5× 余量，正常包络零误报、结构性批次爆炸仍触发；
+- Frame Time p95 ≤ 10ms @ 最重档（混植 2000 真近机位实测 9.8ms / fps 123.6；单种梯队 1–2000 全档 p95 ≤ 2.8ms）；
+- Triangle ≤ 12M @ 最重档（混植中景过渡带实测 11.7M；canopy 稳态 1.9M）；
+- Shadow Cost ≤ 15% 帧时（1000 near off↔on 750↔644 fps、混植 far 316↔270 = −14% / −15%）。
 
 ## 十 · 运行状态与缓存键
 
@@ -247,6 +253,7 @@ controls.update → Camera/View update → Spatial Frustum Cull
 ## 十四 · 验收与性能口径
 
 **环境**：RTX 2080 Ti / WebGL2 / Chromium / 1920×1080 / DPR 1 / Shadow ON / 固定环境（T018 预设 day）。
+（021.8 执行记档与全部实测数据：`docs/acceptance/t021/021.8/`〔calibration = 全项标定 / acceptance = 六面验收〕——六面判定全 PASS、远景十条 10/10、密度 100% 达预算不降密。）
 
 **性能梯队**：1 / 20 / 100 / 500 / 1000 / **2000**（新增）+ 高密度园区混植。必记指标：FPS、frame time mean/p50/p95/max、draw calls、triangles、visible instances、representation distribution、transition instances、shadow cost、geometries、textures、programs。
 
