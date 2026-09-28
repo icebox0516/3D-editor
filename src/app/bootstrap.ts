@@ -573,6 +573,14 @@ function defaultSmokeScatterParams(): ScatterParams {
  * T024.3 扩展（色卡取证依赖——13 树 × 全卡 Contact Sheet）：place 增 preset 可选参数
  * （批量对象统一携带色卡 id，经 createModelObjectAt 省略规则落盘——默认卡不落盘，
  * 缺省路径逐位不变；沿 T011.13 assetId 泛化同款 DEV-only 可选尾参先例）。
+ * T024.5 扩展（验收门取证依赖——跨会话/跨构建逐位像素对比 + 混卡包络实测）：
+ * ① place 增 presets 可选参数（round-robin 多卡逐枚落盘，语义见 Tree3aPerfPlaceOptions.presets
+ *   注——与 assetId/assetIds 正交组合；与 preset 互斥，显式冲突硬失败沿 T021.8 同款防错）；
+ * ② 句柄增 freezeTime(seconds?)/unfreezeTime()（确定性风相位定位：带参 = 先 seekTo 后
+ *   freeze——冻结态下所有下游 uTime 恒为定位值，依赖 TimeUniformService.seekTo（T024.5
+ *   新增）；无参 = 仅 freeze 沿既有冻结语义；unfreeze 不回补冻结期时长）。time 依赖可选
+ *   （结构类型，组合根注入 Renderer.uTime 实件），无头缺省 no-op。
+ * 缺省调用路径逐位不变（presets/time 均为可选，未传即旧路）。
  */
 
 /** place 参数（批量确定性放置） */
@@ -604,6 +612,14 @@ export interface Tree3aPerfPlaceOptions {
    *  省略规则同样不落盘；未知 id 不在此校验——读侧 Renderer 声明面归一 default（系统级
    *  宽容语义；DEV 驱动不做第二套校验，校验双写会漂移） */
   preset?: string;
+  /** 多卡 round-robin（T024.5 扩展——混卡包络实测）：对象 i 的 preset =
+   *  presets[i % presets.length]（与 assetIds 同构的确定性轮转——同参两次放置卡序列
+   *  逐位一致；与 assetId/assetIds 正交组合，单资产 × 多卡亦合法）。与 preset 互斥
+   *  （同时给出抛错——显式冲突按硬失败处理，沿 T021.8 assetId/assetIds 同款防错哲学：
+   *  静默取后者会掩盖脚本 bug）；空数组同理抛错。成员不做注册校验（沿单卡 preset 既有
+   *  语义：'default' 经 createModelObjectAt 省略规则不落盘；未知 id 读侧归一 default——
+   *  DEV 驱动不做第二套校验）。不传 = 单卡/无卡路径逐位不变 */
+  presets?: string[];
 }
 
 /** view 参数（球坐标固定机位；公式沿 tree3aStage.placeCamera 口径，实现复写在组合根侧不改舞台） */
@@ -665,6 +681,14 @@ export interface Tree3aPerfHandle {
   setSunShadow(on: boolean): void;
   /** 固定机位取景（球坐标绕网格中心=原点，视心高 ≈3.6；无相机依赖时 no-op） */
   view(opts?: Tree3aPerfViewOptions): void;
+  /** 风相位冻结（T024.5 验收门取证——确定性风相位）：带参 = 先 seekTo(seconds) 定位再
+   *  freeze（幂等）——冻结态下所有下游 uTime 恒为定位值（跨会话/跨构建逐位像素对比
+   *  前提）；无参 = 仅 freeze（沿 TimeUniformService 既有冻结语义）；无时钟依赖（无头）
+   *  warn + no-op */
+  freezeTime(seconds?: number): void;
+  /** 解冻（T024.5）：恢复按时间戳累计，不回补冻结期间时长（沿 TimeUniformService.unfreeze
+   *  语义）；无时钟依赖（无头）warn + no-op */
+  unfreezeTime(): void;
   /** 终结：clear 自己的对象（经命令，幂等）；window 槽摘除归组合根 dispose */
   dispose(): void;
 }
@@ -691,6 +715,9 @@ export interface Tree3aPerfDeps {
      *  组合根注入 renderer 实件；缺省无头退化空计数） */
     lod?: { getLodDistribution(): LodDistribution };
   };
+  /** uTime 时钟控制（T024.5 扩展——结构类型，组合根注入 Renderer.uTime 实件；
+   *  freezeTime/unfreezeTime 确定性风相位取证的定位/冻结面；缺省无头 no-op） */
+  time?: { freeze(): void; unfreeze(): void; seekTo(seconds: number): void };
 }
 
 /** 目标资产 id（夏栎——T009 性能验收对象；T011.13 起为 place 的 assetId 缺省值） */
@@ -746,6 +773,15 @@ export function createTree3aPerfHandle(deps: Tree3aPerfDeps): Tree3aPerfHandle {
       }
       if (opts.assetIds !== undefined && opts.assetIds.length === 0) {
         throw new Error('[tree3aPerf] assetIds 为空数组——混植至少一个资产 id（T021.8 混植防错）');
+      }
+      // T024.5 扩展：presets 多卡轮转与单卡 preset 互斥（显式矛盾 = 脚本 bug——对象 i
+      // 到底带哪张卡二义，静默取后者会掩盖；沿 T021.8 同款防错）；空数组同理硬失败。
+      // 成员不做注册校验（'default'/未知 id 沿单卡 preset 既有语义——见接口注）
+      if (opts.presets !== undefined && opts.preset !== undefined) {
+        throw new Error('[tree3aPerf] preset 与 presets 同时给出——参数冲突，place 拒绝（T024.5 多卡防错）');
+      }
+      if (opts.presets !== undefined && opts.presets.length === 0) {
+        throw new Error('[tree3aPerf] presets 为空数组——多卡至少一张色卡 id（T024.5 取证防错）');
       }
       const assetId = opts.assetId ?? TREE3A_PERF_ASSET_ID;
       // 参与本次放置的资产序列（单资产路径 = 缺省/显式单 id；混植 = assetIds 原序）
@@ -813,7 +849,11 @@ export function createTree3aPerfHandle(deps: Tree3aPerfDeps): Tree3aPerfHandle {
             z: asset.defaultScale.z * scaleFactor,
           },
         };
-        objects.push(createModelObjectAt({ asset, layerId, transform, seed, preset: opts.preset }));
+        // T024.5 扩展：对象 i 的卡 = presets[i % n]（round-robin 确定性，与 assetIds
+        // 同构；不传 presets 走单卡 preset（或无卡）——缺省路径逐位不变）。'default'/
+        // 未知 id 直通透传，落盘省略/读侧归一由 createModelObjectAt 既有规则承担
+        const preset = opts.presets !== undefined ? opts.presets[i % opts.presets.length]! : opts.preset;
+        objects.push(createModelObjectAt({ asset, layerId, transform, seed, preset }));
       }
       const ok = deps.history.execute(new BatchCommand(objects.map((o) => new CreateObjectCommand(o))));
       if (!ok) return false;
@@ -904,6 +944,25 @@ export function createTree3aPerfHandle(deps: Tree3aPerfDeps): Tree3aPerfHandle {
       );
       view.controls.target.set(0, TREE3A_PERF_TARGET_Y, 0);
       view.controls.update();
+    },
+    // T024.5 扩展：确定性风相位取证（seekTo/freeze 转调注入时钟——无头无依赖 warn + no-op，
+    // 沿 setSunShadow/view 同款退化先例；带参定位序 = 先 seekTo 后 freeze，幂等可重定位）
+    freezeTime(seconds?: number) {
+      const time = deps.time;
+      if (!time) {
+        console.warn('[tree3aPerf] 无时钟依赖（无头）——freezeTime no-op');
+        return;
+      }
+      if (seconds !== undefined) time.seekTo(seconds);
+      time.freeze();
+    },
+    unfreezeTime() {
+      const time = deps.time;
+      if (!time) {
+        console.warn('[tree3aPerf] 无时钟依赖（无头）——unfreezeTime no-op');
+        return;
+      }
+      time.unfreeze();
     },
     dispose() {
       clearPlaced(); // 经命令清自己的对象（幂等）；window 槽摘除归组合根 dispose
@@ -1266,6 +1325,7 @@ export function createEditor(canvas: HTMLCanvasElement | null, opts: CreateEdito
       history,
       sceneManager,
       assets,
+      time: renderer.uTime, // T024.5 扩展：确定性风相位取证（seekTo/freeze/unfreeze 结构类型命中）
       view: {
         scene: renderer.scene,
         camera: renderer.camera,

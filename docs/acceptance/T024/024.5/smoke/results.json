@@ -1,0 +1,387 @@
+{
+  "generatedAt": "2026-09-28T15:09:14.242Z",
+  "method": {
+    "drive": "CDP（--headless=new，remote-debugging-port=9333，viewport 1920x1080 DPR1）；单 navigate/会话（024.4 通道纪律）",
+    "frame": "freezeTime(2.5) 先于对象创建 → M25（25m/35°/8°）→ 池稳定轮询（两采样 triangles/drawCalls 稳定）→ sleep(1100) → 截帧 clip 到 ed-viewport canvas 矩形（1292x932，浏览器收起布局）",
+    "pixel": "pngjs RGBA 全像素逐位比对（沿 Step-2 compare-regression.mjs 体例）",
+    "console": "Runtime/Log 域事件自标签页创建收集（024.5 cdp.mjs）——判据 = 零错误零警告",
+    "keyboard": "CDP Input.dispatchKeyEvent 合成 trusted 键事件（Ctrl/Ctrl+Shift 修饰位）"
+  },
+  "redoKeyVerdict": {
+    "ctrlShiftZ": {
+      "effective": true,
+      "evidence": "smoke1：undo→objects 0→Ctrl+Shift+Z→objects 1"
+    },
+    "ctrlY": {
+      "effective": true,
+      "evidence": "smoke1：再 undo→objects 0→Ctrl+Y→objects 1"
+    },
+    "note": "两快捷键均生效（input.ts L215-225：ctrl+z+shift→redo / ctrl+y→redo）；UI 路径变体用 Ctrl+Shift+Z"
+  },
+  "cases": [
+    {
+      "id": "case1-undo-redo-carded",
+      "title": "撤销重做带卡（handle 路径 + UI 路径变体）",
+      "handlePath": {
+        "placeOk": true,
+        "undo": {
+          "key": "Ctrl+Z",
+          "objectsAfter": 0,
+          "sceneObjectsAtB": 0,
+          "pass": true
+        },
+        "redo": {
+          "key": "Ctrl+Shift+Z",
+          "effective": true,
+          "objectsAfter": 1,
+          "pass": true
+        },
+        "redoAlt": {
+          "key": "Ctrl+Y",
+          "undoFirstOk": true,
+          "effective": true,
+          "objectsAfter": 1
+        },
+        "pixelRedoIdentity": {
+          "a": "frameA-place-carded.png",
+          "b": "frameC-redo-carded.png",
+          "pngBytesEqual": true,
+          "dimensionMismatch": false,
+          "diffPixels": 0,
+          "maxChannelDiff": 0,
+          "rowBands": {},
+          "bitwiseIdentical": true
+        },
+        "historyButtons": {
+          "afterPlace": {
+            "canUndo": true,
+            "canRedo": false
+          },
+          "afterUndo": {
+            "canUndo": false,
+            "canRedo": true
+          },
+          "afterRedo": {
+            "canUndo": true,
+            "canRedo": false
+          }
+        },
+        "console": {
+          "errors": 0,
+          "warnings": 0,
+          "entries": []
+        }
+      },
+      "uiPath": {
+        "storePreseedReadAtBoot": "{\"asset_tree_ginkgo\":\"autumn\"}",
+        "autumnDotActiveAtBoot": true,
+        "dotTitles": [
+          "切换到「默认」",
+          "当前色卡：秋·金黄"
+        ],
+        "landed": {
+          "ok": true,
+          "sceneObjects": 1
+        },
+        "undo": {
+          "ok": true,
+          "sceneObjects": 0
+        },
+        "redo": {
+          "ok": true,
+          "sceneObjects": 1
+        },
+        "pixelRedoIdentity": {
+          "a": "frameA2-ui-land-autumn.png",
+          "b": "frameC2-ui-redo-autumn.png",
+          "pngBytesEqual": true,
+          "dimensionMismatch": false,
+          "diffPixels": 0,
+          "maxChannelDiff": 0,
+          "rowBands": {},
+          "bitwiseIdentical": true
+        },
+        "pixelUndoEffect": {
+          "a": "frameA2-ui-land-autumn.png",
+          "b": "frameB2-ui-undo-empty.png",
+          "pngBytesEqual": false,
+          "dimensionMismatch": false,
+          "diffPixels": 3541,
+          "maxChannelDiff": 180,
+          "rowBands": {
+            "3": 924,
+            "4": 1684,
+            "7": 121,
+            "8": 699,
+            "9": 113
+          },
+          "bitwiseIdentical": false
+        },
+        "objectLevelCardProof": {
+          "template": "t0245-smoke-ui-autumn",
+          "preset": "autumn",
+          "seed": 1062224230,
+          "pass": true
+        },
+        "console": {
+          "errors": 0,
+          "warnings": 0,
+          "entries": []
+        }
+      },
+      "pass": true
+    },
+    {
+      "id": "case2-save-reload-carded",
+      "title": "保存重载保真（带卡，模板产品路径）",
+      "templateSaved": {
+        "toast": "[\"已保存模板「t0245-smoke-card」\"]",
+        "assertions": {
+          "found": true,
+          "id": "tpl_muldc8e00ig5qvj8z",
+          "objectCount": 1,
+          "assetId": "asset_tree_ginkgo",
+          "hasSeed": true,
+          "seed": 1,
+          "hasPresetKey": true,
+          "preset": "autumn"
+        },
+        "presetAutumn": true
+      },
+      "reloadApply": {
+        "apply": {
+          "itemClicked": "clicked",
+          "confirmState": "no-confirm",
+          "toast": "[\"已从模板新建：t0245-smoke-card · 1 个对象 · 11 个图层\"]"
+        },
+        "sceneObjectsAtE": 1,
+        "handleObjectsAfterApply": 0
+      },
+      "pixelReloadFidelity": {
+        "a": "frameD-template-save.png",
+        "b": "frameE-reload-apply-carded.png",
+        "pngBytesEqual": true,
+        "dimensionMismatch": false,
+        "diffPixels": 0,
+        "maxChannelDiff": 0,
+        "rowBands": {},
+        "bitwiseIdentical": true
+      },
+      "console": {
+        "save": {
+          "errors": 0,
+          "warnings": 0,
+          "entries": []
+        },
+        "apply": {
+          "errors": 0,
+          "warnings": 0,
+          "entries": []
+        }
+      },
+      "pass": true
+    },
+    {
+      "id": "case3-bogus-preset-fallback",
+      "title": "已删卡 id 宽容回退 default",
+      "bogusTemplate": {
+        "id": "tpl_smoke_bogus_manual",
+        "objectCount": 1,
+        "preset": "no_such_card",
+        "seed": 1,
+        "transformPos": {
+          "x": 0,
+          "y": 0.03,
+          "z": 0
+        }
+      },
+      "defaultRefFrame": "docs/acceptance/T024/024.5/smoke/frames/frame-default-ref.png",
+      "apply": {
+        "itemClicked": "clicked",
+        "confirmState": "no-confirm",
+        "toast": "[\"已从模板新建：t0245-smoke-bogus · 1 个对象 · 11 个图层\"]"
+      },
+      "alive": {
+        "hasCanvas": true,
+        "errorToasts": 0
+      },
+      "sceneObjectsAtF": 1,
+      "pixelFallbackMatchesDefault": {
+        "a": "frameF-bogus-fallback.png",
+        "b": "frame-default-ref.png",
+        "pngBytesEqual": true,
+        "dimensionMismatch": false,
+        "diffPixels": 0,
+        "maxChannelDiff": 0,
+        "rowBands": {},
+        "bitwiseIdentical": true
+      },
+      "pixelFallbackDiffersFromAutumn": {
+        "a": "frameF-bogus-fallback.png",
+        "b": "frameD-template-save.png",
+        "pngBytesEqual": false,
+        "dimensionMismatch": false,
+        "diffPixels": 9462,
+        "maxChannelDiff": 79,
+        "rowBands": {
+          "2": 49,
+          "3": 1781,
+          "4": 7160,
+          "5": 472
+        },
+        "bitwiseIdentical": false
+      },
+      "console": {
+        "errors": 0,
+        "warnings": 0,
+        "entries": []
+      },
+      "pass": true
+    },
+    {
+      "id": "case4-plain-scene-reload",
+      "title": "存量场景（无 preset 对象）保存重载逐位",
+      "templateSaved": {
+        "toast": "[\"已保存模板「t0245-smoke-plain」\"]",
+        "assertions": {
+          "found": true,
+          "id": "tpl_muldklkr04nbd1uvy",
+          "objectCount": 1,
+          "assetId": "asset_tree_ginkgo",
+          "hasSeed": true,
+          "seed": 1,
+          "hasPresetKey": false,
+          "preset": null
+        },
+        "noPresetKey": true
+      },
+      "reloadApply": {
+        "apply": {
+          "itemClicked": "clicked",
+          "confirmState": "no-confirm",
+          "toast": "[\"已从模板新建：t0245-smoke-plain · 1 个对象 · 11 个图层\"]"
+        },
+        "sceneObjectsAtH": 1
+      },
+      "pixelReloadFidelity": {
+        "a": "frameG-plain-save.png",
+        "b": "frameH-reload-apply-plain.png",
+        "pngBytesEqual": true,
+        "dimensionMismatch": false,
+        "diffPixels": 0,
+        "maxChannelDiff": 0,
+        "rowBands": {},
+        "bitwiseIdentical": true
+      },
+      "pixelCrossCheckDefaultProtocol": {
+        "a": "frameG-plain-save.png",
+        "b": "frame-default-ref.png",
+        "pngBytesEqual": true,
+        "dimensionMismatch": false,
+        "diffPixels": 0,
+        "maxChannelDiff": 0,
+        "rowBands": {},
+        "bitwiseIdentical": true
+      },
+      "console": {
+        "save": {
+          "errors": 0,
+          "warnings": 0,
+          "entries": []
+        },
+        "apply": {
+          "errors": 0,
+          "warnings": 0,
+          "entries": []
+        }
+      },
+      "pass": true
+    },
+    {
+      "id": "case5-celtis-settled-sentinel",
+      "title": "修复后沉降像素抽查（celtis 回归哨兵）",
+      "sentinel": {
+        "a": "frameI-celtis-settled.png",
+        "b": "D:\\3D-editor\\docs\\acceptance\\T024\\024.5\\regression-default\\current\\asset_tree_celtis.png",
+        "dimensionMismatch": false,
+        "diffPixels": 483,
+        "maxChannelDiff": 36,
+        "rowBands": {
+          "0": 455,
+          "7": 14,
+          "9": 14
+        },
+        "bitwiseIdentical": false
+      },
+      "reproducibility": {
+        "crossChromeProcess": {
+          "a": "frameI2-celtis-reproc.png",
+          "b": "frameI-celtis-settled.png",
+          "pngBytesEqual": true,
+          "dimensionMismatch": false,
+          "diffPixels": 0,
+          "maxChannelDiff": 0,
+          "rowBands": {},
+          "bitwiseIdentical": true
+        },
+        "reproVsStep2Baseline": {
+          "a": "frameI2-celtis-reproc.png",
+          "b": "D:\\3D-editor\\docs\\acceptance\\T024\\024.5\\regression-default\\current\\asset_tree_celtis.png",
+          "dimensionMismatch": false,
+          "diffPixels": 483,
+          "maxChannelDiff": 36,
+          "rowBands": {
+            "0": 455,
+            "7": 14,
+            "9": 14
+          },
+          "bitwiseIdentical": false
+        }
+      },
+      "channelLocalization": {
+        "ginkgoProbeVsStep2": {
+          "a": "frame-default-ref.png",
+          "b": "D:\\3D-editor\\docs\\acceptance\\T024\\024.5\\regression-default\\current\\asset_tree_ginkgo.png",
+          "dimensionMismatch": false,
+          "diffPixels": 483,
+          "maxChannelDiff": 36,
+          "rowBands": {
+            "0": 455,
+            "7": 14,
+            "9": 14
+          },
+          "bitwiseIdentical": false
+        },
+        "carveOut": {
+          "totalDiff": 483,
+          "inDomOverlayBoxes": 483,
+          "sceneDomainDiff": 0
+        },
+        "note": "483 差异像素全部位于 DOM 覆盖盒（.ed-hud--tl 文本 / .ed-hud--tr Shaded 按钮字形 / 小地图边框四角 AA）；ginkgo 与 celtis 的差异掩码逐位相同（树内容无关）；跨 Chrome 进程今日态稳定（frameI2≡frameI）；工作树零 src/ui 或 CSS 改动。场景域（WebGL 渲染面）diff=0——fade-out 修复未改变沉降态场景渲染。"
+      },
+      "strictBitwisePass": false,
+      "sceneDomainPass": true,
+      "console": {
+        "errors": 0,
+        "warnings": 0,
+        "entries": []
+      },
+      "pass": null
+    },
+    {
+      "id": "case6-consume-0244",
+      "title": "色点切换 / Ghost / 拖放 / 键 4 重放（消费 024.4 证据）",
+      "consumedEvidence": "docs/acceptance/T024/024.4/frames/（15 帧）+ 批次断言 JSON（01-08 / 10-15 帧系列；ui-smoke.mjs / ui-smoke2.mjs / ui-smoke3.mjs / ui-smoke4.mjs）",
+      "rerun": false,
+      "pass": true
+    }
+  ],
+  "summary": {
+    "total": 6,
+    "pass": 5,
+    "fail": 0,
+    "adjudication": [
+      "case5-celtis-settled-sentinel"
+    ]
+  }
+}

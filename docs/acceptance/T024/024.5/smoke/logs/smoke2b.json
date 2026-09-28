@@ -1,0 +1,123 @@
+{
+  "result": {
+    "layout": {
+      "expandedAtBoot": true,
+      "expandedAfterNormalize": false
+    },
+    "dotState": {
+      "storeOnBoot": "{\"asset_tree_ginkgo\":\"autumn\"}",
+      "activeOnBoot": [
+        false,
+        true
+      ],
+      "titles": [
+        "切换到「默认」",
+        "当前色卡：秋·金黄"
+      ]
+    },
+    "storeAfterDot": "{\"asset_tree_ginkgo\":\"autumn\"}",
+    "landCoords": {
+      "x": 954,
+      "y": 422
+    },
+    "landed": {
+      "ok": true,
+      "sceneObjects": 1
+    },
+    "frameA2": {
+      "file": "docs/acceptance/T024/024.5/smoke/frames/frameA2-ui-land-autumn.png",
+      "clip": {
+        "x": 308,
+        "y": 66,
+        "width": 1292,
+        "height": 932,
+        "scale": 1
+      },
+      "statsAtShot": {
+        "drawCalls": 7,
+        "triangles": 14098,
+        "geometries": 17,
+        "textures": 5,
+        "programs": 15,
+        "objects": 0
+      },
+      "sceneObjects": 1
+    },
+    "frameB2": {
+      "file": "docs/acceptance/T024/024.5/smoke/frames/frameB2-ui-undo-empty.png",
+      "clip": {
+        "x": 308,
+        "y": 66,
+        "width": 1292,
+        "height": 932,
+        "scale": 1
+      },
+      "statsAtShot": {
+        "drawCalls": 3,
+        "triangles": 14,
+        "geometries": 17,
+        "textures": 5,
+        "programs": 15,
+        "objects": 0
+      },
+      "sceneObjects": 0
+    },
+    "frameC2": {
+      "file": "docs/acceptance/T024/024.5/smoke/frames/frameC2-ui-redo-autumn.png",
+      "clip": {
+        "x": 308,
+        "y": 66,
+        "width": 1292,
+        "height": 932,
+        "scale": 1
+      },
+      "statsAtShot": {
+        "drawCalls": 7,
+        "triangles": 14098,
+        "geometries": 17,
+        "textures": 5,
+        "programs": 15,
+        "objects": 0
+      },
+      "sceneObjects": 1
+    },
+    "histA2": {
+      "canUndo": true,
+      "canRedo": false
+    },
+    "histB2": {
+      "canUndo": false,
+      "canRedo": true
+    },
+    "histC2": {
+      "canUndo": true,
+      "canRedo": false
+    },
+    "undo": {
+      "ok": true,
+      "sceneObjects": 0
+    },
+    "redo": {
+      "ok": true,
+      "sceneObjects": 1
+    },
+    "save": {
+      "typed": "typed",
+      "saved": "saved",
+      "toast": "[\"已保存模板「t0245-smoke-ui-autumn」\"]"
+    },
+    "assertions": {
+      "found": true,
+      "id": "tpl_muldj8x00a0nlyhc5",
+      "objectCount": 1,
+      "assetId": "asset_tree_ginkgo",
+      "hasSeed": true,
+      "seed": 1062224230,
+      "hasPresetKey": true,
+      "preset": "autumn"
+    },
+    "assertPresetAutumn": true,
+    "statusbarObjectsFinal": 1
+  },
+  "consoleLogs": []
+}

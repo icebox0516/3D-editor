@@ -1,0 +1,46 @@
+{
+  "result": {
+    "layout": {
+      "expandedAtBoot": false,
+      "expandedAfterNormalize": false
+    },
+    "apply": {
+      "itemClicked": "clicked",
+      "confirmState": "no-confirm",
+      "toast": "[\"已从模板新建：t0245-smoke-bogus · 1 个对象 · 11 个图层\"]"
+    },
+    "alive": {
+      "hasCanvas": true,
+      "errorToasts": 0
+    },
+    "statsAfterApply": {
+      "drawCalls": 7,
+      "triangles": 13258,
+      "geometries": 16,
+      "textures": 5,
+      "programs": 13,
+      "objects": 0
+    },
+    "sceneObjectsAtF": 1,
+    "frameF": {
+      "file": "docs/acceptance/T024/024.5/smoke/frames/frameF-bogus-fallback.png",
+      "clip": {
+        "x": 308,
+        "y": 66,
+        "width": 1292,
+        "height": 932,
+        "scale": 1
+      },
+      "statsAtShot": {
+        "drawCalls": 7,
+        "triangles": 55798,
+        "geometries": 16,
+        "textures": 5,
+        "programs": 13,
+        "objects": 0
+      },
+      "sceneObjects": 1
+    }
+  },
+  "consoleLogs": []
+}

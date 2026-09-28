@@ -1,0 +1,407 @@
+[probe] A dual cascade tInst seq: 36/216 36/216 36/216 36/216 36/216 36/216 36/216 36/216 36/216 36/216
+[probe] D frozen-recover tInst seq: 298 298 298 298 298
+[probe] B single cascade tInst seq: 23/310 23/310 23/310 23/310 23/310 23/310 23/310 23/310 23/310 23/310
+[probe] C spawn-at-449 tInst/culled seq: 0/216 0/216 0/216 0/216 0/216
+{
+  "result": {
+    "A_dualCascade_nearGate": {
+      "settled": false,
+      "polls": 61,
+      "settleMs": 30500,
+      "tInst": 196
+    },
+    "A_dualCascade_watch": [
+      {
+        "t": 1000,
+        "dc": 865,
+        "tri": 2419922,
+        "tInst": 36,
+        "dual": 36,
+        "culled": 216,
+        "canopy": 1734,
+        "mid": 50,
+        "high": 0
+      },
+      {
+        "t": 2000,
+        "dc": 865,
+        "tri": 2419922,
+        "tInst": 36,
+        "dual": 36,
+        "culled": 216,
+        "canopy": 1734,
+        "mid": 50,
+        "high": 0
+      },
+      {
+        "t": 3000,
+        "dc": 865,
+        "tri": 2419922,
+        "tInst": 36,
+        "dual": 36,
+        "culled": 216,
+        "canopy": 1734,
+        "mid": 50,
+        "high": 0
+      },
+      {
+        "t": 4000,
+        "dc": 865,
+        "tri": 2419922,
+        "tInst": 36,
+        "dual": 36,
+        "culled": 216,
+        "canopy": 1734,
+        "mid": 50,
+        "high": 0
+      },
+      {
+        "t": 5000,
+        "dc": 865,
+        "tri": 2419922,
+        "tInst": 36,
+        "dual": 36,
+        "culled": 216,
+        "canopy": 1734,
+        "mid": 50,
+        "high": 0
+      },
+      {
+        "t": 6000,
+        "dc": 865,
+        "tri": 2419922,
+        "tInst": 36,
+        "dual": 36,
+        "culled": 216,
+        "canopy": 1734,
+        "mid": 50,
+        "high": 0
+      },
+      {
+        "t": 7000,
+        "dc": 865,
+        "tri": 2419922,
+        "tInst": 36,
+        "dual": 36,
+        "culled": 216,
+        "canopy": 1734,
+        "mid": 50,
+        "high": 0
+      },
+      {
+        "t": 8000,
+        "dc": 865,
+        "tri": 2419922,
+        "tInst": 36,
+        "dual": 36,
+        "culled": 216,
+        "canopy": 1734,
+        "mid": 50,
+        "high": 0
+      },
+      {
+        "t": 9000,
+        "dc": 865,
+        "tri": 2419922,
+        "tInst": 36,
+        "dual": 36,
+        "culled": 216,
+        "canopy": 1734,
+        "mid": 50,
+        "high": 0
+      },
+      {
+        "t": 10000,
+        "dc": 865,
+        "tri": 2419922,
+        "tInst": 36,
+        "dual": 36,
+        "culled": 216,
+        "canopy": 1734,
+        "mid": 50,
+        "high": 0
+      }
+    ],
+    "D_frozenRecover_watch": [
+      {
+        "t": 1000,
+        "dc": 1589,
+        "tri": 14830757,
+        "tInst": 298,
+        "dual": 298,
+        "culled": 4,
+        "canopy": 1655,
+        "mid": 234,
+        "high": 107
+      },
+      {
+        "t": 2000,
+        "dc": 1589,
+        "tri": 14830757,
+        "tInst": 298,
+        "dual": 298,
+        "culled": 4,
+        "canopy": 1655,
+        "mid": 234,
+        "high": 107
+      },
+      {
+        "t": 3000,
+        "dc": 1589,
+        "tri": 14830757,
+        "tInst": 298,
+        "dual": 298,
+        "culled": 4,
+        "canopy": 1655,
+        "mid": 234,
+        "high": 107
+      },
+      {
+        "t": 4000,
+        "dc": 1589,
+        "tri": 14830757,
+        "tInst": 298,
+        "dual": 298,
+        "culled": 4,
+        "canopy": 1655,
+        "mid": 234,
+        "high": 107
+      },
+      {
+        "t": 5000,
+        "dc": 1589,
+        "tri": 14830757,
+        "tInst": 298,
+        "dual": 298,
+        "culled": 4,
+        "canopy": 1655,
+        "mid": 234,
+        "high": 107
+      }
+    ],
+    "B_singleCascade_nearGate": {
+      "settled": true,
+      "polls": 4,
+      "settleMs": 2000
+    },
+    "B_singleCascade_watch": [
+      {
+        "t": 1000,
+        "dc": 49,
+        "tri": 2307486,
+        "tInst": 23,
+        "dual": 23,
+        "culled": 310,
+        "canopy": 1663,
+        "mid": 27,
+        "high": 0
+      },
+      {
+        "t": 2000,
+        "dc": 49,
+        "tri": 2307486,
+        "tInst": 23,
+        "dual": 23,
+        "culled": 310,
+        "canopy": 1663,
+        "mid": 27,
+        "high": 0
+      },
+      {
+        "t": 3000,
+        "dc": 49,
+        "tri": 2307486,
+        "tInst": 23,
+        "dual": 23,
+        "culled": 310,
+        "canopy": 1663,
+        "mid": 27,
+        "high": 0
+      },
+      {
+        "t": 4000,
+        "dc": 49,
+        "tri": 2307486,
+        "tInst": 23,
+        "dual": 23,
+        "culled": 310,
+        "canopy": 1663,
+        "mid": 27,
+        "high": 0
+      },
+      {
+        "t": 5000,
+        "dc": 49,
+        "tri": 2307486,
+        "tInst": 23,
+        "dual": 23,
+        "culled": 310,
+        "canopy": 1663,
+        "mid": 27,
+        "high": 0
+      },
+      {
+        "t": 6000,
+        "dc": 49,
+        "tri": 2307486,
+        "tInst": 23,
+        "dual": 23,
+        "culled": 310,
+        "canopy": 1663,
+        "mid": 27,
+        "high": 0
+      },
+      {
+        "t": 7000,
+        "dc": 49,
+        "tri": 2307486,
+        "tInst": 23,
+        "dual": 23,
+        "culled": 310,
+        "canopy": 1663,
+        "mid": 27,
+        "high": 0
+      },
+      {
+        "t": 8000,
+        "dc": 49,
+        "tri": 2307486,
+        "tInst": 23,
+        "dual": 23,
+        "culled": 310,
+        "canopy": 1663,
+        "mid": 27,
+        "high": 0
+      },
+      {
+        "t": 9000,
+        "dc": 49,
+        "tri": 2307486,
+        "tInst": 23,
+        "dual": 23,
+        "culled": 310,
+        "canopy": 1663,
+        "mid": 27,
+        "high": 0
+      },
+      {
+        "t": 10000,
+        "dc": 49,
+        "tri": 2307486,
+        "tInst": 23,
+        "dual": 23,
+        "culled": 310,
+        "canopy": 1663,
+        "mid": 27,
+        "high": 0
+      }
+    ],
+    "C_spawnAtFar_watch": [
+      {
+        "t": 1000,
+        "dc": 801,
+        "tri": 1877474,
+        "tInst": 0,
+        "dual": 0,
+        "culled": 216,
+        "canopy": 1769,
+        "mid": 15,
+        "high": 0
+      },
+      {
+        "t": 2000,
+        "dc": 801,
+        "tri": 1877474,
+        "tInst": 0,
+        "dual": 0,
+        "culled": 216,
+        "canopy": 1769,
+        "mid": 15,
+        "high": 0
+      },
+      {
+        "t": 3000,
+        "dc": 801,
+        "tri": 1877474,
+        "tInst": 0,
+        "dual": 0,
+        "culled": 216,
+        "canopy": 1769,
+        "mid": 15,
+        "high": 0
+      },
+      {
+        "t": 4000,
+        "dc": 801,
+        "tri": 1877474,
+        "tInst": 0,
+        "dual": 0,
+        "culled": 216,
+        "canopy": 1769,
+        "mid": 15,
+        "high": 0
+      },
+      {
+        "t": 5000,
+        "dc": 801,
+        "tri": 1877474,
+        "tInst": 0,
+        "dual": 0,
+        "culled": 216,
+        "canopy": 1769,
+        "mid": 15,
+        "high": 0
+      }
+    ],
+    "C_final": {
+      "stats": {
+        "drawCalls": 801,
+        "triangles": 1877474,
+        "geometries": 648,
+        "textures": 5,
+        "programs": 146,
+        "objects": 2000
+      },
+      "distribution": {
+        "instances": {
+          "high": 0,
+          "mid": 15,
+          "low": 0,
+          "canopy": 1769,
+          "culled": 216
+        },
+        "buckets": {
+          "high": 0,
+          "mid": 14,
+          "low": 0,
+          "canopy": 192,
+          "culled": 86
+        },
+        "transitionInstances": 0,
+        "transitionTargets": {
+          "high": 0,
+          "mid": 0,
+          "low": 0,
+          "canopy": 0,
+          "culled": 0
+        },
+        "shadowCasterInstances": 1784,
+        "transition": {
+          "instances": 0,
+          "buckets": 0,
+          "dualSubmitBuckets": 0
+        }
+      }
+    }
+  },
+  "consoleLogs": [
+    "console.warning: [Renderer] draw calls 超预算：1617 > 1500（BATCH_POLICY.drawCallBudget = 1500，021.8 实测重锁——混植最重合法包络 DC 1011 × ~1.5 余量，D41 §九）——批次治理观测告警，非降级",
+    "console.warning: [Renderer] draw calls 超预算：1669 > 1500（BATCH_POLICY.drawCallBudget = 1500，021.8 实测重锁——混植最重合法包络 DC 1011 × ~1.5 余量，D41 §九）——批次治理观测告警，非降级",
+    "console.warning: [Renderer] draw calls 超预算：1669 > 1500（BATCH_POLICY.drawCallBudget = 1500，021.8 实测重锁——混植最重合法包络 DC 1011 × ~1.5 余量，D41 §九）——批次治理观测告警，非降级",
+    "console.warning: [Renderer] draw calls 超预算：1669 > 1500（BATCH_POLICY.drawCallBudget = 1500，021.8 实测重锁——混植最重合法包络 DC 1011 × ~1.5 余量，D41 §九）——批次治理观测告警，非降级",
+    "console.warning: [Renderer] draw calls 超预算：1669 > 1500（BATCH_POLICY.drawCallBudget = 1500，021.8 实测重锁——混植最重合法包络 DC 1011 × ~1.5 余量，D41 §九）——批次治理观测告警，非降级",
+    "console.warning: [Renderer] draw calls 超预算：1669 > 1500（BATCH_POLICY.drawCallBudget = 1500，021.8 实测重锁——混植最重合法包络 DC 1011 × ~1.5 余量，D41 §九）——批次治理观测告警，非降级",
+    "console.warning: [Renderer] draw calls 超预算：1669 > 1500（BATCH_POLICY.drawCallBudget = 1500，021.8 实测重锁——混植最重合法包络 DC 1011 × ~1.5 余量，D41 §九）——批次治理观测告警，非降级",
+    "console.warning: [Renderer] draw calls 超预算：1589 > 1500（BATCH_POLICY.drawCallBudget = 1500，021.8 实测重锁——混植最重合法包络 DC 1011 × ~1.5 余量，D41 §九）——批次治理观测告警，非降级"
+  ]
+}

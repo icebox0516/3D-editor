@@ -1,0 +1,197 @@
+{
+  "generatedAt": "2026-09-28T12:12:56.040Z",
+  "method": "pngjs RGBA 全像素逐位比对（viewport 1920x1080 DPR1，clip=ed-viewport canvas 矩形）",
+  "builds": {
+    "current": "http://localhost:5173 (工作树)",
+    "baseline": "http://localhost:5174 (1bc7035 + devface.patch)"
+  },
+  "pairs": [
+    {
+      "assetId": "asset_tree_3a",
+      "dimensions": {
+        "width": 1292,
+        "height": 932
+      },
+      "dimensionMatch": true,
+      "pngBytesEqual": true,
+      "bitwiseIdentical": true,
+      "diffPixels": 0,
+      "maxChannelDiff": 0,
+      "samples": []
+    },
+    {
+      "assetId": "asset_tree_celtis",
+      "dimensions": {
+        "width": 1292,
+        "height": 932
+      },
+      "dimensionMatch": true,
+      "pngBytesEqual": true,
+      "bitwiseIdentical": true,
+      "diffPixels": 0,
+      "maxChannelDiff": 0,
+      "samples": []
+    },
+    {
+      "assetId": "asset_tree_camphor",
+      "dimensions": {
+        "width": 1292,
+        "height": 932
+      },
+      "dimensionMatch": true,
+      "pngBytesEqual": true,
+      "bitwiseIdentical": true,
+      "diffPixels": 0,
+      "maxChannelDiff": 0,
+      "samples": []
+    },
+    {
+      "assetId": "asset_tree_zelkova",
+      "dimensions": {
+        "width": 1292,
+        "height": 932
+      },
+      "dimensionMatch": true,
+      "pngBytesEqual": true,
+      "bitwiseIdentical": true,
+      "diffPixels": 0,
+      "maxChannelDiff": 0,
+      "samples": []
+    },
+    {
+      "assetId": "asset_tree_ginkgo",
+      "dimensions": {
+        "width": 1292,
+        "height": 932
+      },
+      "dimensionMatch": true,
+      "pngBytesEqual": true,
+      "bitwiseIdentical": true,
+      "diffPixels": 0,
+      "maxChannelDiff": 0,
+      "samples": []
+    },
+    {
+      "assetId": "asset_tree_platanus",
+      "dimensions": {
+        "width": 1292,
+        "height": 932
+      },
+      "dimensionMatch": true,
+      "pngBytesEqual": true,
+      "bitwiseIdentical": true,
+      "diffPixels": 0,
+      "maxChannelDiff": 0,
+      "samples": []
+    },
+    {
+      "assetId": "asset_tree_koelreuteria",
+      "dimensions": {
+        "width": 1292,
+        "height": 932
+      },
+      "dimensionMatch": true,
+      "pngBytesEqual": true,
+      "bitwiseIdentical": true,
+      "diffPixels": 0,
+      "maxChannelDiff": 0,
+      "samples": []
+    },
+    {
+      "assetId": "asset_tree_sophora",
+      "dimensions": {
+        "width": 1292,
+        "height": 932
+      },
+      "dimensionMatch": true,
+      "pngBytesEqual": true,
+      "bitwiseIdentical": true,
+      "diffPixels": 0,
+      "maxChannelDiff": 0,
+      "samples": []
+    },
+    {
+      "assetId": "asset_tree_triadica",
+      "dimensions": {
+        "width": 1292,
+        "height": 932
+      },
+      "dimensionMatch": true,
+      "pngBytesEqual": true,
+      "bitwiseIdentical": true,
+      "diffPixels": 0,
+      "maxChannelDiff": 0,
+      "samples": []
+    },
+    {
+      "assetId": "asset_tree_bischofia",
+      "dimensions": {
+        "width": 1292,
+        "height": 932
+      },
+      "dimensionMatch": true,
+      "pngBytesEqual": true,
+      "bitwiseIdentical": true,
+      "diffPixels": 0,
+      "maxChannelDiff": 0,
+      "samples": []
+    },
+    {
+      "assetId": "asset_tree_fraxinus",
+      "dimensions": {
+        "width": 1292,
+        "height": 932
+      },
+      "dimensionMatch": true,
+      "pngBytesEqual": true,
+      "bitwiseIdentical": true,
+      "diffPixels": 0,
+      "maxChannelDiff": 0,
+      "samples": []
+    },
+    {
+      "assetId": "asset_tree_ligustrum",
+      "dimensions": {
+        "width": 1292,
+        "height": 932
+      },
+      "dimensionMatch": true,
+      "pngBytesEqual": true,
+      "bitwiseIdentical": true,
+      "diffPixels": 0,
+      "maxChannelDiff": 0,
+      "samples": []
+    },
+    {
+      "assetId": "asset_tree_salix",
+      "dimensions": {
+        "width": 1292,
+        "height": 932
+      },
+      "dimensionMatch": true,
+      "pngBytesEqual": true,
+      "bitwiseIdentical": true,
+      "diffPixels": 0,
+      "maxChannelDiff": 0,
+      "samples": []
+    }
+  ],
+  "sanity": {
+    "frozenStable": true,
+    "reseekDeterministic": true,
+    "unfrozenDiffers": true,
+    "unfrozenDiffPixels": 19983,
+    "detail": {
+      "aVsB": 0,
+      "aVsOfficial": 0,
+      "aVsUnfrozen": 19983
+    }
+  },
+  "summary": {
+    "total": 13,
+    "bitwiseIdenticalCount": 13,
+    "pngBytesEqualCount": 13,
+    "allPass": true,
+    "sanityPass": true
+  }
+}

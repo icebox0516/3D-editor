@@ -1,0 +1,51 @@
+{
+  "result": {
+    "layout": {
+      "expandedAtBoot": false,
+      "expandedAfterNormalize": false
+    },
+    "placeOk": true,
+    "frameG": {
+      "file": "docs/acceptance/T024/024.5/smoke/frames/frameG-plain-save.png",
+      "clip": {
+        "x": 308,
+        "y": 66,
+        "width": 1292,
+        "height": 932,
+        "scale": 1
+      },
+      "statsAtShot": {
+        "drawCalls": 7,
+        "triangles": 55798,
+        "geometries": 16,
+        "textures": 5,
+        "programs": 13,
+        "objects": 1
+      },
+      "sceneObjects": 1
+    },
+    "save": {
+      "typed": "typed",
+      "saved": "saved",
+      "toast": "[\"已保存模板「t0245-smoke-plain」\"]"
+    },
+    "templateNames": [
+      "t0245-smoke-card",
+      "t0245-smoke-ui-autumn",
+      "t0245-smoke-bogus",
+      "t0245-smoke-plain"
+    ],
+    "assertions": {
+      "found": true,
+      "id": "tpl_muldklkr04nbd1uvy",
+      "objectCount": 1,
+      "assetId": "asset_tree_ginkgo",
+      "hasSeed": true,
+      "seed": 1,
+      "hasPresetKey": false,
+      "preset": null
+    },
+    "assertNoPresetKey": true
+  },
+  "consoleLogs": []
+}

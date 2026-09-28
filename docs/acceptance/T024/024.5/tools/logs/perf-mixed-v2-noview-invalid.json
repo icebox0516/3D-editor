@@ -1,0 +1,474 @@
+{
+  "result": {
+    "protocol": "v2-per-config-place-settle-gate",
+    "env": {
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 2080 Ti (0x00001E07) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "viewport": [
+        1920,
+        1080
+      ],
+      "dpr": 1,
+      "canvasClient": [
+        1920,
+        1048
+      ],
+      "pure3d": true,
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36"
+    },
+    "nearClose150": {
+      "view": "{ distance: 150 }",
+      "placeAccepted": true,
+      "settle": {
+        "settled": true,
+        "polls": 4,
+        "settleMs": 2000,
+        "trace": [
+          {
+            "t": 500,
+            "dc": 1653,
+            "tri": 18429743,
+            "tInst": 0,
+            "dual": 0
+          },
+          {
+            "t": 1000,
+            "dc": 1653,
+            "tri": 18429743,
+            "tInst": 0,
+            "dual": 0
+          },
+          {
+            "t": 1500,
+            "dc": 1653,
+            "tri": 18429743,
+            "tInst": 0,
+            "dual": 0
+          },
+          {
+            "t": 2000,
+            "dc": 1653,
+            "tri": 18429743,
+            "tInst": 0,
+            "dual": 0
+          }
+        ],
+        "endStats": {
+          "drawCalls": 1653,
+          "triangles": 18429743,
+          "geometries": 325,
+          "textures": 5,
+          "programs": 146,
+          "objects": 2000
+        },
+        "endTInst": 0
+      },
+      "sample": {
+        "fps": 92.56112432778237,
+        "mean": 10.803671706263495,
+        "p50": 10.30000000000291,
+        "p95": 14,
+        "max": 33.20000000000073,
+        "frames": 463
+      },
+      "stats": {
+        "drawCalls": 1653,
+        "triangles": 18429743,
+        "geometries": 325,
+        "textures": 5,
+        "programs": 146,
+        "objects": 2000
+      },
+      "distribution": {
+        "instances": {
+          "high": 89,
+          "mid": 811,
+          "low": 0,
+          "canopy": 1100,
+          "culled": 0
+        },
+        "buckets": {
+          "high": 68,
+          "mid": 188,
+          "low": 0,
+          "canopy": 191,
+          "culled": 0
+        },
+        "transitionInstances": 0,
+        "transitionTargets": {
+          "high": 0,
+          "mid": 0,
+          "low": 0,
+          "canopy": 0,
+          "culled": 0
+        },
+        "shadowCasterInstances": 2000,
+        "transition": {
+          "instances": 0,
+          "buckets": 0,
+          "dualSubmitBuckets": 0
+        }
+      }
+    },
+    "far449": {
+      "view": "{ distance: 449 }",
+      "placeAccepted": true,
+      "settle": {
+        "settled": true,
+        "polls": 4,
+        "settleMs": 2000,
+        "trace": [
+          {
+            "t": 500,
+            "dc": 1653,
+            "tri": 18429743,
+            "tInst": 0,
+            "dual": 0
+          },
+          {
+            "t": 1000,
+            "dc": 1653,
+            "tri": 18429743,
+            "tInst": 0,
+            "dual": 0
+          },
+          {
+            "t": 1500,
+            "dc": 1653,
+            "tri": 18429743,
+            "tInst": 0,
+            "dual": 0
+          },
+          {
+            "t": 2000,
+            "dc": 1653,
+            "tri": 18429743,
+            "tInst": 0,
+            "dual": 0
+          }
+        ],
+        "endStats": {
+          "drawCalls": 1653,
+          "triangles": 18429743,
+          "geometries": 325,
+          "textures": 5,
+          "programs": 146,
+          "objects": 2000
+        },
+        "endTInst": 0
+      },
+      "sample": {
+        "fps": 99.85421284924013,
+        "mean": 10.014599999999998,
+        "p50": 9.80000000000291,
+        "p95": 11.200000000000728,
+        "max": 27.400000000001455,
+        "frames": 500
+      },
+      "stats": {
+        "drawCalls": 1653,
+        "triangles": 18429743,
+        "geometries": 325,
+        "textures": 5,
+        "programs": 146,
+        "objects": 2000
+      },
+      "distribution": {
+        "instances": {
+          "high": 89,
+          "mid": 811,
+          "low": 0,
+          "canopy": 1100,
+          "culled": 0
+        },
+        "buckets": {
+          "high": 68,
+          "mid": 188,
+          "low": 0,
+          "canopy": 191,
+          "culled": 0
+        },
+        "transitionInstances": 0,
+        "transitionTargets": {
+          "high": 0,
+          "mid": 0,
+          "low": 0,
+          "canopy": 0,
+          "culled": 0
+        },
+        "shadowCasterInstances": 2000,
+        "transition": {
+          "instances": 0,
+          "buckets": 0,
+          "dualSubmitBuckets": 0
+        }
+      }
+    },
+    "mid": {
+      "chosen": 180,
+      "attempts": [
+        {
+          "distance": 240,
+          "transitionInstances": 0,
+          "instances": {
+            "high": 32,
+            "mid": 442,
+            "low": 0,
+            "canopy": 1522,
+            "culled": 4
+          },
+          "transition": {
+            "instances": 0,
+            "buckets": 0,
+            "dualSubmitBuckets": 0
+          }
+        },
+        {
+          "distance": 210,
+          "transitionInstances": 2,
+          "instances": {
+            "high": 30,
+            "mid": 444,
+            "low": 0,
+            "canopy": 1522,
+            "culled": 4
+          },
+          "transition": {
+            "instances": 2,
+            "buckets": 4,
+            "dualSubmitBuckets": 2
+          }
+        },
+        {
+          "distance": 180,
+          "transitionInstances": 85,
+          "instances": {
+            "high": 49,
+            "mid": 425,
+            "low": 0,
+            "canopy": 1522,
+            "culled": 4
+          },
+          "transition": {
+            "instances": 85,
+            "buckets": 126,
+            "dualSubmitBuckets": 85
+          }
+        }
+      ],
+      "settleGate": {
+        "settled": true,
+        "polls": 4,
+        "settleMs": 2000
+      },
+      "view": {
+        "distance": 180
+      },
+      "sample": {
+        "fps": 98.64808195379122,
+        "mean": 10.137044534412949,
+        "p50": 9.80000000000291,
+        "p95": 12.099999999998545,
+        "max": 27.5,
+        "frames": 494
+      },
+      "stats": {
+        "drawCalls": 1461,
+        "triangles": 10962091,
+        "geometries": 449,
+        "textures": 5,
+        "programs": 146,
+        "objects": 2000
+      },
+      "distribution": {
+        "instances": {
+          "high": 49,
+          "mid": 425,
+          "low": 0,
+          "canopy": 1522,
+          "culled": 4
+        },
+        "buckets": {
+          "high": 43,
+          "mid": 175,
+          "low": 0,
+          "canopy": 192,
+          "culled": 4
+        },
+        "transitionInstances": 85,
+        "transitionTargets": {
+          "high": 0,
+          "mid": 84,
+          "low": 0,
+          "canopy": 1,
+          "culled": 0
+        },
+        "shadowCasterInstances": 1996,
+        "transition": {
+          "instances": 85,
+          "buckets": 126,
+          "dualSubmitBuckets": 85
+        }
+      }
+    },
+    "shadowAB": {
+      "camera": {
+        "distance": 150
+      },
+      "settle": {
+        "polls": 4,
+        "settleMs": 2000
+      },
+      "pre": {
+        "stats": {
+          "drawCalls": 1677,
+          "triangles": 17219117,
+          "geometries": 449,
+          "textures": 5,
+          "programs": 146,
+          "objects": 2000
+        },
+        "distribution": {
+          "instances": {
+            "high": 107,
+            "mid": 684,
+            "low": 0,
+            "canopy": 1209,
+            "culled": 0
+          },
+          "buckets": {
+            "high": 82,
+            "mid": 187,
+            "low": 0,
+            "canopy": 192,
+            "culled": 0
+          },
+          "transitionInstances": 0,
+          "transitionTargets": {
+            "high": 0,
+            "mid": 0,
+            "low": 0,
+            "canopy": 0,
+            "culled": 0
+          },
+          "shadowCasterInstances": 2000,
+          "transition": {
+            "instances": 0,
+            "buckets": 0,
+            "dualSubmitBuckets": 0
+          }
+        },
+        "programs": 146
+      },
+      "off": {
+        "fps": 211.65475536008782,
+        "mean": 4.724675324675328,
+        "p50": 4.5,
+        "p95": 6.30000000000291,
+        "max": 21.30000000000291,
+        "frames": 847
+      },
+      "on": {
+        "fps": 93.67505995203827,
+        "mean": 10.675200000000011,
+        "p50": 10.400000000001455,
+        "p95": 12.19999999999709,
+        "max": 28.10000000000582,
+        "frames": 375
+      },
+      "post": {
+        "programs": 267
+      },
+      "costRatio": 0.5574157557071228
+    },
+    "validBuckets": {
+      "declaredCombos": 26,
+      "effectiveBuckets": 24,
+      "note": "camphor/ligustrum 常绿 default 单卡（T024.3 裁定），autumn 请求声明面归一 default → 26 声明 − 2 归一 = 24 有效桶",
+      "perCombo": {
+        "asset_tree_3a::default": 77,
+        "asset_tree_celtis::autumn": 77,
+        "asset_tree_camphor::default": 154,
+        "asset_tree_zelkova::autumn": 77,
+        "asset_tree_ginkgo::default": 77,
+        "asset_tree_platanus::autumn": 77,
+        "asset_tree_koelreuteria::default": 77,
+        "asset_tree_triadica::autumn": 77,
+        "asset_tree_bischofia::default": 77,
+        "asset_tree_sophora::autumn": 77,
+        "asset_tree_fraxinus::default": 77,
+        "asset_tree_ligustrum::default": 153,
+        "asset_tree_salix::default": 77,
+        "asset_tree_3a::autumn": 77,
+        "asset_tree_celtis::default": 77,
+        "asset_tree_zelkova::default": 77,
+        "asset_tree_ginkgo::autumn": 77,
+        "asset_tree_platanus::default": 77,
+        "asset_tree_koelreuteria::autumn": 77,
+        "asset_tree_triadica::default": 77,
+        "asset_tree_bischofia::autumn": 77,
+        "asset_tree_sophora::default": 77,
+        "asset_tree_fraxinus::autumn": 77,
+        "asset_tree_salix::autumn": 76
+      }
+    },
+    "verdict": {
+      "budgetSource": "docs/procedural-assets/representation-runtime.md §九（021.8 重锁）",
+      "lines": {
+        "drawCalls": {
+          "budget": 1500,
+          "measured": 1653,
+          "anchor": "真近 nearClose@150",
+          "pass": false
+        },
+        "frameP95": {
+          "budget": 10,
+          "measured": 14,
+          "anchor": "真近 nearClose@150",
+          "pass": false
+        },
+        "triangles": {
+          "budget": 12000000,
+          "measured": 10962091,
+          "anchor": "中景过渡带 mid@180",
+          "pass": true
+        },
+        "shadowCost": {
+          "budget": 0.15,
+          "measured": 0.5574157557071228,
+          "anchor": "真近 nearClose@150 A/B（简报指定最重机位；§九方法）",
+          "pass": false
+        }
+      },
+      "memo": {
+        "trianglesAtNearClose": {
+          "measured": 18429743,
+          "note": "§九 tri 锚 = 中景过渡带（T021.8 复测真近 17.8M 为既有基线）；真近读数记档不判线"
+        }
+      },
+      "allPass": false
+    },
+    "consoleSummary": {
+      "total": 7,
+      "unexpected": [],
+      "knownDcObservation": [
+        "console.warning: [Renderer] draw calls 超预算：1653 > 1500（BATCH_POLICY.drawCallBudget = 1500，021.8 实测重锁——混植最重合法包络 DC 1011 × ~1.5 余量，D41 §九）——批次治理观测告警，非降级",
+        "console.warning: [Renderer] draw calls 超预算：1653 > 1500（BATCH_POLICY.drawCallBudget = 1500，021.8 实测重锁——混植最重合法包络 DC 1011 × ~1.5 余量，D41 §九）——批次治理观测告警，非降级",
+        "console.warning: [Renderer] draw calls 超预算：1653 > 1500（BATCH_POLICY.drawCallBudget = 1500，021.8 实测重锁——混植最重合法包络 DC 1011 × ~1.5 余量，D41 §九）——批次治理观测告警，非降级",
+        "console.warning: [Renderer] draw calls 超预算：1653 > 1500（BATCH_POLICY.drawCallBudget = 1500，021.8 实测重锁——混植最重合法包络 DC 1011 × ~1.5 余量，D41 §九）——批次治理观测告警，非降级",
+        "console.warning: [Renderer] draw calls 超预算：1677 > 1500（BATCH_POLICY.drawCallBudget = 1500，021.8 实测重锁——混植最重合法包络 DC 1011 × ~1.5 余量，D41 §九）——批次治理观测告警，非降级",
+        "console.warning: [Renderer] draw calls 超预算：1677 > 1500（BATCH_POLICY.drawCallBudget = 1500，021.8 实测重锁——混植最重合法包络 DC 1011 × ~1.5 余量，D41 §九）——批次治理观测告警，非降级",
+        "console.warning: [Renderer] draw calls 超预算：1677 > 1500（BATCH_POLICY.drawCallBudget = 1500，021.8 实测重锁——混植最重合法包络 DC 1011 × ~1.5 余量，D41 §九）——批次治理观测告警，非降级"
+      ],
+      "note": "DC>650 legacy 观测告警 = T021.8 README 异常记档 8 先例（产品观测噪声非缺陷）；未预期条目应为空"
+    }
+  },
+  "consoleLogs": [
+    "console.warning: [Renderer] draw calls 超预算：1653 > 1500（BATCH_POLICY.drawCallBudget = 1500，021.8 实测重锁——混植最重合法包络 DC 1011 × ~1.5 余量，D41 §九）——批次治理观测告警，非降级",
+    "console.warning: [Renderer] draw calls 超预算：1653 > 1500（BATCH_POLICY.drawCallBudget = 1500，021.8 实测重锁——混植最重合法包络 DC 1011 × ~1.5 余量，D41 §九）——批次治理观测告警，非降级",
+    "console.warning: [Renderer] draw calls 超预算：1653 > 1500（BATCH_POLICY.drawCallBudget = 1500，021.8 实测重锁——混植最重合法包络 DC 1011 × ~1.5 余量，D41 §九）——批次治理观测告警，非降级",
+    "console.warning: [Renderer] draw calls 超预算：1653 > 1500（BATCH_POLICY.drawCallBudget = 1500，021.8 实测重锁——混植最重合法包络 DC 1011 × ~1.5 余量，D41 §九）——批次治理观测告警，非降级",
+    "console.warning: [Renderer] draw calls 超预算：1677 > 1500（BATCH_POLICY.drawCallBudget = 1500，021.8 实测重锁——混植最重合法包络 DC 1011 × ~1.5 余量，D41 §九）——批次治理观测告警，非降级",
+    "console.warning: [Renderer] draw calls 超预算：1677 > 1500（BATCH_POLICY.drawCallBudget = 1500，021.8 实测重锁——混植最重合法包络 DC 1011 × ~1.5 余量，D41 §九）——批次治理观测告警，非降级",
+    "console.warning: [Renderer] draw calls 超预算：1677 > 1500（BATCH_POLICY.drawCallBudget = 1500，021.8 实测重锁——混植最重合法包络 DC 1011 × ~1.5 余量，D41 §九）——批次治理观测告警，非降级"
+  ]
+}

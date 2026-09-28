@@ -4,8 +4,8 @@
  *
  * 覆盖：
  * - 策略常量：BATCH_POLICY 一次锁全量锁定值（T006.5 实测锁定；数值变更须重开实测记档，
- *   并连带更新本断言——沿 LOD_THRESHOLDS 锁值先例；drawCallBudget 021.8 重测重锁
- *   1500——T021.4 降格 Legacy Baseline 语义于 021.8 收口记档）；
+ *   并连带更新本断言——沿 LOD_THRESHOLDS 锁值先例；drawCallBudget 021.8 重锁 1500
+ *   → 024.5 双卡混植重锁 2000——单卡基线〔1011〕保留记档）；
  * - 密度职责废止（T021.4，D41 §八）：BATCH_POLICY 无 levelInstanceKeep 字段（旧
  *   Record<ProceduralLevel, number> 联动模型整体废除——断言键缺席防静默回潮）；
  * - 合批允许面（§九 isBatchMergeAllowed）：默认面 = legacy 等值（high 恒否、
@@ -31,9 +31,9 @@ import type { BatchControlPolicy } from '../../../src/domain/lod/batchPolicy';
 import type { RuntimeRepresentation } from '../../../src/domain/lod/representation';
 
 describe('BATCH_POLICY 策略常量', () => {
-  it('字段齐全且锁定值一次锁全量（T006.5 实测锁定 + T021.4 批次键迁移重定义；数值变更须重开实测记档并连带更新本断言；drawCallBudget = 021.8 重锁 1500 = 混植最重实测 1011 × ~1.5 余量——legacy 650 = 006.4 峰值 531 + ~20% 余量历史口径）', () => {
+  it('字段齐全且锁定值一次锁全量（T006.5 实测锁定 + T021.4 批次键迁移重定义；数值变更须重开实测记档并连带更新本断言；drawCallBudget = 024.5 双卡混植重锁 2000 = 最重实测 1677 × ~1.19 跨机余量——021.8 单卡重锁 1500〔1011 × ~1.5〕保留基线记档；legacy 650 = 006.4 峰值 531 + ~20% 余量历史口径）', () => {
     expect(BATCH_POLICY).toEqual({
-      drawCallBudget: 1500,
+      drawCallBudget: 2000,
       budgetAlertIntervalMs: 5000,
       batchMergeAllowed: { high: false, mid: true, low: true, canopy: true },
       sparseMergeMaxInstances: 32,

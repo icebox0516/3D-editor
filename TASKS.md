@@ -4,9 +4,11 @@
 
 ## Current
 
-- [~] T024 资产色卡预设（立项 done 2026-09-28：D44 八项裁定〔preset 收窄定型材质基调变体 / 硬钩子双钩 = meta presets 必填 typecheck 闸 + 契约测试整表锁 / sourceKey×preset = 进键分桶 + 几何与深度材质跨卡共享引用计数 / 默认卡零变化红线〕+ 五子任务切分 024.1–024.5；**024.1 done 2026-09-28**：契约层 + 缓存几何共享 + ginkgo 试点〔default + 秋金黄 #d4b737〕全链，4209 全绿；**024.2 done 2026-09-28**：批一 6 树真卡〔黄褐/金黄×3/绯红/黄绿——fraxinus/salix 经 asset-research 补证 Spec 1.1〕+ **卡 id 域定稿 {'default','autumn'}** + 果序不随卡裁定，4240 全绿；**024.3 done 2026-09-28**：批二 4 树真卡〔tree3a 黄褐/celtis 黄/zelkova 橙铜/bischofia 红橙——bischofia 经 asset-research 补证 Spec 1.1 红相四源裁决 + 与 triadica 三轴分离专项〕+ **13 树卡集全量终态收口**（camphor/ligustrum 常绿单卡终态）+ Contact Sheet 13 树 × 全卡交付，4263 全绿；**024.4 done 2026-09-28**：浏览器色点 UI + 四放置入口接线〔色点条 presets.length>1 / localStorage 持久默认卡省略 / 点击·右键·拖放·重放注入缺省逐位一致〕，4279 全绿；下一 = 024.5 验收门）→ [tasks/024-color-presets.md](tasks/024-color-presets.md)
+（无进行中任务——T024 收官后待启动资产扩充线，见 Next 与 PROGRESS「下一步」。）
 
 ## Done（近）
+
+- [x] T024 资产色卡预设（**5/5 epic 收官 2026-09-28**：024.1 契约层+缓存几何共享+ginkgo 试点 → 024.2 批一 6 树+卡 id 域 {'default','autumn'} → 024.3 批二 4 树+13 树卡集终态+Contact Sheet → 024.4 浏览器色点 UI+四放置入口 → **024.5 验收门五面全 PASS**〔契约收口/横向一致性〔干区跨卡 11/11〕/资源与性能/回归〔默认卡 13/13 跨构建逐位相等〕/冒烟六用例〕+ 附带交付：fade-out 静止冻结修复〔D45 #1：T021.3 设计缺口非 T024 回归〕+ drawCallBudget 1500→2000〔D45 #2〕+ p95/shadow 双卡包络档〔D45 #3〕，4291 全绿）→ [tasks/024-color-presets.md](tasks/024-color-presets.md)
 
 - [x] T023 生产脊柱 spine 提取（done 2026-09-28：spine + 方法剖面两层 / D36 边界句 + D30 最低可信证据原则 D43 记档 / AGENTS 新族首例两句式同步〔P0〕/ SKILL 路由两步化 + 新 Workflow 创建纪律；layers 625 + typecheck 零错 + check:tasks 53 持平，npm test 判据不触发）→ [tasks/023-spine-extraction.md](tasks/023-spine-extraction.md)
 

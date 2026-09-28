@@ -1,0 +1,26 @@
+{
+  "result": {
+    "assetId": "asset_tree_triadica",
+    "port": 5173,
+    "placeOk": true,
+    "poolStable": true,
+    "clip": {
+      "x": 308,
+      "y": 66,
+      "width": 1292,
+      "height": 932,
+      "scale": 1
+    },
+    "file": "../regression-default/current/asset_tree_triadica.png",
+    "sanity": null,
+    "statsAtShot": {
+      "drawCalls": 7,
+      "triangles": 59738,
+      "geometries": 16,
+      "textures": 5,
+      "programs": 13,
+      "objects": 1
+    }
+  },
+  "consoleLogs": []
+}

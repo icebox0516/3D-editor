@@ -1,0 +1,221 @@
+{
+  "result": {
+    "rectAtBoot": {
+      "x": 308,
+      "y": 66,
+      "width": 1292,
+      "height": 712,
+      "scale": 1
+    },
+    "bottomDwellers": [
+      {
+        "tag": "DIV",
+        "cls": "",
+        "y": 0,
+        "h": 1080,
+        "text": "园区编辑器phase 5文件编辑场景资产工具视图帮助撤销 C"
+      },
+      {
+        "tag": "DIV",
+        "cls": "ed-app",
+        "y": 0,
+        "h": 1080,
+        "text": "园区编辑器phase 5文件编辑场景资产工具视图帮助撤销 C"
+      },
+      {
+        "tag": "DIV",
+        "cls": "ed-side ed-side--bottom",
+        "y": 778,
+        "h": 280,
+        "text": "内容浏览器31/31全部31收藏0plant16facili"
+      },
+      {
+        "tag": "DIV",
+        "cls": "ed-side__panels",
+        "y": 782,
+        "h": 276,
+        "text": "内容浏览器31/31全部31收藏0plant16facili"
+      },
+      {
+        "tag": "ASIDE",
+        "cls": "ed-panel ed-panel--fill ed-browser ed-browser--expanded",
+        "y": 782,
+        "h": 276,
+        "text": "内容浏览器31/31全部31收藏0plant16facili"
+      },
+      {
+        "tag": "DIV",
+        "cls": "ed-browser__bar",
+        "y": 782,
+        "h": 44,
+        "text": "内容浏览器31/31全部31收藏0plant16facili"
+      },
+      {
+        "tag": "DIV",
+        "cls": "ed-browser__chips",
+        "y": 792,
+        "h": 24,
+        "text": "全部31收藏0plant16facility5建筑4人物1设"
+      },
+      {
+        "tag": "DIV",
+        "cls": "ed-browser__body",
+        "y": 826,
+        "h": 232,
+        "text": "夏栎plant重阳木plant香樟plant朴树plant白"
+      },
+      {
+        "tag": "DIV",
+        "cls": "ed-browser__grid",
+        "y": 826,
+        "h": 232,
+        "text": "夏栎plant重阳木plant香樟plant朴树plant白"
+      },
+      {
+        "tag": "DIV",
+        "cls": "ed-asset-grid",
+        "y": 826,
+        "h": 450,
+        "text": "夏栎plant重阳木plant香樟plant朴树plant白"
+      },
+      {
+        "tag": "FOOTER",
+        "cls": "ed-statusbar",
+        "y": 1058,
+        "h": 22,
+        "text": "就绪X—Y—Z—Objects0Triangles14FPS"
+      },
+      {
+        "tag": "DIV",
+        "cls": "ed-statusbar__metrics",
+        "y": 1062,
+        "h": 16,
+        "text": "Objects0Triangles14FPS55Unitm"
+      },
+      {
+        "tag": "SPAN",
+        "cls": "ed-statusbar__hint",
+        "y": 1062,
+        "h": 15,
+        "text": "双击 / 松手完成 · Esc 退出 · G 吸附 · Sh"
+      }
+    ],
+    "workspacePreview": "{\"leftWidth\":260,\"rightWidth\":320,\"bottomHeight\":280,\"hiddenPanels\":{\"left\":false,\"right\":false,\"bottom\":false},\"collapsedSections\":{},\"inspectorTab\":\"object\",\"browser\":{\"expanded\":true,\"category\":\"all\",\"search\":\"\"},\"mode\":\"scene\",\"minimapVisible\":true}",
+    "apply": "clicked",
+    "rectAfterApply": {
+      "x": 308,
+      "y": 66,
+      "width": 1292,
+      "height": 712,
+      "scale": 1
+    },
+    "bottomAfter": [
+      {
+        "tag": "DIV",
+        "cls": "",
+        "y": 0,
+        "h": 1080,
+        "text": "园区编辑器phase 5文件编辑场景资产工具视图帮助撤销 C"
+      },
+      {
+        "tag": "DIV",
+        "cls": "ed-app",
+        "y": 0,
+        "h": 1080,
+        "text": "园区编辑器phase 5文件编辑场景资产工具视图帮助撤销 C"
+      },
+      {
+        "tag": "DIV",
+        "cls": "ed-side ed-side--bottom",
+        "y": 778,
+        "h": 280,
+        "text": "内容浏览器31/31全部31收藏0plant16facili"
+      },
+      {
+        "tag": "DIV",
+        "cls": "ed-side__panels",
+        "y": 782,
+        "h": 276,
+        "text": "内容浏览器31/31全部31收藏0plant16facili"
+      },
+      {
+        "tag": "ASIDE",
+        "cls": "ed-panel ed-panel--fill ed-browser ed-browser--expanded",
+        "y": 782,
+        "h": 276,
+        "text": "内容浏览器31/31全部31收藏0plant16facili"
+      },
+      {
+        "tag": "DIV",
+        "cls": "ed-browser__bar",
+        "y": 782,
+        "h": 44,
+        "text": "内容浏览器31/31全部31收藏0plant16facili"
+      },
+      {
+        "tag": "DIV",
+        "cls": "ed-browser__chips",
+        "y": 792,
+        "h": 24,
+        "text": "全部31收藏0plant16facility5建筑4人物1设"
+      },
+      {
+        "tag": "DIV",
+        "cls": "ed-browser__body",
+        "y": 826,
+        "h": 232,
+        "text": "夏栎plant重阳木plant香樟plant朴树plant白"
+      },
+      {
+        "tag": "DIV",
+        "cls": "ed-browser__grid",
+        "y": 826,
+        "h": 232,
+        "text": "夏栎plant重阳木plant香樟plant朴树plant白"
+      },
+      {
+        "tag": "DIV",
+        "cls": "ed-asset-grid",
+        "y": 826,
+        "h": 450,
+        "text": "夏栎plant重阳木plant香樟plant朴树plant白"
+      },
+      {
+        "tag": "FOOTER",
+        "cls": "ed-statusbar",
+        "y": 1058,
+        "h": 22,
+        "text": "就绪X—Y—Z—Objects1Triangles13.3k"
+      },
+      {
+        "tag": "DIV",
+        "cls": "ed-statusbar__metrics",
+        "y": 1062,
+        "h": 16,
+        "text": "Objects1Triangles13.3kFPS60Uni"
+      },
+      {
+        "tag": "SPAN",
+        "cls": "ed-statusbar__hint",
+        "y": 1062,
+        "h": 15,
+        "text": "双击 / 松手完成 · Esc 退出 · G 吸附 · Sh"
+      },
+      {
+        "tag": "DIV",
+        "cls": "ed-toast ed-toast--info",
+        "y": 1014,
+        "h": 32,
+        "text": "已从模板新建：t0245-smoke-card · 1 个对"
+      },
+      {
+        "tag": "SPAN",
+        "cls": "ed-toast__text",
+        "y": 1022,
+        "h": 16,
+        "text": "已从模板新建：t0245-smoke-card · 1 个对"
+      }
+    ]
+  },
+  "consoleLogs": []
+}

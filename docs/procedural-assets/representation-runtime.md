@@ -123,6 +123,8 @@ Transition 期间 `Current` 与 `Target` 两套表示同时提交（dither 交�
 
 采用 Dither / Alpha-Hash 风格过渡，不用普通透明度。实现注意：现有叶材质为 `alphaTest 0.5 + alphaToCoverage`，dither 阈值与 alphaTest 的**合成顺序**是 shader 交付必答题（park-shader-agent 简报必列）。放置对象允许逐实例 fade（实例可各自处于 1.0 / 0.7 / 0.2 态）；散布按 chunk × asset 粒度维护过渡态。
 
+**静止期 fade-out 收敛（T024.5 修复，D45 #1）**：fade 进度是度量 m 的纯函数（metric 步进），相机静止 ⇒ m 恒定 ⇒ 退场带内 canopy 起步实例的 fade-out 永不推进（T021.3 设计缺口，preT024 基线同现——非回归）。修复语义 = **退场是离场动画而非稳态**：池层静止期按墙钟推进 fade（`InstancedAssetPool.frameLod` 可选 `dtSeconds` 尾参 + 度量补偿喂状态机），culled 翻转 / fade 写出 / 终态 / 阴影中点仍由 domain 状态机单一产出；dither 带内稳态（021.8 标定接受）不动；散布链同型驻留归 T003 遗留观察。
+
 ### 5.4 Transition Shadow
 
 不做双 Shadow 交叉渐变：主渲染做 dither，Shadow 表示在**过渡中点**切换（Shadow Map 双表示叠加不值得）。
@@ -191,11 +193,13 @@ Canopy 不使用高成本叶片 SDF 深度材质，使用 Canopy Depth Material�
 
 批次策略从绑定 `high/mid/low` 改为绑定 **representation**（`isBatchMergeAllowed(representation)` 形态）。Canopy 天然适合 `chunk × asset × canopy` 远景合批；32m chunk + 2×2 sparse merge（`sparseMergeMaxInstances 32` / `mergeGroupFactor 2`）经 021.8 复核**维持**（单种 1000 棵 8 canopy 桶、3 种散布 2700 实例 111 桶 / DC 441——无需区域级合批）。
 
-**021.8 预算四线重锁**（实测证据 `docs/acceptance/t021/021.8/acceptance/`；环境见 §十四）：
-- `drawCallBudget = 1500`：最重合法包络 = 2000 混植 13 种真近机位实测 1011 DC（legacy 650 = T006.4 十万路灯口径，保留历史记档）——1500 ≈ 1.5× 余量，正常包络零误报、结构性批次爆炸仍触发；
-- Frame Time p95 ≤ 10ms @ 最重档（混植 2000 真近机位实测 9.8ms / fps 123.6；单种梯队 1–2000 全档 p95 ≤ 2.8ms）；
-- Triangle ≤ 12M @ 最重档（混植中景过渡带实测 11.7M；canopy 稳态 1.9M）；
-- Shadow Cost ≤ 15% 帧时（1000 near off↔on 750↔644 fps、混植 far 316↔270 = −14% / −15%）。
+**021.8 预算四线重锁**（实测证据 `docs/acceptance/t021/021.8/acceptance/`；环境见 §十四；单卡口径——双卡包络档见下）：
+- `drawCallBudget = 2000`：**024.5 第三次重锁**（D45 #2，D41 §九 先例）——色卡双卡混植合法包络（13 树 × {default, autumn}、2000 实例）真近机位实测 **1677 DC** 在 1500 下持续误报 → 2000 ≈ 1.19× 跨机余量（中景 1461 / 远景 801 零误报，结构性爆炸仍触发）；单卡基线（2000 混植 13 种真近 1011，legacy 650 = T006.4 十万路灯口径）保留记档；
+- Frame Time p95 ≤ 10ms @ 最重档（单卡：混植 2000 真近机位实测 9.8ms / fps 123.6；单种梯队 1–2000 全档 p95 ≤ 2.8ms）；
+- Triangle ≤ 12M @ 最重档（单卡：混植中景过渡带实测 11.7M；canopy 稳态 1.9M）；
+- Shadow Cost ≤ 15% 帧时（单卡：1000 near off↔on 750↔644 fps、混植 far 316↔270 = −14% / −15%）。
+
+**双卡包络档（024.5 实测记档，D45 #3——单卡口径不重锁）**：13 树 × {default, autumn} 混植 2000、真近 D150 最重机位沉降态——p95 **12.4ms**（80.6fps，距 30fps 产品承诺余量 2.7×；中景 11.8ms / 远景 4.7ms）、tri 10.96M（中景锚 PASS）、shadow A/B 成本比 **56.4%**（§九原锚 far 24.1%；off↔on 4.6→10.5ms 绝对值在帧预算内）。桶增殖 = 双卡材质变体必然（可见桶 ≈ ×2；programs 146 = 单卡同值，program 不增契约成立）。重锁区分标准：DC 重锁无单卡早警损失，p95/shadow 重锁会钝化单卡回归早警（9.8ms 贴线即失守）。证据 `docs/acceptance/T024/024.5/perf-mixed/`。
 
 ## 十 · 运行状态与缓存键
 
@@ -253,7 +257,7 @@ controls.update → Camera/View update → Spatial Frustum Cull
 ## 十四 · 验收与性能口径
 
 **环境**：RTX 2080 Ti / WebGL2 / Chromium / 1920×1080 / DPR 1 / Shadow ON / 固定环境（T018 预设 day）。
-（021.8 执行记档与全部实测数据：`docs/acceptance/t021/021.8/`〔calibration = 全项标定 / acceptance = 六面验收〕——六面判定全 PASS、远景十条 10/10、密度 100% 达预算不降密。）
+（021.8 执行记档与全部实测数据：`docs/acceptance/t021/021.8/`〔calibration = 全项标定 / acceptance = 六面验收〕——六面判定全 PASS、远景十条 10/10、密度 100% 达预算不降密。024.5 双卡包络档与 fade-out 静止收敛取证：`docs/acceptance/T024/024.5/`〔perf-mixed = 双卡四线 / regression-default = 跨构建逐位 / trunk-invariance = 干区跨卡 / smoke = 冒烟六用例〕，D45 裁定。）
 
 **性能梯队**：1 / 20 / 100 / 500 / 1000 / **2000**（新增）+ 高密度园区混植。必记指标：FPS、frame time mean/p50/p95/max、draw calls、triangles、visible instances、representation distribution、transition instances、shadow cost、geometries、textures、programs。
 

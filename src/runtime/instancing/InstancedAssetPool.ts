@@ -103,7 +103,11 @@
  *      （transitionPeer：同 id 同矩阵同属性、不独立评估、随属主生命周期，fade 期拾取
  *      双侧命中同 id §12）；fade-out 退场（Low/Canopy → Culled）= 当档桶逐实例
  *      aFadeOut 退场度写出、终态零提交（复用 culled 零缩放机制——决策线到终态间的
- *      退场带内实例正常渲染）。fade 属性缝契约见 runtime/instancing/fadeGeometry
+ *      退场带内实例正常渲染）。T024.5 补充：metric 纯函数下相机静止于退场带内时 f 恒
+ *      定、退场永不收敛——本池按静止相机检测 + 帧时长推进退场下限（fadeFloor），经
+ *      状态机输入度量补偿使退场在有限墙钟内完成（见 stepEntryTransition /
+ *      FADE_OUT_STALL_COMPLETE_SECONDS——仅 fade-out 位，dither 带内稳态语义不变）。
+ *      fade 属性缝契约见 runtime/instancing/fadeGeometry
  *      （aFadeOut，缺省 0 = 完整呈现）。过渡期剔除并集（D41 §四.3）：本池按
  *      three 逐网格自身包围球剔除——双表示两网格各按自身真实边界判交，其并集
  *      语义天然成立（一侧被裁只发生在其自身几何必在视锥外时，零像素损失）。
@@ -124,11 +128,14 @@ import type {
 } from '../../domain/lod/representation';
 import { effectiveRepresentationChain } from '../../domain/lod/representation';
 import { evaluateLodRepresentation, normalizedViewDistance } from '../../domain/lod/lodEvaluation';
+import type { LodView } from '../../domain/lod/lodEvaluation';
+import { LOD_THRESHOLDS } from '../../domain/lod/lodPolicy';
 import { pinnedSelectionOutcome } from '../../domain/lod/editingPin';
 import {
   steadySelectionState,
   stepTransition,
   transitionKindOf,
+  TRANSITION_BAND_RATIO,
 } from '../../domain/lod/transition';
 import type { TransitionCommit } from '../../domain/lod/transition';
 import { isShadowCasterFor, shadowPolicyOf } from '../../domain/lod/shadowPolicy';
@@ -286,6 +293,15 @@ interface PoolEntry {
   hostPool: AssetPool | null;
   /** 本实例当前 aFadeOut 退场度缓存（0 = 完整呈现；写出判重 + 全量重写数据源） */
   fadeOut: number;
+  /**
+   * 退场进度下限（T024.5 静止相机退场完成驱动）：决策保持 culled 期间单调不回退的
+   * 退场进度（0 = 无；≥1 即退场完成态）。相机静止时逐帧推进（见 FADE_OUT_STALL_
+   * COMPLETE_SECONDS），经状态机输入度量补偿 m_eff = Bc·(1 + floor·W) 生效——全部
+   * 提交语义（culled 翻转 / fade 写出 / 终态形态）仍由 domain 状态机单一产出，本池
+   * 只补偿输入。决策离开 culled（回到表示）即复位 0——恢复沿既有「f<1 自动解除、
+   * 无独立锁存」的即时回显语义。随 entry 跨桶迁移携带。
+   */
+  fadeFloor: number;
 }
 
 /**
@@ -371,9 +387,29 @@ const ASEED_ATTRIBUTE = 'aSeed';
 /** seed 缺失槽的 aSeed 值：[0,1) 域中点——无偏中性值（真实身份语义由消费方材质定义） */
 const ASEED_NULL_VALUE = 0.5;
 
+/**
+ * 静止相机 fade-out 完成时长（秒，T024.5）：过渡状态机为 metric 纯函数（transition.ts
+ * 帧推进口径裁定），相机停在 fade-out 退场带 [canopyToCulled, canopyToCulled·(1+W)] 内时
+ * m 恒定 → f 恒定 → 退场永不完成（跨距拉远级联实测冻结台 tInst 恒定 10s+ 不清零）。
+ * 本时长 = 相机静止后退场进度从当前值推进到 1 的墙钟预算——退场是离场动画而非稳态，
+ * 静止后应在有限时间内收敛（同 m 同进度的 metric 语义仅约束相机移动期：静止检测期间
+ * 才推进，相机一动立即回到 metric 纯推进）。0.5s 与相机穿带典型时长（~1–3s）同量级、
+ * 60fps 下 ~30 帧完成，alpha-hash 退场无跳变感。非预算/锁定常量（锁定值 6/16/60/0.25/0.15
+ * 零改动——D41 §5.2）。
+ */
+const FADE_OUT_STALL_COMPLETE_SECONDS = 0.5;
+
+/** 静止相机判定容差（LodView 分量比较）：OrbitControls 阻尼收敛残差远低于此阈值 */
+const CAMERA_STATIC_EPSILON = 1e-6;
+
 /** entry.seed → aSeed 槽值（null → 域中点中性值；其余经 domain 'aseed' 域折算） */
 function seedUnitOf(seed: number | null): number {
   return seed === null ? ASEED_NULL_VALUE : aSeedValueOf(seed);
+}
+
+/** [0,1] 截断（T024.5 静止相机退场带进度计算；与 domain/lod/transition 内 clamp01 同式） */
+function clamp01(v: number): number {
+  return v < 0 ? 0 : v > 1 ? 1 : v;
 }
 
 /**
@@ -438,6 +474,10 @@ export class InstancedAssetPool {
    * 键）由 Renderer 调 refreshDiagnostic 重算所在池。
    */
   private diagnostic: { classify: (id: ID) => boolean; highlightLayer: number } | null = null;
+  /** 上一帧 LodView 分量留痕（T024.5 静止相机判定基；原位复用零分配） */
+  private lastViewSample:
+    | { kind: 'perspective' | 'orthographic'; x: number; y: number; z: number; fovY: number; orthoHeight: number }
+    | null = null;
   private disposed = false;
 
   constructor(options: InstancedAssetPoolOptions) {
@@ -488,6 +528,7 @@ export class InstancedAssetPool {
       guestRoot: null,
       hostPool: null,
       fadeOut: 0,
+      fadeFloor: 0,
     };
     composeMatrixInto(entry.matrix, obj.transform, obj.visible);
     pool.entries.push(entry);
@@ -663,12 +704,16 @@ export class InstancedAssetPool {
    *    每帧派生覆盖：退出 pin 集下一帧恢复正常调度（迟滞参考已随 pin 期收敛高档，
    *    按当帧距离重判）；与 LOD 总开关正交（off 本就恒 high，同值幂等）。不进
    *    Scene / Command / 撤销重做（§十五.10）。
+   *  - dtSeconds（T024.5，可选尾参缺省 0）：帧时长，仅被静止相机 fade-out 完成驱动
+   *    消费（见 FADE_OUT_STALL_COMPLETE_SECONDS 注）——metric 步进语义在相机移动期
+   *    逐位不变，dt=0 调用（既有测试/手动驱动）行为与修复前逐位一致。
    * 迁移会改写池集合（扩桶/拆空桶），故对 pools 与 entries 均取快照遍历。
    */
-  frameLod(camera: THREE.Camera, lodEnabled: boolean, pinIds?: ReadonlySet<ID>): void {
+  frameLod(camera: THREE.Camera, lodEnabled: boolean, pinIds?: ReadonlySet<ID>, dtSeconds = 0): void {
     if (this.disposed || this.pools.size === 0) return;
     camera.updateMatrixWorld();
     const view = lodViewOfCamera(camera);
+    const cameraStatic = this.recordLodViewAndTestStatic(view);
     for (const pool of [...this.pools.values()]) {
       const source = pool.source;
       if (!source) continue; // 源未就绪：无包围球可评，实例仍在登记矩阵上
@@ -706,9 +751,31 @@ export class InstancedAssetPool {
         );
         const metric = normalizedViewDistance(view, subject);
         entry.currentLod = next;
-        this.stepEntryTransition(pool, entry, next, metric);
+        this.stepEntryTransition(pool, entry, next, metric, cameraStatic, dtSeconds);
       }
     }
+  }
+
+  /**
+   * 上一帧 LodView 分量留痕 + 静止判定（T024.5）：分量差全低于 CAMERA_STATIC_EPSILON
+   * 即视为静止（OrbitControls 阻尼收敛残差远低于该阈值；透视比较世界位与 fovY、
+   * 正交比较视高——位姿无关分量不参与）。原位更新零分配。
+   */
+  private recordLodViewAndTestStatic(view: LodView): boolean {
+    const last = this.lastViewSample;
+    const sample: NonNullable<InstancedAssetPool['lastViewSample']> =
+      view.kind === 'perspective'
+        ? { kind: 'perspective', x: view.cameraPosition.x, y: view.cameraPosition.y, z: view.cameraPosition.z, fovY: view.fovY, orthoHeight: 0 }
+        : { kind: 'orthographic', x: 0, y: 0, z: 0, fovY: 0, orthoHeight: view.orthoHeight };
+    this.lastViewSample = sample;
+    if (!last || last.kind !== sample.kind) return false;
+    return (
+      Math.abs(last.x - sample.x) < CAMERA_STATIC_EPSILON &&
+      Math.abs(last.y - sample.y) < CAMERA_STATIC_EPSILON &&
+      Math.abs(last.z - sample.z) < CAMERA_STATIC_EPSILON &&
+      Math.abs(last.fovY - sample.fovY) < CAMERA_STATIC_EPSILON &&
+      Math.abs(last.orthoHeight - sample.orthoHeight) < CAMERA_STATIC_EPSILON
+    );
   }
 
   /**
@@ -722,12 +789,23 @@ export class InstancedAssetPool {
    *  - 终态 cull：commit.culled 翻转 entry.culled（零缩放提交，fade-out 型到退场带末
    *    才置位——退场带内正常渲染）；
    *  - 当前侧 fade 写出（硬切位 fadeCurrent 恒 1 → 零写零缓冲）。
+   *
+   * 静止相机 fade-out 完成驱动（T024.5，仅 fade-out 退场位）：状态机是 metric 纯函数
+   * （D41 §5.2 帧推进裁定），相机停在退场带内时 m 恒定 → f 恒定 → 退场永不完成。本池
+   * 在相机静止帧按 dt 推进 entry.fadeFloor，并以度量补偿 m_eff = Bc·(1 + floor·W) 喂
+   * 状态机——culled 翻转 / fade 写出 / 终态形态 / 阴影中点全部仍由状态机单一产出，
+   * 本层只补偿输入、不旁路任何提交语义。floor 在决策保持 culled 期间单调不回退
+   * （相机微动不产生 fade 值回跳；退出带后重新入带不复冻），决策离开 culled 即复位
+   * （恢复沿既有「无独立锁存」即时回显语义）。相机移动帧零推进——metric 步进语义
+   * 在移动期逐位不变；dtSeconds=0（既有测试/手动驱动）整体旁路。
    */
   private stepEntryTransition(
     pool: AssetPool,
     entry: PoolEntry,
     decision: LodSelectionOutcome,
     metric: number,
+    cameraStatic: boolean,
+    dtSeconds: number,
   ): void {
     let sourceReady = true;
     let targetPool: AssetPool | null = null;
@@ -737,7 +815,29 @@ export class InstancedAssetPool {
       sourceReady = targetPool.source !== null;
     }
     const prev = entry.lodTransition ?? steadySelectionState(pool.level);
-    const { state, commit } = stepTransition({ state: prev, selection: decision, metric, sourceReady });
+    let metricInput = metric;
+    if (decision === 'culled') {
+      if (transitionKindOf(prev.current, decision) === 'fade-out') {
+        // fade-out 退场带进度（与 domain stepTransition fade-out 分支同一公式——
+        // 常量同源自 domain 导出；一致性由 tests 锁定）
+        const boundary = LOD_THRESHOLDS.canopyToCulled;
+        const fMetric = clamp01((metric - boundary) / (boundary * TRANSITION_BAND_RATIO));
+        if (cameraStatic && dtSeconds > 0 && fMetric < 1) {
+          entry.fadeFloor = Math.min(
+            1,
+            Math.max(entry.fadeFloor, fMetric) + dtSeconds / FADE_OUT_STALL_COMPLETE_SECONDS,
+          );
+        }
+        if (entry.fadeFloor > fMetric) {
+          metricInput = boundary * (1 + entry.fadeFloor * TRANSITION_BAND_RATIO);
+        }
+      } else {
+        entry.fadeFloor = 0; // 硬切 cull 无退场带：下限复位
+      }
+    } else {
+      entry.fadeFloor = 0; // 决策回到表示：恢复既有无锁存回显语义
+    }
+    const { state, commit } = stepTransition({ state: prev, selection: decision, metric: metricInput, sourceReady });
     entry.lodTransition = state;
     // T021.5：阴影表示缓存 + 双侧桶 cast 标志（§5.4 中点切换——TransitionCommit.
     // shadowRepresentation 连续派生每帧幂等；不消费 midpointCrossed 边沿〔留诊断面，
@@ -816,6 +916,7 @@ export class InstancedAssetPool {
       guestRoot: owner,
       hostPool: targetPool,
       fadeOut: 0,
+      fadeFloor: 0,
     };
     targetPool.entries.push(guest);
     owner.transitionPeer = guest;

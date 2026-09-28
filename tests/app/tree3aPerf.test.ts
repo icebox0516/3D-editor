@@ -30,7 +30,13 @@
  *   无渲染依赖全零计数形状（沿 stats() 零值先例）；
  * - T024.3 扩展（preset 色卡携带）：place 携 preset 逐枚落盘 asset.preset（seed/网格/
  *   归层语义不随卡变）+ 缺省路径双锁（不传与 'default' 均不落盘——旧对象结构逐位不变，
- *   createModelObjectAt 省略规则经产品驱动面复验）。
+ *   createModelObjectAt 省略规则经产品驱动面复验）；
+ * - T024.5 扩展（验收门取证——跨会话/跨构建逐位像素对比 + 混卡包络实测）：presets
+ *   round-robin 多卡逐枚落盘矩阵（与 assetId/assetIds 正交组合、'default' 透传省略、
+ *   不传零 preset 键逐位现状）+ preset/presets 冲突与空数组硬失败（场景零变更）；
+ *   freezeTime(seconds?) 调用序（先 seekTo 后 freeze / 无参仅 freeze）/ unfreezeTime
+ *   转调（stub 记录）+ 真 TimeUniformService 端到端（freezeTime 后 advance 恒定位值）
+ *   + 无头无 time 依赖 no-op 不抛。
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createId } from '../../src/core/id';
@@ -39,18 +45,23 @@ import type { ModelObject } from '../../src/domain/assets';
 import type { LodDistribution } from '../../src/runtime/lodDistribution';
 import { createEditor, createTree3aPerfHandle, importElements } from '../../src/app/bootstrap';
 import type { Tree3aPerfDeps, Tree3aPerfHandle } from '../../src/app/bootstrap';
+import { TimeUniformService } from '../../src/runtime/services/TimeUniformService';
 import manifestJson from '../../assets/manifest.json';
 
 const TREE_ID = 'asset_tree_3a';
 
-/** 无头装配：真命令管线（history/sceneManager/registries 均为组合根实件）+ 可选视口桩 */
-function makeHandle(view?: Tree3aPerfDeps['view']): { facade: ReturnType<typeof createEditor>; handle: Tree3aPerfHandle } {
+/** 无头装配：真命令管线（history/sceneManager/registries 均为组合根实件）+ 可选视口/时钟桩 */
+function makeHandle(
+  view?: Tree3aPerfDeps['view'],
+  time?: Tree3aPerfDeps['time'],
+): { facade: ReturnType<typeof createEditor>; handle: Tree3aPerfHandle } {
   const facade = createEditor(null, { assets: manifestJson.assets });
   const handle = createTree3aPerfHandle({
     history: facade.history,
     sceneManager: facade.scene,
     assets: facade.registries.assets,
     view,
+    time,
   });
   return { facade, handle };
 }
@@ -328,6 +339,101 @@ describe('T024.3 扩展：preset 色卡携带（Contact Sheet「13 树 × 全卡
     expect(handle.place({ count: 4, seedBase: 3, preset: 'default' })).toBe(true);
     models = modelsOf(facade);
     expect(models.every((m) => !('preset' in m.asset))).toBe(true); // 默认卡省略不落盘（旧场景零迁移口径）
+    facade.dispose();
+  });
+});
+
+describe('T024.5 扩展：presets 多卡 round-robin + freezeTime/unfreezeTime（验收门取证）', () => {
+  it("presets round-robin 逐枚落盘矩阵：对象 i 卡 = presets[i % n]；'default' 透传省略；不传 = 零 preset 键逐位现状", () => {
+    const { facade, handle } = makeHandle();
+    const opts = { count: 7, seedBase: 31, spacing: 6, jitter: false } as const;
+    expect(handle.place(opts)).toBe(true); // 基准：不传 presets = 逐位现状
+    expect(modelsOf(facade).every((m) => !('preset' in m.asset))).toBe(true);
+    // 3 卡轮转含 'default'（第 3/6 枚——经 createModelObjectAt 省略规则不落盘）
+    const CARDS = ['autumn', 'spring', 'default'] as const;
+    expect(handle.place({ ...opts, presets: [...CARDS] })).toBe(true);
+    const models = modelsOf(facade);
+    expect(models).toHaveLength(7);
+    const expected = ['autumn', 'spring', undefined, 'autumn', 'spring', undefined, 'autumn'];
+    models.forEach((m, i) => {
+      if (expected[i] === undefined) expect('preset' in m.asset).toBe(false);
+      else expect(m.asset.preset).toBe(expected[i]);
+      expect(m.asset.seed).toBe(31 + i); // seed 序列不随卡变
+    });
+    expect(handle.place({ ...opts, presets: [...CARDS] })).toBe(true); // 同参两次卡序列逐位一致
+    expect(modelsOf(facade).map((m) => ('preset' in m.asset ? m.asset.preset : undefined))).toEqual(expected);
+    facade.dispose();
+  });
+
+  it('assetId 单资产 × presets 多卡正交组合：资产路由不随卡变、卡按轮转逐枚落盘', () => {
+    const { facade, handle } = makeHandle();
+    const CELTIS_ID = 'asset_tree_celtis';
+    expect(handle.place({ count: 6, seedBase: 1, assetId: CELTIS_ID, presets: ['autumn', 'default'] })).toBe(true);
+    modelsOf(facade).forEach((m, i) => {
+      expect(m.asset.assetId).toBe(CELTIS_ID); // 单资产 × 多卡合法（正交）
+      if (i % 2 === 0) expect(m.asset.preset).toBe('autumn');
+      else expect('preset' in m.asset).toBe(false); // 'default' 省略
+    });
+    facade.dispose();
+  });
+
+  it('assetIds 混植 × presets 混卡矩阵：对象 i = (assetIds[i%3], presets[i%2])，同参两次逐位一致', () => {
+    const { facade, handle } = makeHandle();
+    const IDS = ['asset_tree_3a', 'asset_tree_celtis', 'asset_tree_camphor'];
+    const CARDS = ['autumn', 'spring'];
+    expect(handle.place({ count: 6, seedBase: 5, assetIds: IDS, presets: CARDS })).toBe(true);
+    const first = modelsOf(facade).map(stripId);
+    expect(first).toHaveLength(6);
+    first.forEach((m, i) => {
+      expect(m.asset.assetId).toBe(IDS[i % 3]!); // 资产轮转不变（T021.8 语义共存）
+      expect(m.asset.preset).toBe(CARDS[i % 2]!); // 卡轮转独立于资产轮转
+    });
+    expect(handle.place({ count: 6, seedBase: 5, assetIds: IDS, presets: CARDS })).toBe(true);
+    expect(modelsOf(facade).map(stripId)).toEqual(first);
+    facade.dispose();
+  });
+
+  it('preset 与 presets 同时给出 / presets 空数组：抛错且场景零变更（显式冲突硬失败防错）', () => {
+    const { facade, handle } = makeHandle();
+    expect(() => handle.place({ count: 3, preset: 'autumn', presets: ['autumn'] })).toThrow('参数冲突');
+    expect(() => handle.place({ count: 3, presets: [] })).toThrow('空数组');
+    expect(modelsOf(facade)).toHaveLength(0); // 抛错在命令执行前——场景零变更
+    facade.dispose();
+  });
+
+  it('freezeTime(seconds) 调用序：先 seekTo 后 freeze；无参仅 freeze；unfreezeTime 转调 unfreeze', () => {
+    const calls: string[] = [];
+    const { facade, handle } = makeHandle(undefined, {
+      seekTo: (s) => calls.push(`seek:${s}`),
+      freeze: () => calls.push('freeze'),
+      unfreeze: () => calls.push('unfreeze'),
+    });
+    handle.freezeTime(4.5);
+    expect(calls).toEqual(['seek:4.5', 'freeze']); // 带参 = 定位再冻结（幂等可重定位）
+    calls.length = 0;
+    handle.freezeTime(); // 无参 = 仅冻结（沿 TimeUniformService 既有冻结语义）
+    expect(calls).toEqual(['freeze']);
+    handle.unfreezeTime();
+    expect(calls).toEqual(['freeze', 'unfreeze']); // 不回补语义归服务（句柄纯转调）
+    facade.dispose();
+  });
+
+  it('真 TimeUniformService 端到端：freezeTime(7.5) 后 advance 恒定位值，unfreeze 后从定位点继续（不回补）', () => {
+    const clock = new TimeUniformService();
+    const { facade, handle } = makeHandle(undefined, clock); // 结构类型命中 = Renderer.uTime 注入同形
+    handle.freezeTime(7.5);
+    expect(clock.advance(999999)).toBe(7.5); // 冻结态任意帧恒定位值
+    handle.unfreezeTime();
+    expect(clock.advance(1000099)).toBe(7.5); // 解冻首帧重建基准（冻结壁钟差不回补）
+    expect(clock.advance(1000599)).toBeCloseTo(8, 10); // 从定位点继续累计
+    facade.dispose();
+  });
+
+  it('无头（无 time 依赖）no-op 不抛错（warn 沿 setSunShadow 退化先例）', () => {
+    const { facade, handle } = makeHandle();
+    expect(() => handle.freezeTime(1)).not.toThrow();
+    expect(() => handle.freezeTime()).not.toThrow();
+    expect(() => handle.unfreezeTime()).not.toThrow();
     facade.dispose();
   });
 });

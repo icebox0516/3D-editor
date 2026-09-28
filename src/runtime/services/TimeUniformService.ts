@@ -11,6 +11,8 @@
  *      随 Renderer 会话创建/销毁（普通字段，无模块级单例——StrictMode 双挂载安全，
  *      沿 D17.4 惯例）；只扫被喂入的 root（minimap/axesIndicator 独立小场景不喂）；
  *      无 GPU 资源，无需 dispose。
+ * 取证：seekTo(seconds) 确定性定位——T024.5 验收门取证：确定性风相位（跨会话/跨构建
+ *      逐位像素对比依赖）；仅 DEV 取证消费，现无任何生产调用方（冻结态语义不变）。
  */
 import * as THREE from 'three';
 
@@ -48,6 +50,19 @@ export class TimeUniformService {
   /** 解冻时钟（恢复按时间戳累计；幂等）——不回补冻结期间的时长 */
   unfreeze(): void {
     this.frozen = false;
+  }
+
+  /** 确定性定位（T024.5 验收门取证：确定性风相位——跨会话/跨构建逐位像素对比依赖；
+   *  仅 DEV 取证消费，现无任何生产调用方）：累计秒数直接置为给定值。冻结态下定位后
+   *  保持冻结（advance 恒返回该值——freeze()+seekTo(t) 即「下游 uTime 恒为 t」取证
+   *  口径）；非冻结态允许跳变，定位后从该值继续累计。裁定记档：last 基准一并重置
+   *  （置 null，走首帧建基准路径）——定位处零贡献，定位前后壁钟差值不并入累计。若
+   *  不重置：冻结期间积压的壁钟差会在解冻首帧一次性回补（冻结帧 early-return 不更新
+   *  last，解冻后 now−last 跨整个冻结期），破坏定位确定性；非冻结跳变亦会把 seek 调
+   *  用本身耗掉的壁钟时间计入。跳变语义 = 换时间线（重开基准），非原线上平移。 */
+  seekTo(seconds: number): void {
+    this.seconds = seconds;
+    this.last = null;
   }
 
   /** 当前累计时长（秒；未启动为 0） */

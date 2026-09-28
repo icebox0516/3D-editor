@@ -58,7 +58,8 @@ Status 四值：**有效**（当前依据；条内自足的行内修订仍属有
 | D41 | 有效 | — | LOD→Representation 运行体系（T021 立项） | `2026-09-23 · D41 LOD→Representation 运行体系（T021 立项：grilling 三轮 16 题裁定 + 独立对抗审核修正）` |
 | D42 | 有效 | 含 T016 取消与 D19 第 1 条四植物子句废止（D19/D22 索引行 Note 随动） | 资产库清理：浏览器一行大分类 + v1 四植物删除（T022） | `2026-09-28 · D42 资产库清理：浏览器一行大分类 + T016 取消 + v1 四植物删除（2026-09-24 共识会话用户裁定 + 同日审计修订，T022 执行落盘）` |
 | D43 | 有效 | 含 D30 最低可信证据原则增补与 D36 spine 两层结构增补（D30/D36 索引行 Note 随动）；T002.4 批量先例升格通用口径 | 生产脊柱 spine 提取（T023） | `2026-09-28 · D43 生产脊柱 spine 提取：workflow 体系升级「spine + 方法剖面」两层（2026-09-24 共识会话用户裁定，T023 执行落盘，纯文档零代码）` |
-| D44 | 有效 | 含 D19 第 2 项 preset 子句激活废止与 D17 build 契约「每次调用 new 全部资源」条款窄化（几何/深度材质跨卡共享——索引行 Note 随动 D19） | 资产色卡预设（T024 立项） | `2026-09-28 · D44 资产色卡预设（T024 立项：2026-09-24 共识会话用户锁定范围 + 同日主代理三项立项必答裁定）` |
+| D44 | 有效 | 含 D19 第 2 项 preset 子句激活废止与 D17 build 契约「每次调用 new 全部资源」条款窄化（几何/深度材质跨卡共享——索引行 Note 随动 D19）；#3「预算四线不破」预期经 D45 #2/#3 收口（DC 重锁 2000 + p95/shadow 双卡包络档记档） | 资产色卡预设（T024 立项） | `2026-09-28 · D44 资产色卡预设（T024 立项：2026-09-24 共识会话用户锁定范围 + 同日主代理三项立项必答裁定）` |
+| D45 | 有效 | 含 D41 §九 预算四线 DC 行第三次重锁（1500→2000）与 p95/shadow「单卡口径维持 + 双卡包络档记档」处置；T021.3 metric 步进静止相机 fade-out 冻结设计缺口修复语义（池层墙钟收敛） | 色卡预设验收门（T024.5 总裁决） | `2026-09-28 · D45 色卡预设验收门（T024.5：fade-out 冻结定性更正 + 修复语义 + drawCallBudget 重锁 + 双卡包络档 + 场景域像素口径）` |
 
 ---
 
@@ -575,3 +576,14 @@ D26.2 六情形末条「spec 关键事实含 Unknown」收窄为：**关键事�
 8. **Ghost 带卡（所见即所得）**：浏览器选中色点后 Ghost/放置链带该卡（D19.1「Ghost 即所见形态」延伸）；Ghost 继续借缓存 Source 不 dispose（既有契约不变）。**存量回归硬断言：默认卡 = 现行材质基调——13 树默认卡基线帧逐位一致**（回补是纯增量，零现状观感变化）。
 
 **承载文件清单（生效依赖，可机械核对）**：`src/domain/assets/AssetDescriptor.ts` + `AssetReference.ts` + `domain/scatter/recipe.ts`（类型增量）｜`src/runtime/procedural/`（types 注释修订 + ProceduralSourceCache 共享机制 + 树材质工厂 preset 参 ×13）｜`src/runtime/procedural/assets/*.asset.ts`（18 资产 presets 声明）｜放置链/ContentBrowser/browserModel（色点 UI + preset 注入）｜`docs/procedural-assets/metadata-taxonomy.md` + `lod-spec.md`（声明面增量）｜`DECISIONS.md`（本条 + D19 索引行 Note 增补）｜`tasks/024-color-presets.md`（epic 任务书）｜`TASKS.md` / `PROGRESS.md`（导航同步）。
+
+## 2026-09-28 · D45 色卡预设验收门（T024.5：fade-out 冻结定性更正 + 修复语义 + drawCallBudget 重锁 + 双卡包络档 + 场景域像素口径）
+
+**背景**：T024.5 epic 验收门执行中取证发现两项超出子任务书预圈的运行时事实，主代理裁决如下（证据 = `docs/acceptance/T024/024.5/`）。
+
+1. **静止相机 fade-out 冻结 = T021.3 metric 步进设计缺口（非 T024 回归）+ 修复语义定型**：验收性能取证发现「→culled fade-out 过渡在跨距级联后永久冻结」（静止相机下 transitionInstances 恒定不归零、dual 提交不释放）。**定性经基准构建对照实证更正**：preT024 基线 `1bc7035` 同 probe 逐位同冻结（225/296/298）——首轮取证的「T021.8 构建正常」基线证据系 maneuver 语义错配（spawn-at-target ≠ 跨距级联，且 849m 扫描带内无人口），回归窗口假设不成立。根因 = `transition.ts` fade 进度 f 是度量 m 的纯函数（D41 §5.2 帧推进口径 = metric 步进），相机静止 ⇒ m 恒定 ⇒ 落退场带 m∈(60,75) 的 canopy 起步实例 `transitionActive` 永久为真。**修复语义裁定：退场是离场动画而非稳态**——metric 步进的确定性/可逆性只在相机移动期约束进度，静止后应在有限墙钟内收敛；实现为池层静止期 fade 推进（`InstancedAssetPool.frameLod` 可选 `dtSeconds` 尾参 + 度量补偿喂给 domain 状态机，culled 翻转/fade 写出/终态/阴影中点仍由状态机单一产出；dither 带内稳态是 021.8 标定明文接受的成本**不动**）。散布链（ScatterChunkManager）同型带内驻留记 T003 遗留观察位，不随本修复扩散。沉降态渲染逐位不变（冒烟哨兵场景域 diff=0 实证）。
+2. **drawCallBudget 1500 → 2000（D41 §九「重测重锁」第三次适用）**：色卡双卡混植（13 树 × {default, autumn}、2000 实例）为合法用户场景，最重机位（真近 D150）沉降态实测 **DC 1677**（中景 1461 / 远景 801）——1500 预算下持续误报观测告警，与 T021.8 重锁前（650 vs 单卡 1011）同型。重锁 2000 ≈ 1677 × ~1.19 跨机余量，正常双卡包络零误报、结构性批次爆炸（万级）仍触发；T021.8 单卡基线 1011 保留记档（预算行仍作单卡回归基线）。四处同步（batchPolicy 常量与注释 / budgetAlert 告警文案与注释 / Renderer 注释 / batchPolicy.test 断言）。
+3. **p95 10ms / shadow 15% 维持单卡口径，双卡包络档记档不重锁**：双卡包络最重机位实测 p95 **12.4ms**（= 80.6fps，距产品 30fps 双档承诺余量 2.7×）、shadow A/B 成本比 **56.4%**（§九原锚 far 24.1%；off↔on 帧时 4.6→10.5ms，绝对值仍在帧预算内）。**不重锁的区分标准**：DC 重锁无单卡早警损失（1011 距 2000 反而余量更大）；p95/shadow 重锁会钝化单卡回归早警（单卡 9.8ms 贴 10ms 线，放宽即失守）——单卡预算线维持 021.8 原值不变，双卡包络作为独立包络档记档于 representation-runtime §九（消费方 = 后续混卡场景性能判读）。D44 #3「预算四线不破」字面预期经本条与上条收口：DC 线重锁后双卡过线，p95/shadow 按包络档扩展记档——对 D44 立项预期的诚实偏离记档，非静默放宽。
+4. **验收像素断言「场景域口径」裁定**：跨会话/跨进程浏览器截图存在 DOM 覆盖层（HUD 文字抗锯齿/小地图边框）光栅微差（数百像素级、内容无关、双树种掩码逐位相同、跨 Chrome 进程复现稳定）——**零变化红线与回归断言的判读域 = canvas 场景像素**，DOM 覆盖盒微差归通道噪声类（同 ANGLE X4122 归类先例）；取证工具 clip 域内场景 diff=0 即判 PASS。
+
+**承载文件清单**：`src/domain/lod/batchPolicy.ts` + `src/runtime/budgetAlert.ts` + `src/runtime/Renderer.ts`（dt 派生透传 + 注释）+ `src/runtime/instancing/InstancedAssetPool.ts`（静止期 fade 推进）｜`tests/domain/lod/batchPolicy.test.ts` + `tests/runtime/InstancedAssetPool.test.ts`（+2）｜`docs/procedural-assets/representation-runtime.md`（§5.3 语义 + §九 预算 + §十四 指针）｜`docs/acceptance/T024/024.5/`（五面取证）｜`DECISIONS.md`（本条 + D44 索引行 Note）｜`tasks/024.5-acceptance.md` / `024-color-presets.md` / `TASKS.md` / `PROGRESS.md`。

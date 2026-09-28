@@ -1,0 +1,91 @@
+{
+  "result": {
+    "placeOk": true,
+    "frameA": {
+      "file": "docs/acceptance/T024/024.5/smoke/frames/frameA-place-carded.png",
+      "clip": {
+        "x": 308,
+        "y": 66,
+        "width": 1292,
+        "height": 932,
+        "scale": 1
+      },
+      "statsAtShot": {
+        "drawCalls": 7,
+        "triangles": 55798,
+        "geometries": 16,
+        "textures": 5,
+        "programs": 13,
+        "objects": 1
+      },
+      "sceneObjects": 1
+    },
+    "frameB": {
+      "file": "docs/acceptance/T024/024.5/smoke/frames/frameB-undo-empty.png",
+      "clip": {
+        "x": 308,
+        "y": 66,
+        "width": 1292,
+        "height": 932,
+        "scale": 1
+      },
+      "statsAtShot": {
+        "drawCalls": 3,
+        "triangles": 14,
+        "geometries": 16,
+        "textures": 5,
+        "programs": 13,
+        "objects": 0
+      },
+      "sceneObjects": 0
+    },
+    "frameC": {
+      "file": "docs/acceptance/T024/024.5/smoke/frames/frameC-redo-carded.png",
+      "clip": {
+        "x": 308,
+        "y": 66,
+        "width": 1292,
+        "height": 932,
+        "scale": 1
+      },
+      "statsAtShot": {
+        "drawCalls": 7,
+        "triangles": 55798,
+        "geometries": 16,
+        "textures": 5,
+        "programs": 13,
+        "objects": 1
+      },
+      "sceneObjects": 1
+    },
+    "histA": {
+      "canUndo": true,
+      "canRedo": false
+    },
+    "histB": {
+      "canUndo": false,
+      "canRedo": true
+    },
+    "histC": {
+      "canUndo": true,
+      "canRedo": false
+    },
+    "undo": {
+      "objectsAfterUndo": 0,
+      "sceneObjectsAtB": 0,
+      "ok": true
+    },
+    "redoCtrlShiftZ": {
+      "effective": true,
+      "objects": 1
+    },
+    "redoCtrlY": {
+      "undoFirstOk": true,
+      "effective": true,
+      "objects": 1
+    },
+    "finalObjects": 1,
+    "presetStore": "{\"asset_tree_ginkgo\":\"autumn\"}"
+  },
+  "consoleLogs": []
+}

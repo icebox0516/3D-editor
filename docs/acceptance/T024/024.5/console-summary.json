@@ -1,0 +1,234 @@
+{
+  "generatedAt": "2026-09-28T12:14:35.016Z",
+  "sessions": [
+    {
+      "file": "inv-asset_tree_3a.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "inv-asset_tree_bischofia.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "inv-asset_tree_celtis.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "inv-asset_tree_fraxinus.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "inv-asset_tree_ginkgo.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "inv-asset_tree_koelreuteria.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "inv-asset_tree_platanus.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "inv-asset_tree_salix.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "inv-asset_tree_sophora.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "inv-asset_tree_triadica.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "inv-asset_tree_zelkova.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "reg-baseline-asset_tree_3a.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "reg-baseline-asset_tree_bischofia.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "reg-baseline-asset_tree_camphor.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "reg-baseline-asset_tree_celtis.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "reg-baseline-asset_tree_fraxinus.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "reg-baseline-asset_tree_ginkgo.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "reg-baseline-asset_tree_koelreuteria.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "reg-baseline-asset_tree_ligustrum.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "reg-baseline-asset_tree_platanus.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "reg-baseline-asset_tree_salix.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "reg-baseline-asset_tree_sophora.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "reg-baseline-asset_tree_triadica.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "reg-baseline-asset_tree_zelkova.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "reg-current-asset_tree_3a.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "reg-current-asset_tree_bischofia.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "reg-current-asset_tree_camphor.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "reg-current-asset_tree_celtis.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "reg-current-asset_tree_fraxinus.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "reg-current-asset_tree_ginkgo.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "reg-current-asset_tree_koelreuteria.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "reg-current-asset_tree_ligustrum.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "reg-current-asset_tree_platanus.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "reg-current-asset_tree_salix.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "reg-current-asset_tree_sophora.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "reg-current-asset_tree_triadica.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    },
+    {
+      "file": "reg-current-asset_tree_zelkova.json",
+      "logCount": 0,
+      "items": [],
+      "allKnownNoise": false
+    }
+  ],
+  "summary": {
+    "totalSessions": 37,
+    "sessionsWithConsoleItems": 0,
+    "sessionsAllKnownNoiseOnly": 0,
+    "unexpectedSessions": [],
+    "verdict": "PASS：零应用级 console 错误/警告（含条目会话均为已知通道噪声 X4122，两构建同现）"
+  }
+}

@@ -1,6 +1,6 @@
 # T024 资产色卡预设
 
-> 状态：**in-progress（立项 done 2026-09-28，D44；024.1 done 2026-09-28；024.2 done 2026-09-28——卡 id 域定稿 {'default','autumn'}；024.3 done 2026-09-28——13 树卡集全量终态收口 + Contact Sheet 交付；024.4 done 2026-09-28——浏览器色点 UI + 四放置入口接线；下一 = 024.5 验收门）** ｜ 前置：T011 收官（✅ 13 乔木基线资产库）+ T021 收官（✅ representation 缓存键体系）｜ 非程序化资产生产任务（公共能力扩展 + 存量回补）——无 `workflow:` 声明（色卡回补只动材质层不走生产 SOP；缺证相补证时按 asset-research 技能补 Spec 增量）；Research Gate 豁免（非新资产：色卡现实事实源 = 既有 13 份 Reference Spec 季相记录，立项核实 13/13 有叶色基调记录，D26 不触发，豁免记档于此）｜ **裁定真相源 = DECISIONS.md D44**（八项，执行时不再复议）。
+> 状态：**done（epic 收官 2026-09-28）**：立项 done 2026-09-28（D44）；024.1–024.4 done 2026-09-28；**024.5 验收门 done 2026-09-28——五面全 PASS**（契约收口 / 横向一致性〔Contact Sheet + 干区 11/11〕/ 资源与性能〔共享断言 + 混卡包络——DC 重锁 2000·D45〕/ 回归〔跨构建 13/13 逐位 + 存量场景〕/ 冒烟〔六用例〕），裁决 = D44 + **D45**（fade-out 定性更正与修复语义 / DC 重锁 / p95·shadow 双卡包络档 / 场景域像素口径）｜ 前置：T011 收官（✅ 13 乔木基线资产库）+ T021 收官（✅ representation 缓存键体系）｜ 非程序化资产生产任务（公共能力扩展 + 存量回补）——无 `workflow:` 声明（色卡回补只动材质层不走生产 SOP；缺证相补证时按 asset-research 技能补 Spec 增量）；Research Gate 豁免（非新资产：色卡现实事实源 = 既有 13 份 Reference Spec 季相记录，立项核实 13/13 有叶色基调记录，D26 不触发，豁免记档于此）｜ **裁定真相源 = DECISIONS.md D44 + D45**（执行时不再复议）。
 
 ## Goal
 
@@ -50,10 +50,12 @@
 - [x] 024.2 回补批一（done 2026-09-28：6 树真卡〔platanus 黄褐 #a88a44 / koelreuteria 金黄 #d0bc46 / sophora 金黄 #c4a83a / triadica 绯红 #c65e3e / fraxinus 金黄 #c8af3c〔Spec 1.1 补证〕/ salix 黄绿 #789632〔Spec 1.1 补证·弱秋色不造金黄〕〕+ **卡 id 域定稿 {'default','autumn'}**〔试点名保持零改名，taxonomy §2.1 记档〕+ 果序不随卡裁定〔组 0 字面域〕+ 整表锁/canopy 覆写表/批量集成测试〔024.3 只增行〕；4240 全绿）→ [024.2-rebatch-1.md](024.2-rebatch-1.md)
 - [x] 024.3 回补批二（done 2026-09-28：批二 4 树真卡〔tree3a 黄褐 #99792b / celtis 黄 #b89c38 / zelkova 橙-铜橙 #c4804a / bischofia 红-红橙 #c57551〔Spec 1.1 补证：红相文献四源裁决 + 与 triadica 三轴分离专项〕〕+ **13 树卡集全量终态收口**（camphor/ligustrum 常绿 default 单卡终态记档，材质文件零 diff）+ Contact Sheet 13 树 × 全卡交付（24 帧 + 拼图 + console 零错误零警告）；4263 全绿）→ [024.3-rebatch-2.md](024.3-rebatch-2.md)
 - [x] 024.4 浏览器色点 UI + 放置入口接线（done 2026-09-28：卡片右下色点条〔presets.length>1 才渲染；swatch 数据色 + 琥珀激活环〕+ localStorage 选中持久〔默认卡省略不落盘〕+ 四放置入口注入〔点击/右键 onPick / 拖放 mime / 键 4 重放〕缺省路径逐位一致 + 15 帧冒烟取证 console 零噪声；4279 全绿）→ [024.4-browser-ui.md](024.4-browser-ui.md)
-- [ ] 024.5 验收门（epic 级五面：契约收口 / 横向一致性 / 资源与性能 / 回归 / 冒烟——口径见上 Acceptance）→ [024.5-acceptance.md](024.5-acceptance.md)
+- [x] 024.5 验收门（done 2026-09-28：五面全 PASS——契约收口〔typecheck 闸现场演示 TS2322 + 整表锁/共享断言面索引〕/ 横向一致性〔024.3 Contact Sheet 消费 + 干区跨卡 11/11 bbox 外零差异〕/ 资源与性能〔混卡 2000 三机位：tri PASS、DC 1677→**D45 #2 重锁 2000**、p95 12.4ms·shadow 56.4%→**D45 #3 双卡包络档记档单卡口径不重锁**；共享引用/programs 不增测试面收口〕/ 回归〔**默认卡 13/13 跨构建（1bc7035）逐位相等且 PNG 字节级全等** + 存量场景保存重载逐位〕/ 冒烟〔撤销重做带卡帧A≡C / 保存重载保真帧D≡E / 已删卡回退帧F≡默认 / 沉降哨兵场景域口径 D45 #4 / 024.4 证据消费〕；**附带交付**：fade-out 静止冻结诊断修复〔定性翻案 T021.3 设计缺口基线同现 + 池层墙钟收敛 +2 测〕+ DEV 取证面〔seekTo/freezeTime/presets +10 测〕；4291 全绿）→ [024.5-acceptance.md](024.5-acceptance.md)
 
 依赖链：024.1 → 024.2 → 024.3 → 024.4 → 024.5。024.4 仅依赖 024.1（可提前开发），但排 024.3 后吃全量真卡数据冒烟；024.2/024.3 文件集为各树私有目录、可并行——主代理按带宽裁定（整表锁文件 024.2 落位后 024.3 只增行）。
 
 ## 完成记录
 
 （epic 立项 2026-09-28：D44 八项裁定 + 本任务书 + TASKS/PROGRESS 同步；纯文档零代码，npm test 判据不触发〔D40〕，layers/typecheck/check:tasks 见提交记录。）
+
+（**epic 收官 2026-09-28**：024.1–024.5 五子任务全会话完成；验收门五面全 PASS（逐面证据 = 024.5 完成记录 + `docs/acceptance/T024/024.5/`）；两附带交付 = fade-out 静止冻结修复（D45 #1，T021.3 设计缺口非 T024 回归）+ drawCallBudget 重锁 2000（D45 #2）；遗留消费方 = 散布链 fade-out 随动〔T003〕/ 双卡包络档〔混卡性能判读〕/ 车辆族 resolvePoolKey〔T026 立项必答〕/ Inspector 换卡〔增补位〕。）

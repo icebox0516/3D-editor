@@ -1278,3 +1278,127 @@ describe('InstancedAssetPool：customDepthMaterial 挂载（T009.5）', () => {
     depthDispose.mockRestore();
   });
 });
+
+describe('InstancedAssetPool：静止相机 fade-out 有限帧完成（T024.5 回归锁）', () => {
+  /** 半径恰 1、球心原点的钉球源（fov 90° → m = 视距；选档确定性） */
+  function makeLodSource(): InstanceSource {
+    const geometry = new THREE.BoxGeometry(1, 1, 1);
+    geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), 1);
+    return { geometry, material: new THREE.MeshStandardMaterial({ color: 0x2e8b57 }) };
+  }
+
+  function makeLodPool() {
+    const sources = new Map<string, InstanceSource>();
+    const provider: InstanceSourceProvider = vi.fn(async (_assetId, _seed, representation) => {
+      const rep = representation ?? 'high';
+      let source = sources.get(rep);
+      if (!source) {
+        source = makeLodSource();
+        sources.set(rep, source);
+      }
+      return source;
+    });
+    const pool = new InstancedAssetPool({
+      provideSource: provider,
+      getRepresentationCapability: () => ({ representations: ['high', 'mid', 'canopy'] }),
+    });
+    return { pool, provider, sources };
+  }
+
+  function axisModel(id: ID, x: number): ModelObject {
+    return makeModel(id, 'asset_tree', {
+      position: { x, y: 0, z: 0 },
+      rotation: { x: 0, y: 0, z: 0 },
+      scale: { x: 1, y: 1, z: 1 },
+    });
+  }
+
+  function cameraAt(x: number): THREE.PerspectiveCamera {
+    const camera = new THREE.PerspectiveCamera(90, 1, 0.5, 100000);
+    camera.position.set(x, 0, 0);
+    return camera;
+  }
+
+  it('跨距拉远级联后，退场带内实例在有限帧内完成 →culled（fadeFloor 驱动），相机回靠恢复可见', async () => {
+    const { pool, sources } = makeLodPool();
+    // x 轴布点（m = 到相机距离）：setup 机位 30 → band@67 m=37 canopy / near@42 m=12 mid /
+    // dith@18 m=12 mid / far@130 m=100 超远（high 起步硬切 cull 瞬时）
+    pool.attach(axisModel('band', 67));
+    pool.attach(axisModel('near', 42));
+    pool.attach(axisModel('dith', 18));
+    pool.attach(axisModel('far', 130));
+    await flush();
+    const setup = cameraAt(30);
+    pool.frameLod(setup, true); // 首评（canopy/mid 源未就绪排队）
+    await flush();
+    pool.frameLod(setup, true); // 到达迁移收敛
+    await flush();
+    pool.frameLod(setup, true);
+    const settled = pool.getLodDistribution();
+    expect(settled.transition.instances).toBe(0); // setup 机位稳态（无带内实例）
+    expect(settled.instances.culled).toBe(1); // far：硬切 cull 不受驱动影响（dt=0 亦瞬时）
+
+    // 拉远到 0：band m=67 ∈ (60,75) 退场带 → fade-out f≈0.467 激活（metric 步进冻结态）
+    const pulled = cameraAt(0);
+    pool.frameLod(pulled, true);
+    await flush();
+    pool.frameLod(pulled, true);
+    const frozen = pool.getLodDistribution();
+    expect(frozen.transition.instances).toBe(2); // band（fade）+ dith（dither 带内 m=18）
+    expect(frozen.transition.dualSubmitBuckets).toBe(1); // dith 客座（fade-out 无客座）
+    expect(frozen.instances.culled).toBe(1);
+
+    // 相机静止 + 帧时长驱动：退场在有限墙钟内完成（0.5s 预算，60fps ≈ 17 帧 + 余量）
+    const dt = 1 / 60;
+    for (let i = 0; i < 24; i++) pool.frameLod(pulled, true, undefined, dt);
+    const completed = pool.getLodDistribution();
+    expect(completed.transition.instances).toBe(1); // 仅剩 dith（dither 带内稳态语义不变）
+    expect(completed.instances.culled).toBe(2); // band 完成退场 → culled
+    expect(completed.instances.canopy).toBe(1); // near 已完成 dither 迁移
+    // 退场完成 = aFadeOut 写 1（canopy 桶网格 fade 缓冲存在且含完成值；mid 桶网格
+    // 亦有缓冲〔dither 属主侧 0.5〕——跨网格查找完成值）
+    const fadeArrays = pool.root.children
+      .map((c) => (c as THREE.Mesh).geometry?.getAttribute?.('aFadeOut')?.array as Float32Array | undefined)
+      .filter((a): a is Float32Array => a !== undefined);
+    expect(fadeArrays.length).toBeGreaterThanOrEqual(1);
+    expect(fadeArrays.some((a) => Array.from(a).some((v) => v === 1))).toBe(true);
+
+    // 相机回靠：band 决策回 canopy → 既有无锁存回显（culled 解除、floor 复位、可见）
+    const back = cameraAt(90);
+    pool.frameLod(back, true);
+    await flush();
+    pool.frameLod(back, true, undefined, dt);
+    const restored = pool.getLodDistribution();
+    expect(restored.instances.culled).toBe(1); // 仅 dith（m=72 超远，mid 起步硬切 cull）
+    expect(restored.instances.canopy).toBe(3); // band + near + far 全部回显/迁入
+
+    pool.dispose();
+    for (const source of sources.values()) {
+      source.geometry.dispose();
+      (source.material as THREE.Material).dispose();
+    }
+  });
+
+  it('metric 步进语义守卫：dt 缺省（=0）时静止相机不推进退场——移动期/手动驱动行为逐位不变', async () => {
+    const { pool, sources } = makeLodPool();
+    pool.attach(axisModel('band', 67));
+    await flush();
+    const setup = cameraAt(30);
+    pool.frameLod(setup, true);
+    await flush();
+    pool.frameLod(setup, true);
+    await flush();
+    const pulled = cameraAt(0);
+    pool.frameLod(pulled, true);
+    await flush();
+    pool.frameLod(pulled, true);
+    expect(pool.getLodDistribution().transition.instances).toBe(1);
+    for (let i = 0; i < 40; i++) pool.frameLod(pulled, true); // 不传 dt —— 驱动整体旁路
+    expect(pool.getLodDistribution().transition.instances).toBe(1); // 退场带内稳态保持
+    pool.dispose();
+    for (const source of sources.values()) {
+      source.geometry.dispose();
+      (source.material as THREE.Material).dispose();
+    }
+  });
+});

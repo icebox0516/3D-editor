@@ -1,0 +1,96 @@
+[addendum] shadowAB@far449 costRatio=24.1% (off 305.9 / on 232.2)
+{
+  "result": {
+    "camera": {
+      "distance": 449,
+      "order": "view-then-place (spawn-at-target)"
+    },
+    "settle": {
+      "settled": true,
+      "polls": 5,
+      "settleMs": 2500
+    },
+    "pre": {
+      "stats": {
+        "drawCalls": 801,
+        "triangles": 1877474,
+        "geometries": 233,
+        "textures": 5,
+        "programs": 111,
+        "objects": 2000
+      },
+      "distribution": {
+        "instances": {
+          "high": 0,
+          "mid": 15,
+          "low": 0,
+          "canopy": 1769,
+          "culled": 216
+        },
+        "buckets": {
+          "high": 0,
+          "mid": 14,
+          "low": 0,
+          "canopy": 192,
+          "culled": 86
+        },
+        "transitionInstances": 0,
+        "transitionTargets": {
+          "high": 0,
+          "mid": 0,
+          "low": 0,
+          "canopy": 0,
+          "culled": 0
+        },
+        "shadowCasterInstances": 1784,
+        "transition": {
+          "instances": 0,
+          "buckets": 0,
+          "dualSubmitBuckets": 0
+        }
+      },
+      "programs": 111
+    },
+    "off": {
+      "sample": {
+        "fps": 305.8776489404238,
+        "mean": 3.2692810457516344,
+        "p50": 2.900000000001455,
+        "p95": 4.899999999997817,
+        "max": 16.899999999999636,
+        "frames": 1224
+      },
+      "stats": {
+        "drawCalls": 415,
+        "triangles": 996487,
+        "geometries": 233,
+        "textures": 5,
+        "programs": 152,
+        "objects": 2000
+      }
+    },
+    "on": {
+      "sample": {
+        "fps": 232.20936336141168,
+        "mean": 4.306458557588806,
+        "p50": 3.899999999997817,
+        "p95": 6.799999999999272,
+        "max": 17,
+        "frames": 929
+      },
+      "stats": {
+        "drawCalls": 801,
+        "triangles": 1877474,
+        "geometries": 233,
+        "textures": 5,
+        "programs": 154,
+        "objects": 2000
+      }
+    },
+    "post": {
+      "programs": 154
+    },
+    "costRatio": 0.24084232971648278
+  },
+  "consoleLogs": []
+}

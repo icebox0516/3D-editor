@@ -1,0 +1,400 @@
+[probe] A dual cascade tInst seq: 225/27 225/27 225/27 225/27 225/27 225/27 225/27 225/27 225/27 225/27
+[probe] D frozen-recover tInst seq: 298 298 298 298 298
+[probe] B single cascade tInst seq: 296/37 296/37 296/37 296/37 296/37 296/37 296/37 296/37 296/37 296/37
+[probe] C spawn-at-449 tInst/culled seq: 0/216 0/216 0/216 0/216 0/216
+{
+  "result": {
+    "A_dualCascade_nearGate": {
+      "settled": false,
+      "polls": 61,
+      "settleMs": 30500,
+      "tInst": 196
+    },
+    "A_dualCascade_watch": [
+      {
+        "t": 1000,
+        "dc": 503,
+        "tri": 2519052,
+        "tInst": 225,
+        "dual": 36,
+        "culled": 27,
+        "canopy": 1923,
+        "mid": 50,
+        "high": 0
+      },
+      {
+        "t": 2000,
+        "dc": 503,
+        "tri": 2519052,
+        "tInst": 225,
+        "dual": 36,
+        "culled": 27,
+        "canopy": 1923,
+        "mid": 50,
+        "high": 0
+      },
+      {
+        "t": 3000,
+        "dc": 503,
+        "tri": 2519052,
+        "tInst": 225,
+        "dual": 36,
+        "culled": 27,
+        "canopy": 1923,
+        "mid": 50,
+        "high": 0
+      },
+      {
+        "t": 4000,
+        "dc": 503,
+        "tri": 2519052,
+        "tInst": 225,
+        "dual": 36,
+        "culled": 27,
+        "canopy": 1923,
+        "mid": 50,
+        "high": 0
+      },
+      {
+        "t": 5000,
+        "dc": 503,
+        "tri": 2519052,
+        "tInst": 225,
+        "dual": 36,
+        "culled": 27,
+        "canopy": 1923,
+        "mid": 50,
+        "high": 0
+      },
+      {
+        "t": 6000,
+        "dc": 503,
+        "tri": 2519052,
+        "tInst": 225,
+        "dual": 36,
+        "culled": 27,
+        "canopy": 1923,
+        "mid": 50,
+        "high": 0
+      },
+      {
+        "t": 7000,
+        "dc": 503,
+        "tri": 2519052,
+        "tInst": 225,
+        "dual": 36,
+        "culled": 27,
+        "canopy": 1923,
+        "mid": 50,
+        "high": 0
+      },
+      {
+        "t": 8000,
+        "dc": 503,
+        "tri": 2519052,
+        "tInst": 225,
+        "dual": 36,
+        "culled": 27,
+        "canopy": 1923,
+        "mid": 50,
+        "high": 0
+      },
+      {
+        "t": 9000,
+        "dc": 503,
+        "tri": 2519052,
+        "tInst": 225,
+        "dual": 36,
+        "culled": 27,
+        "canopy": 1923,
+        "mid": 50,
+        "high": 0
+      },
+      {
+        "t": 10000,
+        "dc": 503,
+        "tri": 2519052,
+        "tInst": 225,
+        "dual": 36,
+        "culled": 27,
+        "canopy": 1923,
+        "mid": 50,
+        "high": 0
+      }
+    ],
+    "D_frozenRecover_watch": [
+      {
+        "t": 1000,
+        "dc": 1003,
+        "tri": 15694522,
+        "tInst": 298,
+        "dual": 298,
+        "culled": 0,
+        "canopy": 1659,
+        "mid": 234,
+        "high": 107
+      },
+      {
+        "t": 2000,
+        "dc": 1003,
+        "tri": 15694522,
+        "tInst": 298,
+        "dual": 298,
+        "culled": 0,
+        "canopy": 1659,
+        "mid": 234,
+        "high": 107
+      },
+      {
+        "t": 3000,
+        "dc": 1003,
+        "tri": 15694522,
+        "tInst": 298,
+        "dual": 298,
+        "culled": 0,
+        "canopy": 1659,
+        "mid": 234,
+        "high": 107
+      },
+      {
+        "t": 4000,
+        "dc": 1003,
+        "tri": 15694522,
+        "tInst": 298,
+        "dual": 298,
+        "culled": 0,
+        "canopy": 1659,
+        "mid": 234,
+        "high": 107
+      },
+      {
+        "t": 5000,
+        "dc": 1003,
+        "tri": 15694522,
+        "tInst": 298,
+        "dual": 298,
+        "culled": 0,
+        "canopy": 1659,
+        "mid": 234,
+        "high": 107
+      }
+    ],
+    "B_singleCascade_nearGate": {
+      "settled": true,
+      "polls": 4,
+      "settleMs": 2000
+    },
+    "B_singleCascade_watch": [
+      {
+        "t": 1000,
+        "dc": 49,
+        "tri": 2307486,
+        "tInst": 296,
+        "dual": 23,
+        "culled": 37,
+        "canopy": 1936,
+        "mid": 27,
+        "high": 0
+      },
+      {
+        "t": 2000,
+        "dc": 49,
+        "tri": 2307486,
+        "tInst": 296,
+        "dual": 23,
+        "culled": 37,
+        "canopy": 1936,
+        "mid": 27,
+        "high": 0
+      },
+      {
+        "t": 3000,
+        "dc": 49,
+        "tri": 2307486,
+        "tInst": 296,
+        "dual": 23,
+        "culled": 37,
+        "canopy": 1936,
+        "mid": 27,
+        "high": 0
+      },
+      {
+        "t": 4000,
+        "dc": 49,
+        "tri": 2307486,
+        "tInst": 296,
+        "dual": 23,
+        "culled": 37,
+        "canopy": 1936,
+        "mid": 27,
+        "high": 0
+      },
+      {
+        "t": 5000,
+        "dc": 49,
+        "tri": 2307486,
+        "tInst": 296,
+        "dual": 23,
+        "culled": 37,
+        "canopy": 1936,
+        "mid": 27,
+        "high": 0
+      },
+      {
+        "t": 6000,
+        "dc": 49,
+        "tri": 2307486,
+        "tInst": 296,
+        "dual": 23,
+        "culled": 37,
+        "canopy": 1936,
+        "mid": 27,
+        "high": 0
+      },
+      {
+        "t": 7000,
+        "dc": 49,
+        "tri": 2307486,
+        "tInst": 296,
+        "dual": 23,
+        "culled": 37,
+        "canopy": 1936,
+        "mid": 27,
+        "high": 0
+      },
+      {
+        "t": 8000,
+        "dc": 49,
+        "tri": 2307486,
+        "tInst": 296,
+        "dual": 23,
+        "culled": 37,
+        "canopy": 1936,
+        "mid": 27,
+        "high": 0
+      },
+      {
+        "t": 9000,
+        "dc": 49,
+        "tri": 2307486,
+        "tInst": 296,
+        "dual": 23,
+        "culled": 37,
+        "canopy": 1936,
+        "mid": 27,
+        "high": 0
+      },
+      {
+        "t": 10000,
+        "dc": 49,
+        "tri": 2307486,
+        "tInst": 296,
+        "dual": 23,
+        "culled": 37,
+        "canopy": 1936,
+        "mid": 27,
+        "high": 0
+      }
+    ],
+    "C_spawnAtFar_watch": [
+      {
+        "t": 1000,
+        "dc": 445,
+        "tri": 1905804,
+        "tInst": 0,
+        "dual": 0,
+        "culled": 216,
+        "canopy": 1769,
+        "mid": 15,
+        "high": 0
+      },
+      {
+        "t": 2000,
+        "dc": 445,
+        "tri": 1905804,
+        "tInst": 0,
+        "dual": 0,
+        "culled": 216,
+        "canopy": 1769,
+        "mid": 15,
+        "high": 0
+      },
+      {
+        "t": 3000,
+        "dc": 445,
+        "tri": 1905804,
+        "tInst": 0,
+        "dual": 0,
+        "culled": 216,
+        "canopy": 1769,
+        "mid": 15,
+        "high": 0
+      },
+      {
+        "t": 4000,
+        "dc": 445,
+        "tri": 1905804,
+        "tInst": 0,
+        "dual": 0,
+        "culled": 216,
+        "canopy": 1769,
+        "mid": 15,
+        "high": 0
+      },
+      {
+        "t": 5000,
+        "dc": 445,
+        "tri": 1905804,
+        "tInst": 0,
+        "dual": 0,
+        "culled": 216,
+        "canopy": 1769,
+        "mid": 15,
+        "high": 0
+      }
+    ],
+    "C_final": {
+      "stats": {
+        "drawCalls": 445,
+        "triangles": 1905804,
+        "geometries": 462,
+        "textures": 5,
+        "programs": 146,
+        "objects": 2000
+      },
+      "distribution": {
+        "instances": {
+          "high": 0,
+          "mid": 15,
+          "low": 0,
+          "canopy": 1769,
+          "culled": 216
+        },
+        "buckets": {
+          "high": 0,
+          "mid": 11,
+          "low": 0,
+          "canopy": 104,
+          "culled": 63
+        },
+        "transitionInstances": 0,
+        "transitionTargets": {
+          "high": 0,
+          "mid": 0,
+          "low": 0,
+          "canopy": 0,
+          "culled": 0
+        },
+        "shadowCasterInstances": 1784,
+        "transition": {
+          "instances": 0,
+          "buckets": 0,
+          "dualSubmitBuckets": 0
+        }
+      }
+    }
+  },
+  "consoleLogs": [
+    "console.warning: THREE.WebGLProgram: Program Info Log: (210,81-129): warning X4122: sum of 0.996094 and -2.98545e-017 cannot be represented accurately in double precision\n(209,37-61): warning X4122: sum of 1 and -1.49272e-017 cannot be represented accurately in double precision\n(210,82-106): warning X4122: sum of 1 and -1.49272e-017 cannot be represented accurately in double precision\n(209,37-61): warning X4122: sum of 1 and -1.66644e-018 cannot be represented accurately in double precision\n(210,82-106): warning X4122: sum of 1 and -1.66644e-018 cannot be represented accurately in double precision"
+  ]
+}

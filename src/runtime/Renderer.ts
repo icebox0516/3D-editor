@@ -297,6 +297,9 @@ export class Renderer {
    * 事务构建创建（新路径失败时本字段保持 null——legacy 分支无 sky），clearEnvironment 释放。
    */
   private sky: SkyCore | null = null;
+  /** 上一帧 performance.now()（T024.5：renderFrame 帧时长 dt 派生基——放置链静止相机
+   *  fade-out 完成驱动的唯一消费面；0 = 首帧未计，dt 派生 0） */
+  private lastFrameMs = 0;
   /**
    * PMREM / IBL 环境贴图（T018.2）：bakeScene → PMREMGenerator.fromScene →
    * scene.environment 的事务管理者（新 RT 就绪 → 替换 → 旧 RT 释放 + owned/retired
@@ -385,8 +388,9 @@ export class Renderer {
    */
   private lodEnabled = true;
   /**
-   * draw call 预算告警（T006.4；预算值 021.8 重测重锁 1500，D41 §九）：每帧 render
-   * 后喂 renderer.info.render.calls，超 BATCH_POLICY.drawCallBudget 且过节流间隔
+   * draw call 预算告警（T006.4；预算值 021.8 重锁 1500 → 024.5 双卡混植重锁 2000，
+   * D41 §九 / D45）：每帧 render 后喂 renderer.info.render.calls，超
+   * BATCH_POLICY.drawCallBudget 且过节流间隔
    * 告警一次（console 日志侧；状态栏 UI 不在本任务）。纯观测面——不做运行时降级
    * （降级手段归档位策略，006.5 验收门裁定）。
    */
@@ -918,7 +922,12 @@ export class Renderer {
     // T021.7 编辑态 pin（D41 §十二）：组合根装配的四类编辑目标并集每帧派生（零缓存），
     // 透传放置链逐对象合成（散布链无对象身份不消费）；未注入 = undefined（池内快进零开销）
     const editingPinIds = this.deps.getEditingPinIds?.();
-    this.instancedPool?.frameLod(this.camera, this.lodEnabled, editingPinIds); // 放置逐对象 LOD 选档与跨桶迁移（T006.3；无池对象 O(1) 早退）
+    // T024.5：帧时长透传放置链（唯一消费面 = 静止相机 fade-out 完成驱动——移动期
+    // metric 步进语义零变化；钳 0.1s 抑制标签页恢复等非典型跳帧的一次性大步进）
+    const nowMs = performance.now();
+    const dtSeconds = this.lastFrameMs > 0 ? Math.min((nowMs - this.lastFrameMs) / 1000, 0.1) : 0;
+    this.lastFrameMs = nowMs;
+    this.instancedPool?.frameLod(this.camera, this.lodEnabled, editingPinIds, dtSeconds); // 放置逐对象 LOD 选档与跨桶迁移（T006.3；无池对象 O(1) 早退）
     if (this.renderModes.current === 'shaded') {
       // 着色模式：单遍照旧（零开销零回归）；相机开全 layer（内容 0 + 环境 2 + 辅助 3 + 诊断 4）
       this.camera.layers.enableAll();

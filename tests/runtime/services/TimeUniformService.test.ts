@@ -8,6 +8,9 @@
  * - 共享材质幂等：同一材质挂多个 Mesh 重复命中写同值无害；
  * - 帧入口 frame(now, root) = advance + apply 组合；
  * - 既有消费者：一期 shader_test 预设（test.shader）材质挂场景后自动被驱动。
+ * - T024.5 验收门取证（seekTo 确定性定位）：冻结态定位后 advance 恒返回该值（下游
+ *   uTime 恒为 t）/ 非冻结态跳变后重建基准继续累计（定位处零贡献）/ freeze→seekTo→
+ *   unfreeze 不回补（冻结期壁钟差零并入）。
  * 边界：node 纯对象（场景图 + 材质可无 WebGL 构造），不渲染。
  */
 import { describe, expect, it } from 'vitest';
@@ -109,5 +112,46 @@ describe('既有消费者：一期 shader_test 预设（test.shader）', () => {
       (instance.material as THREE.Material).dispose();
       geometry.dispose();
     }
+  });
+});
+
+describe('T024.5 验收门取证：seekTo 确定性定位（跨会话/跨构建逐位像素对比依赖）', () => {
+  it('冻结态 seekTo 定位后保持冻结：advance 恒返回该值，apply 写入 uTime 恒为 t', () => {
+    const clock = new TimeUniformService();
+    clock.advance(1000);
+    clock.advance(3500); // 先走一段（定位前状态无关紧要）
+    clock.freeze();
+    clock.seekTo(7.25);
+    expect(clock.elapsed).toBe(7.25);
+    // 冻结态下任意时间戳/任意帧数：恒为定位值（时钟停走 + 定位幂等可重定位）
+    expect(clock.advance(4000)).toBe(7.25);
+    expect(clock.advance(99999)).toBe(7.25);
+    clock.seekTo(3); // 幂等重定位
+    expect(clock.advance(100000)).toBe(3);
+    // 下游 uTime 恒为 t（验收门取证口径：freeze+seekTo 后广播值确定）
+    const material = new THREE.ShaderMaterial({ uniforms: { uTime: { value: -1 } } });
+    clock.apply(new THREE.Scene().add(meshWith(material)));
+    expect(material.uniforms.uTime.value).toBe(3);
+  });
+
+  it('非冻结态 seekTo：跳变后下一帧重建基准（定位前后壁钟差零并入），从定位点继续累计', () => {
+    const clock = new TimeUniformService();
+    clock.advance(1000);
+    clock.advance(1500); // 0.5
+    clock.seekTo(10); // 非冻结跳变
+    expect(clock.elapsed).toBe(10);
+    expect(clock.advance(1600)).toBe(10); // 首帧建基准——0.1s 壁钟差不并入（换时间线语义）
+    expect(clock.advance(2100)).toBeCloseTo(10.5, 10); // 从定位点继续按帧差累计
+  });
+
+  it('freeze→seekTo→unfreeze 不回补：解冻首帧重建基准，冻结期积压壁钟差零并入', () => {
+    const clock = new TimeUniformService();
+    clock.advance(1000); // last=1000
+    clock.freeze();
+    clock.advance(5000); // 冻结帧：停走（真实壁钟持续前进，last 不更新）
+    clock.seekTo(3);
+    clock.unfreeze();
+    expect(clock.advance(9000)).toBe(3); // 8s 冻结壁钟差不一次性回补
+    expect(clock.advance(9500)).toBeCloseTo(3.5, 10); // 解冻后正常累计
   });
 });

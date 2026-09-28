@@ -1,0 +1,320 @@
+{
+  "generatedAt": "2026-09-28T12:14:29.113Z",
+  "method": "pngjs RGBA 全帧 diff → bbox 外扩 16px 安全带 → bbox 外零差异断言 + 热区图（冻结相位 2.5s，M25 机位，current 构建 5173）",
+  "trees": [
+    {
+      "assetId": "asset_tree_3a",
+      "dimensions": {
+        "width": 1292,
+        "height": 932
+      },
+      "diffPixels": 16784,
+      "bbox": {
+        "minX": 525,
+        "minY": 271,
+        "maxX": 765,
+        "maxY": 500
+      },
+      "bboxExpanded": {
+        "minX": 509,
+        "minY": 255,
+        "maxX": 781,
+        "maxY": 516,
+        "safetyBand": 16
+      },
+      "diffOutsideBbox": 0,
+      "diffInsideBbox": 16784,
+      "diffRatioInside": 0.234656,
+      "diffRatioOfFrame": 0.013939,
+      "heatmap": "asset_tree_3a-diff.png",
+      "passA": true,
+      "passB": true
+    },
+    {
+      "assetId": "asset_tree_celtis",
+      "dimensions": {
+        "width": 1292,
+        "height": 932
+      },
+      "diffPixels": 13438,
+      "bbox": {
+        "minX": 494,
+        "minY": 306,
+        "maxX": 799,
+        "maxY": 473
+      },
+      "bboxExpanded": {
+        "minX": 478,
+        "minY": 290,
+        "maxX": 815,
+        "maxY": 489,
+        "safetyBand": 16
+      },
+      "diffOutsideBbox": 0,
+      "diffInsideBbox": 13438,
+      "diffRatioInside": 0.198787,
+      "diffRatioOfFrame": 0.01116,
+      "heatmap": "asset_tree_celtis-diff.png",
+      "passA": true,
+      "passB": true
+    },
+    {
+      "assetId": "asset_tree_zelkova",
+      "dimensions": {
+        "width": 1292,
+        "height": 932
+      },
+      "diffPixels": 9624,
+      "bbox": {
+        "minX": 479,
+        "minY": 304,
+        "maxX": 769,
+        "maxY": 516
+      },
+      "bboxExpanded": {
+        "minX": 463,
+        "minY": 288,
+        "maxX": 785,
+        "maxY": 532,
+        "safetyBand": 16
+      },
+      "diffOutsideBbox": 0,
+      "diffInsideBbox": 9624,
+      "diffRatioInside": 0.121615,
+      "diffRatioOfFrame": 0.007992,
+      "heatmap": "asset_tree_zelkova-diff.png",
+      "passA": true,
+      "passB": true
+    },
+    {
+      "assetId": "asset_tree_ginkgo",
+      "dimensions": {
+        "width": 1292,
+        "height": 932
+      },
+      "diffPixels": 9462,
+      "bbox": {
+        "minX": 531,
+        "minY": 293,
+        "maxX": 702,
+        "maxY": 516
+      },
+      "bboxExpanded": {
+        "minX": 515,
+        "minY": 277,
+        "maxX": 718,
+        "maxY": 532,
+        "safetyBand": 16
+      },
+      "diffOutsideBbox": 0,
+      "diffInsideBbox": 9462,
+      "diffRatioInside": 0.181181,
+      "diffRatioOfFrame": 0.007858,
+      "heatmap": "asset_tree_ginkgo-diff.png",
+      "passA": true,
+      "passB": true
+    },
+    {
+      "assetId": "asset_tree_platanus",
+      "dimensions": {
+        "width": 1292,
+        "height": 932
+      },
+      "diffPixels": 31484,
+      "bbox": {
+        "minX": 454,
+        "minY": 96,
+        "maxX": 743,
+        "maxY": 495
+      },
+      "bboxExpanded": {
+        "minX": 438,
+        "minY": 80,
+        "maxX": 759,
+        "maxY": 511,
+        "safetyBand": 16
+      },
+      "diffOutsideBbox": 0,
+      "diffInsideBbox": 31484,
+      "diffRatioInside": 0.226334,
+      "diffRatioOfFrame": 0.026146,
+      "heatmap": "asset_tree_platanus-diff.png",
+      "passA": true,
+      "passB": true
+    },
+    {
+      "assetId": "asset_tree_koelreuteria",
+      "dimensions": {
+        "width": 1292,
+        "height": 932
+      },
+      "diffPixels": 12023,
+      "bbox": {
+        "minX": 521,
+        "minY": 214,
+        "maxX": 822,
+        "maxY": 540
+      },
+      "bboxExpanded": {
+        "minX": 505,
+        "minY": 198,
+        "maxX": 838,
+        "maxY": 556,
+        "safetyBand": 16
+      },
+      "diffOutsideBbox": 0,
+      "diffInsideBbox": 12023,
+      "diffRatioInside": 0.10027,
+      "diffRatioOfFrame": 0.009985,
+      "heatmap": "asset_tree_koelreuteria-diff.png",
+      "passA": true,
+      "passB": true
+    },
+    {
+      "assetId": "asset_tree_sophora",
+      "dimensions": {
+        "width": 1292,
+        "height": 932
+      },
+      "diffPixels": 7399,
+      "bbox": {
+        "minX": 519,
+        "minY": 227,
+        "maxX": 796,
+        "maxY": 546
+      },
+      "bboxExpanded": {
+        "minX": 503,
+        "minY": 211,
+        "maxX": 812,
+        "maxY": 562,
+        "safetyBand": 16
+      },
+      "diffOutsideBbox": 0,
+      "diffInsideBbox": 7399,
+      "diffRatioInside": 0.067806,
+      "diffRatioOfFrame": 0.006145,
+      "heatmap": "asset_tree_sophora-diff.png",
+      "passA": true,
+      "passB": true
+    },
+    {
+      "assetId": "asset_tree_triadica",
+      "dimensions": {
+        "width": 1292,
+        "height": 932
+      },
+      "diffPixels": 8256,
+      "bbox": {
+        "minX": 550,
+        "minY": 206,
+        "maxX": 791,
+        "maxY": 545
+      },
+      "bboxExpanded": {
+        "minX": 534,
+        "minY": 190,
+        "maxX": 807,
+        "maxY": 561,
+        "safetyBand": 16
+      },
+      "diffOutsideBbox": 0,
+      "diffInsideBbox": 8256,
+      "diffRatioInside": 0.080998,
+      "diffRatioOfFrame": 0.006856,
+      "heatmap": "asset_tree_triadica-diff.png",
+      "passA": true,
+      "passB": true
+    },
+    {
+      "assetId": "asset_tree_bischofia",
+      "dimensions": {
+        "width": 1292,
+        "height": 932
+      },
+      "diffPixels": 19888,
+      "bbox": {
+        "minX": 525,
+        "minY": 201,
+        "maxX": 791,
+        "maxY": 519
+      },
+      "bboxExpanded": {
+        "minX": 509,
+        "minY": 185,
+        "maxX": 807,
+        "maxY": 535,
+        "safetyBand": 16
+      },
+      "diffOutsideBbox": 0,
+      "diffInsideBbox": 19888,
+      "diffRatioInside": 0.189502,
+      "diffRatioOfFrame": 0.016516,
+      "heatmap": "asset_tree_bischofia-diff.png",
+      "passA": true,
+      "passB": true
+    },
+    {
+      "assetId": "asset_tree_fraxinus",
+      "dimensions": {
+        "width": 1292,
+        "height": 932
+      },
+      "diffPixels": 4383,
+      "bbox": {
+        "minX": 553,
+        "minY": 265,
+        "maxX": 763,
+        "maxY": 528
+      },
+      "bboxExpanded": {
+        "minX": 537,
+        "minY": 249,
+        "maxX": 779,
+        "maxY": 544,
+        "safetyBand": 16
+      },
+      "diffOutsideBbox": 0,
+      "diffInsideBbox": 4383,
+      "diffRatioInside": 0.060936,
+      "diffRatioOfFrame": 0.00364,
+      "heatmap": "asset_tree_fraxinus-diff.png",
+      "passA": true,
+      "passB": true
+    },
+    {
+      "assetId": "asset_tree_salix",
+      "dimensions": {
+        "width": 1292,
+        "height": 932
+      },
+      "diffPixels": 11535,
+      "bbox": {
+        "minX": 429,
+        "minY": 273,
+        "maxX": 832,
+        "maxY": 586
+      },
+      "bboxExpanded": {
+        "minX": 413,
+        "minY": 257,
+        "maxX": 848,
+        "maxY": 602,
+        "safetyBand": 16
+      },
+      "diffOutsideBbox": 0,
+      "diffInsideBbox": 11535,
+      "diffRatioInside": 0.076464,
+      "diffRatioOfFrame": 0.009579,
+      "heatmap": "asset_tree_salix-diff.png",
+      "passA": true,
+      "passB": true
+    }
+  ],
+  "summary": {
+    "total": 11,
+    "passACount": 11,
+    "passBCount": 11,
+    "allPass": true
+  }
+}
