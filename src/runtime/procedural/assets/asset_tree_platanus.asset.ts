@@ -44,14 +44,19 @@
  * 材质分层表（materialIndex → 部件 → 材质；配方在 ./tree/platanus/platanusMaterials
  *      ——park-shader-agent 并行交付，导出签名冻结（与 zelkova/ginkgoMaterials 同构）：
  *      createPlatanusLeafMaterial / createPlatanusBarkMaterial /
- *      createPlatanusLeafDepthMaterial，均 (level?: ProceduralLevel) => 材质）：
+ *      createPlatanusLeafDepthMaterial，均 (level?: ProceduralLevel) => 材质；
+ *      T024.2 起叶工厂追加可选 preset 尾参（createPlatanusLeafMaterial(level?, preset?)，
+ *      向后兼容）：
  *      0 树皮（主干+五级枝+底盖）—— createPlatanusBarkMaterial(level)：光滑斑块剥落
  *        三色带拼贴（「树皮光滑，大片块状脱落」FRPS Verified [1] + FOC "smooth,
  *        exfoliating in plates" [4]——新露斑奶油白-浅黄绿/过渡斑灰绿-橄榄/老斑灰褐-
  *        深褐多代并存、斑块 ≈1/8–1/12 干径细端 1/20 记档、大片地图状、六资产唯一
  *        「多色带地图拼贴」语言——vs 榉树暖色小片斑驳三重分化（色温/斑尺度/对比）；
  *        几何侧浅起伏 0.014/{3,5,6}/11 见 profile——斑驳主体在材质层）
- *      1 叶簇卡（L4/L5 末级枝疏簇烘焙）—— createPlatanusLeafMaterial(level)：中绿大
+ *      1 叶簇卡（L4/L5 末级枝疏簇烘焙）—— createPlatanusLeafMaterial(level,
+ *        preset)（T024.2：preset = 色卡 id，缺省/'default' = 现行中绿基调；'autumn' =
+ *        秋·黄褐——色值配方与 Spec §5/§6 证据链在 platanusMaterials 秋卡私有域，
+ *        冠变干不变——宿存果球归组 0 不随卡）：中绿大
  *        叶粗质基调（正面中绿/背面浅绿、近无毛无白粉 Verified [1][5][7]）+ SDF 掌状
  *        5 裂大叶（阔卵形宽 15–22cm、裂深典型 1/2（深端 2/3 记档）、中央裂片阔三角
  *        宽≈长渐尖、每裂片 0–2 粗齿、截形基、离基掌状 3 脉——Spec §4 Verified
@@ -70,7 +75,9 @@
  * 边界：每次调用 new 全部 geometry/material/深度材质（所有权随调用移交调用方，缓存会
  *      dispose，禁止模块级共享对象，D17）；不建模记档（Spec 有事实、本资产不表达）：
  *      掌状裂轮廓/裂深/裂片齿/离基三脉/截形基（归材质 SDF）、叶柄与叶柄下芽、托叶、
- *      小枝二色（嫩枝灰黄绒毛/老枝红褐——归材质层）、秋色黄褐、行道 pollard 抹头相、
+ *      小枝二色（嫩枝灰黄绒毛/老枝红褐——归材质层）、秋色黄褐（**T024.2 起经叶材质
+ *      色卡 'autumn' 表达**——季相不进几何/树皮维持「冠变干不变」，原「不建模记档」
+ *      的几何侧口径不变）、行道 pollard 抹头相、
  *      容许低位双主枝自然变体（终审 C-5 记档不建模——单干主导口径）、花/春相、品种
  *      窄化、果序宿存花柱刺状（归材质）——详见 platanusShapeProfile 模块头。
  * LOD（T011.5 三档交付，家族方法逐位复制）：build 透传 params.level（缺省 'high'——
@@ -121,7 +128,14 @@ export const meta: ProceduralAssetMeta = {
   // CanopySourceCache 经 broadleafCanopyProxy 工厂提供（021.6，恒 487 面）
   representations: ['high', 'mid', 'canopy'],
   taxonomy: { category: 'plant', family: 'broadleaf' }, // 阔叶家族契约第六实例（tree/broadleaf/，T010.1；悬铃木科（Platanaceae）被子植物按家族形态域归 broadleaf——落叶阔叶第三例，方法适配先例记档同榉树/银杏）
-  presets: [{ id: 'default', label: '默认', swatch: '#527e39' }], // 色卡占位（T024.1）：默认卡 = 现行材质基调；季相卡 024.2/024.3 按 Spec 证据回补（D44 #7 无证据不建卡）
+  // 色卡（T024.2 批一真卡，D44）：default = 现行中绿基调（swatch = 叶材质构造色
+  // #527e39——与 canopy crownColor 同源）；autumn = 秋·黄褐（NC "Fall color yellow-brown"
+  // + form-c 黄褐秋末相第三眼补强，Spec §5/§6 [7]）；色值配方在 platanusMaterials 秋卡
+  // 私有域（冠变干不变——皮/几何/宿存果球不动）
+  presets: [
+    { id: 'default', label: '默认', swatch: '#527e39' },
+    { id: 'autumn', label: '秋·黄褐', swatch: '#a88a44' }, // swatch = 秋卡基色（platanusMaterials PLATANUS_LEAF_PRESETS autumn 行同源——批一定稿 #a88a44）
+  ],
   proceduralProfile: {
     // 跨 8 槽细模包围盒实测带（T011.5 探针：h 11.53–12.79 / w 6.52–8.79）。
     // 物种锚 slot-0 ≈11.6m 高 / 7.95m 冠幅 / w-h 比 0.683（≈12m 中龄公园个体——主代理
@@ -154,8 +168,11 @@ export function build(params?: ProceduralBuildParams): InstanceSource {
   const level = params?.level ?? 'high';
   const rng = mulberry32(seed);
   const { geometry } = buildPlatanusGeometry(rng, profileForSeed(seed), level);
+  // params.preset = 色卡 id（T024.2 批一透传，D44 #1——冠变干不变）：仅叶材质消费；
+  // 皮材质与深度材质不传（干与果序不变；深度材质色无关、被 Runtime 跨卡共享——024.1 机制）
+  const preset = params?.preset;
   const bark = createPlatanusBarkMaterial(level); // 组 0（契约序 [皮, 叶]——mergeGeometries 层序；果序并入皮组，材质接口记档见模块头）
-  const leaf = createPlatanusLeafMaterial(level);
+  const leaf = createPlatanusLeafMaterial(level, preset);
   // 影 pass 叶影裁切走 InstanceSource 契约通道——工厂每次 new（build 契约「每次调用 new
   // 全部资源」天然满足），档位随 level 匹配；归源所有（缓存 dispose）
   return {

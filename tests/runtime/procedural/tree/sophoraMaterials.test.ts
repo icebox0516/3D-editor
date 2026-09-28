@@ -1017,3 +1017,86 @@ describe('TimeUniformService 兼容（冻结风相位——固定机位取证纪
     expect(materialUniformsOf(material).uTime!.value).toBeCloseTo(0.5, 10); // 静止在冻结帧
   });
 });
+
+describe('色卡 preset（T024.2——冠变干不变：叶基调随卡，皮（含串珠荚果域）/深度/风动/GLSL 零变化；program 不增红线）', () => {
+  it('autumn 卡存在：基色 = 秋·金黄 #c4a83a ≠ default #568a3e；Gold 域数值锚（hue 45–48°、R−G 25–32、G−B ≥105、加权亮度 160–175 深于栾淡金黄一档——NC "fall color Gold/Yellow, short-lived" [4] 单源权威建卡）', () => {
+    const autumn = track(createSophoraLeafMaterial('high', 'autumn'));
+    expect(autumn.color.getHex()).not.toBe(0x568a3e); // 卡存在（基色 ≠ default）
+    expect(autumn.color.getHex()).toBe(0xc4a83a); // 秋·金黄（工程合成：NC Gold/Yellow——024.2 立项裁定单源建卡成立〔门槛 = 有据〕；short-lived 时序语义不进静态卡）
+    // JS 数值锚镜像：sRGB hue（R 最大黄域分支）+ 变奏端点复合（端点被 program 红线冻结——复合读向须守金黄域）
+    const mul = (hex: number, m: readonly [number, number, number]): [number, number, number] => [
+      ((hex >> 16) & 0xff) * m[0],
+      ((hex >> 8) & 0xff) * m[1],
+      (hex & 0xff) * m[2],
+    ];
+    const hueOf = (c: readonly [number, number, number]): number => {
+      const max = Math.max(c[0], c[1], c[2]);
+      const min = Math.min(c[0], c[1], c[2]);
+      return max === min ? 0 : (60 * (c[1] - c[2])) / (max - min);
+    };
+    const base = mul(0xc4a83a, [1, 1, 1]);
+    const warm = mul(0xc4a83a, [1.05, 1.05, 0.93]); // 暖端复合 = 端点冻结下的最坏橙向
+    const cold = mul(0xc4a83a, [0.95, 1.0, 1.03]); // 冷端复合 = 残绿弱近似方向
+    expect(hueOf(base)).toBeGreaterThanOrEqual(45); // 金黄域
+    expect(hueOf(base)).toBeLessThanOrEqual(48);
+    expect(hueOf(warm)).toBeGreaterThanOrEqual(45); // 最坏橙向仍守金黄域（≥45° 不入橙）
+    expect(hueOf(cold)).toBeGreaterThan(hueOf(base)); // 冷端橄榄金向（残绿弱近似——取舍记档见表注释）
+    const luma = (c: readonly number[]): number => 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2];
+    expect(luma(base)).toBeGreaterThanOrEqual(160); // 锚域下沿
+    expect(luma(base)).toBeLessThanOrEqual(175); // 锚域上沿
+    expect(luma(base)).toBeLessThan(luma([0xd0, 0xbc, 0x46])); // Gold 深于栾淡金黄 #d0bc46 一档（任务书锚域读向）
+    expect(base[0] - base[1]).toBeGreaterThanOrEqual(25); // R−G Gold 褐分量
+    expect(base[0] - base[1]).toBeLessThanOrEqual(32);
+    expect(base[1] - base[2]).toBeGreaterThanOrEqual(105); // G−B 强黄向（Gold/Yellow 读向）
+  });
+
+  it('默认卡零变化（结构锁）：缺省 / 显式 default / 未知 id 回退——色值、键、GLSL 全文与现行一致', () => {
+    const variants = [
+      track(createSophoraLeafMaterial()),
+      track(createSophoraLeafMaterial('high')),
+      track(createSophoraLeafMaterial('high', 'default')),
+      track(createSophoraLeafMaterial('high', 'no-such-preset')), // 未知 id 回退 default（值域校验归 Renderer resolvePoolKey 单一 choke point——工厂不做双写校验）
+    ];
+    for (const material of variants) {
+      expect(material.color.getHex()).toBe(0x568a3e); // 现行数值（SOPHORA_LEAF_PRESETS.default 单一定义源）
+      expect(material.customProgramCacheKey()).toBe('sophora:leaf+dither'); // 键与现行一致
+    }
+    const base = assemble(variants[0]!, THREE.ShaderLib.physical);
+    for (const material of variants.slice(1)) {
+      const shader = assemble(material, THREE.ShaderLib.physical);
+      expect(shader.vertexShader).toBe(base.vertexShader); // GLSL 全文与现行一致
+      expect(shader.fragmentShader).toBe(base.fragmentShader);
+    }
+  });
+
+  it('program 不增红线：default 与 autumn 键相等且 GLSL 全文逐位相等（同键必同源——色值只走构造色 uniform 通道；透射/变奏域字面量跨卡冻结）', () => {
+    for (const level of ['high', 'mid', 'low'] as const) {
+      const base = track(createSophoraLeafMaterial(level));
+      const autumn = track(createSophoraLeafMaterial(level, 'autumn'));
+      expect(autumn.customProgramCacheKey()).toBe(base.customProgramCacheKey()); // 同键（programs 不增——D44 #3）
+      const a = assemble(base, THREE.ShaderLib.physical);
+      const b = assemble(autumn, THREE.ShaderLib.physical);
+      expect(b.vertexShader).toBe(a.vertexShader); // 同键 ⇒ GLSL 必须同源（Three.js 同键复用程序——异源 = 错挂程序暴雷路径）
+      expect(b.fragmentShader).toBe(a.fragmentShader);
+      expect(b.fragmentShader).toContain('vec3(0.95, 1.00, 1.03), vec3(1.05, 1.05, 0.93)'); // hue 两端跨卡冻结
+      if (level !== 'low') {
+        expect(b.fragmentShader).toContain('vec3(0.56, 0.92, 0.38)'); // 透射色跨卡冻结（灰绿黄维持——程序红线代价记档；Low 去透光注入故仅 high/mid 断言）
+      }
+    }
+  });
+
+  it('三档 level × autumn 组合不崩 + 基调-only（alphaTest/侧向/糙度/金属度与 default 一致——色卡不碰质地与叶形；串珠荚果域归皮材质组 0 不随卡——皮工厂无 preset 参）', () => {
+    for (const level of ['high', 'mid', 'low'] as const) {
+      const autumn = track(createSophoraLeafMaterial(level, 'autumn'));
+      const base = track(createSophoraLeafMaterial(level));
+      const shader = assemble(autumn, THREE.ShaderLib.physical); // 不崩 = 组装通过
+      expect(shader.fragmentShader).toContain('sopLeafAlpha('); // SDF 叶形照常（形态不随卡——冠变干不变）
+      expect(autumn.color.getHex()).not.toBe(base.color.getHex()); // 唯一差异 = 基调色
+      expect(autumn.alphaTest).toBe(base.alphaTest);
+      expect(autumn.alphaToCoverage).toBe(base.alphaToCoverage);
+      expect(autumn.side).toBe(base.side);
+      expect(autumn.roughness).toBe(base.roughness); // 无秋相质地证据——糙度不投机造数（记档）
+      expect(autumn.metalness).toBe(base.metalness);
+    }
+  });
+});

@@ -72,7 +72,9 @@
  * 材质分层表（materialIndex → 部件 → 材质；配方在 ./tree/fraxinus/fraxinusMaterials
  *      ——park-shader-agent 并行交付，导出签名冻结（与 sophoraMaterials 同构）：
  *      createFraxinusBarkMaterial / createFraxinusLeafMaterial /
- *      createFraxinusLeafDepthMaterial，均 (level?: ProceduralLevel) => 材质）：
+ *      createFraxinusLeafDepthMaterial，均 (level?: ProceduralLevel) => 材质；
+ *      T024.2 起叶工厂追加可选 preset 尾参（createFraxinusLeafMaterial(level?, preset?)，
+ *      向后兼容））：
  *      0 树皮 + 翅果（主干+五级枝+底盖+匙形翅果帘幕簇——**翅果入皮组：uv 果域
  *      标记 v∈[4,5] + u = 逐果色档**，材质按 v 域分流翅果配方）——
  *        createFraxinusBarkMaterial(level)：灰褐浅-中纵裂（浅细脊沟、无剥落无
@@ -80,7 +82,10 @@
  *        FRPS/照片多源；几何侧仅主干起伏浮雕 + 抬档地板下分枝管光滑）+ 匙形
  *        翅果域色序（嫩绿→黄绿→淡褐 + 桨形轮廓边缘微暗线 + 微透亮——u 通道）
  *      1 一回羽叶卡（L4/L5 末级枝 decussate 对生簇烘焙）——
- *        createFraxinusLeafMaterial(level)：中绿-亮绿细碎均质冠面基调（上面中绿
+ *        createFraxinusLeafMaterial(level, preset)（T024.2：preset = 色卡 id，
+ *        缺省/'default' = 现行中绿-亮绿基调；'autumn' = 秋·金黄——色值配方与
+ *        Spec 1.1 增量节证据链在 fraxinusMaterials 秋卡私有域〔主相金黄；盛末
+ *        褐黄末端不入卡〕，冠变干不变——翅果域归组 0 不随卡）：中绿-亮绿细碎均质冠面基调（上面中绿
  *        亮绿/下面浅绿-灰绿两面色差弱于国槐级归材质 [12]）+ **一回奇数羽叶 SDF
  *        对生严格变体**（小叶 5–7 枚 = 2–3 对严格对生窗列 + 顶生近等大 1.0–1.15×
  *        独立窗位 + 裸柄段更长 ≈0.28–0.35（v=0.285 起排）+ 缘整齐锐锯齿载波〔vs
@@ -100,8 +105,9 @@
  *      锐锯齿/两面色差——归材质 SDF）；**花**（圆锥花序 5–10cm/无花冠/萼 1–3mm
  *      ——Verified [1][2][12]，终审裁决 3 不做）；翅果色序细档与宿存冬态（归材质
  *      u 通道/风格层）；对生芽序（冬态-早春近景信号，夏绿相不建模）；嫩枝交互
- *      扁平（属级 Verified [5]——亚厘米级近景信号，归缺口候选）；秋色黄（记档不
- *      建模）；山地 gnarled 相（form-b 变体端）；subsp. rhynchophylla 北方亚种
+ *      扁平（属级 Verified [5]——亚厘米级近景信号，归缺口候选）；秋色黄（**T024.2 起
+ *      经叶材质色卡 'autumn' 表达**——Spec 1.1 增量补证主相金黄；季相不进几何/树皮
+ *      维持「冠变干不变」，原「记档不建模」的几何侧口径不变）；山地 gnarled 相（form-b 变体端）；subsp. rhynchophylla 北方亚种
  *      差分（Spec §6）；树皮皮孔与地衣绿斑（归材质层）；多干萌生相（萌发力强
  *      [1]——频率 Unknown，变体端不进 8 槽）——详见 fraxinusShapeProfile 模块头。
  * LOD（T011.10 三档交付，家族方法逐位复制自 sophora）：build 透传 params.level
@@ -158,7 +164,15 @@ export const meta: ProceduralAssetMeta = {
   // CanopySourceCache 经 broadleafCanopyProxy 工厂提供（021.6，恒 487 面）
   representations: ['high', 'mid', 'canopy'],
   taxonomy: { category: 'plant', family: 'broadleaf' }, // 阔叶家族契约第十一实例（tree/broadleaf/，T010.1；木犀科（Oleaceae）被子植物按家族形态域归 broadleaf——落叶阔叶第八例、复叶第四型（一回奇数羽状对生系首例），记档见资产模块头）
-  presets: [{ id: 'default', label: '默认', swatch: '#548840' }], // 色卡占位（T024.1）：默认卡 = 现行材质基调；季相卡 024.2/024.3 按 Spec 证据回补（D44 #7 无证据不建卡）
+  // 色卡（T024.2 批一真卡，D44）：default = 现行中绿-亮绿基调（swatch = 叶材质构造色
+  // #548840——与 canopy crownColor 同源）；autumn = 秋·金黄（Spec 1.1 增量：主相金黄
+  // hue 45–55°——[13] 秋叶金黄定性 + [15] iNat 双照〔张家口金黄 40–60° / 北京 >90% 褐黄
+  // 端〕；盛末褐黄末端不入卡）；色值配方在 fraxinusMaterials 秋卡私有域（冠变干不变
+  // ——皮/几何/翅果不动）
+  presets: [
+    { id: 'default', label: '默认', swatch: '#548840' },
+    { id: 'autumn', label: '秋·金黄', swatch: '#c8af3c' }, // swatch = 秋卡基色（fraxinusMaterials FRAXINUS_LEAF_PRESETS autumn 行同源——批一定稿 #c8af3c）
+  ],
   proceduralProfile: {
     // 跨 8 槽细模包围盒实测带（T011.10 终测 2026-09-22：h 8.57–10.50 / w 6.94–9.79，
     // 声明带外沿放宽——实测带全含）。
@@ -194,8 +208,11 @@ export function build(params?: ProceduralBuildParams): InstanceSource {
   const level = params?.level ?? 'high';
   const rng = mulberry32(seed);
   const { geometry } = buildFraxinusGeometry(rng, profileForSeed(seed), level);
+  // params.preset = 色卡 id（T024.2 批一透传，D44 #1——冠变干不变）：仅叶材质消费；
+  // 皮材质与深度材质不传（干与翅果域不变；深度材质色无关、被 Runtime 跨卡共享——024.1 机制）
+  const preset = params?.preset;
   const bark = createFraxinusBarkMaterial(level); // 组 0（契约序 [皮+翅果, 复叶卡]——mergeGeometries 层序；翅果按 v∈[4,5] 果域标记入皮组，材质按域分流翅果配方）
-  const leaf = createFraxinusLeafMaterial(level);
+  const leaf = createFraxinusLeafMaterial(level, preset);
   // 影 pass 叶影裁切走 InstanceSource 契约通道——工厂每次 new（build 契约「每次调用
   // new 全部资源」天然满足），档位随 level 匹配；归源所有（缓存 dispose）
   return {

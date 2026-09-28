@@ -109,7 +109,25 @@
  *     1/9.8306 = 0.10172**（命名常量 SALIX_TREE_HEIGHT_NOMINAL +
  *     测试锚断言——待裁决位 4 slot-0 ≈10m 生产锚；**同步轮 2026-09-23 已落**：
  *     10.0 初值 → 9.8306（Stage 探针经正式 build() 路径 slot-0 High 涌现实测，
- *     ligustrum 8.0→8.4064 同款流程））。
+ *     ligustrum 8.0→8.4064 同款流程）**）。
+ *
+ *   - 【色卡 preset（T024.2，D44 #1/#2——冠变干不变）】createSalixLeafMaterial
+ *     追加可选 preset 参（导出签名冻结的扩展 = 只追加可选参；ginkgo T024.1 试点法
+ *     复制）：preset = 材质基调变体，只改叶基调构造色（SALIX_LEAF_PRESETS 模块
+ *     私有表——default 行 = 现行数值的**单一定义源**，缺省路径经表消费保证
+ *     「default = 现行」由结构成立；autumn 行 = 秋·黄绿 #789632，证据链与数值推导
+ *     见表注释——**Spec 1.1 增量节「T024.2 补证：秋色」建卡（弱秋色档）**：NC
+ *     "The fall foliage is greenish-yellow or sometimes golden yellow" [7] 主相黄绿，
+ *     "sometimes golden yellow" 弱频度上端且照片轴无金黄峰值直证（Spec 记 Unknown）
+ *     **不采——不投机造金黄**；长江三点 11 月末仍 95%+ 绿、零星黄绿 75–85° [9] =
+ *     弱秋色晚相）；皮/深度/风动/SDF/变奏域/透射色零改动（冠变干不变 + 深度材质
+ *     色无关、将被 Runtime 跨卡共享——另一 Step）。**program 不增红线（D44 #3）**：
+ *     default 与 autumn 共享同一 customProgramCacheKey ⇒ GLSL 逐位同源（同键不同源
+ *     = Three.js 复用错程序的暴雷路径）——hue/luma 两端、透射色 (0.62,0.93,0.33)、
+ *     峰值 0.44 字面量跨卡冻结，秋相差异全部由构造色（uniform 通道）承载。
+ *     **无果序负担**（组 0 纯皮域——柔荑花序生长季不可见记档不建模，批一 5 树
+ *     「果序域不随卡」类裁定在垂柳无对象）。未知卡 id 回退 default（值域校验归
+ *     Renderer resolvePoolKey 单一 choke point——工厂不做第二套校验，校验双写会漂移）。
  *
  * 皮（组 0）配方——**第 13 树皮语言「暗灰黑基（灰黑-近黑）+ 波状不规则纵沟
  *   脊 + 沟深、脊浅褐 vs 沟近黑强对比 + 修剪残桩点缀 + 皮孔不显」**（待裁决
@@ -226,6 +244,7 @@
  */
 import * as THREE from 'three';
 import { FACILITY_GLSL_NOISE } from '../../materials/facilityGlsl';
+import { DEFAULT_COLOR_PRESET_ID } from '../../../../domain/assets'; // 默认卡 id 单一真相源（值导入——ginkgo T024.1 先例）
 import type { ProceduralLevel } from '../../../../domain/assets';
 import { applyTreeFadeDither } from '../treeFadeDither';
 
@@ -497,6 +516,51 @@ diffuseColor.rgb *= slxBarkMul;
 
 // ── 工厂（每次调用 new 材质 + 独立注入闭包；键不变则共享 program）──────────────────
 
+/** 叶基调色卡配方行（T024.2，D44 #2——色值配方归树材质工厂私有域） */
+interface SalixLeafPreset {
+  /** 叶基调构造色（material.color = uniform 通道，不进 GLSL——program 不增的载体面） */
+  color: number;
+}
+
+/**
+ * 叶基调色卡配方表（模块私有；卡集与 meta.presets 声明对应——asset_tree_salix 双卡）。
+ * default 行 = 现行数值的**单一定义源**（缺省路径经本表消费——「default = 现行」由结构
+ * 保证而非抄写保证）；变奏域/透射色**不随卡**：program 不增红线（D44 #3）要求 autumn 与
+ * default 同 customProgramCacheKey ⇒ GLSL 字面量不分叉 ⇒ hue 两端 (0.94,1.00,1.04)↔
+ * (1.08,1.05,0.90)、luma 0.92±0.08、透射色 (0.62,0.93,0.33)、峰值 0.44 跨卡冻结，秋相
+ * 读向 = 黄绿基色 × 现行变奏乘子复合（推导见 autumn 行注释）。未知卡 id 回退 default
+ * （值域校验归 Renderer resolvePoolKey 单一 choke point——工厂不做第二套校验）。
+ */
+const SALIX_LEAF_PRESETS: Readonly<Record<string, Readonly<SalixLeafPreset>>> = {
+  [DEFAULT_COLOR_PRESET_ID]: {
+    // 现行数值（T011.12 工程设定）：中绿-中深绿黄绿向——FRPS「上面绿色」+ NC light
+    // green above + 照片中绿+黄绿调多槽交叉（阳面黄绿调由 hue 暖端变奏承载）
+    color: 0x47782d,
+  },
+  autumn: {
+    // 秋·黄绿 #789632（工程合成，Spec 1.1 增量节「T024.2 补证：秋色」：NC "The fall
+    // foliage is greenish-yellow or sometimes golden yellow" [7]——主相黄绿；"sometimes
+    // golden yellow" 为弱频度上端且照片轴无金黄峰值直证（Spec 记 Unknown）**不采——
+    // 不投机造金黄**；autumn-a/b/c 长江三点 11 月末仍 95%+ 绿、零星黄绿 75–85°、无
+    // 金黄/橙/褐可见 [9]——弱秋色晚相直证；[6] 10 月多点均绿+黄绿调 = 9–10 月主语境
+    // 不进入秋色，卡语义 = 晚秋-初冬变体记档）：
+    // - hue ≈78.0°（sRGB，G 最大黄绿分支）黄绿域中点——R<G（120<150 **绿向主导——
+    //   黄绿非黄**）；变奏暖端复合 ×(1.08,1.05,0.90) ≈74.9° = 端点冻结下的最坏黄向，
+    //   仍守锚域下沿 70°（不漏纯黄 60°——最坏端复核过）；冷端 ≈82.8° 偏绿向（残绿
+    //   方向）；
+    // - G−B 100 ≥70 黄绿饱和读向（NC greenish-yellow）；
+    // - 加权亮度 ≈129.6（0.299R+0.587G+0.114B）∈115–140 中亮——亮于夏相暗绿基调
+    //   #47782d（≈96.8）一档（[9] 照片中-中亮读向）；
+    // - **弱秋色记档**：本卡语义 = 晚秋-初冬弱秋色变体——时序（11 月末以后 [9]）与
+    //   强度（转色 0–5% 量级 [9]）均弱于它树秋卡，meta/Inspector 消费侧按此语义呈现
+    //   （表注释明记，不与显著秋色树同读）；
+    // - 透射色维持亮黄绿 (0.62,0.93,0.33)：同程序红线（D44 #3）的代价（透射字面量进
+    //   GLSL，分叉即 +1 program）；秋相透射偏黄的解锁需后续统一决策（uniform 化透射
+    //   通道或显式接受 program 增量），不在本 Step。
+    color: 0x789632,
+  },
+};
+
 /**
  * 叶卡材质（组 1）：SDF 狭披针细齿叶 alphaTest 裁切 + 脉弱层（High）+ 两面
  * 浅绿微银弱差 + 家族值域链上沿透光 + 逐叶变奏 + 垂帘风动。level 分档
@@ -511,10 +575,21 @@ diffuseColor.rgb *= slxBarkMul;
  * 中绿-中深绿档、G−R=49 黄绿向中上）/ m 0 / r 0.60（薄细叶半光泽中上档——
  * triadica 0.58 与 zelkova 0.62 之间；「两面无毛」光滑面）/ DoubleSide（卡面
  * 双面可见，背面法线由 three 双面光照自动翻转）。
+ * preset（T024.2 可选参，缺省 = 默认卡）：查 SALIX_LEAF_PRESETS 覆写基调构造色
+ * （autumn = 秋·黄绿 #789632，Spec 1.1 增量节 [7][9]——弱秋色晚相变体，数值推导
+ * 见该表注释）；缺省/'default'/未知 id = default 行 = 现行行为逐位一致；program
+ * 不增红线 = preset 只走构造色，GLSL/defines/键与 default 全同（无果序负担——
+ * 见模块头【色卡 preset】段）。
  */
-export function createSalixLeafMaterial(level: ProceduralLevel = 'high'): THREE.MeshStandardMaterial {
+export function createSalixLeafMaterial(
+  level: ProceduralLevel = 'high',
+  preset?: string,
+): THREE.MeshStandardMaterial {
+  // 色卡解析（T024.2）：缺省 / 'default' / 未知 id → default 行（现行数值单一定义源）
+  const recipe = (preset !== undefined ? SALIX_LEAF_PRESETS[preset] : undefined)
+    ?? SALIX_LEAF_PRESETS[DEFAULT_COLOR_PRESET_ID]!;
   const material = new THREE.MeshStandardMaterial({
-    color: 0x47782d, // 中绿-中深绿黄绿向（工程设定：FRPS「上面绿色」[1] + NC light green above [4] + 照片中绿+黄绿调 [6] 交叉——阳面黄绿调由 hue 暖端变奏承载）
+    color: recipe.color, // 基调随卡（default = 中绿-中深绿现行值 / autumn = 秋·黄绿——SALIX_LEAF_PRESETS 表注释引 Spec）
     metalness: 0,
     roughness: 0.60, // 薄细叶半光泽中上档（工程设定——triadica 0.58 < 0.60 < zelkova 0.62；「两面无毛」光滑面）
     side: THREE.DoubleSide,

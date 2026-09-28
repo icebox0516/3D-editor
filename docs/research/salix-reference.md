@@ -1,9 +1,9 @@
 # salix Reference Spec
 
-Spec Version: 1.0
+Spec Version: 1.1
 Domain: plant
 Asset: tree_salix（垂柳）
-Updated: 2026-09-22
+Updated: 2026-09-28（v1.1 秋色补证增量，见文末「增量记档（T024.2）」；正文 1.0 未改动）
 
 ## 消费摘要（Step 1–4 默认只读本节）
 
@@ -138,6 +138,9 @@ Updated: 2026-09-22
 | 4 | NC State Extension — Salix babylonica | 园艺官方 | https://plants.ces.ncsu.edu/plants/salix-babylonica/ | 2026-09-22 | Height/Width: 30–40 ft（高宽同域）；Habit "Broad / Rounded / Weeping"，"weeping, pendulous branches and stems"；"The bark is gray-brown or gray-black with irregular furrows"；叶 "linear to lanceolate, 3–6 in. long, under 1 in. wide. Margins finely serrated"，"light green above, and grayish-green or glaucous beneath"；catkins April–May、果 late May–early June；Growth Rate Rapid；Propagation by stem cuttings（无嫁接）；Origin East Asia--China |
 | 5 | 百度百科 垂柳（杨柳科柳属植物）词条（agent-browser 渲染提取正文） | 百科（弱轴，仅嫁接口径用） | https://baike.baidu.com/item/垂柳/3935180 | 2026-09-22 | 形态镜像 FRPS；繁殖方法列扦插（主）/分株/嫁接/播种；嫁接条目原文「剪下并选择合适的**垂柳砧木**。将砧木削成锥形……」（**非旱柳砧**）——不支持旱柳砧高接主张 |
 | 6 | iNaturalist research-grade 真实照片（taxon 58316 = Salix babylonica，2026-09-22 经 /v1/taxa 端点确认 active；中国 place_id 6903 共 134 条 research-grade；本地副本 ref-salix-*.jpg 不入 git） | 真实照片 | 照片页 https://www.inaturalist.org/photos/<id>；原图 CDN https://inaturalist-open-data.s3.amazonaws.com/photos/<id>/original.jpg（扩展名自 API JSON url 权威提取） | 2026-09-22 | 见下「照片来源明细」 |
+| 7 | NC State Extension — Salix babylonica **秋色字段增量提取**（源 [4] 同页新提取，[4] 原行不回改） | 园艺官方 | https://plants.ces.ncsu.edu/plants/salix-babylonica/ | 2026-09-28 | 属性「**Deciduous Leaf Fall Color: Gold/Yellow**」「Leaf Color: Gold/Yellow Gray/Silver Green」；正文原句「**The fall foliage is greenish-yellow or sometimes golden yellow.**」 |
+| 8 | SelecTree（Cal Poly Urban Forest Ecosystems Institute）Salix babylonica 详情页 tree-detail/1299（JS 渲染，agent-browser 进入；检索池另有 'Tortuosa' 与 S. matsudana 混列——已按种名过滤） | 园艺数据库 | https://selectree.calpoly.edu/tree-detail/1299 | 2026-09-28 | 「**Fall Color: Yes**」「Leaf Color: Green」；Foliage Type Deciduous / Tree Shape Rounded / Max Height 50 ft / Max Canopy 70 ft——秋色**存在性**确认（不载色相与强度） |
+| 9 | iNaturalist research-grade 秋季照片（2024-11-01 安庆 / 2024-11-20 杭州西溪 / 2025-11-29 上海——**长江流域三点**；本地副本 ref-salix-autumn-*.jpg 不入 git；检索同源 6 端点 d1=2024-10-01&d2=2026-01-31 中国池 + 世界池 11 月窗〔南半球夏季灌满、纬度过滤后弃〕） | 真实照片 | 照片页 https://www.inaturalist.org/photos/<id>；medium 走 API v1 photos[].url 权威地址（S3 .jpeg / static 域混存） | 2026-09-28 | 见文末「增量记档（T024.2）」照片明细 |
 
 ### 照片来源明细（一行化）
 
@@ -158,3 +161,41 @@ Updated: 2026-09-22
 ## 终审记录（一行）
 
 终审：**通过**（2026-09-22 主代理采样终审 D38）｜修正 3 项：①冠幅比上沿 1.2→1.3（NC State 同域个体可达 1.33 算术依据）②垂幕深域并集 ≈2/5–2/3（终审照片读 40–50% 下沿入域）③补强「叶沿垂索取向」工程事实行 ｜抽查 = 硬数值 8 项独立重拉零偏差（FRPS 主条/绦柳差分 3 判据/FOC 全字段/NC State 园艺轴）+ 整树×2 与冠形×1 双问 6 轮核心主张全一致（分歧仅取景混杂的分数读数，已按「分数不承重」处置）｜旱柳砧成因维持 Unknown 合规（干形由照片三型直证，生产不受阻）
+
+## 增量记档（T024.2 补证：秋色，2026-09-28）
+
+> append-only 增量（Spec 1.0 → 1.1），为 T024.2 秋色材质卡建卡供证。**1.0 全文无秋色记录（本节从零建立）**；正文 1.0 零改动。
+
+**调研问题**：①垂柳是否有显著秋色；②色相域（若有）；③时序——9–10 月主语境处于秋色进程何阶段。
+
+**逐源证据**：
+
+- [7] NC State Extension（园艺官方，Verified 原句）：正文「**The fall foliage is greenish-yellow or sometimes golden yellow.**」+ 属性「Deciduous Leaf Fall Color: **Gold/Yellow**」——秋色存在；色相 = **黄绿为主、理想条件上端金黄**（「sometimes」= 弱频度限定词，如实承托）
+- [8] SelecTree（Cal Poly，Verified）：「**Fall Color: Yes**」——存在性确认，不载色相/强度
+- **文献阴性记档**：FRPS [1] / FOC [3] 无秋色句（1.0 已知）；百度百科 [5] 本轮 agent-browser 复查——**词条内无秋色句**（仅秋季栽培管理与诗词意象，无关叶色）；Trees and Shrubs Online（本轮查 salix-babylonica 条目）正文亦无秋色句——中文志书/百科/IDS 轴均无秋色记录
+- [9] iNat 秋照 3 obs 承重（照片双问——两次独立中性提问不含树种名；长江流域三点）：
+  - **autumn-a**（photo 451761097 / obs 252368979，**2024-11-20 杭州西溪国家湿地公园**，CC-BY-NC）：水岸垂枝树 **0–5% 转色、冠仍全绿**（两问一致），零星黄绿 75–85°，中饱和中亮——湿地公园水岸语境（**生产语境正中**）
+  - **autumn-b**（photo 595725735 / obs 328719292，**2025-11-29 上海**，版权保留）：运河石栏垂枝树 **95–100% 仍绿、≤5% 微黄**（黄绿 70–90°），中饱和、亮
+  - **autumn-c**（photo 446968042 / obs 249973954，**2024-11-01 安徽安庆**，版权保留）：路缘垂枝树 **≈5% 零星黄化**（黄绿 75–85°，**无金黄/橙/褐可见**），中饱和中亮
+- [6] 既有照片表复用（10 月时点）：form-a 长沙 2025-10「中绿+黄绿」、branch-a 杭州 2025-10、leaf-b 北京 2025-10「中深绿+幼叶黄绿」、leaf-a 烟台 1994-10「上中绿」——**10 月多点均绿为主 + 黄绿调**
+
+**消费结论（秋卡用）**：
+
+- **是否有显著秋色：弱**——文献「黄绿至有时金黄」[7] + 存在性 [8]；照片轴 **11 月末长江流域仍 95%+ 绿** [9]（弱黄绿调秋色成立，非金黄显著秋色树种）
+- **色相域**：**黄绿 hue ≈70–85° 为主**（[9] 三点读向）；文献上端**金黄 hue ≈45–55°**（[7]「sometimes golden yellow」——弱频度承托，**照片轴未见金黄峰值直证，Unknown 记档**）
+- **饱和/亮度**：低-中饱和、中-亮（黄绿调读向；秋色信号本身弱，冠面色差小）
+- **时序窗口**：10 月全月 = 绿 + 黄绿调（[6] 长沙/杭州/北京/烟台多点）；11 月（01 安庆 / 20 杭州 / 29 上海）= **仍绿为主、零星黄绿**（[9]）；**主变色/落叶窗口晚于 11 月末**——或黄绿后直接枯落（峰值金黄直证缺失，Unknown）；**9–10 月主语境 = 仍生长季中绿-黄绿相，秋色表达不进入主语境**
+- Form: Qualitative + Range ｜ Evidence Status: **Verified**（[7][8] 文献原句）/ **Inferred**（黄绿主相 + 时序 = 照片双问三点 + 既有 10 月多点）/ **Unknown**（金黄峰值与主变色窗口起点）｜ Source: [6][7][8][9]
+- **建卡判定：可建「弱秋色档」**（黄绿 hue 70–85°、低-中饱和、中-亮，限晚秋-初冬变体，非主语境消费）——**若色卡体系仅服务 9–10 月主语境，则不建**（沿用 1.0 §5 生长季中绿 + 黄绿调口径）；「秋色不显著/黄绿-淡黄」本身即有效结论，指导色卡不越金黃域
+
+**秋色照片明细（来源 [9] 展开，一行化）**：
+
+| 槽位 | 文件 | 照片 id（观察 id） | 时点/地点 | 许可 | 承重结论（一行） | 双问 |
+|------|------|------------------|-----------|------|------------------|------|
+| autumn-a | ref-salix-autumn-a.jpg | 451761097（252368979） | 2024-11-20 杭州西溪国家湿地公园 | cc-by-nc | 水岸垂枝树全绿（0–5% 转色）、零星黄绿 75–85°、中饱和中亮 | 一致 |
+| autumn-b | ref-salix-autumn-b.jpg | 595725735（328719292） | 2025-11-29 上海 | 版权保留 | 运河石栏垂枝树 95–100% 绿、≤5% 黄绿 70–90°、中饱和亮 | 一致 |
+| autumn-c | ref-salix-autumn-c.jpg | 446968042（249973954） | 2024-11-01 安徽安庆 | 版权保留 | 路缘垂枝树 ≈5% 黄绿 75–85°、无金黄/橙/褐、中饱和中亮 | 一致 |
+
+**通道记档（本轮实况）**：NC State（WebFetch）可达；SelecTree JS 渲染（agent-browser 进详情页 tree-detail/1299）；百度百科 agent-browser 复查；Wikipedia EN/zh（WebFetch + 浏览器）网络级超时、Missouri BG 证书错误、Gardenia 403——不可达记档；WebSearch/web_reader MCP 配额 1310 未恢复（2026-10-04 重置，兜底输出不采信）；iNat 世界池 11 月–1 月窗被南半球夏季记录灌满（纬度过滤后弃用，中国池为主）；4.5V 判读 6 次全程稳定。
+
+**结构性缺口（秋色侧）**：金黄峰值相（NC「sometimes golden yellow」上端）无照片直证——Unknown；主变色窗口起点（12 月？）无直证——Unknown。二者均为边缘性 Unknown（弱秋色结论本身承托充分，不阻塞建卡决策）。

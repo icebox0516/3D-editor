@@ -45,8 +45,10 @@
  *     card 键加 `:${preset}` 后缀分叉 = +1 program 的显式选择；024.1 无填充——与
  *     ginkgoMaterials 叶材质透射冻结口径一致，近远景背光观感不背离）。未命中（缺省 /
  *     'default' / 无行树种 / 未知 id）= 物种表行为逐位一致；干柱色/风动/变奏参数不随卡。
- *     024.1 只填 ginkgo autumn 一行（与 GINKGO_LEAF_PRESETS.autumn 同源同值——远近
- *     基调一致）；024.2/024.3 逐树回补。
+ *     024.1 填 ginkgo autumn 一行（与 GINKGO_LEAF_PRESETS.autumn 同源同值——远近
+ *     基调一致）；**024.2 批一/批二已回填 platanus/koelreuteria/sophora/triadica/
+ *     fraxinus/salix 六行 autumn**（各与该树 *_LEAF_PRESETS.autumn 同源同值——
+ *     fraxinus/salix 经 Step R 补证 Spec 1.1 增量后建卡）。
  *   - uTime：缓存共享层成套契约的接口（几何/深度跨卡共享后，注入同一 uTime、丢弃自建
  *     深度材质改用共享份）。缺省 = 工厂自建（现行行为）；提供时三材质（干柱/冠卡/深度）
  *     统一绑定该对象——TimeUniformService 广播语义不变（写任一主材质即同值到深度程序），
@@ -242,10 +244,13 @@ interface BroadleafCanopyCrownPreset {
 }
 
 /**
- * 种子级冠色覆写表（024.1 只填 ginkgo autumn 一行；024.2/024.3 逐树回补）。未命中 =
- * 现行物种表行为逐位一致；干柱色/风动/变奏参数不随卡。transColor/transPeak 为透射
- * 覆写预留位——**024.1 不填**（与 ginkgoMaterials 叶材质透射字面量冻结口径一致：近景
- * 叶透射不随卡则远景冠透射亦不随卡，否则近远景背光观感背离；填充时走 GLSL 字面量分叉
+ * 种子级冠色覆写表（024.1 ginkgo 试点一行 + 024.2 批一/批二已回填 platanus/
+ * koelreuteria/sophora/triadica/fraxinus/salix 六行 autumn——各与该树
+ * *Materials.ts 叶卡表 autumn 基调**同源同值**；fraxinus/salix 行经 024.2 Step R
+ * 补证 Spec 1.1 增量〔秋色单面〕后建卡，024.3 按需逐树回补）。
+ * 未命中 = 现行物种表行为逐位一致；干柱色/风动/变奏参数不随卡。transColor/transPeak
+ * 为透射覆写预留位——**至今无填充**（与各树叶材质透射字面量冻结口径一致：近景叶透射
+ * 不随卡则远景冠透射亦不随卡，否则近远景背光观感背离；填充时走 GLSL 字面量分叉
  * + card 键 `:${preset}` 后缀，program 增量为显式选择）。
  */
 export const BROADLEAF_CANOPY_CROWN_PRESETS: Readonly<
@@ -260,6 +265,64 @@ export const BROADLEAF_CANOPY_CROWN_PRESETS: Readonly<
       // 金黄、R−G 29 不入橙红、亮度 > 夏相——推导见该表注释）：远景冠色块与近景叶基调
       // 一致是档间身份一致的色面；远景不随卡会破所见即所得（秋银杏拉远变绿）。
       crownColor: 0xd4b737,
+    },
+  },
+  asset_tree_platanus: {
+    autumn: {
+      // 秋·黄褐冠卡（NC "Fall color yellow-brown" Verified [7] + form-c 黄褐秋末相第三眼
+      // 判读——Spec §6 终审记档 6 补强；观感平庸黄褐读向）——与 platanusMaterials
+      // PLATANUS_LEAF_PRESETS.autumn 基调**同源同值**（#a88a44：hue ≈42° 黄褐、R−G 30
+      // 入褐向、G−B 70 中弱黄向、亮度 ≈139 暗于银杏秋金——推导见该表注释）。
+      crownColor: 0xa88a44,
+    },
+  },
+  asset_tree_koelreuteria: {
+    autumn: {
+      // 秋·金黄冠卡（NC "almost transparent yellow in fall" / "clear, golden yellow" [9] +
+      // wiki "green turns yellow in fall" [8]——亮端读向、更亮更淡于银杏）——与
+      // koelreuteriaMaterials KOE_LEAF_PRESETS.autumn 基调**同源同值**（#d0bc46：
+      // hue ≈51.3° 淡金黄、R−G 20 不入橙、亮度 ≈181 亮于银杏 #d4b737——推导见该表注释）。
+      crownColor: 0xd0bc46,
+    },
+  },
+  asset_tree_sophora: {
+    autumn: {
+      // 秋·金黄冠卡（NC "fall color Gold/Yellow, short-lived" Verified [4]——单源权威，
+      // 024.2 立项裁定建卡；Gold 深于栾一档）——与 sophoraMaterials SOPHORA_LEAF_PRESETS.
+      // autumn 基调**同源同值**（#c4a83a：hue ≈47.8° 金黄、R−G 28、G−B 110、亮度 ≈164
+      // 深于栾 #d0bc46——推导见该表注释）。
+      crownColor: 0xc4a83a,
+    },
+  },
+  asset_tree_triadica: {
+    autumn: {
+      // 秋·绯红冠卡（NC "turn an attractive bright red in the fall" + 色域 Red/Burgundy
+      // Verified [5] + wiki "bright yellows, oranges, purples and reds" [6] + autumn-a
+      // 红族 ~55–60% 主导色占比 Inferred [7]——多色并存/垂直分带不可表达记档）——与
+      // triadicaMaterials TRIADICA_LEAF_PRESETS.autumn 基调**同源同值**（#c65e3e：
+      // hue ≈14.1° 猩红-红橙、R−G 104 强红向、亮度 ≈121——推导见该表注释）。
+      crownColor: 0xc65e3e,
+    },
+  },
+  asset_tree_fraxinus: {
+    autumn: {
+      // 秋·金黄冠卡（Spec 1.1 增量节：百度百科「秋叶金黄」定性 [13] + autumn-b 张家口
+      // 金黄 hue 40–60° 直证 [15] + form-b/c 韩国早秋黄化 [12]——主相金黄 45–55°、
+      // 中饱和中-中亮；盛末褐黄 25–45° 末端不入主相记档）——与 fraxinusMaterials
+      // FRAXINUS_LEAF_PRESETS.autumn 基调**同源同值**（#c8af3c：hue ≈49.3° 金黄、
+      // R−G 25 不入橙、G−B 115、亮度 ≈169.4 亮半档于 sophora 秋金 #c4a83a——推导见
+      // 该表注释）。
+      crownColor: 0xc8af3c,
+    },
+  },
+  asset_tree_salix: {
+    autumn: {
+      // 秋·黄绿冠卡（Spec 1.1 增量节：NC "greenish-yellow or sometimes golden yellow"
+      // [7] 主相黄绿——"sometimes golden yellow" 弱频度无照片直证不采 + 长江三点
+      // 11 月末 95%+ 绿零星黄绿 75–85° [9]——弱秋色晚相变体记档）——与 salixMaterials
+      // SALIX_LEAF_PRESETS.autumn 基调**同源同值**（#789632：hue ≈78.0° 黄绿、R<G
+      // 绿向主导、G−B 100、亮度 ≈129.6 亮于夏相——推导见该表注释）。
+      crownColor: 0x789632,
     },
   },
 };

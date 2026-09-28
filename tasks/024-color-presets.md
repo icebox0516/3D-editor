@@ -1,6 +1,6 @@
 # T024 资产色卡预设
 
-> 状态：**in-progress（立项 done 2026-09-28，D44；024.1 待启动）** ｜ 前置：T011 收官（✅ 13 乔木基线资产库）+ T021 收官（✅ representation 缓存键体系）｜ 非程序化资产生产任务（公共能力扩展 + 存量回补）——无 `workflow:` 声明（色卡回补只动材质层不走生产 SOP；缺证相补证时按 asset-research 技能补 Spec 增量）；Research Gate 豁免（非新资产：色卡现实事实源 = 既有 13 份 Reference Spec 季相记录，立项核实 13/13 有叶色基调记录，D26 不触发，豁免记档于此）｜ **裁定真相源 = DECISIONS.md D44**（八项，执行时不再复议）。
+> 状态：**in-progress（立项 done 2026-09-28，D44；024.1 done 2026-09-28；024.2 done 2026-09-28——卡 id 域定稿 {'default','autumn'}；下一 = 024.3 回补批二）** ｜ 前置：T011 收官（✅ 13 乔木基线资产库）+ T021 收官（✅ representation 缓存键体系）｜ 非程序化资产生产任务（公共能力扩展 + 存量回补）——无 `workflow:` 声明（色卡回补只动材质层不走生产 SOP；缺证相补证时按 asset-research 技能补 Spec 增量）；Research Gate 豁免（非新资产：色卡现实事实源 = 既有 13 份 Reference Spec 季相记录，立项核实 13/13 有叶色基调记录，D26 不触发，豁免记档于此）｜ **裁定真相源 = DECISIONS.md D44**（八项，执行时不再复议）。
 
 ## Goal
 
@@ -47,8 +47,8 @@
 ## 子任务
 
 - [x] 024.1 契约层 + 缓存几何共享 + 试点树全链（done 2026-09-28：五 Step〔契约/材质/缓存共享/接线/整表锁+规范〕；ginkgo 双卡 default+autumn #d4b737；共享层引用计数落地；4209 全绿——**024.2 注意位**：车辆族（有卡无形态族）须扩 resolvePoolKey〔记 T26〕、试点卡 id 'autumn' 待 id 域定稿、canopy 覆写表回补行随批填）→ [024.1-contract-cache-pilot.md](024.1-contract-cache-pilot.md)
-- [ ] 024.2 回补批一（6 树：platanus / koelreuteria / fraxinus / sophora / salix / triadica——试点法复制 + 卡 id 域定稿记档〔试点占位 'autumn' 如改名随改 ginkgo〕+ 整表锁框架落位〔已随 024.1 落 assetColorPresets.test，本批只增行〕；**注意位**：canopy 覆写表逐行同步 / 车辆族 resolvePoolKey 扩张记 T26）→ [024.2-rebatch-1.md](024.2-rebatch-1.md)
-- [ ] 024.3 回补批二（6 树：tree3a / celtis / zelkova / bischofia / camphor / ligustrum——含常绿证据弱档 + Contact Sheet 13 树全量）→ [024.3-rebatch-2.md](024.3-rebatch-2.md)
+- [x] 024.2 回补批一（done 2026-09-28：6 树真卡〔platanus 黄褐 #a88a44 / koelreuteria 金黄 #d0bc46 / sophora 金黄 #c4a83a / triadica 绯红 #c65e3e / fraxinus 金黄 #c8af3c〔Spec 1.1 补证〕/ salix 黄绿 #789632〔Spec 1.1 补证·弱秋色不造金黄〕〕+ **卡 id 域定稿 {'default','autumn'}**〔试点名保持零改名，taxonomy §2.1 记档〕+ 果序不随卡裁定〔组 0 字面域〕+ 整表锁/canopy 覆写表/批量集成测试〔024.3 只增行〕；4240 全绿）→ [024.2-rebatch-1.md](024.2-rebatch-1.md)
+- [ ] 024.3 回补批二（6 树：tree3a / celtis / zelkova / bischofia / camphor / ligustrum——含常绿证据弱档 + Contact Sheet 13 树全量；`treePresetBatch`/整表锁只增行）→ [024.3-rebatch-2.md](024.3-rebatch-2.md)
 - [ ] 024.4 浏览器色点 UI + 放置入口接线（资产名旁色点切换〔swatch 数据色〕+ 选中态持久 + 放置注入；无卡资产不显色点；frontend-design 技能 + DESIGN.md §5.8 增量）→ [024.4-browser-ui.md](024.4-browser-ui.md)
 - [ ] 024.5 验收门（epic 级五面：契约收口 / 横向一致性 / 资源与性能 / 回归 / 冒烟——口径见上 Acceptance）→ [024.5-acceptance.md](024.5-acceptance.md)
 

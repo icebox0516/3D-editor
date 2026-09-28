@@ -22,21 +22,21 @@ import { DEFAULT_COLOR_PRESET_ID } from '../../../../src/domain/assets';
 import { collectProceduralAssetMetas } from '../../../../src/runtime/procedural/routes';
 import { BROADLEAF_CANOPY_CROWN_PRESETS } from '../../../../src/runtime/procedural/tree/broadleafCanopyMaterials';
 
-/** 19 资产色卡映射整表（值域依据 docs/procedural-assets/metadata-taxonomy.md §2.1；T024.1 试点 = ginkgo 双卡，其余 12 树占位 default 卡，设施/DEV 空数组显式无卡） */
+/** 19 资产色卡映射整表（值域依据 docs/procedural-assets/metadata-taxonomy.md §2.1；T024.1 试点 ginkgo + T024.2 批一 6 树真卡，其余 6 树占位 default 卡〔024.3 回补〕，设施/DEV 空数组显式无卡；卡 id 域 024.2 定稿 = {'default','autumn'}） */
 const EXPECTED_PRESETS: Record<string, readonly string[]> = {
   asset_tree_3a: [DEFAULT_COLOR_PRESET_ID],
   asset_tree_celtis: [DEFAULT_COLOR_PRESET_ID],
   asset_tree_camphor: [DEFAULT_COLOR_PRESET_ID],
   asset_tree_zelkova: [DEFAULT_COLOR_PRESET_ID],
-  asset_tree_ginkgo: [DEFAULT_COLOR_PRESET_ID, 'autumn'], // T024.1 试点真卡：秋·金黄（Spec §6 五源交叉 + fall 样木复证）；id 'autumn' 为 024.2 id 域定稿前占位
-  asset_tree_platanus: [DEFAULT_COLOR_PRESET_ID],
-  asset_tree_koelreuteria: [DEFAULT_COLOR_PRESET_ID],
-  asset_tree_triadica: [DEFAULT_COLOR_PRESET_ID],
+  asset_tree_ginkgo: [DEFAULT_COLOR_PRESET_ID, 'autumn'], // T024.1 试点真卡：秋·金黄（Spec §6 五源交叉 + fall 样木复证）；id 域 024.2 定稿 'autumn' 保持
+  asset_tree_platanus: [DEFAULT_COLOR_PRESET_ID, 'autumn'], // T024.2 批一：秋·黄褐（NC + form-c 第三眼）
+  asset_tree_koelreuteria: [DEFAULT_COLOR_PRESET_ID, 'autumn'], // T024.2 批一：秋·金黄（NC + wiki）
+  asset_tree_triadica: [DEFAULT_COLOR_PRESET_ID, 'autumn'], // T024.2 批一：秋·绯红（NC + wiki + autumn-a/b 色占比）
   asset_tree_bischofia: [DEFAULT_COLOR_PRESET_ID],
-  asset_tree_sophora: [DEFAULT_COLOR_PRESET_ID],
-  asset_tree_fraxinus: [DEFAULT_COLOR_PRESET_ID],
+  asset_tree_sophora: [DEFAULT_COLOR_PRESET_ID, 'autumn'], // T024.2 批一：秋·金黄（NC 单源权威——有据非多源裁定）
+  asset_tree_fraxinus: [DEFAULT_COLOR_PRESET_ID, 'autumn'], // T024.2 批一：秋·金黄（Spec 1.1 增量：主相金黄 + iNat 双照）
   asset_tree_ligustrum: [DEFAULT_COLOR_PRESET_ID],
-  asset_tree_salix: [DEFAULT_COLOR_PRESET_ID],
+  asset_tree_salix: [DEFAULT_COLOR_PRESET_ID, 'autumn'], // T024.2 批一：秋·黄绿（Spec 1.1 增量：NC greenish-yellow 主相——弱秋色不造金黄）
   asset_signpost: [],
   asset_trashbin: [],
   asset_streetlamp: [],
@@ -89,7 +89,7 @@ describe('程序化资产色卡契约（T024.1，D44 #2 整表锁）', () => {
     }
   });
 
-  it('canopy 冠色覆写表与声明卡集同源：只覆盖已声明树种卡（024.1 唯一行 ginkgo autumn，防两处卡集漂移）', () => {
+  it('canopy 冠色覆写表与声明卡集同源：只覆盖已声明树种卡（024.2 批一 7 行——ginkgo + 批一 6 树，防两处卡集漂移）', () => {
     for (const [assetId, cards] of Object.entries(BROADLEAF_CANOPY_CROWN_PRESETS)) {
       const declared = EXPECTED_PRESETS[assetId];
       expect(declared, `canopy 覆写表含未声明资产: ${assetId}`).toBeDefined();

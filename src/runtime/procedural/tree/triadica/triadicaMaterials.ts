@@ -97,6 +97,26 @@
  *     之间、频率高于银杏 10–17 一档）；aBend 权重（卡根≈0 尖大）；树高锚 9.5m
  *     （×0.1053——终审 ④ ≈9–10m 取中工程锚记档）。
  *
+ *   - 【色卡 preset（T024.2，D44 #1/#2——冠变干不变）】createTriadicaLeafMaterial
+ *     追加可选 preset 参（导出签名冻结的扩展 = 只追加可选参；ginkgo T024.1 试点法
+ *     复制）：preset = 材质基调变体，只改叶基调构造色（TRIADICA_LEAF_PRESETS 模块
+ *     私有表——default 行 = 现行数值的**单一定义源**，缺省路径经表消费保证
+ *     「default = 现行」由结构成立；autumn 行 = 秋·绯红 #c65e3e，证据链与数值推导见
+ *     表注释）；皮（含绿果域）/深度/风动/SDF/变奏域/透射色零改动（冠变干不变 + 深度
+ *     材质色无关、将被 Runtime 跨卡共享——另一 Step）。**program 不增红线（D44 #3）**：
+ *     default 与 autumn 共享同一 customProgramCacheKey ⇒ GLSL 逐位同源（同键不同源 =
+ *     Three.js 复用错程序的暴雷路径）——hue/luma 两端、透射色 (0.55,0.91,0.34)、峰值
+ *     0.33、flush 铜红 5.5% 字面量跨卡冻结，秋相差异全部由构造色（uniform 通道）承载。
+ *     **多色并存/垂直分带不可表达记档（024.2 立项裁定）**：autumn-a 猩红+绯红+橙+黄
+ *     多色并存 [7] 与 autumn-b 顶部红绯→中部橙→下部黄绿垂直分带 [7] 在单基调 + 变奏
+ *     域冻结下不可表达（沿 ginkgo「<10% 残绿」取舍口径——变奏两端复合仍在绯红域 =
+ *     minority 红/橙叶近似强度弱于证据）；flush 铜红 5.5% 叶域在秋卡下继续作用 =
+ *     多色并存的既有弱贡献。**绿果域不随卡（024.2 任务书裁定，D44 #1 字面域）**：
+ *     果域 v∈[4,5] 归组 0 皮材质 uv 域路由，preset 只改组 1 叶卡基调 ⇒ 秋卡下绿闭果
+ *     维持夏相中绿带黄色序（秋相果黑裂白籽相属果序成熟序列非材质基调变体，归未来
+ *     增补记档）。未知卡 id 回退 default（值域校验归 Renderer resolvePoolKey 单一
+ *     choke point——工厂不做第二套校验，校验双写会漂移）。
+ *
  * 皮（组 0）配方（**第 7 种树皮语言「暗灰-灰褐窄纵裂 + 窄条翘皮碎斑」**——FRPS「树皮
  *   暗灰色，有纵裂纹」+ FOC 龄级句 + NC "peel off in vertical, narrow strips" 三源
  *   Verified [1][3][5]；vs 六先例：夏栎/樟深纵裂脊沟族、朴平滑浅裂小斑、榉光滑暖色
@@ -221,6 +241,7 @@
  */
 import * as THREE from 'three';
 import { FACILITY_GLSL_NOISE } from '../../materials/facilityGlsl';
+import { DEFAULT_COLOR_PRESET_ID } from '../../../../domain/assets'; // 默认卡 id 单一真相源（值导入——ginkgo T024.1 先例）
 import type { ProceduralLevel } from '../../../../domain/assets';
 import { applyTreeFadeDither } from '../treeFadeDither';
 
@@ -483,6 +504,52 @@ const TRIADICA_FRUIT_BODY = /* glsl */ `
 
 // ── 工厂（每次调用 new 材质 + 独立注入闭包；键不变则共享 program）──────────────────
 
+/** 叶基调色卡配方行（T024.2，D44 #2——色值配方归树材质工厂私有域） */
+interface TriadicaLeafPreset {
+  /** 叶基调构造色（material.color = uniform 通道，不进 GLSL——program 不增的载体面） */
+  color: number;
+}
+
+/**
+ * 叶基调色卡配方表（模块私有；卡集与 meta.presets 声明对应——asset_tree_triadica
+ * 双卡）。default 行 = 现行数值的**单一定义源**（缺省路径经本表消费——「default =
+ * 现行」由结构保证而非抄写保证）；变奏域/透射色/flush **不随卡**：program 不增红线
+ * （D44 #3）要求 autumn 与 default 同 customProgramCacheKey ⇒ GLSL 字面量不分叉 ⇒
+ * hue 两端 (0.94,1.00,1.05)↔(1.07,1.04,0.90)、luma 0.92±0.08、透射色 (0.55,0.91,0.34)、
+ * 峰值 0.33、flush ×(1.80,0.60,0.34) 跨卡冻结，秋相读向 = 绯红基色 × 现行变奏乘子
+ * 复合（推导见 autumn 行注释）。未知卡 id 回退 default（值域校验归 Renderer
+ * resolvePoolKey 单一 choke point——工厂不做第二套校验）。
+ */
+const TRIADICA_LEAF_PRESETS: Readonly<Record<string, Readonly<TriadicaLeafPreset>>> = {
+  [DEFAULT_COLOR_PRESET_ID]: {
+    // 现行数值（T011.7 工程设定）：中绿-深绿——NC "medium to dark green" Verified [5] +
+    // 照片六源 medium green glossy Inferred [7] 交叉（八树亮度链：银杏 > 朴 > 悬 > 栾 >
+    // 乌桕 > 夏栎 > 榉 > 樟——中绿-深绿档；中距色块与栾中绿/夏栎深绿相邻档区分）
+    color: 0x507c34,
+  },
+  autumn: {
+    // 秋·绯红 #c65e3e（工程合成，文献双源 + 照片色占比：NC「turn an attractive bright
+    // red in the fall」+ 色域 Red/Burgundy–Gold/Yellow Verified [5] / wiki "bright
+    // yellows, oranges, purples and reds" [6] / autumn-a 照片色占比——猩红/红橙 ~25% +
+    // 绯红/玫红 ~15–20% + 橙/琥珀 ~10–15% + 黄 ~5%（红族 ~55–60% 主导）Inferred [7]/
+    // autumn-b 垂直分带 [7]）——红族主导的单基调统计读向：
+    // - hue ≈14.1°（sRGB）猩红-红橙域中点（NC "bright red" 亮红读向）；变奏暖端复合
+    //   ×(1.07,1.04,0.90) ≈16.1° / 冷端复合 ×(0.94,1.00,1.05) ≈14.3°——两端复合均守
+    //   绯红域（12–17°，最坏端不入橙 30°）；
+    // - R−G 104 ≥95 强红向分离（红族主导的饱和锚；G−B 32 弱黄向 = 红橙非金黄）；
+    // - 加权亮度 ≈121（0.299R+0.587G+0.114B）暗端（锚域 105–125）——"bright red" 是
+    //   色相/饱和亮红而非明度亮红（sRGB 强红的明度天然低于黄系）；
+    // - 多色并存/垂直分带不可表达取舍（024.2 立项裁定，沿 ginkgo 残绿取舍口径）：
+    //   橙/黄 minority 叶由变奏两端弱近似（复合后仍在绯红域 = 近似强度弱于证据 [7]，
+    //   hue 端点字面量被 program 红线冻结，记档）；flush 铜红 5.5% 叶域跨卡冻结继续
+    //   作用 = 多色并存的既有弱贡献；
+    // - 透射色维持黄绿 (0.55,0.91,0.34)：同程序红线（D44 #3）的代价（透射字面量进
+    //   GLSL，分叉即 +1 program）；秋相透射偏红的解锁需后续统一决策（uniform 化透射
+    //   通道或显式接受 program 增量），不在本 Step。
+    color: 0xc65e3e,
+  },
+};
+
 /**
  * 叶卡材质（组 1）：SDF 菱形全缘叶 alphaTest 裁切 + 黄绿脉三件/柄顶腺体对（High）+
  * 两面弱区分 + 中等偏上透光 + 新叶 flush + 逐叶变奏 + 风动。level 分档（T011.7，
@@ -496,10 +563,21 @@ const TRIADICA_FRUIT_BODY = /* glsl */ `
  * medium green glossy [7] 交叉；八树亮度链：银杏 > 朴 > 悬 > 栾 > **乌桕** > 夏栎 >
  * 榉 > 樟——中绿-深绿档）/ m 0 / r 0.58（光泽中档——纸质非革质：樟 0.50 革质 <
  * 0.58 < 榉 0.62）/ DoubleSide（卡面双面可见，背面法线由 three 双面光照自动翻转）。
+ * preset（T024.2 可选参，缺省 = 默认卡）：查 TRIADICA_LEAF_PRESETS 覆写基调构造色
+ * （autumn = 秋·绯红 #c65e3e，NC "bright red" + autumn-a 红族 ~55–60% 主导——数值推导
+ * 见该表注释）；缺省/'default'/未知 id = default 行 = 现行行为逐位一致；program 不增
+ * 红线 = preset 只走构造色，GLSL/defines/键与 default 全同（绿果域归皮材质组 0 不随卡
+ * + 多色并存/垂直分带不可表达记档——见模块头【色卡 preset】段）。
  */
-export function createTriadicaLeafMaterial(level: ProceduralLevel = 'high'): THREE.MeshStandardMaterial {
+export function createTriadicaLeafMaterial(
+  level: ProceduralLevel = 'high',
+  preset?: string,
+): THREE.MeshStandardMaterial {
+  // 色卡解析（T024.2）：缺省 / 'default' / 未知 id → default 行（现行数值单一定义源）
+  const recipe = (preset !== undefined ? TRIADICA_LEAF_PRESETS[preset] : undefined)
+    ?? TRIADICA_LEAF_PRESETS[DEFAULT_COLOR_PRESET_ID]!;
   const material = new THREE.MeshStandardMaterial({
-    color: 0x507c34, // 中绿-深绿（工程设定：NC medium to dark green [5] + 照片 medium green glossy [7] 交叉——八树链中绿-深绿档；中距色块与栾中绿/夏栎深绿相邻档区分）
+    color: recipe.color, // 基调随卡（default = 中绿-深绿现行值 / autumn = 秋·绯红——TRIADICA_LEAF_PRESETS 表注释引 Spec）
     metalness: 0,
     roughness: 0.58, // 光泽中档（纸质非革质——「纸质」FRPS Verified [1]；gloss 低于香樟 0.50 革质口径一档）
     side: THREE.DoubleSide,

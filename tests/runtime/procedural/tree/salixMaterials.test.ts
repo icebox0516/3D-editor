@@ -902,3 +902,89 @@ describe('TimeUniformService 兼容（冻结风相位——固定机位取证纪
     expect(materialUniformsOf(material).uTime!.value).toBeCloseTo(0.5, 10); // 静止在冻结帧
   });
 });
+
+describe('色卡 preset（T024.2——冠变干不变：叶基调随卡，皮/深度/风动/GLSL 零变化；program 不增红线；弱秋色晚相变体记档）', () => {
+  it('autumn 卡存在：基色 = 秋·黄绿 #789632 ≠ default #47782d；黄绿域数值锚（hue 70–85° 不入纯黄、R<G 绿向主导、G−B ≥70、加权亮度 115–140 亮于夏相——Spec 1.1 增量节 [7] NC greenish-yellow 主相 + [9] 长江三点 11 月末 95%+ 绿零星黄绿 75–85°；"sometimes golden yellow" 弱频度无照片直证不采）', () => {
+    const autumn = track(createSalixLeafMaterial('high', 'autumn'));
+    expect(autumn.color.getHex()).not.toBe(0x47782d); // 卡存在（基色 ≠ default）
+    expect(autumn.color.getHex()).toBe(0x789632); // 秋·黄绿（工程合成：Spec 1.1 增量节主相黄绿——弱秋色晚相变体，见表注释推导）
+    // JS 数值锚镜像：sRGB hue 三分支完整式（**黄绿卡 G 恒最大——R 最大分支镜像不适用**，vs platanus 黄褐卡）
+    const mul = (hex: number, m: readonly [number, number, number]): [number, number, number] => [
+      ((hex >> 16) & 0xff) * m[0],
+      ((hex >> 8) & 0xff) * m[1],
+      (hex & 0xff) * m[2],
+    ];
+    const hueOf = (c: readonly [number, number, number]): number => {
+      const max = Math.max(c[0], c[1], c[2]);
+      const min = Math.min(c[0], c[1], c[2]);
+      if (max === min) return 0;
+      if (max === c[0]) return (60 * (c[1] - c[2])) / (max - min); // R 最大：黄-橙分支
+      if (max === c[1]) return 60 * (2 + (c[2] - c[0]) / (max - min)); // G 最大：黄绿-绿分支（本卡主分支）
+      return 60 * (4 + (c[0] - c[1]) / (max - min)); // B 最大：蓝分支
+    };
+    const base = mul(0x789632, [1, 1, 1]);
+    const warm = mul(0x789632, [1.08, 1.05, 0.90]); // 暖端复合 = 端点冻结下的最坏黄向（向纯黄 60° 漏的最坏端）
+    const cold = mul(0x789632, [0.94, 1.0, 1.04]); // 冷端复合 = 残绿方向
+    expect(hueOf(base)).toBeGreaterThanOrEqual(70); // 锚域下沿（不入纯黄 60° 的余量沿）
+    expect(hueOf(base)).toBeLessThanOrEqual(85); // 锚域上沿（不入纯绿读向）
+    expect(hueOf(warm)).toBeGreaterThanOrEqual(70); // 最坏黄向仍守黄绿域下沿（hue 复合 ≈74.9°——不投机造金黄的数值面）
+    expect(hueOf(cold)).toBeGreaterThan(hueOf(warm)); // 冷端偏绿向（残绿方向——[9] 95%+ 绿晚相仅方向记档）
+    expect(base[0]).toBeLessThan(base[1]); // R < G 绿向主导（黄绿非黄——NC greenish-yellow 字面锚）
+    expect(warm[0]).toBeLessThan(warm[1]); // 最坏端 R<G 仍成立（暖端 R 放大不翻绿向主导）
+    expect(base[1] - base[2]).toBeGreaterThanOrEqual(70); // G−B 黄绿饱和读向
+    const luma = (c: readonly number[]): number => 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2];
+    expect(luma(base)).toBeGreaterThanOrEqual(115); // 锚域下沿
+    expect(luma(base)).toBeLessThanOrEqual(140); // 锚域上沿
+    expect(luma(base)).toBeGreaterThan(luma([0x47, 0x78, 0x2d])); // 亮于夏相暗绿基调 #47782d（[9] 照片中-中亮读向——弱秋色仍可辨亮化）
+  });
+
+  it('默认卡零变化（结构锁）：缺省 / 显式 default / 未知 id 回退——色值、键、GLSL 全文与现行一致', () => {
+    const variants = [
+      track(createSalixLeafMaterial()),
+      track(createSalixLeafMaterial('high')),
+      track(createSalixLeafMaterial('high', 'default')),
+      track(createSalixLeafMaterial('high', 'no-such-preset')), // 未知 id 回退 default（值域校验归 Renderer resolvePoolKey 单一 choke point——工厂不做双写校验）
+    ];
+    for (const material of variants) {
+      expect(material.color.getHex()).toBe(0x47782d); // 现行数值（SALIX_LEAF_PRESETS.default 单一定义源）
+      expect(material.customProgramCacheKey()).toBe('salix:leaf+dither'); // 键与现行一致
+    }
+    const base = assemble(variants[0]!, THREE.ShaderLib.physical);
+    for (const material of variants.slice(1)) {
+      const shader = assemble(material, THREE.ShaderLib.physical);
+      expect(shader.vertexShader).toBe(base.vertexShader); // GLSL 全文与现行一致
+      expect(shader.fragmentShader).toBe(base.fragmentShader);
+    }
+  });
+
+  it('program 不增红线：default 与 autumn 键相等且 GLSL 全文逐位相等（同键必同源——色值只走构造色 uniform 通道；透射/变奏域字面量跨卡冻结）', () => {
+    for (const level of ['high', 'mid', 'low'] as const) {
+      const base = track(createSalixLeafMaterial(level));
+      const autumn = track(createSalixLeafMaterial(level, 'autumn'));
+      expect(autumn.customProgramCacheKey()).toBe(base.customProgramCacheKey()); // 同键（programs 不增——D44 #3）
+      const a = assemble(base, THREE.ShaderLib.physical);
+      const b = assemble(autumn, THREE.ShaderLib.physical);
+      expect(b.vertexShader).toBe(a.vertexShader); // 同键 ⇒ GLSL 必须同源（Three.js 同键复用程序——异源 = 错挂程序暴雷路径）
+      expect(b.fragmentShader).toBe(a.fragmentShader);
+      expect(b.fragmentShader).toContain('vec3(0.94, 1.00, 1.04), vec3(1.08, 1.05, 0.90)'); // hue 两端跨卡冻结
+      if (level !== 'low') {
+        expect(b.fragmentShader).toContain('vec3(0.62, 0.93, 0.33)'); // 透射色跨卡冻结（亮黄绿维持——程序红线代价记档；Low 去透光注入故仅 high/mid 断言）
+      }
+    }
+  });
+
+  it('三档 level × autumn 组合不崩 + 基调-only（alphaTest/侧向/糙度/金属度与 default 一致——色卡不碰质地与叶形；无果序负担——皮工厂无 preset 参）', () => {
+    for (const level of ['high', 'mid', 'low'] as const) {
+      const autumn = track(createSalixLeafMaterial(level, 'autumn'));
+      const base = track(createSalixLeafMaterial(level));
+      const shader = assemble(autumn, THREE.ShaderLib.physical); // 不崩 = 组装通过
+      expect(shader.fragmentShader).toContain('slxLeafAlpha('); // SDF 叶形照常（形态不随卡——冠变干不变）
+      expect(autumn.color.getHex()).not.toBe(base.color.getHex()); // 唯一差异 = 基调色
+      expect(autumn.alphaTest).toBe(base.alphaTest);
+      expect(autumn.alphaToCoverage).toBe(base.alphaToCoverage);
+      expect(autumn.side).toBe(base.side);
+      expect(autumn.roughness).toBe(base.roughness); // 无秋相质地证据——糙度不投机造数（记档）
+      expect(autumn.metalness).toBe(base.metalness);
+    }
+  });
+});

@@ -19,9 +19,11 @@
  * - customProgramCacheKey 13 树种 × 3 角色两两互异。
  * - 色卡 preset + uTime 注入（T024.1，D44 #1/#3——「冠变干不变」推广到远景表示）：
  *   ginkgo autumn 冠色覆写生效（与 ginkgoMaterials 秋卡基调同源同值 #d4b737；干柱色不
- *   随卡；键与注入 GLSL 零变化——program 不增）；未命中（缺省/显式 default/未知 id/
- *   无行树种）回物种表且键不随卡分叉；uTime 注入三材质同引用（干柱/冠卡/深度程序）、
- *   缺省自建套内同源跨套独立。
+ *   随卡；键与注入 GLSL 零变化——program 不增）；**T024.2 批一新增 platanus/koelreuteria/
+ *   sophora/triadica 四行 + 批二新增 fraxinus/salix 两行**（各与该树 *Materials.ts 叶卡
+ *   autumn 基调同源同值——远近基调一致 drift-lock；批二两树经 Step R 补证 Spec 1.1 增量
+ *   后建卡）；未命中（缺省/显式 default/未知 id/无行树种）回物种表且键不随
+ *   卡分叉；uTime 注入三材质同引用（干柱/冠卡/深度程序）、缺省自建套内同源跨套独立。
  */
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
@@ -353,23 +355,36 @@ describe('Canopy Depth Material（轮廓-only）', () => {
 
 // ── 色卡 preset（冠色覆写表）+ uTime 注入（T024.1，D44 #1/#3——冠变干不变推广到远景表示）──
 
-describe('色卡 preset（冠色覆写表）+ uTime 注入（T024.1）', () => {
-  it('ginkgo autumn：冠卡色覆写生效（= ginkgoMaterials 秋卡基调同源同值）≠ 物种表；干柱色不随卡；键与注入 GLSL 零变化（program 不增）', () => {
-    const def = createBroadleafCanopyMaterials('asset_tree_ginkgo');
-    const autumn = createBroadleafCanopyMaterials('asset_tree_ginkgo', 'autumn');
-    const species = BROADLEAF_CANOPY_MATERIAL_SPECIES['asset_tree_ginkgo']!;
-    expect(autumn.cardMaterial.color.getHex()).not.toBe(species.crownColor); // 覆写生效 ≠ 物种表值（0x8ab45d）
-    expect(autumn.cardMaterial.color.getHex()).toBe(createGinkgoLeafMaterial('high', 'autumn').color.getHex()); // 与叶材质秋卡同源同值（远近基调一致——远景不随卡会破所见即所得）
-    expect(autumn.trunkMaterial.color.getHex()).toBe(species.trunkColor); // 干柱色不随卡（冠变干不变）
-    expect(autumn.trunkMaterial.color.getHex()).toBe(def.trunkMaterial.color.getHex());
-    // program 不增 + GLSL 零变化：同键、注入产物逐位相等（crownColor 走构造色 uniform 通道）
-    expect(autumn.cardMaterial.customProgramCacheKey!()).toBe(def.cardMaterial.customProgramCacheKey!());
-    expect(autumn.depthMaterial.customProgramCacheKey!()).toBe(def.depthMaterial.customProgramCacheKey!());
-    expect(inject(autumn.cardMaterial).vertexShader).toBe(inject(def.cardMaterial).vertexShader); // 风动/相位零随卡
-    expect(inject(autumn.cardMaterial).fragmentShader).toBe(inject(def.cardMaterial).fragmentShader); // 变奏域/透射零随卡（透射预留位 024.1 无填充）
+/** 覆写表有行树种的 autumn 叶材质工厂（远近基调同源同值 drift-lock 参照——T024.2 批一扩至 5 树 + 批二扩至 7 树） */
+const SPECIES_LEAF_AUTUMN: Record<string, () => THREE.MeshStandardMaterial> = {
+  asset_tree_ginkgo: () => createGinkgoLeafMaterial('high', 'autumn'),
+  asset_tree_platanus: () => createPlatanusLeafMaterial('high', 'autumn'),
+  asset_tree_koelreuteria: () => createKoelreuteriaLeafMaterial('high', 'autumn'),
+  asset_tree_sophora: () => createSophoraLeafMaterial('high', 'autumn'),
+  asset_tree_triadica: () => createTriadicaLeafMaterial('high', 'autumn'),
+  asset_tree_fraxinus: () => createFraxinusLeafMaterial('high', 'autumn'),
+  asset_tree_salix: () => createSalixLeafMaterial('high', 'autumn'),
+};
+
+describe('色卡 preset（冠色覆写表）+ uTime 注入（T024.1；T024.2 批一扩 4 树 + 批二扩 2 树）', () => {
+  it('autumn 有行树种（ginkgo + 批一 platanus/koelreuteria/sophora/triadica + 批二 fraxinus/salix）：冠卡色覆写生效（= 该树种材质秋卡基调同源同值）≠ 物种表；干柱色不随卡；键与注入 GLSL 零变化（program 不增）', () => {
+    for (const id of Object.keys(SPECIES_LEAF_AUTUMN)) {
+      const def = createBroadleafCanopyMaterials(id);
+      const autumn = createBroadleafCanopyMaterials(id, 'autumn');
+      const species = BROADLEAF_CANOPY_MATERIAL_SPECIES[id]!;
+      expect(autumn.cardMaterial.color.getHex(), `${id} 覆写应生效 ≠ 物种表值`).not.toBe(species.crownColor);
+      expect(autumn.cardMaterial.color.getHex(), `${id} 应与叶材质秋卡同源同值（远近基调一致——远景不随卡会破所见即所得）`).toBe(SPECIES_LEAF_AUTUMN[id]!().color.getHex());
+      expect(autumn.trunkMaterial.color.getHex(), `${id} 干柱色不随卡（冠变干不变）`).toBe(species.trunkColor);
+      expect(autumn.trunkMaterial.color.getHex(), `${id} 干柱色与 default 套一致`).toBe(def.trunkMaterial.color.getHex());
+      // program 不增 + GLSL 零变化：同键、注入产物逐位相等（crownColor 走构造色 uniform 通道）
+      expect(autumn.cardMaterial.customProgramCacheKey!(), `${id} card 键不随卡分叉`).toBe(def.cardMaterial.customProgramCacheKey!());
+      expect(autumn.depthMaterial.customProgramCacheKey!(), `${id} depth 键不随卡分叉`).toBe(def.depthMaterial.customProgramCacheKey!());
+      expect(inject(autumn.cardMaterial).vertexShader, `${id} 风动/相位零随卡`).toBe(inject(def.cardMaterial).vertexShader);
+      expect(inject(autumn.cardMaterial).fragmentShader, `${id} 变奏域/透射零随卡（透射预留位无填充）`).toBe(inject(def.cardMaterial).fragmentShader);
+    }
   });
 
-  it('未命中回物种表：缺省 / 显式 default / 未知 id = 现行行为；12 树无行（如 camphor）autumn 亦回物种表；键不随卡分叉', () => {
+  it('未命中回物种表：缺省 / 显式 default / 未知 id = 现行行为；无行树种（如 camphor）autumn 亦回物种表；键不随卡分叉', () => {
     const species = BROADLEAF_CANOPY_MATERIAL_SPECIES['asset_tree_ginkgo']!;
     for (const preset of [undefined, 'default', 'no-such-card'] as (string | undefined)[]) {
       const set = createBroadleafCanopyMaterials('asset_tree_ginkgo', preset);
@@ -377,9 +392,11 @@ describe('色卡 preset（冠色覆写表）+ uTime 注入（T024.1）', () => {
     }
     for (const id of BROADLEAF_CANOPY_MATERIAL_ASSET_IDS) {
       const def = createBroadleafCanopyMaterials(id);
-      const autumn = createBroadleafCanopyMaterials(id, 'autumn'); // 仅 ginkgo 有行
-      const expected = id === 'asset_tree_ginkgo' ? 0xd4b737 : BROADLEAF_CANOPY_MATERIAL_SPECIES[id]!.crownColor;
-      expect(autumn.cardMaterial.color.getHex()).toBe(expected); // 无行树种回物种表
+      const autumn = createBroadleafCanopyMaterials(id, 'autumn'); // 7 树有行（ginkgo + 批一 4 树 + 批二 2 树），其余回物种表
+      const expected = SPECIES_LEAF_AUTUMN[id] !== undefined
+        ? SPECIES_LEAF_AUTUMN[id]!().color.getHex()
+        : BROADLEAF_CANOPY_MATERIAL_SPECIES[id]!.crownColor;
+      expect(autumn.cardMaterial.color.getHex(), `${id} autumn 冠色（有行 = 覆写值 / 无行 = 物种表）`).toBe(expected);
       expect(autumn.cardMaterial.customProgramCacheKey!()).toBe(def.cardMaterial.customProgramCacheKey!()); // 键不随卡分叉（program 不增）
       expect(autumn.trunkMaterial.color.getHex()).toBe(def.trunkMaterial.color.getHex()); // 干柱色恒不随卡
     }

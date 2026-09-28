@@ -50,7 +50,8 @@
  *      koelreuteriaMaterials——park-shader-agent 并行交付，导出签名冻结（与
  *      platanusMaterials 同构）：createKoelreuteriaLeafMaterial /
  *      createKoelreuteriaBarkMaterial / createKoelreuteriaLeafDepthMaterial，均
- *      (level?: ProceduralLevel) => 材质）：
+ *      (level?: ProceduralLevel) => 材质；T024.2 起叶工厂追加可选 preset 尾参
+ *      （createKoelreuteriaLeafMaterial(level?, preset?)，向后兼容））：
  *      0 树皮（主干+五级枝+底盖+**花卡+灯笼果**）—— createKoelreuteriaBarkMaterial
  *        (level)：浅色光滑 + 皮孔麻点 + 局部浅细纵裂（bark-b 双系统补证 + FRPS
  *        「皮孔圆形至椭圆形」「枝具小疣点」Verified [2]——七资产第 7 树皮语言，vs 朴树
@@ -58,7 +59,10 @@
  *        果配方**（花 v∈[5,6) 金黄团块 + 瓣基橙红斑、果 v∈[6,7] 鲑粉-玫红-褐多色档
  *        （u = 逐果色档通道）——材质侧冻结接口）；深度材质皮组 aLeafRand=0 实心守卫
  *        覆盖花果影
- *      1 复叶卡（L4/L5 末级枝疏簇烘焙）—— createKoelreuteriaLeafMaterial(level)：
+ *      1 复叶卡（L4/L5 末级枝疏簇烘焙）—— createKoelreuteriaLeafMaterial(level,
+ *        preset)（T024.2：preset = 色卡 id，缺省/'default' = 现行中绿基调；'autumn' =
+ *        秋·金黄——色值配方与 Spec §5 证据链在 koelreuteriaMaterials 秋卡私有域，
+ *        冠变干不变——花簇/灯笼果域归组 0 不随卡）：
  *        中绿复叶基调（正面中绿/背面浅绿灰绿密短柔毛 Verified [2][4]）+ **复叶 SDF**
  *        （二回羽状：主轴 + 羽片 4–5(–6) 对 × 每羽片 5–7(–9) 枚 + 顶生小叶、小叶斜卵
  *        形全缘主力↔细齿变体——沿卡 v 轴排布，家族复叶首例的材质侧表达）+ aLeafRand
@@ -75,7 +79,9 @@
  *      dispose，禁止模块级共享对象，D17）；不建模记档（Spec 有事实、本资产不表达）：
  *      小叶结构（羽片对数/每羽片枚数/斜卵形/全缘↔内弯细齿/近无柄/基部偏斜——归材质
  *      SDF）、花瓣 4 与瓣基橙红斑（归材质）、蒴果色序细节与膜质网纹（归材质 u 通道）、
- *      花序-果序分支结构（卡/串抽象）、秋色黄、冬态宿存干果、多干丛生（现象 Verified
+ *      花序-果序分支结构（卡/串抽象）、秋色黄（**T024.2 起经叶材质色卡 'autumn'
+ *      表达**——季相不进几何/树皮维持「冠变干不变」，原「不建模记档」的几何侧口径
+ *      不变）、冬态宿存干果、多干丛生（现象 Verified
  *      [9][12] 频率 Unknown——结构差异不落连续参数记档）、幼态一回羽状叶（单源
  *      Unknown）、芽（Unknown）、新叶色（Unknown）、小枝疣点皮孔与红褐一年生枝（归
  *      材质）——详见 koelreuteriaShapeProfile 模块头。
@@ -131,7 +137,15 @@ export const meta: ProceduralAssetMeta = {
   // CanopySourceCache 经 broadleafCanopyProxy 工厂提供（021.6，恒 487 面）
   representations: ['high', 'mid', 'canopy'],
   taxonomy: { category: 'plant', family: 'broadleaf' }, // 阔叶家族契约第七实例（tree/broadleaf/，T010.1；无患子科（Sapindaceae）被子植物按家族形态域归 broadleaf——落叶阔叶第四例、复叶首例，记档见资产模块头）
-  presets: [{ id: 'default', label: '默认', swatch: '#527d37' }], // 色卡占位（T024.1）：默认卡 = 现行材质基调；季相卡 024.2/024.3 按 Spec 证据回补（D44 #7 无证据不建卡）
+  // 色卡（T024.2 批一真卡，D44）：default = 现行中绿偏深基调（swatch = 叶材质构造色
+  // #527d37——与 canopy crownColor 同源）；autumn = 秋·金黄（NC "almost transparent
+  // yellow in fall"/"clear, golden yellow" + wiki "turns yellow in fall"，Spec §5
+  // [8][9]）；色值配方在 koelreuteriaMaterials 秋卡私有域（冠变干不变——皮/几何/
+  // 花簇/灯笼果不动）
+  presets: [
+    { id: 'default', label: '默认', swatch: '#527d37' },
+    { id: 'autumn', label: '秋·金黄', swatch: '#d0bc46' }, // swatch = 秋卡基色（koelreuteriaMaterials KOE_LEAF_PRESETS autumn 行同源——批一定稿 #d0bc46）
+  ],
   proceduralProfile: {
     // 跨 8 槽细模包围盒实测带（T011.6 终测 2026-09-21：h 9.82–11.44 / w 8.13–9.89）。
     // 物种锚 slot-0 ≈9.9m 高 / 8.7m 冠幅 / w-h 比 0.877（≈10m 中龄公园个体——主代理
@@ -166,8 +180,11 @@ export function build(params?: ProceduralBuildParams): InstanceSource {
   const level = params?.level ?? 'high';
   const rng = mulberry32(seed);
   const { geometry } = buildKoelreuteriaGeometry(rng, profileForSeed(seed), level);
+  // params.preset = 色卡 id（T024.2 批一透传，D44 #1——冠变干不变）：仅叶材质消费；
+  // 皮材质与深度材质不传（干与花果域不变；深度材质色无关、被 Runtime 跨卡共享——024.1 机制）
+  const preset = params?.preset;
   const bark = createKoelreuteriaBarkMaterial(level); // 组 0（契约序 [皮, 复叶卡]——mergeGeometries 层序；花卡+灯笼果并入皮组（uv v 域身份标记），材质接口记档见模块头）
-  const leaf = createKoelreuteriaLeafMaterial(level);
+  const leaf = createKoelreuteriaLeafMaterial(level, preset);
   // 影 pass 叶影裁切走 InstanceSource 契约通道——工厂每次 new（build 契约「每次调用 new
   // 全部资源」天然满足），档位随 level 匹配；归源所有（缓存 dispose）
   return {

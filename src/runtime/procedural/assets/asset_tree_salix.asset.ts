@@ -70,13 +70,17 @@
  *      ——park-shader-agent 并行交付，导出签名冻结（与 ligustrumMaterials 同构）：
  *      createSalixBarkMaterial / createSalixLeafMaterial /
  *      createSalixLeafDepthMaterial，均 (level?: ProceduralLevel) => 材质 +
- *      SALIX_TREE_HEIGHT_NOMINAL 树高锚）：
+ *      SALIX_TREE_HEIGHT_NOMINAL 树高锚；T024.2 起叶工厂追加可选 preset 尾参
+ *      （createSalixLeafMaterial(level?, preset?)，向后兼容））：
  *      0 树皮（主干+五级枝+底盖——暗灰黑波状不规则纵沟脊第 13 语言：几何侧仅主干
  *        起伏浮雕（amplitudeRatio 0.028 / 谐波 {4,6} / drift 6.2 波状档）+ 抬档地板
  *        3.0mm 下全部分枝管光滑；色调/沟脊色对比/修剪残桩/小枝淡褐黄单档归材质层）
  *        ——createSalixBarkMaterial(level)
  *      1 单叶卡（L4/L5 末级枝互生螺旋散簇沿索烘焙）——createSalixLeafMaterial
- *        (level)：狭披针形细叶 SDF（长宽比域 8–18 与几何卡同域冻结接口——高频细齿
+ *        (level, preset)（T024.2：preset = 色卡 id，缺省/'default' = 现行中绿-中深绿
+ *        基调；'autumn' = 秋·黄绿——弱秋色卡〔Spec 1.1 增量：NC greenish-yellow
+ *        主相；"sometimes golden yellow" 上端 Unknown 不采不造金黄〕，色值配方与
+ *        证据链在 salixMaterials 秋卡私有域，冠变干不变）：狭披针形细叶 SDF（长宽比域 8–18 与几何卡同域冻结接口——高频细齿
  *        载波 + 近零侧脉 + 先端长渐尖）+ 黄绿调弱两面色差 + 高透 + 风动两层（垂索
  *        高频低幅颤动 + 整帘低频摆）+ aLeafRand 逐叶变奏
  *      注：层间 mergeGeometries useGroups=true → 恰 2 组（皮 0 / 叶 1，D15 免组
@@ -92,7 +96,9 @@
  *      （结构差异不落连续参数——slot-6 斜弯弱表达记档）；曲枝垂柳 f. tortuosa /
  *      旱柳系变体（不消费变体）；单叶内部结构（狭披针包络/细锯齿/长渐尖/羽状脉/
  *      叶柄/两面色——归材质 SDF 层）；树皮暗灰色调/沟脊色对比/残桩（归材质层）
- *      ——详见 salixShapeProfile 模块头。
+ *      ——详见 salixShapeProfile 模块头；秋色（Spec 1.1 增量补证：弱秋色黄绿主相
+      hue 70–85°、11 月末长江仍 95%+ 绿——**T024.2 起经叶材质色卡 'autumn' 表达**
+      为晚秋-初冬弱秋色变体，季相不进几何/树皮维持「冠变干不变」）。
  * LOD（T011.12 三档交付，家族方法逐位复制自 ligustrum）：build 透传 params.level
  *      （缺省 'high'——旧无参路径逐位不变）到几何与皮/叶材质工厂；三档同 rng 流
  *      同骨架/簇位决策（档间不变量、Mid ⊂ High 掩码口径与发射计划见
@@ -150,7 +156,15 @@ export const meta: ProceduralAssetMeta = {
   // CanopySourceCache 经 broadleafCanopyProxy 工厂提供（021.6，恒 487 面）
   representations: ['high', 'mid', 'canopy'],
   taxonomy: { category: 'plant', family: 'broadleaf' }, // 阔叶家族契约第十三实例（tree/broadleaf/，T010.1；杨柳科（Salicaceae）被子植物按家族形态域归 broadleaf——垂枝冠首例（契约应力位①档实证），记档见资产模块头）
-  presets: [{ id: 'default', label: '默认', swatch: '#47782d' }], // 色卡占位（T024.1）：默认卡 = 现行材质基调；季相卡 024.2/024.3 按 Spec 证据回补（D44 #7 无证据不建卡）
+  // 色卡（T024.2 批一真卡，D44）：default = 现行中绿-中深绿基调（swatch = 叶材质构造色
+  // #47782d——与 canopy crownColor 同源）；autumn = 秋·黄绿（Spec 1.1 增量：NC
+  // "greenish-yellow or sometimes golden yellow"——主相黄绿 [7]；金黄上端无照片直证
+  // Unknown 不采；[9] 长江三点 11 月末仍 95%+ 绿 = 弱秋色晚相变体）；色值配方在
+  // salixMaterials 秋卡私有域（冠变干不变——皮/几何不动；无果序负担）
+  presets: [
+    { id: 'default', label: '默认', swatch: '#47782d' },
+    { id: 'autumn', label: '秋·黄绿', swatch: '#789632' }, // swatch = 秋卡基色（salixMaterials SALIX_LEAF_PRESETS autumn 行同源——批一定稿 #789632）
+  ],
   proceduralProfile: {
     // 跨 8 槽细模包围盒实测带（T011.12 终测 2026-09-23 + 同日工程密度回调后复测：
     // h 8.46–11.22 / w 10.15–12.79，声明带外沿放宽——实测带全含）。
@@ -185,8 +199,11 @@ export function build(params?: ProceduralBuildParams): InstanceSource {
   const level = params?.level ?? 'high';
   const rng = mulberry32(seed);
   const { geometry } = buildSalixGeometry(rng, profileForSeed(seed), level);
+  // params.preset = 色卡 id（T024.2 批一透传，D44 #1——冠变干不变）：仅叶材质消费；
+  // 皮材质与深度材质不传（干不变；深度材质色无关、被 Runtime 跨卡共享——024.1 机制）
+  const preset = params?.preset;
   const bark = createSalixBarkMaterial(level); // 组 0（契约序 [皮, 单叶卡]——mergeGeometries 层序）
-  const leaf = createSalixLeafMaterial(level);
+  const leaf = createSalixLeafMaterial(level, preset);
   // 影 pass 叶影裁切走 InstanceSource 契约通道——工厂每次 new（build 契约「每次调用
   // new 全部资源」天然满足），档位随 level 匹配；归源所有（缓存 dispose）
   return {

@@ -102,6 +102,21 @@
  *     树高锚 12m（×0.0833——中龄 12–14m 照片域下沿**弱 Inferred 终审降级口径**记档；
  *     若混植年轻化 8–10m 个体顶部权重 0.67–0.83，摆幅相应缩——方向正确记档）。
  *
+ *   - 【色卡 preset（T024.2，D44 #1/#2——冠变干不变）】createPlatanusLeafMaterial 追加
+ *     可选 preset 参（导出签名冻结的扩展 = 只追加可选参；ginkgo T024.1 试点法复制）：
+ *     preset = 材质基调变体，只改叶基调构造色（PLATANUS_LEAF_PRESETS 模块私有表——
+ *     default 行 = 现行数值的**单一定义源**，缺省路径经表消费保证「default = 现行」由
+ *     结构成立；autumn 行 = 秋·黄褐 #a88a44，证据链与数值推导见表注释）；皮/深度/风动/
+ *     SDF/变奏域/透射色零改动（冠变干不变 + 深度材质色无关、将被 Runtime 跨卡共享——
+ *     另一 Step）。**program 不增红线（D44 #3）**：default 与 autumn 共享同一
+ *     customProgramCacheKey ⇒ GLSL 逐位同源（同键不同源 = Three.js 复用错程序的暴雷
+ *     路径）——hue/luma 两端、透射色 (0.56,0.90,0.36)、峰值 0.28 字面量跨卡冻结，
+ *     秋相差异全部由构造色（uniform 通道）承载。**果序域不随卡（024.2 任务书裁定，
+ *     D44 #1 字面域）**：果球域 v≥4 归组 0 皮材质 uv 域路由，preset 只改组 1 叶材质
+ *     基调 ⇒ 秋卡下果序维持夏相绿褐色序（秋相果球褐变不属材质基调变体，归未来增补
+ *     记档）。未知卡 id 回退 default（值域校验归 Renderer resolvePoolKey 单一 choke
+ *     point——工厂不做第二套校验，校验双写会漂移）。
+ *
  * 皮（组 0）配方（**第六种树皮语言：光滑基底大片地图状斑块剥落 + 冷调三色带多代拼贴**——
  *   vs 夏栎脊沟浮雕 / 朴树平滑-浅裂小斑 / 香樟纵裂深沟 / 榉树光滑+暖色小片斑驳 / 银杏
  *   灰褐纵裂脊沟；与榉树同「光滑剥落」族的**三重分化**：①色温（榉暖褐锈橙单色系 /
@@ -237,6 +252,7 @@
  */
 import * as THREE from 'three';
 import { FACILITY_GLSL_NOISE } from '../../materials/facilityGlsl';
+import { DEFAULT_COLOR_PRESET_ID } from '../../../../domain/assets'; // 默认卡 id 单一真相源（值导入——ginkgo T024.1 先例）
 import type { ProceduralLevel } from '../../../../domain/assets';
 import { applyTreeFadeDither } from '../treeFadeDither';
 
@@ -535,6 +551,46 @@ roughnessFactor = mix(roughnessFactor, 0.95, pltFruitGate); // 果序域高糙�
 
 // ── 工厂（每次调用 new 材质 + 独立注入闭包；键不变则共享 program）──────────────────
 
+/** 叶基调色卡配方行（T024.2，D44 #2——色值配方归树材质工厂私有域） */
+interface PlatanusLeafPreset {
+  /** 叶基调构造色（material.color = uniform 通道，不进 GLSL——program 不增的载体面） */
+  color: number;
+}
+
+/**
+ * 叶基调色卡配方表（模块私有；卡集与 meta.presets 声明对应——asset_tree_platanus 双卡）。
+ * default 行 = 现行数值的**单一定义源**（缺省路径经本表消费——「default = 现行」由结构
+ * 保证而非抄写保证）；变奏域/透射色**不随卡**：program 不增红线（D44 #3）要求 autumn 与
+ * default 同 customProgramCacheKey ⇒ GLSL 字面量不分叉 ⇒ hue 两端 (0.94,1.00,1.04)↔
+ * (1.07,1.04,0.90)、luma 0.92±0.08、透射色 (0.56,0.90,0.36)、峰值 0.28 跨卡冻结，秋相
+ * 读向 = 黄褐基色 × 现行变奏乘子复合（推导见 autumn 行注释）。未知卡 id 回退 default
+ * （值域校验归 Renderer resolvePoolKey 单一 choke point——工厂不做第二套校验）。
+ */
+const PLATANUS_LEAF_PRESETS: Readonly<Record<string, Readonly<PlatanusLeafPreset>>> = {
+  [DEFAULT_COLOR_PRESET_ID]: {
+    // 现行数值（T011.5 工程设定）：中绿——NC "medium green" Verified [7] + 照片中绿无粉感
+    // Inferred [9] 交叉（六树亮度链：银杏 > 朴树 > 悬铃木 > 夏栎 > 榉 > 樟——中绿中档；
+    // 中距色块与银杏淡绿/樟浓绿区分）
+    color: 0x527e39,
+  },
+  autumn: {
+    // 秋·黄褐 #a88a44（工程合成，双源：NC "Fall color yellow-brown" Verified [7] +
+    // form-c 黄褐秋末相第三眼直接判读黄褐——Spec §6 终审记档 6 补强该单源条目；
+    // FOC/Wikipedia 未强调鲜亮秋色〔vs 银杏纯金黄、榉树橙红谱〕——「观感平庸」黄褐读向）：
+    // - hue ≈42.0°（sRGB）黄褐域中点——R−G 30 入褐向（黄褐 ≠ 金黄的褐分量锚）；变奏暖端
+    //   复合 ×(1.07,1.04,0.90) ≈41.7° = 端点冻结下的最坏橙向，仍守黄褐域（40–45°）；
+    // - G−B 70 中弱黄向（NC yellow 读向弱于金黄卡——黄褐非金黄的饱和锚，银杏秋卡 128）；
+    // - 加权亮度 ≈139（0.299R+0.587G+0.114B）暗于银杏秋金 #d4b737（同式 ≈177）——「观感
+    //   平庸」暗端读向 + 饱和极差 R−B 100 < 银杏 157（暗且灰的平庸黄褐）；
+    // - 变奏冷端复合 ×(0.94,1.00,1.04) ≈46.3° 偏黄向 = 未转尽叶弱近似（Spec 无残绿占比
+    //   证据——不做定量主张，仅变奏域方向记档；沿 ginkgo 冷端取舍口径）；
+    // - 透射色维持中绿 (0.56,0.90,0.36)：同程序红线（D44 #3）的代价（透射字面量进 GLSL，
+    //   分叉即 +1 program）；秋相透射偏暖的解锁需后续统一决策（uniform 化透射通道或显式
+    //   接受 program 增量），不在本 Step。
+    color: 0xa88a44,
+  },
+};
+
 /**
  * 叶卡材质（组 1）：SDF 掌状裂叶 alphaTest 裁切 + 离基掌状 3 脉/稀 5/背脉腋残毛（High）+
  * 两面区分 + 中等偏弱透光 + 逐叶变奏 + 风动。level 分档（T011.5，缺省 'high'）：Mid 去
@@ -547,10 +603,21 @@ roughnessFactor = mix(roughnessFactor, 0.95, pltFruitGate); // 果序域高糙�
  * 链：银杏 > 朴树 > **悬铃木** > 夏栎 > 榉 > 樟——中绿中档）/ m 0 / r 0.66（哑光-半光泽
  * ——大叶厚实挺括微光 Spec §5 "thick and stiff" Verified [5]；介于榉 0.62 与朴 0.72
  * 之间偏榉）/ DoubleSide（卡面双面可见，背面法线由 three 双面光照自动翻转）。
+ * preset（T024.2 可选参，缺省 = 默认卡）：查 PLATANUS_LEAF_PRESETS 覆写基调构造色
+ * （autumn = 秋·黄褐 #a88a44，NC "Fall color yellow-brown" + form-c 第三眼判读——数值
+ * 推导见该表注释）；缺省/'default'/未知 id = default 行 = 现行行为逐位一致；program
+ * 不增红线 = preset 只走构造色，GLSL/defines/键与 default 全同（果序域归皮材质组 0
+ * 不随卡——见模块头【色卡 preset】段）。
  */
-export function createPlatanusLeafMaterial(level: ProceduralLevel = 'high'): THREE.MeshStandardMaterial {
+export function createPlatanusLeafMaterial(
+  level: ProceduralLevel = 'high',
+  preset?: string,
+): THREE.MeshStandardMaterial {
+  // 色卡解析（T024.2）：缺省 / 'default' / 未知 id → default 行（现行数值单一定义源）
+  const recipe = (preset !== undefined ? PLATANUS_LEAF_PRESETS[preset] : undefined)
+    ?? PLATANUS_LEAF_PRESETS[DEFAULT_COLOR_PRESET_ID]!;
   const material = new THREE.MeshStandardMaterial({
-    color: 0x527e39, // 中绿（工程设定：NC medium green [7] + 照片中绿无粉感 [9] 交叉——六树亮度链中档；中距色块与银杏淡绿/樟浓绿区分）
+    color: recipe.color, // 基调随卡（default = 中绿现行值 / autumn = 秋·黄褐——PLATANUS_LEAF_PRESETS 表注释引 Spec）
     metalness: 0,
     roughness: 0.66, // 哑光-半光泽（Spec §5 厚实挺括微光 Verified [5]；介于榉树 0.62 与朴树 0.72 之间偏榉）
     side: THREE.DoubleSide,

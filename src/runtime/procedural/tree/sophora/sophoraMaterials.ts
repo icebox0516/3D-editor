@@ -120,6 +120,22 @@
  *     单点常量——slot-0 Stage 实测同步〔2026-09-21，011.8 的
  *     9.896m 先例〕）**。
  *
+ *   - 【色卡 preset（T024.2，D44 #1/#2——冠变干不变）】createSophoraLeafMaterial
+ *     追加可选 preset 参（导出签名冻结的扩展 = 只追加可选参；ginkgo T024.1 试点法
+ *     复制）：preset = 材质基调变体，只改叶基调构造色（SOPHORA_LEAF_PRESETS 模块私有
+ *     表——default 行 = 现行数值的**单一定义源**，缺省路径经表消费保证「default = 现行」
+ *     由结构成立；autumn 行 = 秋·金黄 #c4a83a，证据链与数值推导见表注释）；皮（含荚果
+ *     域）/深度/风动/SDF/变奏域/透射色零改动（冠变干不变 + 深度材质色无关、将被
+ *     Runtime 跨卡共享——另一 Step）。**program 不增红线（D44 #3）**：default 与
+ *     autumn 共享同一 customProgramCacheKey ⇒ GLSL 逐位同源（同键不同源 = Three.js
+ *     复用错程序的暴雷路径）——hue/luma 两端、透射色 (0.56,0.92,0.38)、峰值 0.325
+ *     字面量跨卡冻结，秋相差异全部由构造色（uniform 通道）承载。**荚果域不随卡
+ *     （024.2 任务书裁定，D44 #1 字面域）**：串珠荚果域 v∈[4,5] 归组 0 皮材质 uv 域
+ *     路由，preset 只改组 1 复叶卡基调 ⇒ 秋卡下荚果维持绿→黄绿→黄褐夏相色序（秋相
+ *     果序枯褐化不属材质基调变体，归未来增补记档）。未知卡 id 回退 default（值域校验
+ *     归 Renderer resolvePoolKey 单一 choke point——工厂不做第二套校验，校验双写会
+ *     漂移）。
+ *
  * 皮（组 0 皮域）配方——**第 10 树皮语言「灰褐-深灰褐深纵裂厚脊沟（板状粗犷）
  *   + 纵为主局部交叉网状 + 散在暗色瘤状突起」**（裁决 6 定稿；vs 九先例：夏栎/
  *   樟深纵裂族、朴平滑浅裂、榉光滑暖剥、银杏灰褐浅纵裂、悬铃木地图剥落三色带、
@@ -248,6 +264,7 @@
  */
 import * as THREE from 'three';
 import { FACILITY_GLSL_NOISE } from '../../materials/facilityGlsl';
+import { DEFAULT_COLOR_PRESET_ID } from '../../../../domain/assets'; // 默认卡 id 单一真相源（值导入——ginkgo T024.1 先例）
 import type { ProceduralLevel } from '../../../../domain/assets';
 import { applyTreeFadeDither } from '../treeFadeDither';
 
@@ -598,6 +615,46 @@ const SOP_FRUIT_TRANSLUCENCY = /* glsl */ `
 
 // ── 工厂（每次调用 new 材质 + 独立注入闭包；键不变则共享 program）──────────────────
 
+/** 叶基调色卡配方行（T024.2，D44 #2——色值配方归树材质工厂私有域） */
+interface SophoraLeafPreset {
+  /** 叶基调构造色（material.color = uniform 通道，不进 GLSL——program 不增的载体面） */
+  color: number;
+}
+
+/**
+ * 叶基调色卡配方表（模块私有；卡集与 meta.presets 声明对应——asset_tree_sophora 双卡）。
+ * default 行 = 现行数值的**单一定义源**（缺省路径经本表消费——「default = 现行」由结构
+ * 保证而非抄写保证）；变奏域/透射色**不随卡**：program 不增红线（D44 #3）要求 autumn
+ * 与 default 同 customProgramCacheKey ⇒ GLSL 字面量不分叉 ⇒ hue 两端 (0.95,1.00,1.03)↔
+ * (1.05,1.05,0.93)、luma 0.92±0.08、透射色 (0.56,0.92,0.38)、峰值 0.325 跨卡冻结，
+ * 秋相读向 = 金黄基色 × 现行变奏乘子复合（推导见 autumn 行注释）。未知卡 id 回退
+ * default（值域校验归 Renderer resolvePoolKey 单一 choke point——工厂不做第二套校验）。
+ */
+const SOPHORA_LEAF_PRESETS: Readonly<Record<string, Readonly<SophoraLeafPreset>>> = {
+  [DEFAULT_COLOR_PRESET_ID]: {
+    // 现行数值（T011.9 工程设定）：中绿-亮绿——Spec §5 上面中绿-亮绿〔FRPS「下面灰白色」
+    // 反面读向 + leaf-a「有光泽中绿」[6] 交叉〕（十树亮度链：银杏 > 朴 > 悬 > 国槐 ≈ 栾
+    // 偏亮 > 重阳木 > 乌桕 > 夏栎 > 榉 > 樟；中距色块与栾中绿/重阳木中绿偏深区分）
+    color: 0x568a3e,
+  },
+  autumn: {
+    // 秋·金黄 #c4a83a（工程合成，单源权威园艺文献：NC "fall color Gold/Yellow,
+    // short-lived" Verified [4]——024.2 任务书裁定单源建卡成立〔门槛 = 有据而非多源〕；
+    // 「short-lived」为时序语义不进静态卡；无中文语境秋色来源——Spec §5 记档）：
+    // - hue ≈47.8°（sRGB）金黄域——R−G 28 Gold 褐分量略重于淡黄卡；变奏暖端复合
+    //   ×(1.05,1.05,0.93) ≈48.4° = 端点冻结下的最坏橙向，仍守金黄域（≥45° 不入橙）；
+    // - G−B 110 ≥105 强黄向饱和（Gold/Yellow 读向）；
+    // - 加权亮度 ≈164（0.299R+0.587G+0.114B）——Gold 深于栾淡金黄 #d0bc46（同式 ≈181）
+    //   一档（任务书锚域 160–175）；
+    // - 变奏冷端复合 ×(0.95,1.00,1.03) ≈51.4° 橄榄金向 = 残绿弱近似（Spec 无残绿占比
+    //   证据——方向记档沿 ginkgo 冷端取舍口径）；
+    // - 透射色维持灰绿黄 (0.56,0.92,0.38)：同程序红线（D44 #3）的代价（透射字面量进
+    //   GLSL，分叉即 +1 program）；秋相透射偏金的解锁需后续统一决策（uniform 化透射
+    //   通道或显式接受 program 增量），不在本 Step。
+    color: 0xc4a83a,
+  },
+};
+
 /**
  * 复叶卡材质（组 1）：一回奇数羽状复叶单级窗列 SDF alphaTest 裁切 + 小叶脉（High）
  * + 两面 glaucous 加重差 + 家族值域透光 + 逐叶变奏 + 风动。level 分档（T011.9，
@@ -611,10 +668,21 @@ const SOP_FRUIT_TRANSLUCENCY = /* glsl */ `
  * **国槐** ≈ 栾偏亮 > 重阳木 > 乌桕 > 夏栎 > 榉 > 樟）/ m 0 / r 0.67（「纸质」
  * FRPS Verified 微光泽端：悬厚实 0.66 < 0.67 < 栾/重阳木 0.70）/ DoubleSide
  * （卡面双面可见，背面法线由 three 双面光照自动翻转）。
+ * preset（T024.2 可选参，缺省 = 默认卡）：查 SOPHORA_LEAF_PRESETS 覆写基调构造色
+ * （autumn = 秋·金黄 #c4a83a，NC "fall color Gold/Yellow"——数值推导见该表注释）；
+ * 缺省/'default'/未知 id = default 行 = 现行行为逐位一致；program 不增红线 = preset
+ * 只走构造色，GLSL/defines/键与 default 全同（串珠荚果域归皮材质组 0 不随卡——见
+ * 模块头【色卡 preset】段）。
  */
-export function createSophoraLeafMaterial(level: ProceduralLevel = 'high'): THREE.MeshStandardMaterial {
+export function createSophoraLeafMaterial(
+  level: ProceduralLevel = 'high',
+  preset?: string,
+): THREE.MeshStandardMaterial {
+  // 色卡解析（T024.2）：缺省 / 'default' / 未知 id → default 行（现行数值单一定义源）
+  const recipe = (preset !== undefined ? SOPHORA_LEAF_PRESETS[preset] : undefined)
+    ?? SOPHORA_LEAF_PRESETS[DEFAULT_COLOR_PRESET_ID]!;
   const material = new THREE.MeshStandardMaterial({
-    color: 0x568a3e, // 中绿-亮绿（工程设定：Spec §5 + leaf-a [6] 交叉——十树链栾偏亮一档；中距色块与栾中绿/重阳木中绿偏深区分）
+    color: recipe.color, // 基调随卡（default = 中绿-亮绿现行值 / autumn = 秋·金黄——SOPHORA_LEAF_PRESETS 表注释引 Spec）
     metalness: 0,
     roughness: 0.67, // 纸质微光泽（「纸质」FRPS Verified 取微光泽端——leaf-a「有光泽」）
     side: THREE.DoubleSide,

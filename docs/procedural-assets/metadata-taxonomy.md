@@ -50,7 +50,7 @@ proceduralProfile?: {                    // 可选；只收通用维度语义（
 **声明纪律**：
 
 - **必填 + 空数组合法**：空数组 = 显式声明「本资产无色卡」（设施 / DEV 资产合法态）；乔木 / 植物族「非空且含 default 卡」的族级断言归各自 epic 族门定义（D30 不预防性泛化）。
-- **卡 id 纪律**：资产内唯一；**跨树同相卡 id 同名**（便于散布配方书写，如 `autumn`）；id 域定稿记档归 T024.2。试点：ginkgo 双卡（`default` + `autumn` 秋·金黄——Spec §6 证据）。
+- **卡 id 纪律**：资产内唯一；**跨树同相卡 id 同名**（便于散布配方书写）。**id 域定稿（T024.2，2026-09-28 记档）**：现役域 = `'default'`（全资产统一默认卡）+ `'autumn'`（秋相卡，跨树同名）——试点 ginkgo `'autumn'` 保持不改名；后续新相（春/新叶相等）由引入它的任务增补，须同步更新本节记档与整表锁 EXPECTED_PRESETS。批一回补现势：ginkgo + platanus/koelreuteria/sophora/triadica/fraxinus/salix 各 `default`+`autumn`（色值与证据锚归各树材质工厂私有域 + Reference Spec）。
 - **证据纪律（D44 #7 无证据不建卡）**：每树至少 default 卡（= 现行生产相，天然有据）；季相卡逐树按 Reference Spec 季相记录定，卡数不设统一硬指标；缺证相先经 asset-research 补 Spec 增量再建卡——色值参数注释逐卡引 Spec 条目（同资产数值注释纪律）。
 - **swatch = 数据色**：CSS 色串，仅服务浏览器色点 UI（T024.4）；**缩略图不随卡重渲**。
 

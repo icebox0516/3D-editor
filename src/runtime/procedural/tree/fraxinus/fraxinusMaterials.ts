@@ -131,6 +131,25 @@
  *     **树高锚 10.4973m（×0.09526——slot-0 Stage 实测涌现同步轮，2026-09-22；
  *     011.8 9.896m / 011.9 10.3413m 同款流程）**。
  *
+ *   - 【色卡 preset（T024.2，D44 #1/#2——冠变干不变）】createFraxinusLeafMaterial
+ *     追加可选 preset 参（导出签名冻结的扩展 = 只追加可选参；ginkgo T024.1 试点法
+ *     复制）：preset = 材质基调变体，只改叶基调构造色（FRAXINUS_LEAF_PRESETS 模块
+ *     私有表——default 行 = 现行数值的**单一定义源**，缺省路径经表消费保证
+ *     「default = 现行」由结构成立；autumn 行 = 秋·金黄 #c8af3c，证据链与数值推导
+ *     见表注释——**Spec 1.1 增量节「T024.2 补证：秋色」建卡**：主相金黄 hue 45–55°
+ *     ［百度百科「秋叶金黄」[13] + autumn-b 张家口金黄 40–60° 直证 [15] + form-b/c
+ *     韩国早秋黄化 [12]］，盛末褐黄 25–45° 为末端不入主相记档）；皮（含翅果域）/
+ *     深度/风动/SDF/变奏域/透射色零改动（冠变干不变 + 深度材质色无关、将被 Runtime
+ *     跨卡共享——另一 Step）。**program 不增红线（D44 #3）**：default 与 autumn
+ *     共享同一 customProgramCacheKey ⇒ GLSL 逐位同源（同键不同源 = Three.js 复用
+ *     错程序的暴雷路径）——hue/luma 两端、透射色 (0.54,0.90,0.36)、峰值 0.318
+ *     字面量跨卡冻结，秋相差异全部由构造色（uniform 通道）承载。**果序域不随卡
+ *     （024.2 任务书裁定，D44 #1 字面域）**：匙形翅果域 v∈[4,5] 归组 0 皮材质 uv
+ *     域路由，preset 只改组 1 叶材质基调 ⇒ 秋卡下翅果帘幕维持夏相嫩绿→黄绿→淡褐
+ *     →淡黄褐四档色序（秋相果序进一步褐变不属材质基调变体，归未来增补记档）。
+ *     未知卡 id 回退 default（值域校验归 Renderer resolvePoolKey 单一 choke
+ *     point——工厂不做第二套校验，校验双写会漂移）。
+ *
  * 皮（组 0 皮域）配方——**第 11 树皮语言「灰褐浅-中纵裂（无剥落无碎翘）+ 幼干-
  *   大枝近光滑 + 皮孔小不明显」**（裁决 6 定稿；vs 十先例：夏栎/樟/银杏深纵裂
  *   族、朴平滑浅裂、榉光滑暖剥、悬铃木地图剥落三色带、栾浅色光滑+密麻点醒目、
@@ -276,6 +295,7 @@
  */
 import * as THREE from 'three';
 import { FACILITY_GLSL_NOISE } from '../../materials/facilityGlsl';
+import { DEFAULT_COLOR_PRESET_ID } from '../../../../domain/assets'; // 默认卡 id 单一真相源（值导入——ginkgo T024.1 先例）
 import type { ProceduralLevel } from '../../../../domain/assets';
 import { applyTreeFadeDither } from '../treeFadeDither';
 
@@ -626,6 +646,51 @@ const FRX_FRUIT_TRANSLUCENCY = /* glsl */ `
 
 // ── 工厂（每次调用 new 材质 + 独立注入闭包；键不变则共享 program）──────────────────
 
+/** 叶基调色卡配方行（T024.2，D44 #2——色值配方归树材质工厂私有域） */
+interface FraxinusLeafPreset {
+  /** 叶基调构造色（material.color = uniform 通道，不进 GLSL——program 不增的载体面） */
+  color: number;
+}
+
+/**
+ * 叶基调色卡配方表（模块私有；卡集与 meta.presets 声明对应——asset_tree_fraxinus 双卡）。
+ * default 行 = 现行数值的**单一定义源**（缺省路径经本表消费——「default = 现行」由结构
+ * 保证而非抄写保证）；变奏域/透射色**不随卡**：program 不增红线（D44 #3）要求 autumn 与
+ * default 同 customProgramCacheKey ⇒ GLSL 字面量不分叉 ⇒ hue 两端 (0.95,1.00,1.02)↔
+ * (1.05,1.04,0.94)、luma 0.92±0.08、透射色 (0.54,0.90,0.36)、峰值 0.318 跨卡冻结，秋相
+ * 读向 = 金黄基色 × 现行变奏乘子复合（推导见 autumn 行注释）。未知卡 id 回退 default
+ * （值域校验归 Renderer resolvePoolKey 单一 choke point——工厂不做第二套校验）。
+ */
+const FRAXINUS_LEAF_PRESETS: Readonly<Record<string, Readonly<FraxinusLeafPreset>>> = {
+  [DEFAULT_COLOR_PRESET_ID]: {
+    // 现行数值（T011.10 工程设定）：中绿——Spec §5 上面中绿-亮绿（照片级）；十树亮度链：
+    // 栾 < 白蜡 ≈ 国槐邻档半档之差
+    color: 0x548840,
+  },
+  autumn: {
+    // 秋·金黄 #c8af3c（工程合成，Spec 1.1 增量节「T024.2 补证：秋色」：百度百科「秋叶
+    // 金黄」定性原句 [13]（弱轴不承重定量）+ autumn-b 张家口 10-05「金黄-黄橙 hue ≈
+    // 40–60°、50–70% 转色、中饱和」照片直证 [15] + form-b/c 韩国山地 10-09 早秋黄化
+    // [12]——**主相金黄 hue 45–55°**；盛末/山地早衰端褐黄-橙褐 25–45°（autumn-a 北京
+    // 门头沟 >90% 转色端 [15]）为末端不入主相记档；中饱和、中-中亮（[15] 两承重照
+    // 双问一致 medium / medium(-bright)）：
+    // - hue ≈49.3°（sRGB）金黄域中点偏黄——R−G 25 克制不入橙；变奏暖端复合
+    //   ×(1.05,1.04,0.94) ≈49.1°、R−G 28 = 端点冻结下的最坏橙向，仍守锚域
+    //   （hue ≥46 / R−G ≤30 不入橙——最坏端复核过）；
+    // - G−B 115 强黄向饱和（「金黄」读向；≥105 锚）；
+    // - 加权亮度 ≈169.4（0.299R+0.587G+0.114B）∈155–170——与 sophora 秋金 #c4a83a
+    //   （47.8°/163.8）邻档保持可辨差异：**亮半档** +5.6 + hue 微偏黄（49.3 vs 47.8）
+    //   + G−B 115 vs 110（照片「中饱和、中-中亮」判读定夺——亮端读向）；暗于银杏秋金
+    //   #d4b737（≈177）一档（[15]b 阴天中-暗 vs 银杏 FOC "bright" 亮端）；
+    // - 变奏冷端复合 ×(0.95,1.00,1.02) ≈53.0° 偏黄绿向 = 未转尽叶弱近似（残绿无占比
+    //   证据——不做定量主张，仅方向记档；沿 ginkgo 冷端取舍口径）；
+    // - 透射色维持灰绿黄 (0.54,0.90,0.36)：同程序红线（D44 #3）的代价（透射字面量进
+    //   GLSL，分叉即 +1 program）；秋相透射偏金的解锁需后续统一决策（uniform 化透射
+    //   通道或显式接受 program 增量），不在本 Step。
+    color: 0xc8af3c,
+  },
+};
+
 /**
  * 复叶卡材质（组 1）：一回奇数羽状复叶对生窗列 SDF alphaTest 裁切 + 小叶脉三层
  * （High）+ 两面浅绿-灰绿弱差 + 家族值域透光 + 逐叶变奏 + 风动。level 分档
@@ -639,10 +704,21 @@ const FRX_FRUIT_TRANSLUCENCY = /* glsl */ `
  * 栾 < **白蜡** ≈ 国槐邻档半档之差）/ m 0 / r 0.68（「硬纸质」FRPS Verified：
  * 悬厚实 0.66 < 国槐纸质 0.67 < 0.68 < 栾/重阳木 0.70）/ DoubleSide（卡面双面
  * 可见，背面法线由 three 双面光照自动翻转）。
+ * preset（T024.2 可选参，缺省 = 默认卡）：查 FRAXINUS_LEAF_PRESETS 覆写基调构造色
+ * （autumn = 秋·金黄 #c8af3c，Spec 1.1 增量节 [13][15][12]——数值推导见该表注释）；
+ * 缺省/'default'/未知 id = default 行 = 现行行为逐位一致；program 不增红线 = preset
+ * 只走构造色，GLSL/defines/键与 default 全同（翅果域归皮材质组 0 不随卡——见模块头
+ * 【色卡 preset】段）。
  */
-export function createFraxinusLeafMaterial(level: ProceduralLevel = 'high'): THREE.MeshStandardMaterial {
+export function createFraxinusLeafMaterial(
+  level: ProceduralLevel = 'high',
+  preset?: string,
+): THREE.MeshStandardMaterial {
+  // 色卡解析（T024.2）：缺省 / 'default' / 未知 id → default 行（现行数值单一定义源）
+  const recipe = (preset !== undefined ? FRAXINUS_LEAF_PRESETS[preset] : undefined)
+    ?? FRAXINUS_LEAF_PRESETS[DEFAULT_COLOR_PRESET_ID]!;
   const material = new THREE.MeshStandardMaterial({
-    color: 0x548840, // 中绿（工程设定：Spec §5 上面中绿-亮绿——亮于栾、微暗于国槐亮绿端半档）
+    color: recipe.color, // 基调随卡（default = 中绿现行值 / autumn = 秋·金黄——FRAXINUS_LEAF_PRESETS 表注释引 Spec）
     metalness: 0,
     roughness: 0.68, // 硬纸质（「硬纸质」FRPS Verified——国槐纸质 0.67 微抬一档）
     side: THREE.DoubleSide,

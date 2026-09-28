@@ -1,9 +1,9 @@
 # fraxinus Reference Spec（白蜡树）
 
-Spec Version: 1.0
+Spec Version: 1.1
 Domain: plant
 Asset: tree_fraxinus（白蜡树）
-Updated: 2026-09-21
+Updated: 2026-09-28（v1.1 秋色补证增量，见文末「增量记档（T024.2）」；正文 1.0 未改动）
 
 > 关键事实统一写法（各节内联、逐条标注；Source 填来源表编号）：
 > Form ∈ {Value, Range, Relative, Qualitative}；Evidence Status ∈ {Verified, Inferred, Unknown}。
@@ -260,6 +260,9 @@ Updated: 2026-09-21
 | 10 | NC State Extension Plant Toolbox（园艺轴——**无条目记档**） | 园艺官方 | https://plants.ces.ncsu.edu/plants/fraxinus-chinensis/（HTTP 404）；站内搜索 "fraxinus chinensis" 返回 "We couldn't find any plants using the term 'fraxinus chinensis'"，Fraxinus 属仅收录北美本土种（americana/angustifolia/caroliniana/latifolia/nigra/pennsylvanica/profunda/quadrangulata） | 2026-09-21 | **NC 无中国白蜡树条目——园艺轴降级**：体量/树皮园艺交叉改由 FRPS 志书直给（高10-12米）+ 照片轴承托；本行仅作通道记档 |
 | 11 | 任务书（用户提供） | 用户提供 | 主代理派遣指令（本会话） | 2026-09-21 | 使用语境（长江流域城市公园、≈8–12m 族量级锚）、FRPS 61:30 / FOC Vol.15 结构尺度锚、十项重点调研面（种定名/复叶/冠形/枝姿芽序/树皮/花/翅果/叶色/变体/D34）、近缘排除名单（苦枥木/尖萼梣/白枪杆/大叶梣/美国白蜡/欧洲白蜡）、通道现状与照片纪律 |
 | 12 | iNaturalist research-grade 真实照片（直接视觉证据；本地副本 ref-fraxinus-*.jpg 16 张不入 git；taxon 537565 = Fraxinus chinensis species + 1057060 = subsp. chinensis，2026-09-21 经 /v1/taxa 端点确认均 active；**601637 subsp. rhynchophylla 检索池排除记档**） | 真实照片 | 照片页 https://www.inaturalist.org/photos/<id>；原图 https://inaturalist-open-data.s3.amazonaws.com/photos/<id>/original.jpg（16/16 HEAD 200 验证，扩展名均 .jpg）；检索 www.inaturalist.org/observations.json taxon_id=537565 photos=true quality_grade=research（中国池 place_id=6903 79 obs + 世界池 200 obs） | 2026-09-21 | 见下「照片来源明细」 |
+| 13 | 百度百科 白蜡树（木犀科梣属植物）词条（agent-browser 渲染提取正文，词条 ID 34334；**弱轴记档**——与 salix Spec 源 5 同级处置） | 百科（弱轴） | https://baike.baidu.com/item/白蜡树/34334 | 2026-09-28 | 概述原句「树形端正、**秋叶金黄**，是优良行道树与护岸树种，也可用于工矿区绿化与水土保持」；词条内无秋色时序/强度细节句；图片说明「石家庄街头这棵树一夜成网红 只因它心形的金黄树冠」（次要佐证）——秋色定性「金黄」承托，不承重定量 |
+| 14 | Trees and Shrubs Online（International Dendrology Society）Fraxinus chinensis 条目 | 权威园艺文献 | https://treesandshrubsonline.org/articles/fraxinus/fraxinus-chinensis/ | 2026-09-28 | 正文无秋色描述句；图注原句「**Autumn colour on Fraxinus chinensis** (a tree labelled var. rhynchophylla) **in the Valley Gardens**」——英国栽培个体秋色**存在性**图注级佐证（无色相文字；图注树挂北方亚种标签，记档） |
+| 15 | iNaturalist research-grade 秋季照片（2024-10-03/05/07 中国池 3 obs：2 obs 承重 + 1 obs 夜照排除记档；本地副本 ref-fraxinus-autumn-*.jpg 不入 git；检索同源 12 端点 d1=2024-10-01&d2=2026-01-31 中国池） | 真实照片 | 照片页 https://www.inaturalist.org/photos/<id>；medium 走 API v1 photos[].url 权威地址（**2024 年照片 S3 open-data 域扩展名为 .jpeg，.jpg 变体 404——与 1.0 源 12 的 .jpg 经验不同**）；2024-10-10~11-30 世界池补查仅哥伦比亚赤道 1 obs（弃） | 2026-09-28 | 见文末「增量记档（T024.2）」照片明细 |
 
 ### 照片来源明细（来源 [12] 展开）
 
@@ -397,3 +400,40 @@ Updated: 2026-09-21
 8. **对生结构双级化**：复叶在枝上对生（属级 Verified）+ 小叶沿轴对生（照片级双问确认）+ 对生芽序（双问确认）——**三重对生为白蜡身份结构**；几何侧挂点语言对生化（vs 国槐黄金角互生螺旋——复叶系内同型不同排列的直接对照）；小叶 5–7 枚（2–3 对+顶生，vs 国槐 4–7 对——计数少而整齐）；缘整齐锐锯齿（vs 国槐全缘——复叶系缘齿对照轴：材质 SDF 载波回归〔011.3 榉齿载波先例〕）
 
 **④ 通道记档（本轮实况）**：iplant 8 端点全链可达（本种现用名=志书名直接命中，无需异名 key 切换）；NC State 无 chinensis 条目（园艺轴降级——体量锚由志书直给承担）；调研轮 4.5V S3 直链判读约 28 次全程稳定（与 011.9 后期退化实况不同）；终审轮 Read→CDN 转存通道 10 判读零失败零退化；original 下载 16/16 PIL 全量解码零截断。
+
+## 增量记档（T024.2 补证：秋色，2026-09-28）
+
+> append-only 增量（Spec 1.0 → 1.1），为 T024.2 秋色材质卡建卡供证。1.0 §5「秋色（记档不建模）」条目维持原文不动；本节为其补强为可消费证据（色相域 + 饱和/亮度 + 时序）。正文 1.0 其余内容零改动。
+
+**调研问题**：①秋色色相域（黄 / 金黄 / 褐黄？）；②饱和与亮度读向；③时序窗口（北方转色进度 → 长江流域公园语境对应窗口）。
+
+**逐源证据**：
+
+- [13] 百度百科（弱轴）：概述原句「树形端正、**秋叶金黄**，是优良行道树与护岸树种」——秋色定性 = **金黄**（Verified 原句；弱轴不承重定量，与 salix Spec 源 5 同级处置）
+- [14] Trees and Shrubs Online：正文无秋色描述句；图注「Autumn colour on Fraxinus chinensis (a tree labelled var. rhynchophylla) in the Valley Gardens」——英国栽培个体秋色**存在性**图注级佐证（Verified 图注原文；不载色相；图注树挂 var. rhynchophylla 北方亚种标签记档）
+- [15] iNat 秋照 2 obs 承重（照片双问——两次独立中性提问不含树种名，关键数值两读一致或并集记档）：
+  - **autumn-a**（photo 441721606 / obs 247334064，2024-10-07 北京门头沟，**taxon = F. chinensis subsp. chinensis（生产身份实体本尊）**，CC-BY）：岩坡整树 **>90% 全冠转色**；褐黄-金褐带橙调（首读 hue ≈35–50°、复读 ≈25–35°——并集 **hue ≈25–50° 偏橙褐端**）；中饱和、中亮度——山地暴露岩坡相（时点偏早偏褐）
+  - **autumn-b**（photo 438600036 / obs 245755324，2024-10-05 河北张家口，taxon = F. chinensis 种级 ID，CC-BY-NC）：林地树木 **50–70% 转色**；**金黄-黄橙 hue ≈40–60°**（散褐斑 40–45°）；中饱和、中-暗亮度（阴天）——**金黄主相直证**
+  - 排除记档：photo 437935050（obs 245418876，2024-10-03 北京，CC-BY-NC）**夜间闪光照**——光照人工化判色无效，弃（两问均确认 dim/night flash）
+- [12] 既有照片复用：form-b/form-c（韩国北汉山 2025-10-09）「树叶黄化、早秋相」——10 月上旬山地早秋黄化（1.0 已记档，本节并入时序链）
+
+**消费结论（秋卡用）**：
+
+- **色相域**：主相**金黄 hue ≈45–55°**（[13]「秋叶金黄」定性 + [15]b 金黄 40–60° 直证 + [12] 黄化读向）；**盛末/山地早衰端褐黄-橙褐 hue ≈25–45°**（[15]a >90% 转色端）；全变程 = 黄绿 → 金黄 → 褐黄三段
+- **饱和/亮度**：**中饱和、中-中亮**（[15] 两承重照双问一致 medium / medium(-bright)）
+- **时序窗口**：北方（北京/冀北山地林地）**10 月上旬已 50–95% 转色**（[15] 10-03/05/07 三 obs + [12] 韩国 10-09）；**长江流域公园推定 10 月下旬–11 月中**（Inferred——纬度/海拔平移弱推断，**无长江流域秋照直证，缺口记档**）；9 月–10 月上旬长江语境仍绿-黄绿过渡为主（同推断口径）
+- **强度**：显著秋色树种——单株全冠转色可达 >90%（[15]a）
+- Form: Qualitative + Range ｜ Evidence Status: **Verified**（[13][14] 文献定性原句）/ **Inferred**（色相域-饱和-亮度 = 照片双问多源；长江窗口 = 弱推断无直证）｜ Source: [12][13][14][15]
+- **足以建秋卡：是**——色相域（金黄主相 45–55° + 褐黄端 25–45°）+ 饱和/亮度（中/中）+ 时序链齐备，弱轴文献与照片轴互恰无冲突
+
+**秋色照片明细（来源 [15] 展开）**：
+
+| 槽位 | 文件 | photo id | obs id | taxon | 日期 | 地点 | 许可 | 判读摘要（中性描述，不含树种名） | 双问 |
+|------|------|----------|--------|-------|------|------|------|----------------------------------|------|
+| autumn-a | ref-fraxinus-autumn-a.jpg | 441721606 | 247334064 | F. chinensis subsp. chinensis | 2024-10-07 | 北京门头沟 | CC-BY | 岩坡整树 >90% 全冠转色、褐黄-金褐带橙调（hue ≈25–50° 偏橙端）、中饱和中亮 | 一致（hue 并集记档） |
+| autumn-b | ref-fraxinus-autumn-b.jpg | 438600036 | 245755324 | F. chinensis | 2024-10-05 | 河北张家口 | CC-BY-NC | 林地树木 50–70% 转色、金黄-黄橙（hue ≈40–60°、散褐斑）、中饱和、阴天中-暗 | 一致 |
+| （排除） | — | 437935050 | 245418876 | F. chinensis | 2024-10-03 | 北京 | CC-BY-NC | 夜间闪光照判色无效——排除记档 | 两问均判 dim/flash |
+
+**通道记档（本轮实况）**：iplant / NC State / T&SO / baike（agent-browser，salix 先例通道）可达；Wikipedia EN/zh（WebFetch 与浏览器双通道）网络级超时、Missouri BG plantfinder.mobot.org 证书错误——均不可达记档；WebSearch/web_reader MCP 配额 1310 未恢复（2026-10-04 重置，兜底输出不采信）；iNat 2024 年照片 S3 域扩展名 .jpeg（.jpg 404，API v1 photos[].url 为权威源）；4.5V 判读 8 次全程稳定。
+
+**结构性缺口（秋色侧）**：长江流域城市/公园语境秋照缺失（现证据 = 冀北-北京山地 10 月上旬 + 韩国山地早秋 10-09）——长江窗口为纬度平移弱推断；如族门需要精确长江时序可补 1–2 张江南城市 11 月照。不阻塞秋卡建卡（色相域由北方多源直证，色卡消费主参为色相域）。

@@ -109,6 +109,22 @@
  *     叶透风（羽状镂空风阻低），摆锤质量读向下调）；aBend 权重；树高锚 9.854m
  *     （×0.1015——几何侧 slot-0 精确涌现实测〔Stage 代理探针，2026-09-21 同步〕，材质-几何侧同源锚记档）。
  *
+ *   - 【色卡 preset（T024.2，D44 #1/#2——冠变干不变）】createKoelreuteriaLeafMaterial
+ *     追加可选 preset 参（导出签名冻结的扩展 = 只追加可选参；ginkgo T024.1 试点法复制）：
+ *     preset = 材质基调变体，只改叶基调构造色（KOE_LEAF_PRESETS 模块私有表——default 行 =
+ *     现行数值的**单一定义源**，缺省路径经表消费保证「default = 现行」由结构成立；
+ *     autumn 行 = 秋·金黄 #d0bc46，证据链与数值推导见表注释）；皮（含花/果域）/深度/
+ *     风动/SDF/变奏域/透射色零改动（冠变干不变 + 深度材质色无关、将被 Runtime 跨卡共享
+ *     ——另一 Step）。**program 不增红线（D44 #3）**：default 与 autumn 共享同一
+ *     customProgramCacheKey ⇒ GLSL 逐位同源（同键不同源 = Three.js 复用错程序的暴雷
+ *     路径）——hue/luma 两端、透射色 (0.55,0.90,0.35)、峰值 0.32 字面量跨卡冻结，
+ *     秋相差异全部由构造色（uniform 通道）承载。**花/果域不随卡（024.2 任务书裁定，
+ *     D44 #1 字面域）**：花域 v∈[5,6] 与灯笼果域 v∈[6,7] 归组 0 皮材质 uv 域路由，
+ *     preset 只改组 1 复叶卡基调 ⇒ 秋卡下灯笼五档色序与金黄花簇维持夏相色序（秋相
+ *     果序褐化不属材质基调变体，归未来增补记档）。未知卡 id 回退 default（值域校验
+ *     归 Renderer resolvePoolKey 单一 choke point——工厂不做第二套校验，校验双写会
+ *     漂移）。
+ *
  * 皮（组 0）配方（**第七种树皮语言：浅色光滑 + 皮孔麻点 + 局部浅细纵裂——主代理
  *   补充证据终版**，vs 六先例：夏栎/樟/银杏深纵裂脊沟族、朴树平滑-浅裂小斑、榉光
  *   滑+暖色薄片剥落、悬铃木光滑大片地图状剥落三色带、tree3a 不规则纵裂。与最近邻
@@ -232,6 +248,7 @@
  */
 import * as THREE from 'three';
 import { FACILITY_GLSL_NOISE } from '../../materials/facilityGlsl';
+import { DEFAULT_COLOR_PRESET_ID } from '../../../../domain/assets'; // 默认卡 id 单一真相源（值导入——ginkgo T024.1 先例）
 import type { ProceduralLevel } from '../../../../domain/assets';
 import { applyTreeFadeDither } from '../treeFadeDither';
 
@@ -591,6 +608,48 @@ const KOE_FRUIT_TRANSLUCENCY = /* glsl */ `
 
 // ── 工厂（每次调用 new 材质 + 独立注入闭包；键不变则共享 program）──────────────────
 
+/** 叶基调色卡配方行（T024.2，D44 #2——色值配方归树材质工厂私有域） */
+interface KoeLeafPreset {
+  /** 叶基调构造色（material.color = uniform 通道，不进 GLSL——program 不增的载体面） */
+  color: number;
+}
+
+/**
+ * 叶基调色卡配方表（模块私有；卡集与 meta.presets 声明对应——asset_tree_koelreuteria
+ * 双卡）。default 行 = 现行数值的**单一定义源**（缺省路径经本表消费——「default = 现行」
+ * 由结构保证而非抄写保证）；变奏域/透射色**不随卡**：program 不增红线（D44 #3）要求
+ * autumn 与 default 同 customProgramCacheKey ⇒ GLSL 字面量不分叉 ⇒ hue 两端 (0.95,
+ * 1.00,1.03)↔(1.05,1.05,0.93)、luma 0.92±0.08、透射色 (0.55,0.90,0.35)、峰值 0.32
+ * 跨卡冻结，秋相读向 = 金黄基色 × 现行变奏乘子复合（推导见 autumn 行注释）。未知卡 id
+ * 回退 default（值域校验归 Renderer resolvePoolKey 单一 choke point——工厂不做第二套
+ * 校验）。
+ */
+const KOE_LEAF_PRESETS: Readonly<Record<string, Readonly<KoeLeafPreset>>> = {
+  [DEFAULT_COLOR_PRESET_ID]: {
+    // 现行数值（T011.6 工程设定）：中绿偏深——正面中绿（偏深）照片 leaf-a 深绿读向 [12]
+    // （六树亮度链：银杏 > 朴树 > 悬铃木 > 栾树 > 夏栎 > 榉 > 樟——中绿偏深档；中距色块
+    // 与悬铃木中绿/银杏淡绿区分）
+    color: 0x527d37,
+  },
+  autumn: {
+    // 秋·金黄 #d0bc46（工程合成，双源交叉：NC「The leaves are green in summer but turn
+    // an almost transparent yellow in fall」+ fall color "clear/golden yellow" [9] /
+    // Wikipedia "green turns yellow in fall" [8]）——「almost transparent / clear」亮端
+    // 读向：
+    // - hue ≈51.3°（sRGB）淡金黄-柠檬黄域——R−G 20 ≤25 不入橙（「淡」= R−G 克制）；变奏
+    //   暖端复合 ×(1.05,1.05,0.93) ≈51.8° = 端点冻结下的最坏橙向，仍守金黄域；
+    // - G−B 118 ≥110 强黄向饱和（golden yellow 读向）；
+    // - 加权亮度 ≈181（0.299R+0.587G+0.114B）亮于银杏秋金 #d4b737（同式 ≈177）——与
+    //   银杏可辨差异 = 更亮更淡（R−G 20 < 银杏 29、B 70 > 银杏 55 饱和更弱）；
+    // - 变奏冷端复合 ×(0.95,1.00,1.03) ≈55.4° 淡黄绿向 = 残绿弱近似（Spec 无残绿占比
+    //   证据——方向记档沿 ginkgo 冷端取舍口径）；
+    // - 透射色维持黄绿 (0.55,0.90,0.35)：同程序红线（D44 #3）的代价（透射字面量进 GLSL，
+    //   分叉即 +1 program）；秋相透射偏金的解锁需后续统一决策（uniform 化透射通道或显式
+    //   接受 program 增量），不在本 Step。
+    color: 0xd0bc46,
+  },
+};
+
 /**
  * 复叶卡材质（组 1）：二回羽叶两级窗列 SDF alphaTest 裁切 + 小叶羽状脉（High）+
  * 两面区分 + 中等透光 + 逐叶变奏 + 风动。level 分档（T011.6，缺省 'high'）：Mid 去
@@ -604,10 +663,21 @@ const KOE_FRUIT_TRANSLUCENCY = /* glsl */ `
  * m 0 / r 0.70（纸质叶哑光——「纸质或近革质」Verified [2][4] 取纸质端；悬铃木厚实
  * 0.66 < 0.70 < 朴树近革质 0.72）/ DoubleSide（卡面双面可见，背面法线由 three 双面
  * 光照自动翻转）。
+ * preset（T024.2 可选参，缺省 = 默认卡）：查 KOE_LEAF_PRESETS 覆写基调构造色（autumn =
+ * 秋·金黄 #d0bc46，NC "almost transparent yellow" / "clear, golden yellow"——数值推导
+ * 见该表注释）；缺省/'default'/未知 id = default 行 = 现行行为逐位一致；program 不增
+ * 红线 = preset 只走构造色，GLSL/defines/键与 default 全同（花/灯笼果域归皮材质组 0
+ * 不随卡——见模块头【色卡 preset】段）。
  */
-export function createKoelreuteriaLeafMaterial(level: ProceduralLevel = 'high'): THREE.MeshStandardMaterial {
+export function createKoelreuteriaLeafMaterial(
+  level: ProceduralLevel = 'high',
+  preset?: string,
+): THREE.MeshStandardMaterial {
+  // 色卡解析（T024.2）：缺省 / 'default' / 未知 id → default 行（现行数值单一定义源）
+  const recipe = (preset !== undefined ? KOE_LEAF_PRESETS[preset] : undefined)
+    ?? KOE_LEAF_PRESETS[DEFAULT_COLOR_PRESET_ID]!;
   const material = new THREE.MeshStandardMaterial({
-    color: 0x527d37, // 中绿偏深（工程设定：Spec §5 + leaf-a 深绿 [12] 交叉——六树链中绿偏深档；中距色块与悬铃木中绿/银杏淡绿区分）
+    color: recipe.color, // 基调随卡（default = 中绿偏深现行值 / autumn = 秋·金黄——KOE_LEAF_PRESETS 表注释引 Spec）
     metalness: 0,
     roughness: 0.70, // 纸质叶哑光（「纸质或近革质」取纸质端——悬铃木 0.66 < 0.70 < 朴树 0.72）
     side: THREE.DoubleSide,

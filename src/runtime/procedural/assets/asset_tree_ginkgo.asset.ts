@@ -109,8 +109,9 @@ export const meta: ProceduralAssetMeta = {
   // 色卡（T024.1 试点真卡，D44）：default = 现行淡绿-黄绿基调（swatch = 叶材质构造色
   // #8ab45d——与 canopy crownColor 同源）；autumn = 秋·金黄（Spec §6 五源交叉「≈90%+ 纯金黄、
   // <10% 残绿、无橙红混入」+ fall 样木第二视觉复证 [1][2][4][5][6][7]）；色值配方在
-  // ginkgoMaterials 秋卡私有域（冠变干不变——皮与几何不动）。试点卡 id 'autumn' 为 024.2
-  // id 域定稿前占位（定稿改名随改，归 024.2）
+  // ginkgoMaterials 秋卡私有域（冠变干不变——皮与几何不动）。卡 id 'autumn' 经 024.2
+  // id 域定稿**保持不变**（跨树秋相卡同名——现役域 {'default','autumn'}，记档
+  // metadata-taxonomy.md §2.1）
   presets: [
     { id: 'default', label: '默认', swatch: '#8ab45d' },
     { id: 'autumn', label: '秋·金黄', swatch: '#d4b737' }, // swatch = 秋卡基色（ginkgoMaterials GINKGO_LEAF_PRESETS autumn 行同源——Step C 定稿 #d4b737）

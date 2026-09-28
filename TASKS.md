@@ -4,7 +4,7 @@
 
 ## Current
 
-- [~] T024 资产色卡预设（立项 done 2026-09-28：D44 八项裁定〔preset 收窄定型材质基调变体 / 硬钩子双钩 = meta presets 必填 typecheck 闸 + 契约测试整表锁 / sourceKey×preset = 进键分桶 + 几何与深度材质跨卡共享引用计数 / 默认卡零变化红线〕+ 五子任务切分 024.1–024.5；**024.1 done 2026-09-28**：契约层 + 缓存几何共享 + ginkgo 试点〔default + 秋金黄 #d4b737〕全链，4209 全绿；下一 = 024.2 回补批一）→ [tasks/024-color-presets.md](tasks/024-color-presets.md)
+- [~] T024 资产色卡预设（立项 done 2026-09-28：D44 八项裁定〔preset 收窄定型材质基调变体 / 硬钩子双钩 = meta presets 必填 typecheck 闸 + 契约测试整表锁 / sourceKey×preset = 进键分桶 + 几何与深度材质跨卡共享引用计数 / 默认卡零变化红线〕+ 五子任务切分 024.1–024.5；**024.1 done 2026-09-28**：契约层 + 缓存几何共享 + ginkgo 试点〔default + 秋金黄 #d4b737〕全链，4209 全绿；**024.2 done 2026-09-28**：批一 6 树真卡〔黄褐/金黄×3/绯红/黄绿——fraxinus/salix 经 asset-research 补证 Spec 1.1〕+ **卡 id 域定稿 {'default','autumn'}** + 果序不随卡裁定，4240 全绿；下一 = 024.3 回补批二）→ [tasks/024-color-presets.md](tasks/024-color-presets.md)
 
 ## Done（近）
 

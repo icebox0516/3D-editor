@@ -45,7 +45,9 @@
  * 材质分层表（materialIndex → 部件 → 材质；配方在 ./tree/triadica/triadicaMaterials
  *      ——park-shader-agent 并行交付，导出签名冻结（与 koelreuteria/platanusMaterials
  *      同构）：createTriadicaLeafMaterial / createTriadicaBarkMaterial /
- *      createTriadicaLeafDepthMaterial，均 (level?: ProceduralLevel) => 材质）：
+ *      createTriadicaLeafDepthMaterial，均 (level?: ProceduralLevel) => 材质；
+ *      T024.2 起叶工厂追加可选 preset 尾参（createTriadicaLeafMaterial(level?, preset?)，
+ *      向后兼容））：
  *      0 树皮（主干+五级枝+底盖+**绿闭蒴果序**）—— createTriadicaBarkMaterial(level)：
  *        暗灰-灰褐窄纵裂 + 窄条翘皮（FRPS「树皮暗灰色，有纵裂纹」Verified [1] + NC
  *        "peel off in vertical, narrow strips" [5]——第 8 树皮语言（乌桕 = 第八实例：
@@ -54,7 +56,11 @@
  *        龄级反差；**按 uv v 域分流**：v < 4 皮管域纵裂翘皮配方、v∈[4,5] 果域绿闭果
  *        配方（u = 逐果熟度通道：绿 → 转黑前夜梯度 [1][5]）——材质侧冻结接口）；
  *        深度材质皮组 aLeafRand=0 实心守卫天然覆盖果影
- *      1 叶簇卡（L4/L5 末级枝散簇烘焙）—— createTriadicaLeafMaterial(level)：正面
+ *      1 叶簇卡（L4/L5 末级枝散簇烘焙）—— createTriadicaLeafMaterial(level, preset)
+ *        （T024.2：preset = 色卡 id，缺省/'default' = 现行中绿-深绿基调；'autumn' =
+ *        秋·绯红——色值配方与 Spec §5/§6 证据链在 triadicaMaterials 秋卡私有域
+ *        〔多色并存/垂直分带不可表达 = 单基调近似取舍记档〕，冠变干不变——绿闭果序
+ *        归组 0 不随卡）：正面
  *        中绿-深绿有光泽/背面稍浅（非粉绿级 Verified [5][6]）+ **菱形叶 SDF**（菱形/
  *        菱状卵形、全缘、先端骤尖长尾尖、基部阔楔-钝或浅心——Spec §4 Verified
  *        [1][3][4]，家族第七种叶形语言）+ 脉纹偏黄（NC "Conspicuous yellow veins"
@@ -73,7 +79,9 @@
  *      dispose，禁止模块级共享对象，D17）；不建模记档（Spec 有事实、本资产不表达）：
  *      菱形轮廓细节/骤尖尾头/全缘/基部相轴/侧脉网结（归材质 SDF）、叶柄与柄顶 2 腺体
  *      （归材质层）、托叶、花（判定不做——黄绿穗弱显著）、白蜡种子相（非夏季主相）、
- *      秋色红、新叶铜红（归材质变奏）、小枝亮绿皮孔色序（归材质）、地衣银斑（归材质
+ *      秋色红（**T024.2 起经叶材质色卡 'autumn' 表达**——单基调绯红近似〔多色并存/
+ *      垂直分带取舍记档见 triadicaMaterials〕；季相不进几何/树皮维持「冠变干不变」，
+ *      原「不建模记档」的几何侧口径不变）、新叶铜红（归材质变奏）、小枝亮绿皮孔色序（归材质）、地衣银斑（归材质
  *      候选）、多干萌生（记档不建模）、乳状汁液毒性（非形态）——详见
  *      triadicaShapeProfile 模块头。
  * LOD（T011.7 三档交付，家族方法逐位复制）：build 透传 params.level（缺省 'high'——
@@ -122,7 +130,15 @@ export const meta: ProceduralAssetMeta = {
   // CanopySourceCache 经 broadleafCanopyProxy 工厂提供（021.6，恒 487 面）
   representations: ['high', 'mid', 'canopy'],
   taxonomy: { category: 'plant', family: 'broadleaf' }, // 阔叶家族契约第八实例（tree/broadleaf/，T010.1；大戟科（Euphorbiaceae）被子植物按家族形态域归 broadleaf——落叶阔叶第五例、菱形叶首例，记档见资产模块头）
-  presets: [{ id: 'default', label: '默认', swatch: '#507c34' }], // 色卡占位（T024.1）：默认卡 = 现行材质基调；季相卡 024.2/024.3 按 Spec 证据回补（D44 #7 无证据不建卡）
+  // 色卡（T024.2 批一真卡，D44）：default = 现行中绿-深绿基调（swatch = 叶材质构造色
+  // #507c34——与 canopy crownColor 同源）；autumn = 秋·绯红（NC "turn an attractive
+  // bright red" + wiki "bright yellows, oranges, purples and reds" + autumn-a/b 照片
+  // 色占比红族 ~55–60% 主导，Spec §5/§6 [5][6][7]）；色值配方在 triadicaMaterials
+  // 秋卡私有域（冠变干不变——皮/几何/绿闭果序不动）
+  presets: [
+    { id: 'default', label: '默认', swatch: '#507c34' },
+    { id: 'autumn', label: '秋·绯红', swatch: '#c65e3e' }, // swatch = 秋卡基色（triadicaMaterials TRIADICA_LEAF_PRESETS autumn 行同源——批一定稿 #c65e3e）
+  ],
   proceduralProfile: {
     // 跨 8 槽细模包围盒实测带（T011.7 终测 2026-09-21：h 9.08–10.14 / w 6.36–9.57）。
     // 物种锚 slot-0 = 9.52m 高 / 8.20m 冠幅 / w-h 比 0.861（≈9.5m 长江流域公园夏绿中龄
@@ -156,8 +172,11 @@ export function build(params?: ProceduralBuildParams): InstanceSource {
   const level = params?.level ?? 'high';
   const rng = mulberry32(seed);
   const { geometry } = buildTriadicaGeometry(rng, profileForSeed(seed), level);
+  // params.preset = 色卡 id（T024.2 批一透传，D44 #1——冠变干不变）：仅叶材质消费；
+  // 皮材质与深度材质不传（干与果序域不变；深度材质色无关、被 Runtime 跨卡共享——024.1 机制）
+  const preset = params?.preset;
   const bark = createTriadicaBarkMaterial(level); // 组 0（契约序 [皮, 叶]——mergeGeometries 层序；绿闭蒴果序并入皮组（uv v 域身份标记），材质接口记档见模块头）
-  const leaf = createTriadicaLeafMaterial(level);
+  const leaf = createTriadicaLeafMaterial(level, preset);
   // 影 pass 叶影裁切走 InstanceSource 契约通道——工厂每次 new（build 契约「每次调用 new
   // 全部资源」天然满足），档位随 level 匹配；归源所有（缓存 dispose）
   return {
