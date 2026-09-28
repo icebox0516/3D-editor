@@ -32,7 +32,7 @@ Status 四值：**有效**（当前依据；条内自足的行内修订仍属有
 | D16 | 部分取代 | 会话粒度 / 进度记录不变；验收分级「三重门槛全绿」子句经 D40 改判据式触发（历史原文保留）；验收口径另经 D23.7 人工门例外 + D30 分层细化 | 任务粒度 = 会话粒度 | `2026-09-16 · D16 任务粒度 = 会话粒度（grilling 会话裁定）` |
 | D17 | 部分取代 | 第 2 项 build 签名已由 D19.2 扩为可选参（缓存键升 sourceKey）——实由 D19 修订；其余条款仍有效 | 资产注册与生成契约 | `2026-09-16 · D17 程序化资产注册与生成契约（T002.1 grill 拷问门裁定）` |
 | D18 | 有效 | 四项议题未获用户应答，按推荐默认执行、可否决后修订 | Style 配方结构与序列化 | `2026-09-16 · D18 Style 配方结构与序列化（T003.3 grill 拷问门裁定）` |
-| D19 | 部分取代 | 裁 003.4 返工分叉作废 / T003 冻结；修订 D17.2 与 D12；008.5 定位经 D20 修订；第 1 条「v1 四植物不动」子句经 D42 废止（四资产已删，「设施资产不动」与其余条款不变） | 形态变体契约与 3A 树木路线 | `2026-09-17 · D19 程序化形态变体契约与 3A 树木路线（T008 开工 grill 拷问门裁定）` |
+| D19 | 部分取代 | 裁 003.4 返工分叉作废 / T003 冻结；修订 D17.2 与 D12；008.5 定位经 D20 修订；第 1 条「v1 四植物不动」子句经 D42 废止（四资产已删，「设施资产不动」与其余条款不变）；第 2 项「preset 仅扩展位不启用」子句经 D44 激活废止（preset 收窄定型 = 材质基调色卡） | 形态变体契约与 3A 树木路线 | `2026-09-17 · D19 程序化形态变体契约与 3A 树木路线（T008 开工 grill 拷问门裁定）` |
 | D20 | 有效 | — | 植物资产路线立项 | `2026-09-18 · D20 植物资产路线立项（T008 增补 + T009/T010 立项 grill，三轮拷问 + 两轮修正）` |
 | D21 | 有效 | — | 双通路原则 | `2026-09-18 · D21 双通路原则：固定资产放置 vs 边界驱动生成` |
 | D22 | 部分取代 | 三级可寻址的分类契约面仍有效（值域/配对/映射整表锁）；「T16 三级浏览」消费面经 D42 修正——family 纯元数据（消费者 = 契约测试） | 资产分类三级可寻址 | `2026-09-18 · D22 资产分类契约方向：大类 + family + asset 三级可寻址` |
@@ -58,6 +58,7 @@ Status 四值：**有效**（当前依据；条内自足的行内修订仍属有
 | D41 | 有效 | — | LOD→Representation 运行体系（T021 立项） | `2026-09-23 · D41 LOD→Representation 运行体系（T021 立项：grilling 三轮 16 题裁定 + 独立对抗审核修正）` |
 | D42 | 有效 | 含 T016 取消与 D19 第 1 条四植物子句废止（D19/D22 索引行 Note 随动） | 资产库清理：浏览器一行大分类 + v1 四植物删除（T022） | `2026-09-28 · D42 资产库清理：浏览器一行大分类 + T016 取消 + v1 四植物删除（2026-09-24 共识会话用户裁定 + 同日审计修订，T022 执行落盘）` |
 | D43 | 有效 | 含 D30 最低可信证据原则增补与 D36 spine 两层结构增补（D30/D36 索引行 Note 随动）；T002.4 批量先例升格通用口径 | 生产脊柱 spine 提取（T023） | `2026-09-28 · D43 生产脊柱 spine 提取：workflow 体系升级「spine + 方法剖面」两层（2026-09-24 共识会话用户裁定，T023 执行落盘，纯文档零代码）` |
+| D44 | 有效 | 含 D19 第 2 项 preset 子句激活废止与 D17 build 契约「每次调用 new 全部资源」条款窄化（几何/深度材质跨卡共享——索引行 Note 随动 D19） | 资产色卡预设（T024 立项） | `2026-09-28 · D44 资产色卡预设（T024 立项：2026-09-24 共识会话用户锁定范围 + 同日主代理三项立项必答裁定）` |
 
 ---
 
@@ -557,3 +558,20 @@ D26.2 六情形末条「spec 关键事实含 Unknown」收窄为：**关键事�
 6. **记档附注**：D38 采样数值（≈5–8 硬数值 + 2–3 照片双问）为树族口径，其他 Workflow 自定终审深度；taxonomy family = 分类元数据，**不驱动契约或 Workflow 创建**——契约与 Workflow 由生产方法与立项裁定驱动（D22/D36 既有裁定显式化，防「新分类即自动建契约 / workflow」耦合）；D30 增补「单资产验收」段为 2026-09-24 用户修订（基线帧覆盖资产制），取代初版「每资产一张」表述。
 
 **承载文件清单（生效依赖，可机械核对）**：`.zcode/skills/asset-production/spine.md`（新建，本地私有 R1）｜`.zcode/skills/asset-production/workflows/tree.md`（剖面化改写，本地私有 R1）｜`.zcode/skills/asset-production/SKILL.md`（路由两步化 + 新 Workflow 创建纪律，本地私有 R1）｜`AGENTS.md`（三处：技能结构补 spine 层 + 两处新族首例句式改写〔P0〕）｜`DECISIONS.md`（本条 + 索引行 D43 新增 + D30/D36 Note 补注）｜`tasks/023-spine-extraction.md`（完成记录）｜`TASKS.md` / `PROGRESS.md`（导航同步）｜`docs/acceptance/T023/`（提取完整性 + 引用完整性取证）。
+
+---
+
+## 2026-09-28 · D44 资产色卡预设（T024 立项：2026-09-24 共识会话用户锁定范围 + 同日主代理三项立项必答裁定）
+
+**背景**：资产扩充线首项 T024 色卡预设立项。范围 = 2026-09-24 共识会话用户锁定：激活 D17.2/D19.2 preset 协议扩展位做**材质基调切换（冠变干不变）**；instanceColor 继续管 hueJitter 群内微差；声明契约 + 浏览器名旁色点切换 + 手动放置带 preset；存量 13 种乔木全量回补（色卡以各 Spec 季相记录为证据）；配方 schema 预留 preset 字段位（散布份额消费归散布任务）；后续各族与车辆出生即带 preset。三项立项必答（硬钩子 / D19.2 子句修订 / sourceKey×preset 缓存增殖）由主代理立项会话依既有契约链裁定如下，执行时不再复议。
+
+1. **preset 语义收窄定型 + D19.2 子句激活**：preset（色卡）= **材质基调变体——只改叶/冠材质基调，不改几何结构（冠变干不变）、不改树皮**。D19.2「`preset` 仅协议扩展位，T008 v1 不启用」子句由本条**激活废止**（原文 append-only 不回改）；D19.4 sourceKey 语法 `assetId[:preset]:slot-N` 中 preset 段语义自此**收窄为色卡位**（`sourceKeyOf` 管道已存在，零改动）；未来真需要结构级变体时另立机制，**不复用色卡位**。默认卡 id 全资产统一 `'default'` = 现行材质基调。
+2. **声明硬钩子 = 双钩并用**：① **meta 必填 + typecheck 闸**——`ProceduralAssetMeta` 增必填 `presets: readonly AssetColorPresetMeta[]`（跟随 D22 taxonomy 必填先例；空数组 = 显式声明「本资产无色卡」，设施/DEV 资产合法态）——「出生即带 preset」的强制位落在类型层（新资产不声明编译不过），各族/车辆族门非空断言归各自 epic 立项定义（D30 不预防性泛化）；② **契约测试整表锁**——存量 13 乔木 presets 清单（assetId → 卡 id 集合）整表断言 + 卡 id 唯一性 + 乔木族非空（assetTaxonomy 式先例）。公共 meta 只放浏览语义三字段 `{id, label, swatch}`（swatch = UI 色点数据色，缩略图不随卡重渲）；**色值配方参数归各树材质工厂私有域**（D20.2 资产私有先例——`tree/<asset>/*Materials` 工厂扩可选 preset 参，导出签名冻结不破）。
+3. **sourceKey×preset 缓存增殖 = 进键分桶 + 几何/深度材质跨卡共享**：preset 进 sourceKey（**分桶硬要求**——同场景同树不同卡必须并存，InstancedMesh 同组同材质 ⇒ 材质不同必须分桶；池桶键 `${sourceKey}::${representation}` 现状即支持）；**geometry 与 customDepthMaterial 不随卡增殖**——同「无卡 sourceKey + representation」跨卡共享单份、引用计数释放（色不进深度、深度材质与卡无关）——D17 build 契约「每次调用 new 全部资源（缓存会 dispose）」条款就此**窄化修订**：主 material 仍每条目私有新建，geometry/depth 归 Runtime 共享层持有；具体机制（引用计数/共享表落点）归 024.1 threejs-runtime-agent 设计，任务书只锁方向与断言（同树两卡两桶 geometry 同引用、programs 不增、切卡不重建几何）。主 material 按卡私有（条目数 = 用到的组合，用到才建）；缓存不淘汰维持（D19.4）。DC 混卡增殖为用户显式选择的自然代价——**典型混卡包络实测 ≤1500**（预算四线不破，024.5 验收）。
+4. **对象与序列化**：`AssetReference` 增可选 `preset?: string`（与 seed 同层，序列化整体透传天然放行）；**默认卡省略不落盘**（旧场景零迁移，缺省 = 'default'）；放置 Command 携带 preset 自然随撤销重做走。Inspector 换卡（已放对象切色卡）**不在本期**——增补位记档于此，后续需要时独立任务承接。
+5. **instanceColor 正交维持**：hueJitter 群内微差继续走 instanceColor 乘法调制（instanceTint 现状），preset 换材质基调——乘子在基调之上叠加，二者正交、机制零改动。
+6. **散布不接（schema 预留位）**：`ScatterAssetWeight`（`{assetId, weight}`）增可选 `preset?: string` 字段位（类型层 + 序列化透传）；散布链 `provideSource(assetId, representation?)` 现状不动、份额消费归散布任务（T003 系解冻后立项）。
+7. **卡集证据纪律**：色卡以各 Reference Spec 季相记录为证据（立项核实 13/13 Spec 均有叶色基调记录）——**无证据不建卡**（无依据不填纪律，T010.2 先例）；每树至少 `'default'` 默认卡（= 现行生产相，天然有据）；季相卡（秋色/新叶相等）逐树按 Spec 证据定，卡数不设统一硬指标；缺证相先经 asset-research 补 Spec 增量再建卡。跨树同相卡 id 同名（便于散布配方书写），id 域由 024.2 首批定稿记档。
+8. **Ghost 带卡（所见即所得）**：浏览器选中色点后 Ghost/放置链带该卡（D19.1「Ghost 即所见形态」延伸）；Ghost 继续借缓存 Source 不 dispose（既有契约不变）。**存量回归硬断言：默认卡 = 现行材质基调——13 树默认卡基线帧逐位一致**（回补是纯增量，零现状观感变化）。
+
+**承载文件清单（生效依赖，可机械核对）**：`src/domain/assets/AssetDescriptor.ts` + `AssetReference.ts` + `domain/scatter/recipe.ts`（类型增量）｜`src/runtime/procedural/`（types 注释修订 + ProceduralSourceCache 共享机制 + 树材质工厂 preset 参 ×13）｜`src/runtime/procedural/assets/*.asset.ts`（18 资产 presets 声明）｜放置链/ContentBrowser/browserModel（色点 UI + preset 注入）｜`docs/procedural-assets/metadata-taxonomy.md` + `lod-spec.md`（声明面增量）｜`DECISIONS.md`（本条 + D19 索引行 Note 增补）｜`tasks/024-color-presets.md`（epic 任务书）｜`TASKS.md` / `PROGRESS.md`（导航同步）。
