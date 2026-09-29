@@ -1,0 +1,62 @@
+# T012 针叶乔木族生产任务集合
+
+> 状态：**in-progress（立项 2026-09-28）**——首例 012.1 雪松已立项（新 Family 首例，D37 六步）；族门未收官，可持续增补 ｜ 前置：T011 收官（✅ tree workflow 方法成熟 + 13 阔叶基线资产）/ T021 收官（✅ representation 缓存键与 canopy 体系）/ T024 收官（✅ presets 出生即带契约）｜ 生产方法 = asset-production **`workflows/tree.md`**（conifer Family 参数位——本立项时加行，D36 第 5 条真实消费者触发）｜ 裁定真相源：D33（成员集合口径）/ D37（新 Family 首例契约草案）/ D30+D43（验收分层与最低可信证据）/ D44（presets 出生即带 + 族门非空断言承接）。
+>
+> 本文件口径（D24 / D36 瘦身）：只维护族级规则、成员清单、勾选表与族门口径——生产流程正文归 asset-production `workflows/tree.md`，LOD 预算归 `docs/procedural-assets/lod-spec.md` §5，完成详情归各子任务书完成记录；进度流水与 done 长摘要不落本文件。
+
+## Goal
+
+针叶乔木家族从零建族：本 Epic 纳入的每一针叶树种独立走 Reference Spec（D26 Research Gate，不沿用他树，**阔叶 13 份 Spec 不可复用**）+ ConiferShapeProfile 家族契约实例化（数值各自锚定各自 Spec）+ tree workflow 全链生产；**012.1 雪松 = 新 Family 首例**——按 spine §6 D37 六步执行：契约草案创建（全标【家族共性候选】，第二例真实消费后转正定稿）+ tree 完整首例验收（D30 最低可信证据原则：tree 为复杂方法，首例承担契约首证 + 方法复制 + 缺口发现三重职责）+ conifer LOD 预算候选带实测锁定 + `precedents/conifer.md` 索引首建；后续成员增量口径，epic 末族级验收门对执行时点全部纳入成员收官（不重跑单资产已完成项）。
+
+**Epic 边界（D33.5 同构）**：形态域适配 ConiferShapeProfile 的针叶树直接纳入本 Epic（族门未收官时 = 新增子任务 + 族门编号顺延 + 成员清单加行三动作、规则文本零改动；收官后按 D33.7 增补轮）；仅当需新植物家族契约时才另立 Epic。**针叶形态语言与阔叶族正交**：锥形/尖塔形冠、针叶簇生、层状轮生枝姿、常绿主导（落叶杉类合法）——本族正是为此分立（T012 针叶 / T013 花木 / T014 灌木 / T015 地被草本按家族分立，D33）。
+
+## 成员清单与增补规则（D33 · 当前成员唯一维护点）
+
+| # | 树种 | 子任务 | 资产入口 | Spec | 状态 |
+|---|------|--------|----------|------|------|
+| 1 | 雪松 cedrus | 012.1 | `asset_tree_cedrus` | `docs/research/cedrus-reference.md` | pending（新 Family 首例） |
+
+- **增补规则**：族门未收官时，新树种立项 = ①子任务号顺延（取当前族门号，既有成员编号不重排）②族级验收门编号顺延为最后一环 ③本清单加一行；一树一档（D16）与逐树 Research Gate（D26）照常。族门收官后追加走 D33.7 增补轮（不改已完成编号，需要时一次增补后族级复核）。
+- **准入判据**：中龄公园典型单干针叶乔木，形态域可由 ConiferShapeProfile 承载（锥形/尖塔/广圆锥冠 + 针叶/鳞叶 + 单干轴性）；落叶杉类（水杉/落羽杉/池杉）属针叶形态域、合法成员；**灌木化/匍匐型针叶（沙地柏、铺地柏、造型球柏）超域归 T014 灌木族候选**，不进本清单。
+- **候选池与分流（D34，候选池唯一维护点 = `docs/research/urban-tree-candidates.md` §2）**：强 9——圆柏、龙柏（建模可与圆柏共骨架）、侧柏、白皮松、黑松、水杉、落羽杉、池杉、罗汉松；中 2（油松、华山松——栽培语句单点）；弱 1（马尾松——志书造林口径，立项须补园艺文献或降优先级）；本次未入选 ≠ 否决。南方/北方/湿地分工（黑松沿海、侧柏北方主力、水杉全国广栽）在混植验收时按场景注意。**首例后的增补选型按 D34.2 四条标准**（证据强/中优先、气候带匹配、形态方法多样性增量——针叶族增量轴 = 冠形谱系〔尖塔/圆锥/广圆/圆柱〕× 叶型〔针叶/鳞叶/条形叶〕× 常绿落叶比、准入判据），由主代理选型、用户观感复核窗口开放。
+
+## Requirements（族级口径；流程正文见 workflows/tree.md，不在此复制）
+
+- 逐树 Research Gate 留痕与 Spec Version 开工校验（D26）= workflow §Step 0。
+- **家族契约草案纪律（D37.2）**：012.1 创建 `tree/conifer/coniferShapeProfile.ts` 草案——字段全部有真实消费点、一律标注【家族共性候选】，数值依据全留各资产 config；012.2 起消费草案，第二例修订候选字段属草案转正轻量路径、不算契约缺口；共性转正在第二例真实消费时完成。转正前的修订归族级验收门收口（D31.2 阻塞例外照常适用——主代理判定留痕）。
+- **LOD 预算（lod-spec §5.3 候选带流程）**：conifer 行立项时定候选带（见 012.1 任务书），012.1 探针实测锁定并回写 §5.2 表；后续成员按锁定行做三档。
+- **presets 出生即带（D44 承接）**：typecheck 必填闸全局已生效（`presets: readonly AssetColorPresetMeta[]`）；**族门清单承接「conifer 族资产 presets 非空断言」**——每树至少 default 卡（= 现行生产相，天然有据）；季相卡无证据不建（常绿针叶预期以 default 单卡为主，落叶杉类秋色相按各自 Spec 证据定）；卡色值证据锚 = 各 Spec 季相记录，色值配方归各树材质工厂私有域（T024 体系原样消费）。
+- **表示链（T021 体系）**：乔木标准链 High → Mid → Canopy → Culled（出生即声明 canopy，阔叶 13 树现状同构）——冠层场进共享 ClusterRecord 契约、冠色进 CROWN_PRESETS 同源锁、canopy 深度/风动/受光契约按 representation-runtime §六原样消费。
+- 视觉验收分层（D30/D43）：012.1 首例完整口径 → 012.2 起增量口径（三必做 + 疑点触发）→ 族门集体验收；校准默认一轮两轮封顶，疑似结构性问题上收族门。
+- 测试纪律（D40 五者准入）：公共能力不因新增资产复制测试；conifer 族新增测试对应新增语义（新形态语言 / 契约草案字段 / 预算行 / CROWN_PRESETS 行）。
+
+## Scope
+
+- 预期触碰（**每纳入树种一组**，随成员清单增长）：`src/runtime/procedural/tree/<species>/`（Geometry / Materials / ShapeProfile / Stage）+ `src/runtime/procedural/assets/asset_tree_<species>.asset.ts` 入口 + `docs/research/<species>-reference.md` Spec 一份 + `tests/runtime/procedural/tree/` 新测试；族级共享面增行：`CROWN_PRESETS` + canopy drift-lock 表 + taxonomy 归类表（conifer 行资产数）+ assetColorPresets 整表锁 EXPECTED_PRESETS。
+- 家族契约 `tree/conifer/coniferShapeProfile.ts`：012.1 创建草案；后续成员会话默认零触碰（缺口记档归族门，阻塞例外 D31.2）。
+- 不碰：`tree/broadleaf/` 与 13 阔叶资产（零回退基线）、`tree/tree3a/*`、BroadleafCanopyProxy 运行时算法（conifer canopy 经统一 Proxy 派生，per-asset 数据驱动；proxy 侧改动 = 公共能力变化须走公共回归记档）、T003 散布功能（冻结）、Runtime 调度侧（T021 锁定域）、GLB 路径。
+
+## Acceptance（epic 级，族级验收门执行——spine §5 七项骨架，不重跑逐树已完成项）
+
+验收对象 = 执行时点本 Epic 全部纳入成员；family-specific 项（本族定义）：
+
+- 全部纳入成员横向一致性（基线帧同源比较）+ 树种间真实差异成立（对照各自 Spec 身份节——针叶族差异轴 = 冠形谱系 / 叶型 / 枝姿 / 常绿落叶）
+- 混植场景（本族全成员 + 阔叶跨族同场检视——针阔混植为公园常态语境）+ 资产库呈现（plant / conifer family 分组）
+- 家族预算与 LOD：conifer 行全成员复核 + 档间连续抽查 + canopy 表示抽查
+- 性能实测过家族阈值表（对齐阔叶先例 1/20/100/500/1000 棵 ≥60/60/60/45/30 FPS 档位，数值族门时按 conifer 体量带定档）+ 资源契约五条 + 与阔叶同量级
+- **presets 非空断言收口（D44 承接）**：conifer 族全成员 presets 非空 + 整表锁含全部新行 + 无证据建卡零发生
+- 家族契约收口：草案转正定稿（或显式记档转正条件未满足）+ 缺口清单处置（012.1 记档项逐条收口）
+- 回归三门槛全绿；阔叶 13 树与 GLB 零变化
+
+## Constraints
+
+- 尺度锚：各树种 Spec 的中龄公园典型个体（雪松量级预期高于阔叶锚——立项假设层，以各自 Spec 为准，D37.3）；混植验收接受骨架树与庭荫树的体量差（现实公园同构）。
+- 预算四线（representation-runtime §九：tri ≤12M / DC ≤2000〔D45 重锁〕/ p95 单卡口径 / shadow 包络档）不破；conifer 单株预算行锁定后族内资产必须符合。
+- 派遣路由 / D19 契约锁 / ProceduralBuild 公共签名 / 参考图边界（D13/D26）= AGENTS.md 与 workflow（不在此复制）。
+
+## 子任务（一树一档，D16 会话粒度；开放式集合——新增成员按「成员清单与增补规则」插在族门之前）
+
+- [ ] T012.1 雪松全链（新 Family 首例：契约草案 + 预算锁定 + 索引首建）→ [012.1-cedrus.md](012.1-cedrus.md)
+- （族门占位：`012.2-acceptance.md`——当前族门号 012.2；新成员插前、门号顺延，既有编号不重排）
+
+依赖链：按编号串行 → 族级验收门恒为最后一环（顺序非硬功能依赖——各树文件集不相交，串行为会话粒度纪律与审查带宽；阻塞级契约缺口按 D31.2 先行最小必要修订再继续）。横向方法族谱（冠形 / 叶型 / 枝姿 / 球果账目 / 树皮语言谱系）= `docs/procedural-assets/precedents/conifer.md`（012.1 首建，导航索引）。
