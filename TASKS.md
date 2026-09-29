@@ -6,6 +6,8 @@
 
 - [~] T012 针叶乔木族生产任务集合（**立项 2026-09-28**；**012.1 雪松 done 2026-09-29**——新 Family 首例全链收官；下一成员立项时按增补规则顺延、族门 012.2 编号顺延；生产方法 = tree workflow conifer Family 参数位；候选池强 9 备选〔圆柏/龙柏/侧柏/白皮松/黑松/水杉/落羽杉/池杉/罗汉松，D34 四条标准增补〕）→ [tasks/012-conifer-trees.md](tasks/012-conifer-trees.md)
   - [x] T012.1 雪松全链（done 2026-09-29：新 Family 首例——契约草案 + 预算锁定 + 索引首建 + 完整首例验收 + 密度校准一轮；三门槛 4401 全绿）→ [tasks/012.1-cedrus.md](tasks/012.1-cedrus.md)
+- [ ] T025 园区设施扩充（**立项 2026-09-28**：批 A 交通静态六件首例批次〔simple-asset workflow 本立项时创建——D36 第 5 条真实消费者触发 + D43 创建纪律〕；立项必答两问收口〔一批一合并 Spec + 批内逐资产 Gate 留痕 / category 双轨现状即终态——程序化 facility 单栏 + taxonomy.family 细分 + GLB 目录 slug 维持〕；批次 A/B/C/D + 道闸独立子任务 + 收官门顺延——候选文档 §3 承接，D33 同构开放式批次集合）→ [tasks/025-facility-expansion.md](tasks/025-facility-expansion.md)
+  - [x] T025.1 批 A 交通静态六件（done 2026-09-29：六件交付 + shapeFamily 缺口发现→修复→验证闭环〔锥双卡黄卡生效〕+ 冒烟/取证/README；四门槛 280 文件/4348 测全绿）→ [tasks/025.1-traffic-static.md](tasks/025.1-traffic-static.md)
 
 ## Done（近）
 
@@ -101,7 +103,6 @@
 - [ ] T004 Style Gallery（0/3）→ [tasks/004-style-gallery.md](tasks/004-style-gallery.md)
 - [ ] T005 Animation Pathway（0/3）→ [tasks/005-animation-pathway.md](tasks/005-animation-pathway.md)
 - [ ] T007 Bake Scatter（可选；启动前 grill 拷问门见任务书）→ [tasks/007-bake-scatter.md](tasks/007-bake-scatter.md)
-- [ ] T025 园区设施扩充【占位；花箱/防撞柱/护栏/停车设施/充电桩等；轻量批量任务制（T002.4 先例：同方法一批 3–5 个一会话，共用方法与测试基建）；首例批次触发创建 simple-asset workflow（引用 spine 只写差异剖面）；候选清单见 docs/research/facility-device-candidates.md §1（P1 骨架件 + 四批切分建议，规划级枚举、逐资产立项时过 Research Gate）；**立项必答**：批次 Spec 口径（建议一批一合并 Spec + 逐资产 Gate 留痕——T002.4 为 pre-Gate 时代先例不可直接沿用）/ category 值收敛策略（程序化 facility 单栏 vs GLB 细分 slug 分栏终态裁定）】
 - [ ] T026 人物与车辆【占位；行人/工作人员 + 轿车/SUV/接驳车/货车/自行车，少量高复用变体；车辆复用 preset 车身色；全新资产域，立项过 Research Gate + Family 判定】
 - [ ] T027 自然小物【占位；景观石/岩石/树桩等】
 - [ ] T028 建筑/设备【占位；扩充终段；设备库见 docs/research/facility-device-candidates.md §2 三线分层（A 户外可视进资产线 / B 室内机电几何暂缓——依赖室内场景线未立项 / C 嵌入式传感遥测点位归 T029）；偏建筑候选（廊架/岗亭/配电柜）届时重裁归属；生产时机可按需提前——Q13 穿插排期待定】

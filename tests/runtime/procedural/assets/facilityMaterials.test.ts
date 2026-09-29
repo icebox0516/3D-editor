@@ -16,7 +16,11 @@
  *   metalness/color_fragment 各恰一次）、注入代码零 vColor 介入（instanceColor
  *   乘算链不被触碰）；旋压配方顶点含 vFacNormal 物体法线 varying，非旋压配方无；
  * - 缓存冒烟：真实 ProceduralSourceCache load 五资产各成功一次并 dispose
- *   （注入材质走完整缓存生命周期不炸）。
+ *   （注入材质走完整缓存生命周期不炸）；
+ * - T025.1 Step 2 增补（rubber-mold 橡胶模压面——挡车器黑体/减速带黄黑段，六资产文件归
+ *   Step 1 并行交付故以工厂直出用例覆盖）：注入存在性（工厂直出挂注入 + USE_UV +
+ *   facility:rubber-mold 键 + 零纹理）、program 收敛（同配方跨底色共享键 + 与既有九配方
+ *   键互异）、真实 ShaderLib 源组装（配方变量 + 跨底色注入源逐字一致 + 展开配平同五资产口径）。
  * 边界：测试内 build 出的 geometry/material 登记后由 afterEach 统一 dispose 兜底，
  *      不跨测试泄漏 GPU 资源；同槽共享材质实例 Set 去重后只 dispose 一次。
  */
@@ -26,6 +30,7 @@ import type { WebGLProgramParametersWithUniforms } from 'three';
 import type { InstanceSource } from '../../../../src/runtime/instancing/InstancedAssetPool';
 import type { ProceduralBuild } from '../../../../src/runtime/procedural/types';
 import { ProceduralSourceCache } from '../../../../src/runtime/procedural/ProceduralSourceCache';
+import { createFacilityRubberMoldMaterial } from '../../../../src/runtime/procedural/materials/facilityMaterials';
 import { build as buildStreetlamp, meta as streetlampMeta } from '../../../../src/runtime/procedural/assets/streetlamp.asset';
 import { build as buildParkbench, meta as parkbenchMeta } from '../../../../src/runtime/procedural/assets/parkbench.asset';
 import { build as buildTrashbin, meta as trashbinMeta } from '../../../../src/runtime/procedural/assets/trashbin.asset';
@@ -61,6 +66,12 @@ const cases: MaterialCase[] = [
 
 const built: InstanceSource[] = [];
 
+/** 工厂直出材质登记（rubber-mold 用例无 InstanceSource 外壳，afterEach 统一 dispose 兜底） */
+const crafted: THREE.MeshStandardMaterial[] = [];
+
+/** 纯注入路线的零纹理判据槽位（五资产用例与 rubber-mold 工厂直出用例同口径） */
+const TEXTURE_SLOTS = ['map', 'roughnessMap', 'metalnessMap', 'normalMap', 'aoMap', 'emissiveMap', 'alphaMap'] as const;
+
 /** 跟踪式构建：产物登记进 built，afterEach 统一 dispose 兜底 */
 function buildTracked(build: ProceduralBuild): InstanceSource {
   const source = build();
@@ -79,6 +90,7 @@ function isInjected(material: THREE.Material): boolean {
 }
 
 afterEach(() => {
+  for (const material of crafted.splice(0)) material.dispose();
   for (const source of built.splice(0)) {
     source.geometry.dispose();
     for (const material of new Set(materialsOf(source))) material.dispose(); // 同槽共享实例只释放一次
@@ -99,6 +111,17 @@ describe('设施材质阶段（T002.4 阶段二）：注入存在性', () => {
         expect(material.defines?.USE_UV, `槽位 ${index} 不应有 USE_UV`).toBeUndefined();
       }
     });
+  });
+
+  it('rubber-mold 工厂直出（T025.1）：挂 onBeforeCompile + USE_UV + facility:rubber-mold 缓存键，仍为 MeshStandardMaterial 且零纹理', () => {
+    // 底材参数为测试代表值（实配归资产侧 Step 1）；六资产文件未落地前以工厂直出覆盖新配方注入面
+    const material = createFacilityRubberMoldMaterial({ color: 0x17171a, metalness: 0, roughness: 0.9 });
+    crafted.push(material);
+    expect(isInjected(material)).toBe(true);
+    expect(material.defines?.USE_UV).toBe('');
+    expect(material.customProgramCacheKey()).toBe('facility:rubber-mold');
+    expect(material).toBeInstanceOf(THREE.MeshStandardMaterial); // InstancedMesh/instanceColor 前提
+    for (const slot of TEXTURE_SLOTS) expect(material[slot], `${slot} 应为空`).toBeNull(); // 纯注入零纹理
   });
 });
 
@@ -125,6 +148,23 @@ describe('设施材质阶段（T002.4 阶段二）：合批与变体通路', () 
     expect(bin[15]!.customProgramCacheKey()).toBe(lamp[4]!.customProgramCacheKey()); // 细颗粒：翻盖板 ↔ 灯壳
     expect(bench[0]!.customProgramCacheKey()).not.toBe(bench[7]!.customProgramCacheKey()); // 木纹 ≠ 金属
   });
+
+  it('rubber-mold（T025.1）：同配方跨底色共享键（挡车器黑体/减速带黄段/黑段），与既有九配方键互异', () => {
+    // 消费语义：挡车器黑体与减速带黄黑段同配方不同底色（metal-brush-pole 跨 streetlamp/signpost 共享同则）
+    const wheelstopBlack = createFacilityRubberMoldMaterial({ color: 0x17171a, metalness: 0, roughness: 0.9 });
+    const bumpYellow = createFacilityRubberMoldMaterial({ color: 0xd7a20a, metalness: 0, roughness: 0.85 });
+    const bumpBlack = createFacilityRubberMoldMaterial({ color: 0x141416, metalness: 0, roughness: 0.88 });
+    crafted.push(wheelstopBlack, bumpYellow, bumpBlack);
+    expect(wheelstopBlack.customProgramCacheKey()).toBe('facility:rubber-mold');
+    expect(bumpYellow.customProgramCacheKey()).toBe(wheelstopBlack.customProgramCacheKey()); // 底色差异走材质 uniform，不占 program
+    expect(bumpBlack.customProgramCacheKey()).toBe(wheelstopBlack.customProgramCacheKey());
+    // 与既有九配方互异：五资产全部注入键零扰动（仍收敛 9 个），新键不在其中——防配方键撞车串 program
+    const existingKeys = new Set(
+      cases.flatMap(({ build }) => materialsOf(buildTracked(build))).filter(isInjected).map((m) => m.customProgramCacheKey()),
+    );
+    expect(existingKeys.size).toBe(9);
+    expect(existingKeys.has('facility:rubber-mold')).toBe(false);
+  });
 });
 
 describe('设施材质阶段（T002.4 阶段二）：无共享与零纹理资源', () => {
@@ -134,10 +174,9 @@ describe('设施材质阶段（T002.4 阶段二）：无共享与零纹理资源
   });
 
   it('纯注入路线零纹理资源：五资产全部材质不挂任何 map（dispose 无遗留可释放物）', () => {
-    const textureSlots = ['map', 'roughnessMap', 'metalnessMap', 'normalMap', 'aoMap', 'emissiveMap', 'alphaMap'] as const;
     for (const { build } of cases) {
       for (const material of materialsOf(buildTracked(build))) {
-        for (const slot of textureSlots) expect(material[slot], `${slot} 应为空`).toBeNull();
+        for (const slot of TEXTURE_SLOTS) expect(material[slot], `${slot} 应为空`).toBeNull();
       }
     }
   });
@@ -201,6 +240,46 @@ describe('设施材质阶段（T002.4 阶段二）：shader 源完整性（对 t
     expect(fragmentShader).toContain('facWoodFiber');
     expect(fragmentShader).toContain('facWoodTint');
     expect(fragmentShader).toContain('vUv'); // 程序化纹理域为部件 uv
+  });
+
+  it('橡胶模压面（T025.1）：组装后含模压色斑/细颗粒配方变量与噪声库；跨底色注入源逐字一致；顶点无 vFacNormal', () => {
+    const black = createFacilityRubberMoldMaterial({ color: 0x17171a, metalness: 0, roughness: 0.9 });
+    const yellow = createFacilityRubberMoldMaterial({ color: 0xd7a20a, metalness: 0, roughness: 0.85 });
+    crafted.push(black, yellow);
+    const assembled = assemble(black);
+    expect(assembled.fragmentShader).toContain('// facility-pattern:rubber-mold');
+    expect(assembled.fragmentShader).toContain('facRubberMottle'); // 中低频模压色斑
+    expect(assembled.fragmentShader).toContain('facRubberGrain'); // 细颗粒哑光起伏
+    expect(assembled.fragmentShader).toContain('facHash21'); // 公共噪声库注入
+    expect(assembled.fragmentShader).toContain('float facVnoise'); // 库完整性（非仅标记）
+    expect(assembled.fragmentShader).toContain('vUv'); // 程序化纹理域为部件 uv（Box 型 0–1）
+    // 底色差异只走材质 uniform——同配方注入后的 shader 源逐字一致（program 收敛的源级证据）
+    expect(assemble(yellow).fragmentShader).toBe(assembled.fragmentShader);
+    expect(assemble(yellow).vertexShader).toBe(assembled.vertexShader);
+    expect(assembled.vertexShader).not.toContain('vFacNormal'); // 非旋压类配方，顶点保持原样
+  });
+
+  it('橡胶模压面（T025.1）：完整片元源 include 全展开、配平差值不变、原生 chunk 原句保留、零 vColor 介入', () => {
+    const material = createFacilityRubberMoldMaterial({ color: 0x17171a, metalness: 0, roughness: 0.9 });
+    crafted.push(material);
+    // 与五资产 it.each 同口径：配平断言为注入前后差值不变（隔离本注入的结构完整性）
+    const braceDelta = (source: string): number => countOccurrences(source, '{') - countOccurrences(source, '}');
+    const pristineFragment = braceDelta(expandIncludes(THREE.ShaderLib.physical.fragmentShader));
+    const pristineVertex = braceDelta(THREE.ShaderLib.physical.vertexShader);
+    const assembled = assemble(material);
+    const expanded = expandIncludes(assembled.fragmentShader);
+    expect(expanded).not.toContain('#include <'); // 展开完备（无未知/残留 chunk）
+    expect(braceDelta(expanded)).toBe(pristineFragment); // 片元结构配平差值不变
+    expect(braceDelta(assembled.vertexShader)).toBe(pristineVertex); // 顶点同口径
+    expect(expanded).toContain('facColorMul'); // 配方代码在最终源内
+    // 原生 chunk 原句保留（各恰一次——替换式注入未删改原句）+ delta 回收语句
+    expect(countOccurrences(assembled.fragmentShader, '#include <map_fragment>')).toBe(1);
+    expect(countOccurrences(assembled.fragmentShader, '#include <color_fragment>')).toBe(1);
+    expect(countOccurrences(assembled.fragmentShader, '#include <roughnessmap_fragment>')).toBe(1);
+    expect(countOccurrences(assembled.fragmentShader, '#include <metalnessmap_fragment>')).toBe(1);
+    expect(assembled.fragmentShader).toContain('roughnessFactor = clamp(roughnessFactor + facRoughDelta');
+    expect(assembled.fragmentShader).toContain('metalnessFactor = clamp(metalnessFactor + facMetalDelta');
+    expect(assembled.fragmentShader).not.toContain('vColor'); // instanceColor 乘算链不被触碰
   });
 
   it('长椅板条 uv 错域：相邻坐板/坐板与靠背的 uv 域互异（板间差异来源）', () => {

@@ -50,7 +50,7 @@ proceduralProfile?: {                    // 可选；只收通用维度语义（
 **声明纪律**：
 
 - **必填 + 空数组合法**：空数组 = 显式声明「本资产无色卡」（设施 / DEV 资产合法态）；乔木 / 植物族「非空且含 default 卡」的族级断言归各自 epic 族门定义（D30 不预防性泛化）。
-- **卡 id 纪律**：资产内唯一；**跨树同相卡 id 同名**（便于散布配方书写）。**id 域定稿（T024.2，2026-09-28 记档）**：现役域 = `'default'`（全资产统一默认卡）+ `'autumn'`（秋相卡，跨树同名）——试点 ginkgo `'autumn'` 保持不改名；后续新相（春/新叶相等）由引入它的任务增补，须同步更新本节记档与整表锁 EXPECTED_PRESETS。**13 树卡集终态（T024.2 批一 + T024.3 批二收官，2026-09-28）**：11 树双卡 `default`+`autumn`——ginkgo（秋·金黄）/ platanus（秋·黄褐）/ koelreuteria（秋·金黄）/ sophora（秋·金黄）/ triadica（秋·绯红）/ fraxinus（秋·金黄，Spec 1.1 补证）/ salix（秋·黄绿，Spec 1.1 补证·弱秋色晚相变体）/ tree3a（秋·黄褐）/ celtis（秋·黄）/ zelkova（秋·橙-铜橙）/ bischofia（秋·红-红橙，Spec 1.1 补证·文献四源红相裁决——与 triadica 绯红的种间分离轴记档于材质表注释）；camphor / ligustrum **default 单卡终态**（常绿不建秋卡——camphor 秋相证据为「基调不变 + 斑驳叠加信号」非基调变体、整冠移黄 = 误表达；ligustrum 无秋色相〔冬季四样木满叶浓绿 = 正面否定证据〕；裁定记档于各 asset meta 注释）；**cedrus default 单卡终态（T012.1，2026-09-29——conifer 首例同 camphor/ligustrum 常绿口径：FRPS「终年常绿」+ NC evergreen 无秋色字段〔阴性〕+ 冬季三点照片直证）**。秋色谱系横向读向：triadica 绯红 ↔ bischofia 红-红橙 ↔ zelkova 橙-铜橙 ↔ celtis 黄 ↔ ginkgo/koelreuteria/sophora/fraxinus 金黄段 ↔ tree3a/platanus 黄褐 ↔ salix 黄绿。色值与证据锚归各树材质工厂私有域 + Reference Spec。
+- **卡 id 纪律**：资产内唯一；**跨树同相卡 id 同名**（便于散布配方书写）。**id 域（T024.2 定稿，T025.1 增补）**：现役域 = `'default'`（全资产统一默认卡）+ `'autumn'`（秋相卡，跨树同名）+ `'yellow'`（设施色卡首例——T025.1 交通锥黄相副卡〔停车场语境，GB/T 24720 宜红为 default〕；后续设施色相卡跨资产同名复用）——试点 ginkgo `'autumn'` 保持不改名；后续新相（春/新叶相等）由引入它的任务增补，须同步更新本节记档与整表锁 EXPECTED_PRESETS。**13 树卡集终态（T024.2 批一 + T024.3 批二收官，2026-09-28）**：11 树双卡 `default`+`autumn`——ginkgo（秋·金黄）/ platanus（秋·黄褐）/ koelreuteria（秋·金黄）/ sophora（秋·金黄）/ triadica（秋·绯红）/ fraxinus（秋·金黄，Spec 1.1 补证）/ salix（秋·黄绿，Spec 1.1 补证·弱秋色晚相变体）/ tree3a（秋·黄褐）/ celtis（秋·黄）/ zelkova（秋·橙-铜橙）/ bischofia（秋·红-红橙，Spec 1.1 补证·文献四源红相裁决——与 triadica 绯红的种间分离轴记档于材质表注释）；camphor / ligustrum **default 单卡终态**（常绿不建秋卡——camphor 秋相证据为「基调不变 + 斑驳叠加信号」非基调变体、整冠移黄 = 误表达；ligustrum 无秋色相〔冬季四样木满叶浓绿 = 正面否定证据〕；裁定记档于各 asset meta 注释）；**cedrus default 单卡终态（T012.1，2026-09-29——conifer 首例同 camphor/ligustrum 常绿口径：FRPS「终年常绿」+ NC evergreen 无秋色字段〔阴性〕+ 冬季三点照片直证）**。秋色谱系横向读向：triadica 绯红 ↔ bischofia 红-红橙 ↔ zelkova 橙-铜橙 ↔ celtis 黄 ↔ ginkgo/koelreuteria/sophora/fraxinus 金黄段 ↔ tree3a/platanus 黄褐 ↔ salix 黄绿。色值与证据锚归各树材质工厂私有域 + Reference Spec。
 - **证据纪律（D44 #7 无证据不建卡）**：每树至少 default 卡（= 现行生产相，天然有据）；季相卡逐树按 Reference Spec 季相记录定，卡数不设统一硬指标；缺证相先经 asset-research 补 Spec 增量再建卡——色值参数注释逐卡引 Spec 条目（同资产数值注释纪律）。
 - **swatch = 数据色**：CSS 色串，仅服务浏览器色点 UI（T024.4）；**缩略图不随卡重渲**。
 
@@ -66,7 +66,7 @@ proceduralProfile?: {                    // 可选；只收通用维度语义（
 | `building` | 建筑 | GLB 4（building 目录） | manifest.json |
 | `vehicle` | 车辆 | GLB 1（car.glb） | manifest.json |
 | `character` | 人物 | GLB 1（person.glb） | manifest.json |
-| `facility` | 公共设施 | 程序化 5（signpost/trashbin/streetlamp/parkbench/hydrant）+ GLB 三目录归并（§6） | 19 资产 meta + manifest.json |
+| `facility` | 公共设施 | 程序化 11（signpost/trashbin/streetlamp/parkbench/hydrant + T025.1 批 A 六件：bollard/pedestrian_barrier/road_barrier/wheelstop/trafficcone/speedbump）+ GLB 三目录归并（§6） | 25 资产 meta + manifest.json |
 | `device` | 设备 | GLB 1（sensor.glb） | manifest.json |
 | `nature` | 自然 | **预留值，当前 0 资产** | D21 点名近期消费者（固定尺寸湖泊，T016/T017 引入）——扩展依据 = 决策记录 |
 | `dev` | DEV | 程序化 1（asset_seedstack；浏览器产品栏按 category 'dev' 过滤） | 19 资产 meta + ui/panels/browserModel |
@@ -81,7 +81,7 @@ proceduralProfile?: {                    // 可选；只收通用维度语义（
 | `conifer` | 针叶 | plant | tree_cedrus（T012.1 雪松——**conifer 家族契约第一实例** `tree/conifer/`，D37.2 草案首证；层状轮生骨架 + 长短枝双挂点 + 常绿 default 单卡） | T012 针叶族（后续树种） |
 | `shrub` | 灌木 | plant | —（T022 删 shrub 后 0 资产） | T014 灌木族 |
 | `public-facility` | 公共设施 | facility | parkbench、trashbin | GLB public-facility 目录（bench） |
-| `road-facility` | 道路设施 | facility | streetlamp、signpost | GLB road-facility 目录（streetlight） |
+| `road-facility` | 道路设施 | facility | streetlamp、signpost、T025.1 批 A 六件（bollard/pedestrian_barrier/road_barrier/wheelstop/trafficcone/speedbump） | GLB road-facility 目录（streetlight） |
 | `fire-safety` | 消防设施 | facility | hydrant | GLB fire-safety 目录（extinguisher） |
 
 - 设施三 family 的粒度 = GLB models 目录既有粒度（`scripts/scan-assets.mjs` CATEGORY_LABELS 同源）：大类层归并为 `facility`，family 层保住细分（原 T016 三级浏览依据；T016 取消后为纯元数据粒度）。
@@ -100,6 +100,12 @@ proceduralProfile?: {                    // 可选；只收通用维度语义（
 | asset_streetlamp | facility | road-facility | 4.21 | 0.89 | 宽含悬臂外伸与灯头 |
 | asset_parkbench | facility | public-facility | 0.81 | 1.70 | 宽 = 座长向 |
 | asset_hydrant | facility | fire-safety | 0.73 | 0.38 | 宽含两侧横伸栓口 |
+| asset_bollard | facility | road-facility | 0.80 | 0.20 | T025.1；宽 = 法兰直径向（沪官方 φ114/露出 80cm 锚） |
+| asset_pedestrian_barrier | facility | road-facility | 1.10 | 2.05 | T025.1；宽含基座板外凸（立柱外缘 2.00，GB 50688 净高锚） |
+| asset_road_barrier | facility | road-facility | 1.10 | 3.12 | T025.1；宽含底座外缘（标称段长 3.0，GA/T 1567 中央档锚） |
+| asset_wheelstop | facility | road-facility | 0.11 | 0.55 | T025.1；高含反光条（本体 0.10，聚簇 550×150×100） |
+| asset_trafficcone | facility | road-facility | 0.70 | 0.38 | T025.1；**首个设施色卡资产**（default 红 + yellow 黄双卡）；宽 = 底座向 |
+| asset_speedbump | facility | road-facility | 0.05 | 2.00 | T025.1；宽 = 4 段总长（段 0.5 黄黑交替，拱高 0.045 舍入） |
 | asset_seedstack | dev | — | — | — | DEV 资产不进产品浏览，不声明 profile（不投机造数） |
 
 数值纪律：全部为细模档（level 'high'）源几何包围盒实测（T010.2 探针，2026-09-19，逐资产跨槽取证），两位小数舍入；单形态资产 min=max。契约测试以 ε=0.01 容差锁「实测落带」——几何演化导致越带即测试红，逼声明同步。

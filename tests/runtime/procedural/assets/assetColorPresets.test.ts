@@ -2,7 +2,7 @@
  * tests/runtime/procedural/assets/assetColorPresets.test.ts —— 程序化资产色卡契约测试（T024.1，D44 #2 双钩之②）。
  *
  * 覆盖：
- * - 19 资产色卡声明整表锁定：新资产不登记映射 = 测试红（配合 presets 必填的编译
+ * - 25 资产色卡声明整表锁定：新资产不登记映射 = 测试红（配合 presets 必填的编译
  *   约束，双闸——忘声明过不了 typecheck，声明了不登表过不了本测试；assetTaxonomy
  *   式先例）；
  * - 卡 id 纪律：资产内唯一、default 卡必在且居首（DEFAULT_COLOR_PRESET_ID 单一真相源）；
@@ -22,7 +22,7 @@ import { DEFAULT_COLOR_PRESET_ID } from '../../../../src/domain/assets';
 import { collectProceduralAssetMetas } from '../../../../src/runtime/procedural/routes';
 import { BROADLEAF_CANOPY_CROWN_PRESETS } from '../../../../src/runtime/procedural/tree/broadleafCanopyMaterials';
 
-/** 20 资产色卡映射整表（值域依据 docs/procedural-assets/metadata-taxonomy.md §2.1；T024.3 批二收官 = **13 树卡集全量终态**：11 树双卡 default+autumn + camphor/ligustrum 常绿单卡终态；设施/DEV 空数组显式无卡；卡 id 域 024.2 定稿 = {'default','autumn'}；T012.1 加行 = 针叶族首例 cedrus 常绿 default 单卡〔Spec §5 常绿季相 Verified——FRPS 终年常绿 + NC 无秋色字段阴性 + 冬季三点直证；swatch 0x6b8273 灰绿-蓝绿中调三处同源，3a meta 侧〕） */
+/** 26 资产色卡映射整表（值域依据 docs/procedural-assets/metadata-taxonomy.md §2.1；T024.3 批二收官 = **13 树卡集全量终态**：11 树双卡 default+autumn + camphor/ligustrum 常绿单卡终态；设施/DEV 空数组显式无卡；卡 id 域 = {'default','autumn'} + T025.1 增 'yellow'〔设施色卡首例——交通锥〕；T012.1 加行 = 针叶族首例 cedrus 常绿 default 单卡〔Spec §5 常绿季相 Verified——FRPS 终年常绿 + NC 无秋色字段阴性 + 冬季三点直证；swatch 0x6b8273 灰绿-蓝绿中调三处同源，3a meta 侧〕） */
 const EXPECTED_PRESETS: Record<string, readonly string[]> = {
   asset_tree_3a: [DEFAULT_COLOR_PRESET_ID, 'autumn'], // T024.3 批二：秋·黄褐（Forestry England + Spec §6）
   asset_tree_celtis: [DEFAULT_COLOR_PRESET_ID, 'autumn'], // T024.3 批二：秋·黄（OSU + 温州照片——黄主相不入橙红）
@@ -43,6 +43,12 @@ const EXPECTED_PRESETS: Record<string, readonly string[]> = {
   asset_streetlamp: [],
   asset_parkbench: [],
   asset_hydrant: [],
+  asset_bollard: [], // T025.1 批 A：显式无卡
+  asset_pedestrian_barrier: [], // T025.1 批 A：显式无卡
+  asset_road_barrier: [], // T025.1 批 A：显式无卡
+  asset_wheelstop: [], // T025.1 批 A：显式无卡
+  asset_trafficcone: [DEFAULT_COLOR_PRESET_ID, 'yellow'], // T025.1：**首个设施色卡**——default 红（GB/T 24720 5.3 宜红 + P8 橙红判读）+ 'yellow' 黄（停车场语境副卡，厂家专文 Medium）；锥变环不变；卡 id 'yellow' 入域（§2.1 记档）
+  asset_speedbump: [], // T025.1 批 A：显式无卡
   asset_seedstack: [], // DEV 管线验证资产：显式无卡
 };
 
@@ -51,7 +57,7 @@ const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 describe('程序化资产色卡契约（T024.1，D44 #2 整表锁）', () => {
   const metas = collectProceduralAssetMetas();
 
-  it('20 资产色卡映射整表：卡 id 集合与 EXPECTED_PRESETS 逐资产全等', () => {
+  it('26 资产色卡映射整表：卡 id 集合与 EXPECTED_PRESETS 逐资产全等', () => {
     expect(metas.length).toBe(Object.keys(EXPECTED_PRESETS).length); // 双向：多登/漏登皆红
     for (const meta of metas) {
       expect(Object.keys(EXPECTED_PRESETS)).toContain(meta.id);
