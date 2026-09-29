@@ -17,9 +17,9 @@
  *   - 激活态琥珀左缘竖线 + soft 底（沿面板语言）；hover / focus 延迟 tooltip
  *     （名称 + 数字键 + 一句操作提示）；再次点击同项退出当前绘制（toggle 语义）。
  * 边界：只经 store（facade/activeToolId/drawTarget/lastAreaShape/lastAssetId +
- *      workspaceStore.mode）、toolIA 共享入口与 browserModel 色卡选中读法（T024.4 放置
- *      注入：事件时刻读 localStorage → 声明表校验）；零 THREE、零 runtime；图标统一
- *      lucide-react；图标按钮 ≥40px 触达（「更多」抽屉钮为 40×28 文字钮，点击目标同级）。
+ *      workspaceStore.mode）与 toolIA 共享入口（T024.4/D44 放置色卡注入经公共读法
+ *      placementPresetOf：事件时刻读 localStorage → 声明表校验）；零 THREE、零 runtime；
+ *      图标统一 lucide-react；图标按钮 ≥40px 触达（「更多」抽屉钮为 40×28 文字钮，点击目标同级）。
  */
 import { useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
@@ -46,14 +46,13 @@ import {
 } from 'lucide-react';
 import type { ComponentType } from 'react';
 import type { MeasureKind } from '../../core/types';
-import { AREA_SUBTOOLS, MEASURE_SUBTOOLS, VERTICAL_TOOLS, combineMode, toggleMeasureTool, togglePlacement, toggleRegionDraw, toggleShapeDraw, workModeOf } from '../tools/toolIA';
+import { AREA_SUBTOOLS, MEASURE_SUBTOOLS, VERTICAL_TOOLS, combineMode, placementPresetOf, toggleMeasureTool, togglePlacement, toggleRegionDraw, toggleShapeDraw, workModeOf } from '../tools/toolIA';
 import type { AreaSubtoolDef, VerticalIconKey } from '../tools/toolIA';
 import { activateSelectTool, activateTransformTool } from '../tools/toolIA';
 import type { GizmoMode } from '../tools/toolIA';
 import { pushToast } from '../feedback/toastStore';
 import { useEditorStore } from '../store';
 import { useWorkspaceStore } from '../layout/workspaceStore';
-import { loadPresetSelection, selectedPresetOf } from '../panels/browserModel';
 import { Tooltip } from './Tooltip';
 import { AnchoredPopup } from './AnchoredPopup';
 
@@ -124,16 +123,6 @@ export function VerticalToolbar() {
     }
   };
 
-  /** 放置入口色卡注入（T024.4）：事件时刻读存储选中 → 声明表校验（selectedPresetOf）；
-   *  默认卡/未选中/已删卡 = undefined → 不传参，缺省路径逐位不变 */
-  const placementPreset = (): string | undefined => {
-    if (!facade) return undefined;
-    return selectedPresetOf(
-      lastAssetId !== null ? facade.registries.assets.get(lastAssetId) : undefined,
-      loadPresetSelection(),
-    );
-  };
-
   /** 抽屉项激活（与常驻入口同路共享入口；点击后收起抽屉） */
   const activateDrawerEntry = (id: VerticalIconKey): void => {
     setDrawerOpen(false);
@@ -141,7 +130,7 @@ export function VerticalToolbar() {
     if (id === 'region') toggleRegionDraw(facade.tools);
     else if (id === 'line') toggleShapeDraw(facade.tools, 'line');
     else if (id === 'point') toggleShapeDraw(facade.tools, 'point');
-    else if (!togglePlacement(facade.tools, facade.scene, lastAssetId, placementPreset())) {
+    else if (!togglePlacement(facade.tools, facade.scene, lastAssetId, placementPresetOf(facade, lastAssetId))) {
       pushToast('info', '先在底部内容浏览器选择资产，再按 4 或点击此钮放置');
     }
   };
@@ -292,7 +281,7 @@ export function VerticalToolbar() {
               disabled={!facade}
               onClick={() => {
                 if (!facade) return;
-                if (!togglePlacement(facade.tools, facade.scene, lastAssetId, placementPreset())) {
+                if (!togglePlacement(facade.tools, facade.scene, lastAssetId, placementPresetOf(facade, lastAssetId))) {
                   pushToast('info', '先在底部内容浏览器选择资产，再按 4 或点击此钮放置');
                 }
               }}

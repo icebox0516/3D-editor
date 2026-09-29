@@ -49,7 +49,7 @@ export class BudgetAlert {
       options.warn ??
       ((drawCalls, budget) =>
         console.warn(
-          `[Renderer] draw calls 超预算：${drawCalls} > ${budget}（BATCH_POLICY.drawCallBudget = 2000，024.5 双卡混植实测重锁——最重合法包络 DC 1677 × ~1.19 跨机余量，D45）——批次治理观测告警，非降级`,
+          `[Renderer] draw calls 超预算：${drawCalls} > ${budget}（预算取 BATCH_POLICY.drawCallBudget 当前值，024.5 双卡混植实测重锁口径，D45——重锁记档见模块头注）——批次治理观测告警，非降级`,
         ));
   }
 

@@ -125,6 +125,24 @@ export function steadySelectionState(rep: RuntimeRepresentation): SelectionState
 }
 
 /**
+ * fade-out 退场带进度（m→f 单源公式）：退场带 [B_c, B_c·(1+W)]（B_c =
+ * thresholds.canopyToCulled，W = bandRatio——锚定见模块头注）内统一度量 → 退场进度
+ * f∈[0,1]（名义线 f=0、带末 f=1；迟滞线下侧 m < B_c 自然截断为 0）。stepTransition
+ * fade-out 分支内部消费；runtime 池层静止相机补偿（InstancedAssetPool，T024.5）读
+ * 带内进度亦消费本函数——公式 domain 单源、池侧不复刻（D45 #1 复核清理；池侧 f→m
+ * 逆映射为补偿特有语义，domain 无对应物，留在池侧）。可选参缺省与 stepTransition
+ * 内 input.thresholds / input.bandRatio ?? 缺省同义。
+ */
+export function fadeoutBandProgress(
+  metric: number,
+  thresholds: LodThresholds = LOD_THRESHOLDS,
+  bandRatio: number = TRANSITION_BAND_RATIO,
+): number {
+  const boundary = thresholds.canopyToCulled;
+  return clamp01((metric - boundary) / (boundary * bandRatio));
+}
+
+/**
  * 单帧提交决策（状态机输出面；消费方 = 两链执行层，映射到各自桶/实例机制）：
  * - submitCurrent / submitTarget：双表示各是否提交像素（false = 无需建桶 / 整桶
  *   零提交——fade 0 的客座侧不提交，省 DC 且避免无消费者期的双渲染）；
@@ -208,8 +226,7 @@ export function stepTransition(input: TransitionStepInput): TransitionStepResult
   // 其余起点瞬时终态（现状行为零变化——streetlamp / GLB / 多级跳档）
   if (selection === 'culled') {
     if (kind === 'fade-out') {
-      const boundary = thresholds.canopyToCulled;
-      const f = clamp01((m - boundary) / (boundary * band));
+      const f = fadeoutBandProgress(m, thresholds, band);
       return {
         state: {
           current,

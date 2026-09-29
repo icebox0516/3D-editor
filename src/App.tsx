@@ -98,9 +98,8 @@ import {
   ASSET_DRAG_MIME,
   ASSET_PRESET_DRAG_MIME,
   isAssetDrag,
-  loadPresetSelection,
   parseAssetDragId,
-  selectedPresetOf,
+  placementPresetOf,
   BatchRenameDialog,
   POPUP_ROOT_ID,
 } from './ui';
@@ -568,10 +567,10 @@ export default function App() {
       if (!facade) return;
       useEditorStore.getState().setPlacingAssetId(asset.id);
       useEditorStore.getState().setLastAssetId(asset.id); // 资产组入口（键 4 / 垂直条）重放记忆
-      // 色卡注入（T024.4）：事件时刻读存储选中 → 声明表校验（selectedPresetOf）；默认卡/
-      // 未选中/已删卡 → undefined，条件展开不落 preset 键——缺省路径与既有参数逐位一致
       const descriptor = facade.registries.assets.get(asset.id);
-      const preset = selectedPresetOf(descriptor, loadPresetSelection());
+      // 色卡注入（T024.4/D44）：公共读法 placementPresetOf（事件时刻读存储选中 → 声明表
+      // 校验）；默认卡/未选中/已删卡 → undefined，条件展开不落 preset 键——缺省路径逐位不变
+      const preset = placementPresetOf(facade, asset.id);
       facade.tools.activate(PLACEMENT_TOOL_ID, {
         assetId: asset.id,
         layerId: defaultLayerIdFor(facade.scene, 'model'),

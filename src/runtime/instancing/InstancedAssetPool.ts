@@ -132,6 +132,7 @@ import type { LodView } from '../../domain/lod/lodEvaluation';
 import { LOD_THRESHOLDS } from '../../domain/lod/lodPolicy';
 import { pinnedSelectionOutcome } from '../../domain/lod/editingPin';
 import {
+  fadeoutBandProgress,
   steadySelectionState,
   stepTransition,
   transitionKindOf,
@@ -405,11 +406,6 @@ const CAMERA_STATIC_EPSILON = 1e-6;
 /** entry.seed → aSeed 槽值（null → 域中点中性值；其余经 domain 'aseed' 域折算） */
 function seedUnitOf(seed: number | null): number {
   return seed === null ? ASEED_NULL_VALUE : aSeedValueOf(seed);
-}
-
-/** [0,1] 截断（T024.5 静止相机退场带进度计算；与 domain/lod/transition 内 clamp01 同式） */
-function clamp01(v: number): number {
-  return v < 0 ? 0 : v > 1 ? 1 : v;
 }
 
 /**
@@ -818,10 +814,9 @@ export class InstancedAssetPool {
     let metricInput = metric;
     if (decision === 'culled') {
       if (transitionKindOf(prev.current, decision) === 'fade-out') {
-        // fade-out 退场带进度（与 domain stepTransition fade-out 分支同一公式——
-        // 常量同源自 domain 导出；一致性由 tests 锁定）
-        const boundary = LOD_THRESHOLDS.canopyToCulled;
-        const fMetric = clamp01((metric - boundary) / (boundary * TRANSITION_BAND_RATIO));
+        // fade-out 退场带进度（m→f）：公式 domain 单源（fadeoutBandProgress——与
+        // stepTransition fade-out 分支同一实现；D45 #1 复核清理，数值路径零变化）
+        const fMetric = fadeoutBandProgress(metric);
         if (cameraStatic && dtSeconds > 0 && fMetric < 1) {
           entry.fadeFloor = Math.min(
             1,
@@ -829,6 +824,9 @@ export class InstancedAssetPool {
           );
         }
         if (entry.fadeFloor > fMetric) {
+          // 逆映射（f→m，T024.5 度量补偿语义——domain 无对应物，池侧保留）：
+          // fadeoutBandProgress 的逆（floor·W 折回 metric 空间，稳落退场带内）
+          const boundary = LOD_THRESHOLDS.canopyToCulled;
           metricInput = boundary * (1 + entry.fadeFloor * TRANSITION_BAND_RATIO);
         }
       } else {

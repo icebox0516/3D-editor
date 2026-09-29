@@ -35,7 +35,9 @@
  *     芯片 + 完成提示），三步流完成后的类型/样式快选归 regionQuickApply 模块；
  *   - 共享激活入口（toggleShapeDraw / toggleRegionDraw / togglePlacement /
  *     activateTransformTool / activateSelectTool）：键盘（app/input）与点击（垂直条 /
- *     ContextToolbar / 创建菜单）同路，写 store 记账（drawTarget / lastAreaShape）。
+ *     ContextToolbar / 创建菜单）同路，写 store 记账（drawTarget / lastAreaShape）；
+ *     placementPresetOf（T024.4/D44）为放置入口色卡注入的公共读法（browserModel
+ *     存储选中 + 声明表校验，App 点击 / input 键 4 / 垂直条放置钮三路同源）。
  * 边界：ui 层只依赖 core/domain/registries/editor（分层 DAG：禁止 runtime/io）；
  *      G 键语义 =「网格吸附会话开关（DrawToolBase / 顶点编辑工具内）」；全局侧归
  *      吸附总开关 tool.snap（T8.1 起压下网格/对象/角度/高度分项，不涉绘制三键）。
@@ -54,6 +56,7 @@ import type { ID, MeasureKind, Vec2 } from '../../core/types';
 import { useEditorStore } from '../store';
 import type { DrawTarget } from '../store';
 import { useWorkspaceStore } from '../layout/workspaceStore';
+import { loadPresetSelection, selectedPresetOf } from '../panels/browserModel';
 import type { AlignMode } from './alignArrayModel';
 
 // ── 类型 ────────────────────────────────────────────────────
@@ -1137,10 +1140,26 @@ export function toggleMeasureTool(tools: ToolManager, kind: MeasureKind): void {
 }
 
 /**
+ * 放置入口色卡注入公共读法（T024.4/D44；App 点击资产 / input 键 4 重放 / VerticalToolbar
+ * 放置钮三入口同源）：facade 或 assetId 为空 → undefined（三入口空值防御现状语义的并集）；
+ * 否则事件时刻读存储选中（browserModel.loadPresetSelection）→ 取资产描述符经
+ * selectedPresetOf 声明表校验（已删卡宽容回退默认卡，读侧宽容不抛错——写侧 fail-fast
+ * 之前调用侧先归一）。返回 undefined = 不落 preset 键：调用侧 togglePlacement 可选尾参 /
+ * App 条件展开，缺省路径与既有激活参数逐位一致（默认卡路径 = 不传参）。
+ */
+export function placementPresetOf(
+  facade: EditorFacade | null,
+  assetId: string | null,
+): string | undefined {
+  if (facade === null || assetId === null) return undefined;
+  return selectedPresetOf(facade.registries.assets.get(assetId), loadPresetSelection());
+}
+
+/**
  * 资产组入口（键 4 / 放置钮）：重放 store.lastAssetId 资产（默认「模型」图层，
  * 层名 = domain/assets.MODEL_LAYER_NAME，T6.7 旧表删除后的单一真相源）；
  * 无记忆资产返回 false（调用方 Toast 提示先去内容浏览器选择）。
- * preset 可选尾参（T024.4 色卡重放注入）：调用侧经 selectedPresetOf 完成存储读取
+ * preset 可选尾参（T024.4 色卡重放注入）：调用侧经 placementPresetOf 完成存储读取
  * 与声明校验后传入；默认卡/未选中 = 不传（缺省路径与既有激活参数逐位一致）。
  */
 export function togglePlacement(
