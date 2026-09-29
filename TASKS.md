@@ -7,7 +7,7 @@
 - [~] T012 针叶乔木族生产任务集合（**立项 2026-09-28**；**012.1 雪松 done 2026-09-29**——新 Family 首例全链收官；**012.2 水杉 done 2026-09-29**——契约转正例〔草案→定稿 80 位〕+ 密度校准一轮，三门槛 4524 全绿；族门顺延 012.3；生产方法 = tree workflow conifer Family 参数位；候选池强 9 备选〔圆柏/龙柏/侧柏/白皮松/黑松/落羽杉/池杉/罗汉松——水杉已立项 012.2 done，D34 四条标准增补〕）→ [tasks/012-conifer-trees.md](tasks/012-conifer-trees.md)
   - [x] T012.1 雪松全链（done 2026-09-29：新 Family 首例——契约草案 + 预算锁定 + 索引首建 + 完整首例验收 + 密度校准一轮；三门槛 4401 全绿）→ [tasks/012.1-cedrus.md](tasks/012.1-cedrus.md)
   - [x] T012.2 水杉全链（done 2026-09-29：契约转正 + 羽状卡第 2 叶语言 + 第 15 树皮 + 落叶双卡 + 密度校准；三门槛 4524 全绿）→ [tasks/012.2-metasequoia.md](tasks/012.2-metasequoia.md)
-- [~] T030 资产生产流程优化（**阶段一 done 2026-09-29**：grill 裁定四项框架 + 7 项实施〔密度终值先验/杠杆判定证据化/3c 像素量化交付/判读纪律条款化/风动前置条件/配额阻塞期应对/tier-2 记档——全部「T030 试行·012.3 回访」标注；spine×2 + tree×4 + precedents 终值带，零代码执行面〕+ t0121 分析差分新增 N1–N5；**阶段二 = 待裁定 9 项**〔N1–N5 + C2×3 + C8-a，见任务书〕；**阶段三 = 012.3 试金石回访**；retrospective 维持封存）→ [tasks/030-process-optimization.md](tasks/030-process-optimization.md)
+- [~] T030 资产生产流程优化（**阶段一+二 done 2026-09-29**：grill 四项框架裁定 + 14 项实施〔阶段一 7 项用户逐项勾选 + 阶段二 7 项「继续」按推荐——密度终值先验/杠杆证据化/3c 像素量化/判读纪律/风动前置/阻塞期应对/隐式接口冻结清单/自检断言/盘点细则/简报假设化/合并对账/进程清理范围/tier-2 记档；spine §1×3+§3+§4 + tree ×6 + precedents 终值带，零代码执行面〕+ N4/N5 记档观察 + t0121 差分；**阶段三 = 012.3 试金石逐条回访**；retrospective 维持封存）→ [tasks/030-process-optimization.md](tasks/030-process-optimization.md)
 
 ## Done（近）
 
