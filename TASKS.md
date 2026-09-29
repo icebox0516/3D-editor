@@ -4,8 +4,8 @@
 
 ## Current
 
-- [ ] T012 针叶乔木族生产任务集合（**立项 2026-09-28**：开放式集合〔D33〕；生产方法 = tree workflow conifer Family 参数位〔本立项加行〕；新 Family 首例 = 012.1 雪松〔D37 契约草案 + D30/D43 完整首例验收 + lod-spec §5.3 预算候选带 + conifer 索引首建〕；候选池强 9 备选〔圆柏/龙柏/侧柏/白皮松/黑松/水杉/落羽杉/池杉/罗汉松，D34 四条标准增补〕）→ [tasks/012-conifer-trees.md](tasks/012-conifer-trees.md)
-  - [~] T012.1 雪松全链（新 Family 首例；立项 2026-09-28；**Step 0 调研 + 终审 + Step 1 结构分析 done 2026-09-29**——Spec 1.0 落盘〔`cedrus-reference.md`：9 面全覆盖 + 终审 8 文献锚逐位一致 + 2 分歧项不承重直写〕+ 待裁决位回填〔层状骨架跨族方法复制 / ginkgo 长短枝双挂点继承 / 球果账目法判定做 / default 单卡终态〕；Step 2–4 待续——恢复时按「中断即未验证」重验）→ [tasks/012.1-cedrus.md](tasks/012.1-cedrus.md)
+- [~] T012 针叶乔木族生产任务集合（**立项 2026-09-28**；**012.1 雪松 done 2026-09-29**——新 Family 首例全链收官；下一成员立项时按增补规则顺延、族门 012.2 编号顺延；生产方法 = tree workflow conifer Family 参数位；候选池强 9 备选〔圆柏/龙柏/侧柏/白皮松/黑松/水杉/落羽杉/池杉/罗汉松，D34 四条标准增补〕）→ [tasks/012-conifer-trees.md](tasks/012-conifer-trees.md)
+  - [x] T012.1 雪松全链（done 2026-09-29：新 Family 首例——契约草案 + 预算锁定 + 索引首建 + 完整首例验收 + 密度校准一轮；三门槛 4401 全绿）→ [tasks/012.1-cedrus.md](tasks/012.1-cedrus.md)
 
 ## Done（近）
 

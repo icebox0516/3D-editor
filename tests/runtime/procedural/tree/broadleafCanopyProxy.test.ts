@@ -2,9 +2,9 @@
  * tests/runtime/procedural/tree/broadleafCanopyProxy.test.ts —— BroadleafCanopyProxy
  * 几何面不变量测试（T021.6）。
  *
- * 覆盖（零 mock——真实几何生成；直调 buildBroadleafCanopyGeometry，13 树种全扫 +
- * tree3a 8 槽横扫；Low / High 参照几何同文件构建复用）：
- * - 面数预算带：13 树种 slot-0 恒 487 面（干柱 35 + 冠卡 452）≤ 500 红线（D41 §6.2
+ * 覆盖（零 mock——真实几何生成；直调 buildBroadleafCanopyGeometry，14 树种全扫 +
+ * tree3a 8 槽横扫；Low / High 参照几何同文件构建复用；T012.1 起 conifer 首例 cedrus 入扫）：
+ * - 面数预算带：14 树种 slot-0 恒 487 面（干柱 35 + 冠卡 452）≤ 500 红线（D41 §6.2
  *   锁定值，回写 lod-spec §5.2 canopy 列）；tree3a 8 槽全扫同带；恰 2 组（干柱 0 /
  *   冠卡 1，D15）；
  * - 风相位属性契约（§6.3）：aSeed/aBend/aLeafRand/aCrownQ 成套存在；aSeed 恒 0
@@ -12,10 +12,14 @@
  *   卡内 aBend 根(0,1,3)同值 < 尖(2,4,5)同值（Low 壳卡根尖序）；
  * - 与 Low 壳卡逐位同源：canopy 卡 aLeafRand 命中 Low 卡散列集时 aBend 根/尖逐位
  *   相等（同公式同常数同簇心 Y 域）；未命中者必为双卡第二卡（derive-1 散列像）；
+ *   **conifer 分支（cedrus）**：Low 壳卡隔簇抽取（stride 2——雪松簇量级 900+ 的预算
+ *   适配），卡集 ⊂ 簇表使「未命中 = 双卡第二卡」配对序判据不成立——改簇场散列直接
+ *   重建对账（每卡 rand ∈ {簇心散列, derive-1 像} + aBend 根/尖 = 全簇表 Y 域 hw 公式
+ *   复算——不依赖 Low 发射覆盖率的更强判据）；
  * - 冠形落几何（树种级差异可辨的 domain 级前替）：canopy 跨度落 High 真实冠幅
  *   ±0.7m 带内（垂柳 Low 窄卡是收缩伪影，身份基准 = High）；冠形态比（y/xz）落
  *   High ±0.2；High 形态比差 ≥ 0.2 的树种对在 canopy 序保持（差异方向不翻转）；
- *   13 树种 canopy 形态比两两互异；
+ *   14 树种 canopy 形态比两两互异；
  * - 簇场派生：canopy 卡底边中点 XZ 逐位落在簇心（卡位置 = 簇场派生非自建体系）；
  *   入选簇数 / 双单卡分层账目恒定；
  * - 确定性：同 (assetId, seed) 两次构建全部属性数组与 stats 逐位相等；
@@ -59,6 +63,8 @@ import { buildSophoraGeometry } from '../../../../src/runtime/procedural/tree/so
 import { SOPHORA_SHAPE_PROFILES } from '../../../../src/runtime/procedural/tree/sophora/sophoraShapeProfile';
 import { buildTriadicaGeometry } from '../../../../src/runtime/procedural/tree/triadica/triadicaGeometry';
 import { TRIADICA_SHAPE_PROFILES } from '../../../../src/runtime/procedural/tree/triadica/triadicaShapeProfile';
+import { buildCedrusGeometry } from '../../../../src/runtime/procedural/tree/cedrus/cedrusGeometry';
+import { CEDRUS_SHAPE_PROFILES } from '../../../../src/runtime/procedural/tree/cedrus/cedrusShapeProfile';
 import type { ProceduralLevel } from '../../../../src/domain/assets';
 
 /** 参照几何构建器表（Low / High 参照与 profile 路由同 canopy 内部口径） */
@@ -76,6 +82,7 @@ const SPECIES_BUILDERS: Record<string, (rng: () => number, level: ProceduralLeve
   asset_tree_salix: (r, l) => buildSalixGeometry(r, SALIX_SHAPE_PROFILES[0]!, l),
   asset_tree_sophora: (r, l) => buildSophoraGeometry(r, SOPHORA_SHAPE_PROFILES[0]!, l),
   asset_tree_triadica: (r, l) => buildTriadicaGeometry(r, TRIADICA_SHAPE_PROFILES[0]!, l),
+  asset_tree_cedrus: (r, l) => buildCedrusGeometry(r, CEDRUS_SHAPE_PROFILES[0]!, l), // T012.1 conifer 首例（ConiferShapeProfile 行内自洽——同 CANOPY_SPECIES 行口径）
 };
 
 // ── 模块级构建缓存（一次构建多断言消费；afterEach 不清——进程内复用，几何随进程释放）──
@@ -113,8 +120,8 @@ function spanOf(g: import('three').BufferGeometry): { xz: number; y: number; min
 // ── 面数预算带（D41 §6.2：≤500 面 / 树含简化树干；锁定值回写 lod-spec §5.2）──
 
 describe('面数预算带', () => {
-  it('13 树种 slot-0 恒 487 面（干柱 35 + 冠卡 452）≤ 500 红线；恰 2 组（干柱 0 / 冠卡 1）', () => {
-    expect(BROADLEAF_CANOPY_ASSET_IDS).toHaveLength(13);
+  it('14 树种 slot-0 恒 487 面（干柱 35 + 冠卡 452）≤ 500 红线；恰 2 组（干柱 0 / 冠卡 1）', () => {
+    expect(BROADLEAF_CANOPY_ASSET_IDS).toHaveLength(14);
     for (const id of BROADLEAF_CANOPY_ASSET_IDS) {
       const r = canopyOf(id);
       expect(r.stats.totalTriangles, `${id} 总面应恒 487 ≤ 500`).toBe(487);
@@ -185,8 +192,49 @@ describe('风相位属性契约', () => {
     }
   }, 300000);
 
-  it('与 Low 壳卡逐位同源：aLeafRand 命中 Low 卡集时 aBend 根/尖逐位相等；未命中者必为命中卡的紧邻第二卡（双卡配对序）', () => {
+  it('与 Low 壳卡逐位同源：aLeafRand 命中 Low 卡集时 aBend 根/尖逐位相等；未命中者必为命中卡的紧邻第二卡（双卡配对序；cedrus conifer 分支 = 簇场散列直接重建——stride 壳卡配对序判据不适用）', () => {
     for (const id of BROADLEAF_CANOPY_ASSET_IDS) {
+      if (id === 'asset_tree_cedrus') {
+        // ── conifer 分支（T012.1）：cedrusGeometry Low = 隔簇抽取壳卡（stride 2，雪松簇
+        // 量级 900+ 预算适配）——Low 卡集 ⊂ 全簇表，「未命中 = 双卡第二卡」配对序判据不
+        // 成立；改簇场散列直接重建对账：每张 canopy 卡的 aLeafRand = 该卡簇心 shellCard
+        // 散列（proxy/cedrus 同常数同式）或其 derive-1 像（双卡第二卡），aBend 根/尖 =
+        // 全簇表 Y 域 hw 公式复算（0.12·hw / 0.52+0.44·hw——与 cedrus Low 壳卡同域同式）
+        const field = harvestBroadleafCanopyField(id);
+        let minY = Infinity;
+        let maxY = -Infinity;
+        for (const c of field.clusters) {
+          minY = Math.min(minY, c.cy);
+          maxY = Math.max(maxY, c.cy);
+        }
+        const byXZ = (x: number, z: number) => field.clusters.find((c) => Math.abs(c.cx - x) < 1e-3 && Math.abs(c.cz - z) < 1e-3);
+        const c2 = canopyOf(id).geometry;
+        const pos2 = c2.getAttribute('position').array as ArrayLike<number>;
+        const rand2 = c2.getAttribute('aLeafRand').array as ArrayLike<number>;
+        const bend2 = c2.getAttribute('aBend').array as ArrayLike<number>;
+        const cards2 = c2.groups[1]!;
+        for (let base = cards2.start; base < cards2.start + cards2.count; base += 6) {
+          // 卡底边中点 XZ = 簇心（f32 存储舍差 → 容差搜索，簇心间 ≥ clusterMinSeparation 无歧义）
+          const mx = (pos2[(base + 0) * 3]! + pos2[(base + 1) * 3]!) / 2;
+          const mz = (pos2[(base + 0) * 3 + 2]! + pos2[(base + 1) * 3 + 2]!) / 2;
+          const cluster = byXZ(mx, mz);
+          expect(cluster, `${id} 卡应落簇心（XZ 容差命中；实测 ${mx.toFixed(3)},${mz.toFixed(3)}）`).toBeDefined();
+          const h0 = cluster!.cx * 12.9898 + cluster!.cy * 78.233 + cluster!.cz * 37.719;
+          const base01 = Math.sin(h0) * 43758.5453;
+          const derive0 = base01 - Math.floor(base01);
+          const d01 = derive0 * 7.31 + 0.37;
+          const derive1 = d01 - Math.floor(d01);
+          const r = rand2[base]!;
+          expect(
+            Math.abs(r - derive0) < 1e-6 || Math.abs(r - derive1) < 1e-6,
+            `${id} 卡 rand 应 = 簇心散列或 derive-1 像（f32 容差；实测 ${r} vs ${derive0}/${derive1}）`,
+          ).toBe(true);
+          const hw = Math.min(Math.max((cluster!.cy - minY) / Math.max(0.01, maxY - minY), 0), 1);
+          expect(bend2[base]!, `${id} aBend 根应 = 0.12·hw 公式复算`).toBeCloseTo(0.12 * hw, 5);
+          expect(bend2[base + 2]!, `${id} aBend 尖应 = 0.52+0.44·hw 公式复算`).toBeCloseTo(0.52 + 0.44 * hw, 5);
+        }
+        continue;
+      }
       const low = refOf(id, 'low').geometry;
       const lowBend = low.getAttribute('aBend').array as ArrayLike<number>;
       const lowRand = low.getAttribute('aLeafRand').array as ArrayLike<number>;
@@ -232,7 +280,7 @@ describe('风相位属性契约', () => {
 // ── 冠形落几何（树种级差异可辨的 domain 级前替：几何级断言冠形参数差异落到输出）──
 
 describe('冠形（树种差异落到 canopy 几何）', () => {
-  it('canopy 跨度落 Mid 过渡对 ±0.7m（dither 连续性基准，D41 §5.1）与 High 宽身份带 ±1.3m；形态比落 Mid ±0.2；Mid 形态比差 ≥0.2 的树种对 canopy 序保持；13 树种形态比两两互异', () => {
+  it('canopy 跨度落 Mid 过渡对 ±0.7m（dither 连续性基准，D41 §5.1）与 High 宽身份带 ±1.3m；形态比落 Mid ±0.2；Mid 形态比差 ≥0.2 的树种对 canopy 序保持；14 树种形态比两两互异', () => {
     const aspects: { id: string; canopy: number; mid: number }[] = [];
     for (const id of BROADLEAF_CANOPY_ASSET_IDS) {
       const canopy = spanOf(canopyOf(id).geometry);
@@ -266,8 +314,8 @@ describe('冠形（树种差异落到 canopy 几何）', () => {
       }
     }
     expect(qualifying, '应有 Mid 形态比差 ≥0.2 的树种对（断言面非空）').toBeGreaterThanOrEqual(6);
-    // 13 树种 canopy 形态比两两互异（横向可辨的最小几何判据）
-    expect(new Set(aspects.map((a) => a.canopy.toFixed(4))).size, '13 树种 canopy 形态比应两两互异').toBe(13);
+    // 14 树种 canopy 形态比两两互异（横向可辨的最小几何判据）
+    expect(new Set(aspects.map((a) => a.canopy.toFixed(4))).size, '14 树种 canopy 形态比应两两互异').toBe(14);
   }, 600000);
 });
 
@@ -318,7 +366,7 @@ describe('确定性与贴地', () => {
     }
   }, 300000);
 
-  it('13 树种 minY 精确 0（原点语义与树种几何一致）', () => {
+  it('14 树种 minY 精确 0（原点语义与树种几何一致）', () => {
     for (const id of BROADLEAF_CANOPY_ASSET_IDS) {
       const s = spanOf(canopyOf(id).geometry);
       expect(Math.abs(s.minY), `${id} minY 应为 0`).toBeLessThanOrEqual(0.001);

@@ -98,7 +98,7 @@ const f = (x: number): string => (Number.isInteger(x) ? `${x}.0` : String(x));
 /** vec3 字面量 */
 const f3 = (v: readonly [number, number, number]): string => `vec3(${v.map(f).join(', ')})`;
 
-// ── 树种材质参数表（13 树种逐树种转录自各 *Materials.ts；drift-lock 见测试）──────────
+// ── 树种材质参数表（14 树种逐树种转录自各 *Materials.ts；drift-lock 见测试）──────────
 
 /** 风动参数（与该树种高中低档叶材质同公式同常数——逐数对账锁定） */
 export interface BroadleafCanopyWindSpec {
@@ -149,7 +149,7 @@ export interface BroadleafCanopySpeciesMaterialSpec {
   variation: BroadleafCanopyVariationSpec;
 }
 
-/** 13 树种接入表（T011 全量；键序与 broadleafCanopyProxy 接入表一致） */
+/** 14 树种接入表（T011 阔叶 13 全量 + T012.1 conifer 首例 cedrus；键序与 broadleafCanopyProxy 接入表一致） */
 export const BROADLEAF_CANOPY_MATERIAL_SPECIES: Readonly<Record<string, BroadleafCanopySpeciesMaterialSpec>> = {
   asset_tree_3a: {
     wind: { heightScale: 0.1333, swayPhaseK: 78.233, swayPhaseC: 1.37, swayAmplitude: 0.045, swayFrequency: 1.15, flutterPhaseK: 51.171, flutterPhaseC: 4.7, flutterAmplitude: 0.011, flutterFrequencyBase: 14, flutterFrequencySpan: 9 },
@@ -228,6 +228,22 @@ export const BROADLEAF_CANOPY_MATERIAL_SPECIES: Readonly<Record<string, Broadlea
     crownColor: 0x507c34,
     trunkColor: 0x6f6a62,
     variation: { hueCold: [0.94, 1.0, 1.05], hueWarm: [1.07, 1.04, 0.9], hueK: 6.317, hueC: 0.37, lumaBase: 0.92, lumaSpan: 0.16, lumaK: 4.117, lumaC: 0.43, transBase: 0.55, transSpan: 0.45, transK: 7.613, transC: 0.51, transColor: [0.55, 0.91, 0.34], transPeak: 0.33 },
+  },
+  asset_tree_cedrus: {
+    // conifer 首例行（T012.1 Step 3c——逐数转录 cedrusMaterials CEDRUS_WIND / CEDRUS_NEEDLE_
+    // HEAD / TRANSLUCENCY，drift-lock 见 broadleafCanopyMaterials.test）：风动三成分 → proxy
+    // 两槽的远距退化映射——sway 槽 = 成分① 整层低频慢摆（0.35Hz=2.1991 rad/s × 幅 0.025m，
+    // 语义同源逐数转录）；flutter 槽 = 成分② 层缘垂帘/针簇高频颤（2.4Hz=15.0796 × 幅 0.05，
+    // 常频率——span 0 = cedrus 快颤无相位调频项，canopy 公式 0 系数退化逐位一致）；成分③
+    // 顶梢摆幅（0.9Hz × 0.09m，上 1/4 渐尖区门控）= 近景身份读向（cedrusMaterials「顶梢专路
+    // 下垂点头——近景身份读向」），§六远景不保留面——记档不入槽（proxy H² 顶部权重已集中
+    // 冠顶运动）。相位 hash 103.719/4.2 与 81.447/6.8、高度锚 1/16.5=0.06061 逐数同源；
+    // sway 相位-高度耦合系数（近景 1.2 vs proxy 固定 1.4）= proxy 公式结构性简化记档。
+    // 冠色 0x6b8273 = 针叶构造色 sun/shade 严格中点（三处同源之一，default 覆写行同值）。
+    wind: { heightScale: 0.06061, swayPhaseK: 103.719, swayPhaseC: 4.2, swayAmplitude: 0.025, swayFrequency: 2.1991, flutterPhaseK: 81.447, flutterPhaseC: 6.8, flutterAmplitude: 0.05, flutterFrequencyBase: 15.0796, flutterFrequencySpan: 0 },
+    crownColor: 0x6b8273,
+    trunkColor: 0x555049,
+    variation: { hueCold: [0.95, 1.0, 1.02], hueWarm: [1.05, 1.03, 0.92], hueK: 5.913, hueC: 0.23, lumaBase: 0.92, lumaSpan: 0.16, lumaK: 3.719, lumaC: 0.57, transBase: 0.55, transSpan: 0.45, transK: 9.117, transC: 0.47, transColor: [0.6, 0.92, 0.46], transPeak: 0.38 },
   },
 };
 
@@ -372,6 +388,18 @@ export const BROADLEAF_CANOPY_CROWN_PRESETS: Readonly<
       // 分离〔hue/R−G/亮度〕——推导见该表注释；个体差异/内膛滞绿/黄绿过渡不可表达
       // 记档同源）。
       crownColor: 0xc57551,
+    },
+  },
+  asset_tree_cedrus: {
+    default: {
+      // 雪松 default 冠卡（T012.1 Step 3a 先锁色，Step 3c 物种表行已回填——drift-lock
+      // 测试随之覆盖 cedrus；default 覆写值 = 物种表 crownColor 同值 0x6b8273，命中与
+      // 未命中行为逐位一致）：常绿 default 单卡终态：FRPS「终年常绿」+ NC evergreen 无
+      // 秋色字段〔阴性〕+ 冬季三点照片直证，全年叶色稳定无季相卡）。冠色 = 灰绿-蓝绿
+      // 中调（Spec §5 叶色身份）**三处同源**之一（cedrusMaterials 针叶构造色 sun
+      // 0x9db3a6 / shade 0x39503f 严格中点 ↔ meta presets swatch #6b8273 ↔ 本行——
+      // 合并阶段自工程初值 0x6b8a72 ΔG 8 回写，T024 swatch = 叶构造色同源纪律）。
+      crownColor: 0x6b8273,
     },
   },
 };

@@ -15,8 +15,9 @@
  *   互补恒和（outgoing f / incoming 1−f）下恰一侧存活（边界等值除外）；
  * - 缓存键：'+dither' / '+dither:mirror' 后缀、重复应用即抛；
  * - 注入点缺失即抛（alphatest_fragment / common 锚点摘除暴雷）；
- * - 应用面扫描：13 树种 × {leaf, bark} × 3 档注入存在 + 键后缀 + direct 变体；canopy
- *   13 树种 card/trunk 镜像变体；**深度材质零注入**（物种 customDepthMaterial 三档 +
+ * - 应用面扫描：14 树种 × {leaf, bark} × 3 档注入存在 + 键后缀 + direct 变体（T012.1
+ *   起含 conifer 首例 cedrus 针/皮）；canopy
+ *   14 树种 card/trunk 镜像变体；**深度材质零注入**（物种 customDepthMaterial 三档 +
  *   canopy depth——阴影走中点切换 §5.4）；canopy 注入后 uTime 桥接不破坏。
  */
 import { describe, expect, it } from 'vitest';
@@ -45,6 +46,7 @@ import { createPlatanusLeafMaterial, createPlatanusBarkMaterial, createPlatanusL
 import { createSalixLeafMaterial, createSalixBarkMaterial, createSalixLeafDepthMaterial } from '../../../../src/runtime/procedural/tree/salix/salixMaterials';
 import { createSophoraLeafMaterial, createSophoraBarkMaterial, createSophoraLeafDepthMaterial } from '../../../../src/runtime/procedural/tree/sophora/sophoraMaterials';
 import { createTriadicaLeafMaterial, createTriadicaBarkMaterial, createTriadicaLeafDepthMaterial } from '../../../../src/runtime/procedural/tree/triadica/triadicaMaterials';
+import { createCedrusNeedleMaterial, createCedrusBarkMaterial, createCedrusNeedleDepthMaterial } from '../../../../src/runtime/procedural/tree/cedrus/cedrusMaterials';
 import type { ProceduralLevel } from '../../../../src/domain/assets';
 import { assemble, count } from '../../../support/procedural-tree/materialHarness';
 
@@ -79,6 +81,7 @@ const SPECIES_LEAF: Record<string, (level?: ProceduralLevel) => THREE.MeshStanda
   asset_tree_salix: createSalixLeafMaterial,
   asset_tree_sophora: createSophoraLeafMaterial,
   asset_tree_triadica: createTriadicaLeafMaterial,
+  asset_tree_cedrus: createCedrusNeedleMaterial,
 };
 
 const SPECIES_BARK: Record<string, (level?: ProceduralLevel) => THREE.MeshStandardMaterial> = {
@@ -95,6 +98,7 @@ const SPECIES_BARK: Record<string, (level?: ProceduralLevel) => THREE.MeshStanda
   asset_tree_salix: createSalixBarkMaterial,
   asset_tree_sophora: createSophoraBarkMaterial,
   asset_tree_triadica: createTriadicaBarkMaterial,
+  asset_tree_cedrus: createCedrusBarkMaterial,
 };
 
 const SPECIES_DEPTH: Record<string, (level?: ProceduralLevel) => THREE.MeshDepthMaterial> = {
@@ -111,6 +115,7 @@ const SPECIES_DEPTH: Record<string, (level?: ProceduralLevel) => THREE.MeshDepth
   asset_tree_salix: createSalixLeafDepthMaterial,
   asset_tree_sophora: createSophoraLeafDepthMaterial,
   asset_tree_triadica: createTriadicaLeafDepthMaterial,
+  asset_tree_cedrus: createCedrusNeedleDepthMaterial,
 };
 
 // ── 缝契约对齐 ───────────────────────────────────────────────────────────────
@@ -327,12 +332,12 @@ describe('注入点缺失即抛（首次渲染前暴雷）', () => {
   });
 });
 
-// ── 应用面扫描（13 树种 × {leaf, bark} × 3 档 + canopy；深度材质零注入）──────
+// ── 应用面扫描（14 树种 × {leaf, bark} × 3 档 + canopy；深度材质零注入）──────
 
 describe('应用面扫描', () => {
   const SPECIES_IDS = Object.keys(SPECIES_LEAF);
 
-  it('13 树种叶/皮全档注入：标记存在 + 键 +dither 后缀（非 mirror）+ direct 图案', () => {
+  it('14 树种叶/皮全档注入：标记存在 + 键 +dither 后缀（非 mirror）+ direct 图案', () => {
     for (const id of SPECIES_IDS) {
       for (const level of LEVELS) {
         for (const make of [SPECIES_LEAF[id]!, SPECIES_BARK[id]!]) {
@@ -350,7 +355,7 @@ describe('应用面扫描', () => {
     }
   });
 
-  it('canopy 13 树种 card/trunk 镜像注入：1−IGN 图案 + 键 +dither:mirror', () => {
+  it('canopy 14 树种 card/trunk 镜像注入：1−IGN 图案 + 键 +dither:mirror', () => {
     for (const id of BROADLEAF_CANOPY_MATERIAL_ASSET_IDS) {
       const set = createBroadleafCanopyMaterials(id);
       for (const material of [set.cardMaterial, set.trunkMaterial]) {

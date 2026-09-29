@@ -22,7 +22,7 @@ import { DEFAULT_COLOR_PRESET_ID } from '../../../../src/domain/assets';
 import { collectProceduralAssetMetas } from '../../../../src/runtime/procedural/routes';
 import { BROADLEAF_CANOPY_CROWN_PRESETS } from '../../../../src/runtime/procedural/tree/broadleafCanopyMaterials';
 
-/** 19 资产色卡映射整表（值域依据 docs/procedural-assets/metadata-taxonomy.md §2.1；T024.3 批二收官 = **13 树卡集全量终态**：11 树双卡 default+autumn + camphor/ligustrum 常绿单卡终态；设施/DEV 空数组显式无卡；卡 id 域 024.2 定稿 = {'default','autumn'}） */
+/** 20 资产色卡映射整表（值域依据 docs/procedural-assets/metadata-taxonomy.md §2.1；T024.3 批二收官 = **13 树卡集全量终态**：11 树双卡 default+autumn + camphor/ligustrum 常绿单卡终态；设施/DEV 空数组显式无卡；卡 id 域 024.2 定稿 = {'default','autumn'}；T012.1 加行 = 针叶族首例 cedrus 常绿 default 单卡〔Spec §5 常绿季相 Verified——FRPS 终年常绿 + NC 无秋色字段阴性 + 冬季三点直证；swatch 0x6b8273 灰绿-蓝绿中调三处同源，3a meta 侧〕） */
 const EXPECTED_PRESETS: Record<string, readonly string[]> = {
   asset_tree_3a: [DEFAULT_COLOR_PRESET_ID, 'autumn'], // T024.3 批二：秋·黄褐（Forestry England + Spec §6）
   asset_tree_celtis: [DEFAULT_COLOR_PRESET_ID, 'autumn'], // T024.3 批二：秋·黄（OSU + 温州照片——黄主相不入橙红）
@@ -37,6 +37,7 @@ const EXPECTED_PRESETS: Record<string, readonly string[]> = {
   asset_tree_fraxinus: [DEFAULT_COLOR_PRESET_ID, 'autumn'], // T024.2 批一：秋·金黄（Spec 1.1 增量：主相金黄 + iNat 双照）
   asset_tree_ligustrum: [DEFAULT_COLOR_PRESET_ID],
   asset_tree_salix: [DEFAULT_COLOR_PRESET_ID, 'autumn'], // T024.2 批一：秋·黄绿（Spec 1.1 增量：NC greenish-yellow 主相——弱秋色不造金黄）
+  asset_tree_cedrus: [DEFAULT_COLOR_PRESET_ID], // T012.1 针叶族首例：常绿 default 单卡（判定 8——无季相证据不建卡的正向应用；swatch 0x6b8273 三处同源）
   asset_signpost: [],
   asset_trashbin: [],
   asset_streetlamp: [],
@@ -50,7 +51,7 @@ const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 describe('程序化资产色卡契约（T024.1，D44 #2 整表锁）', () => {
   const metas = collectProceduralAssetMetas();
 
-  it('19 资产色卡映射整表：卡 id 集合与 EXPECTED_PRESETS 逐资产全等', () => {
+  it('20 资产色卡映射整表：卡 id 集合与 EXPECTED_PRESETS 逐资产全等', () => {
     expect(metas.length).toBe(Object.keys(EXPECTED_PRESETS).length); // 双向：多登/漏登皆红
     for (const meta of metas) {
       expect(Object.keys(EXPECTED_PRESETS)).toContain(meta.id);

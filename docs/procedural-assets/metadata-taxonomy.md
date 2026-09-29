@@ -50,7 +50,7 @@ proceduralProfile?: {                    // 可选；只收通用维度语义（
 **声明纪律**：
 
 - **必填 + 空数组合法**：空数组 = 显式声明「本资产无色卡」（设施 / DEV 资产合法态）；乔木 / 植物族「非空且含 default 卡」的族级断言归各自 epic 族门定义（D30 不预防性泛化）。
-- **卡 id 纪律**：资产内唯一；**跨树同相卡 id 同名**（便于散布配方书写）。**id 域定稿（T024.2，2026-09-28 记档）**：现役域 = `'default'`（全资产统一默认卡）+ `'autumn'`（秋相卡，跨树同名）——试点 ginkgo `'autumn'` 保持不改名；后续新相（春/新叶相等）由引入它的任务增补，须同步更新本节记档与整表锁 EXPECTED_PRESETS。**13 树卡集终态（T024.2 批一 + T024.3 批二收官，2026-09-28）**：11 树双卡 `default`+`autumn`——ginkgo（秋·金黄）/ platanus（秋·黄褐）/ koelreuteria（秋·金黄）/ sophora（秋·金黄）/ triadica（秋·绯红）/ fraxinus（秋·金黄，Spec 1.1 补证）/ salix（秋·黄绿，Spec 1.1 补证·弱秋色晚相变体）/ tree3a（秋·黄褐）/ celtis（秋·黄）/ zelkova（秋·橙-铜橙）/ bischofia（秋·红-红橙，Spec 1.1 补证·文献四源红相裁决——与 triadica 绯红的种间分离轴记档于材质表注释）；camphor / ligustrum **default 单卡终态**（常绿不建秋卡——camphor 秋相证据为「基调不变 + 斑驳叠加信号」非基调变体、整冠移黄 = 误表达；ligustrum 无秋色相〔冬季四样木满叶浓绿 = 正面否定证据〕；裁定记档于各 asset meta 注释）。秋色谱系横向读向：triadica 绯红 ↔ bischofia 红-红橙 ↔ zelkova 橙-铜橙 ↔ celtis 黄 ↔ ginkgo/koelreuteria/sophora/fraxinus 金黄段 ↔ tree3a/platanus 黄褐 ↔ salix 黄绿。色值与证据锚归各树材质工厂私有域 + Reference Spec。
+- **卡 id 纪律**：资产内唯一；**跨树同相卡 id 同名**（便于散布配方书写）。**id 域定稿（T024.2，2026-09-28 记档）**：现役域 = `'default'`（全资产统一默认卡）+ `'autumn'`（秋相卡，跨树同名）——试点 ginkgo `'autumn'` 保持不改名；后续新相（春/新叶相等）由引入它的任务增补，须同步更新本节记档与整表锁 EXPECTED_PRESETS。**13 树卡集终态（T024.2 批一 + T024.3 批二收官，2026-09-28）**：11 树双卡 `default`+`autumn`——ginkgo（秋·金黄）/ platanus（秋·黄褐）/ koelreuteria（秋·金黄）/ sophora（秋·金黄）/ triadica（秋·绯红）/ fraxinus（秋·金黄，Spec 1.1 补证）/ salix（秋·黄绿，Spec 1.1 补证·弱秋色晚相变体）/ tree3a（秋·黄褐）/ celtis（秋·黄）/ zelkova（秋·橙-铜橙）/ bischofia（秋·红-红橙，Spec 1.1 补证·文献四源红相裁决——与 triadica 绯红的种间分离轴记档于材质表注释）；camphor / ligustrum **default 单卡终态**（常绿不建秋卡——camphor 秋相证据为「基调不变 + 斑驳叠加信号」非基调变体、整冠移黄 = 误表达；ligustrum 无秋色相〔冬季四样木满叶浓绿 = 正面否定证据〕；裁定记档于各 asset meta 注释）；**cedrus default 单卡终态（T012.1，2026-09-29——conifer 首例同 camphor/ligustrum 常绿口径：FRPS「终年常绿」+ NC evergreen 无秋色字段〔阴性〕+ 冬季三点照片直证）**。秋色谱系横向读向：triadica 绯红 ↔ bischofia 红-红橙 ↔ zelkova 橙-铜橙 ↔ celtis 黄 ↔ ginkgo/koelreuteria/sophora/fraxinus 金黄段 ↔ tree3a/platanus 黄褐 ↔ salix 黄绿。色值与证据锚归各树材质工厂私有域 + Reference Spec。
 - **证据纪律（D44 #7 无证据不建卡）**：每树至少 default 卡（= 现行生产相，天然有据）；季相卡逐树按 Reference Spec 季相记录定，卡数不设统一硬指标；缺证相先经 asset-research 补 Spec 增量再建卡——色值参数注释逐卡引 Spec 条目（同资产数值注释纪律）。
 - **swatch = 数据色**：CSS 色串，仅服务浏览器色点 UI（T024.4）；**缩略图不随卡重渲**。
 
@@ -62,7 +62,7 @@ proceduralProfile?: {                    // 可选；只收通用维度语义（
 
 | 值 | 中文 | 现有消费者 | 证据来源 |
 |---|---|---|---|
-| `plant` | 植物 | 程序化 13（tree_3a + T011 十二树种，全 broadleaf；T022 删 v1 四低模后程序化 plant 面全为乔木）+ GLB 3（plant 目录） | 19 资产 meta + manifest.json |
+| `plant` | 植物 | 程序化 14（tree_3a + T011 十二树种阔叶 + T012.1 雪松 conifer 首例；T022 删 v1 四低模后程序化 plant 面全为乔木）+ GLB 3（plant 目录） | 19→20 资产 meta + manifest.json |
 | `building` | 建筑 | GLB 4（building 目录） | manifest.json |
 | `vehicle` | 车辆 | GLB 1（car.glb） | manifest.json |
 | `character` | 人物 | GLB 1（person.glb） | manifest.json |
@@ -78,7 +78,7 @@ proceduralProfile?: {                    // 可选；只收通用维度语义（
 | 值 | 中文 | 唯一合法大类 | 现有消费者 | 近期消费者 |
 |---|---|---|---|---|
 | `broadleaf` | 阔叶乔木 | plant | tree_3a（家族契约第一实例，`tree/broadleaf/`）+ T011 十二树种 | —（T022 后家族现役 13 实例） |
-| `conifer` | 针叶 | plant | —（T022 删 pine 后 0 资产） | T012 针叶族 |
+| `conifer` | 针叶 | plant | tree_cedrus（T012.1 雪松——**conifer 家族契约第一实例** `tree/conifer/`，D37.2 草案首证；层状轮生骨架 + 长短枝双挂点 + 常绿 default 单卡） | T012 针叶族（后续树种） |
 | `shrub` | 灌木 | plant | —（T022 删 shrub 后 0 资产） | T014 灌木族 |
 | `public-facility` | 公共设施 | facility | parkbench、trashbin | GLB public-facility 目录（bench） |
 | `road-facility` | 道路设施 | facility | streetlamp、signpost | GLB road-facility 目录（streetlight） |

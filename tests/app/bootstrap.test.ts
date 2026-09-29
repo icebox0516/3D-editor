@@ -403,15 +403,16 @@ describe('registerAssets', () => {
     expect(registerAssets(facade, [treeAsset, other])).toBe(1);
     // createEditor 内 manifest→procedural 收割先行（glob 按文件名序：植物 asset_* 前缀 < 设施裸名 h/p/s/t；
     // T022 删 v1 四低模植物 flower/oak/pine/shrub——seedstack 后直接 tree_3a；T008.2 起各树按字典序
-    // 追加：tree_3a < tree_bischofia < tree_camphor < tree_celtis < tree_fraxinus < tree_ginkgo <
-    // tree_koelreuteria < tree_ligustrum < tree_platanus < tree_salix < tree_sophora < tree_triadica <
-    // tree_zelkova），追加注册在后
+    // 追加：tree_3a < tree_bischofia < tree_camphor < tree_cedrus（T012.1 conifer 首例）< tree_celtis <
+    // tree_fraxinus < tree_ginkgo < tree_koelreuteria < tree_ligustrum < tree_platanus < tree_salix <
+    // tree_sophora < tree_triadica < tree_zelkova），追加注册在后
     expect(facade.registries.assets.list().map((d) => d.asset.id)).toEqual([
       'asset_tree',
       'asset_seedstack',
       'asset_tree_3a',
       'asset_tree_bischofia',
       'asset_tree_camphor',
+      'asset_tree_cedrus',
       'asset_tree_celtis',
       'asset_tree_fraxinus',
       'asset_tree_ginkgo',

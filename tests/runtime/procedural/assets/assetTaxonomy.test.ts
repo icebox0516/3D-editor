@@ -4,7 +4,7 @@
  * 覆盖：
  * - 枚举值域约束：全部收割 meta 的 taxonomy.category ∈ ASSET_TAXONOMY_CATEGORIES、
  *   family（如有）∈ ASSET_TAXONOMY_FAMILIES——锁「所有程序化资产 meta 满足新枚举约束」；
- * - 19 资产归类映射整表锁定：新资产不登记映射 = 测试红（配合 taxonomy 必填的编译
+ * - 20 资产归类映射整表锁定：新资产不登记映射 = 测试红（配合 taxonomy 必填的编译
  *   约束，双闸——忘声明过不了 typecheck，声明了不登表过不了本测试）；
  * - family ↔ 大类配对约束（broadleaf/conifer/shrub → plant；三个设施细分 → facility）；
  * - proceduralProfile 数值纪律：min ≤ max、正数、有限；实测包围盒落带（细模档、
@@ -31,7 +31,7 @@ import { collectProceduralAssetMetas, getProceduralBuild } from '../../../../src
 import type { InstanceSource } from '../../../../src/runtime/instancing/InstancedAssetPool';
 import * as THREE from 'three';
 
-/** 19 资产归类映射表（整表锁——值域依据与 GLB 侧映射见 docs/procedural-assets/metadata-taxonomy.md；T022 删 v1 四低模植物 flower/shrub/oak/pine 后 23→19） */
+/** 20 资产归类映射表（整表锁——值域依据与 GLB 侧映射见 docs/procedural-assets/metadata-taxonomy.md；T022 删 v1 四低模植物 23→19；T012.1 雪松 conifer 首例 19→20） */
 const EXPECTED_TAXONOMY: Record<string, { category: AssetTaxonomyCategory; family?: AssetTaxonomyFamily }> = {
   asset_tree_3a: { category: 'plant', family: 'broadleaf' },
   asset_tree_celtis: { category: 'plant', family: 'broadleaf' }, // T011.1 朴树——阔叶家族第二实例
@@ -42,10 +42,11 @@ const EXPECTED_TAXONOMY: Record<string, { category: AssetTaxonomyCategory; famil
   asset_tree_koelreuteria: { category: 'plant', family: 'broadleaf' }, // T011.6 栾树——阔叶家族第七实例（无患子科落叶阔叶第四例、复叶首例）
   asset_tree_triadica: { category: 'plant', family: 'broadleaf' }, // T011.7 乌桕——阔叶家族第八实例（大戟科落叶阔叶第五例、菱形叶首例——Triadica sebifera FOC 现口径，旧口径 Sapium sebiferum 记档见 Spec §1）
   asset_tree_bischofia: { category: 'plant', family: 'broadleaf' }, // T011.8 重阳木——阔叶家族第九实例（大戟科落叶阔叶第六例、复叶第二型（三出放射对称）——Bischofia polycarpa，无花果资产记档见资产模块头）
-  asset_tree_sophora: { category: 'plant', family: 'broadleaf' }, // T011.9 国槐——阔叶家族第十实例（豆科落叶阔叶第七例、复叶第三型（一回奇数羽状窗列单级化）——Styphnolobium japonicum 现用名口径（FRPS/FOC 传统口径 Sophora japonica 同实体），无花资产 + 念珠荚果串记档见资产模块头）
-  asset_tree_fraxinus: { category: 'plant', family: 'broadleaf' }, // T011.10 白蜡——阔叶家族第十一实例（木犀科落叶阔叶第八例、复叶第四型（一回奇数羽状**对生系首例**——Fraxinus chinensis subsp. chinensis 原亚种本尊，三重对生 + 匙形翅果帘幕簇记档见资产模块头）
+  asset_tree_sophora: { category: 'plant', family: 'broadleaf' }, // T011.9 国槐——阔叶家族第十实例（豆科落叶阔叶第七例、复叶第三型（一回奇数羽叶窗列单级化）——Styphnolobium japonicum 现用名口径（FRPS/FOC 传统口径 Sophora japonica 同实体），无花资产 + 念珠荚果串记档见资产模块头）
+  asset_tree_fraxinus: { category: 'plant', family: 'broadleaf' }, // T011.10 白蜡——阔叶家族第十一实例（木犀科落叶阔叶第八例、复叶第四型（一回奇数羽叶**对生系首例**——Fraxinus chinensis subsp. chinensis 原亚种本尊，三重对生 + 匙形翅果帘幕簇记档见资产模块头）
   asset_tree_ligustrum: { category: 'plant', family: 'broadleaf' }, // T011.11 女贞——阔叶家族第十二实例（木犀科常绿阔叶第二例（香樟后）、家族首例**对生单叶挂点语言**——Ligustrum lucidum f. lucidum 原变型本尊，常绿密冠 + 肾形核果满冠下垂密簇记档见资产模块头）
   asset_tree_salix: { category: 'plant', family: 'broadleaf' }, // T011.12 垂柳——阔叶家族第十三实例（杨柳科落叶阔叶第九例、家族首例**垂枝冠**（契约应力位①档实证——upturn 强负链域内表达）——Salix babylonica，喷泉状垂帘冠 + 狭披针细叶互生沿索簇记档见资产模块头）
+  asset_tree_cedrus: { category: 'plant', family: 'conifer' }, // T012.1 雪松——**针叶家族 conifer 第一实例/首例**（tree/conifer/ 契约草案 D37.2 首证；松科裸子常绿乔木按家族形态域归 conifer——层状轮生骨架 + 长短枝双挂点，vs 银杏裸子归 broadleaf 的记档见资产模块头）
   asset_signpost: { category: 'facility', family: 'road-facility' },
   asset_trashbin: { category: 'facility', family: 'public-facility' },
   asset_streetlamp: { category: 'facility', family: 'road-facility' },
