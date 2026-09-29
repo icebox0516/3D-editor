@@ -31,7 +31,7 @@ import { collectProceduralAssetMetas, getProceduralBuild } from '../../../../src
 import type { InstanceSource } from '../../../../src/runtime/instancing/InstancedAssetPool';
 import * as THREE from 'three';
 
-/** 20 资产归类映射表（整表锁——值域依据与 GLB 侧映射见 docs/procedural-assets/metadata-taxonomy.md；T022 删 v1 四低模植物 23→19；T012.1 雪松 conifer 首例 19→20） */
+/** 21 资产归类映射表（整表锁——值域依据与 GLB 侧映射见 docs/procedural-assets/metadata-taxonomy.md；T022 删 v1 四低模植物 23→19；T012.1 雪松 conifer 首例 19→20；T012.2 水杉 conifer 转正例 20→21） */
 const EXPECTED_TAXONOMY: Record<string, { category: AssetTaxonomyCategory; family?: AssetTaxonomyFamily }> = {
   asset_tree_3a: { category: 'plant', family: 'broadleaf' },
   asset_tree_celtis: { category: 'plant', family: 'broadleaf' }, // T011.1 朴树——阔叶家族第二实例
@@ -47,6 +47,7 @@ const EXPECTED_TAXONOMY: Record<string, { category: AssetTaxonomyCategory; famil
   asset_tree_ligustrum: { category: 'plant', family: 'broadleaf' }, // T011.11 女贞——阔叶家族第十二实例（木犀科常绿阔叶第二例（香樟后）、家族首例**对生单叶挂点语言**——Ligustrum lucidum f. lucidum 原变型本尊，常绿密冠 + 肾形核果满冠下垂密簇记档见资产模块头）
   asset_tree_salix: { category: 'plant', family: 'broadleaf' }, // T011.12 垂柳——阔叶家族第十三实例（杨柳科落叶阔叶第九例、家族首例**垂枝冠**（契约应力位①档实证——upturn 强负链域内表达）——Salix babylonica，喷泉状垂帘冠 + 狭披针细叶互生沿索簇记档见资产模块头）
   asset_tree_cedrus: { category: 'plant', family: 'conifer' }, // T012.1 雪松——**针叶家族 conifer 第一实例/首例**（tree/conifer/ 契约草案 D37.2 首证；松科裸子常绿乔木按家族形态域归 conifer——层状轮生骨架 + 长短枝双挂点，vs 银杏裸子归 broadleaf 的记档见资产模块头）
+  asset_tree_metasequoia: { category: 'plant', family: 'conifer' }, // T012.2 水杉——**针叶家族第二实例/契约转正例**（族 1→2：柏科水杉属落叶裸子乔木按家族形态域归 conifer——对生轮生挂点 + 羽状小枝卡 + 密连续锥 + 双器官账目，契约草案经第二例真实消费转正定稿）
   asset_signpost: { category: 'facility', family: 'road-facility' },
   asset_trashbin: { category: 'facility', family: 'public-facility' },
   asset_streetlamp: { category: 'facility', family: 'road-facility' },

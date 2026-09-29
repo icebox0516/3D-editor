@@ -4,9 +4,9 @@
  *
  * 覆盖（零 GPU——假 shader 注入提取 onBeforeCompile 产物 GLSL 逐数对账，无需真实编译）：
  * - 两材质成套：工厂按 assetId 交付 [干柱, 冠卡] + 深度三材质（恰 2 组契约对齐）；
- *   干柱 FrontSide / 冠卡 DoubleSide（水平法线双面读向）；未知 assetId 即抛；14 树种全覆盖
+ *   干柱 FrontSide / 冠卡 DoubleSide（水平法线双面读向）；未知 assetId 即抛；15 树种全覆盖
  *   （T012.1 起 conifer 首例 cedrus——三成分风动的 sway 槽 = 成分① tier 退化映射，见
- *   物种行注释）；
+ *   物种行注释；T012.2 起 conifer 转正例 metasequoia——两成分直录两槽，无退化映射）；
  * - 受光模型非 unlit（T018 envMap 域联动断言）：MeshStandardMaterial 族（自动吃
  *   scene.environment / environmentIntensity）+ envMap / envMapIntensity 零 override
  *   （共享 T018 域不被材质私有化）+ emissive 恒黑（无假发光 unlit 形态）；
@@ -18,7 +18,7 @@
  *   aSeed=0 相位数值直接复核）；冠色 / 皮色对账树种材质构造色；
  * - 深度材质轮廓-only（§七末段）：alphaTest 0 / 无 SDF / 无噪声采样 / 无 discard；
  *   aBend 风摆进深度顶点且与主渲染同常数（objectNormal 微扑不进——深度链无该变量）；
- * - customProgramCacheKey 14 树种 × 3 角色两两互异。
+ * - customProgramCacheKey 15 树种 × 3 角色两两互异。
  * - 色卡 preset + uTime 注入（T024.1，D44 #1/#3——「冠变干不变」推广到远景表示）：
  *   ginkgo autumn 冠色覆写生效（与 ginkgoMaterials 秋卡基调同源同值 #d4b737；干柱色不
  *   随卡；键与注入 GLSL 零变化——program 不增）；**T024.2 批一新增 platanus/koelreuteria/
@@ -52,6 +52,7 @@ import { createSalixLeafMaterial, createSalixBarkMaterial } from '../../../../sr
 import { createSophoraLeafMaterial, createSophoraBarkMaterial } from '../../../../src/runtime/procedural/tree/sophora/sophoraMaterials';
 import { createTriadicaLeafMaterial, createTriadicaBarkMaterial } from '../../../../src/runtime/procedural/tree/triadica/triadicaMaterials';
 import { createCedrusNeedleMaterial, createCedrusBarkMaterial } from '../../../../src/runtime/procedural/tree/cedrus/cedrusMaterials';
+import { createMetasequoiaNeedleMaterial, createMetasequoiaBarkMaterial } from '../../../../src/runtime/procedural/tree/metasequoia/metasequoiaMaterials';
 
 // ── 假 shader 注入（onBeforeCompile 只做字符串替换与 uniforms 挂接——锚点全集喂入即可提取产物）──
 
@@ -92,6 +93,7 @@ const SPECIES_LEAF: Record<string, () => THREE.MeshStandardMaterial> = {
   asset_tree_sophora: createSophoraLeafMaterial,
   asset_tree_triadica: createTriadicaLeafMaterial,
   asset_tree_cedrus: createCedrusNeedleMaterial, // T012.1 conifer 首例（三成分风动——windOf 泛化分支对账 sway 槽 = 成分① tier）
+  asset_tree_metasequoia: createMetasequoiaNeedleMaterial, // T012.2 conifer 转正例（两成分风动——sway 槽 = 成分① tier〔msqTier 命中 (?:Sway|Tier) 分支〕/ flutter 槽 = 成分② fringe；span 0 常频率同 cedrus）
 };
 
 const SPECIES_BARK: Record<string, () => THREE.MeshStandardMaterial> = {
@@ -109,6 +111,7 @@ const SPECIES_BARK: Record<string, () => THREE.MeshStandardMaterial> = {
   asset_tree_sophora: createSophoraBarkMaterial,
   asset_tree_triadica: createTriadicaBarkMaterial,
   asset_tree_cedrus: createCedrusBarkMaterial,
+  asset_tree_metasequoia: createMetasequoiaBarkMaterial,
 };
 
 // ── 注入 GLSL 数值提取器（species 与 canopy 同式——逐数对账的解析面）──
@@ -172,7 +175,7 @@ function hueOf(source: string, label: string): { cold: number[]; warm: number[];
 
 describe('两材质成套', () => {
   it('工厂按 assetId 交付干柱 + 冠卡 + 深度；干柱 FrontSide / 冠卡 DoubleSide；materials 元组与组序对齐；未知 assetId 即抛', () => {
-    expect(BROADLEAF_CANOPY_MATERIAL_ASSET_IDS).toHaveLength(14);
+    expect(BROADLEAF_CANOPY_MATERIAL_ASSET_IDS).toHaveLength(15);
     for (const id of BROADLEAF_CANOPY_MATERIAL_ASSET_IDS) {
       const set = createBroadleafCanopyMaterials(id);
       expect(set.materials, `${id} 应两材质成套`).toHaveLength(2);
@@ -184,11 +187,11 @@ describe('两材质成套', () => {
     expect(() => createBroadleafCanopyMaterials('asset_unknown')).toThrow(/无此树种接入/);
   });
 
-  it('材质表与几何面接入表同 14 树种同序（assetId 粒度派生对齐）', () => {
+  it('材质表与几何面接入表同 15 树种同序（assetId 粒度派生对齐）', () => {
     expect([...BROADLEAF_CANOPY_MATERIAL_ASSET_IDS]).toEqual([...BROADLEAF_CANOPY_ASSET_IDS]);
   });
 
-  it('customProgramCacheKey 14 树种 × 3 角色两两互异', () => {
+  it('customProgramCacheKey 15 树种 × 3 角色两两互异', () => {
     const keys = new Set<string>();
     for (const id of BROADLEAF_CANOPY_MATERIAL_ASSET_IDS) {
       const set = createBroadleafCanopyMaterials(id);
@@ -198,7 +201,7 @@ describe('两材质成套', () => {
         keys.add(key);
       }
     }
-    expect(keys.size).toBe(42);
+    expect(keys.size).toBe(45);
   });
 });
 
@@ -249,7 +252,7 @@ describe('风动消费', () => {
 // ── 风相位一致 drift-lock（§6.3 断言面：canopy 参数表 ↔ species 材质真实注入 GLSL 逐数对账）──
 
 describe('风相位一致 drift-lock（与高中低档同公式同常数）', () => {
-  it('14 树种风动 10 常数逐数对账 species 叶材质注入 GLSL；aSeed=0 相位数值直接复核（0=0 同相；cedrus sway 槽 = 成分① tier——三成分退化映射，成分③ leader 近景身份不入槽记档于物种行注释）', () => {
+  it('15 树种风动 10 常数逐数对账 species 叶材质注入 GLSL；aSeed=0 相位数值直接复核（0=0 同相；cedrus sway 槽 = 成分① tier——三成分退化映射，成分③ leader 近景身份不入槽记档于物种行注释；metasequoia 两成分直录两槽——无顶梢成分无需退化映射）', () => {
     for (const id of BROADLEAF_CANOPY_MATERIAL_ASSET_IDS) {
       const speciesWind = windOf(inject(SPECIES_LEAF[id]!()).vertexShader);
       const canopyWind = windOf(inject(createBroadleafCanopyMaterials(id).cardMaterial).vertexShader);
@@ -311,7 +314,7 @@ describe('风相位一致 drift-lock（与高中低档同公式同常数）', ()
     }
   });
 
-  it('14 树种冠色 / 皮色对账 species 材质构造色（树种级冠色按 assetId 取各树种叶色；cedrus = 针叶构造色中点 0x6b8273——conifer 首例）', () => {
+  it('15 树种冠色 / 皮色对账 species 材质构造色（树种级冠色按 assetId 取各树种叶色；cedrus = 针叶构造色中点 0x6b8273——conifer 首例；metasequoia = 羽卡构造色 default 行 0x8ab65a——阳端锚定）', () => {
     for (const id of BROADLEAF_CANOPY_MATERIAL_ASSET_IDS) {
       const table = BROADLEAF_CANOPY_MATERIAL_SPECIES[id]!;
       const set = createBroadleafCanopyMaterials(id);
@@ -321,7 +324,7 @@ describe('风相位一致 drift-lock（与高中低档同公式同常数）', ()
       expect(set.trunkMaterial.color.getHex(), `${id} 表皮色一致`).toBe(table.trunkColor);
     }
     const crowns = BROADLEAF_CANOPY_MATERIAL_ASSET_IDS.map((id) => BROADLEAF_CANOPY_MATERIAL_SPECIES[id]!.crownColor);
-    expect(new Set(crowns).size, '14 树种冠色应两两互异（中距色块横向可辨）').toBe(14);
+    expect(new Set(crowns).size, '15 树种冠色应两两互异（中距色块横向可辨）').toBe(15);
   });
 });
 
@@ -371,7 +374,7 @@ describe('Canopy Depth Material（轮廓-only）', () => {
 
 // ── 色卡 preset（冠色覆写表）+ uTime 注入（T024.1，D44 #1/#3——冠变干不变推广到远景表示）──
 
-/** 覆写表有行树种的 autumn 叶材质工厂（远近基调同源同值 drift-lock 参照——T024.2 批一扩至 5 树 + 批二扩至 7 树 + 024.3 批二回补扩至 11 树） */
+/** 覆写表有行树种的 autumn 叶材质工厂（远近基调同源同值 drift-lock 参照——T024.2 批一扩至 5 树 + 批二扩至 7 树 + 024.3 批二回补扩至 11 树 + T012.2 扩至 12 树〔metasequoia 双卡先行——3a 侧建行〕） */
 const SPECIES_LEAF_AUTUMN: Record<string, () => THREE.MeshStandardMaterial> = {
   asset_tree_ginkgo: () => createGinkgoLeafMaterial('high', 'autumn'),
   asset_tree_platanus: () => createPlatanusLeafMaterial('high', 'autumn'),
@@ -384,10 +387,11 @@ const SPECIES_LEAF_AUTUMN: Record<string, () => THREE.MeshStandardMaterial> = {
   asset_tree_celtis: () => createCeltisLeafMaterial('high', 'autumn'),
   asset_tree_zelkova: () => createZelkovaLeafMaterial('high', 'autumn'),
   asset_tree_bischofia: () => createBischofiaLeafMaterial('high', 'autumn'),
+  asset_tree_metasequoia: () => createMetasequoiaNeedleMaterial('high', 'autumn'), // T012.2 针叶族首个 preset 双卡（落叶证据建卡 D44 #1）
 };
 
 describe('色卡 preset（冠色覆写表）+ uTime 注入（T024.1；T024.2 批一扩 4 树 + 批二扩 2 树；024.3 批二回补扩 4 树）', () => {
-  it('autumn 有行树种（ginkgo + 024.2 批一 platanus/koelreuteria/sophora/triadica + 024.2 批二 fraxinus/salix + 024.3 批二 tree3a/celtis/zelkova/bischofia〔Step R 补证 Spec @1.1〕）：冠卡色覆写生效（= 该树种材质秋卡基调同源同值）≠ 物种表；干柱色不随卡；键与注入 GLSL 零变化（program 不增）', () => {
+  it('autumn 有行树种（ginkgo + 024.2 批一 platanus/koelreuteria/sophora/triadica + 024.2 批二 fraxinus/salix + 024.3 批二 tree3a/celtis/zelkova/bischofia〔Step R 补证 Spec @1.1〕+ T012.2 metasequoia〔落叶证据建卡 D44 #1〕）：冠卡色覆写生效（= 该树种材质秋卡基调同源同值）≠ 物种表；干柱色不随卡；键与注入 GLSL 零变化（program 不增）', () => {
     for (const id of Object.keys(SPECIES_LEAF_AUTUMN)) {
       const def = createBroadleafCanopyMaterials(id);
       const autumn = createBroadleafCanopyMaterials(id, 'autumn');
@@ -412,7 +416,7 @@ describe('色卡 preset（冠色覆写表）+ uTime 注入（T024.1；T024.2 批
     }
     for (const id of BROADLEAF_CANOPY_MATERIAL_ASSET_IDS) {
       const def = createBroadleafCanopyMaterials(id);
-      const autumn = createBroadleafCanopyMaterials(id, 'autumn'); // 11 树有行（ginkgo + 024.2 批一 4 树 + 024.2 批二 2 树 + 024.3 批二 4 树），其余回物种表
+      const autumn = createBroadleafCanopyMaterials(id, 'autumn'); // 12 树有行（ginkgo + 024.2 批一 4 树 + 024.2 批二 2 树 + 024.3 批二 4 树 + T012.2 metasequoia），其余回物种表
       const expected = SPECIES_LEAF_AUTUMN[id] !== undefined
         ? SPECIES_LEAF_AUTUMN[id]!().color.getHex()
         : BROADLEAF_CANOPY_MATERIAL_SPECIES[id]!.crownColor;
@@ -425,6 +429,12 @@ describe('色卡 preset（冠色覆写表）+ uTime 注入（T024.1；T024.2 批
   it('conifer 首例色锚（T012.1 Step 3a 锁色、Step 3c 物种表行回填收口）：BROADLEAF_CANOPY_CROWN_PRESETS.asset_tree_cedrus.default = 0x6b8273（灰绿-蓝绿中调——三处同源之一：canopy 覆写行 ↔ meta presets swatch #6b8273 ↔ cedrusMaterials 针叶构造色 sun/shade 严格中点；覆写值 = 物种表 crownColor 同值，default 命中与未命中行为逐位一致——本 describe 其余 it 经 ASSET_IDS 循环已覆盖 cedrus 完整 drift-lock）', () => {
     expect(BROADLEAF_CANOPY_CROWN_PRESETS['asset_tree_cedrus']?.['default']?.crownColor).toBe(0x6b8273);
     expect(BROADLEAF_CANOPY_CROWN_PRESETS['asset_tree_cedrus']?.['default']?.crownColor).toBe(BROADLEAF_CANOPY_MATERIAL_SPECIES['asset_tree_cedrus']!.crownColor);
+  });
+
+  it('conifer 第二例色锚（T012.2 Step 3a 先锁色 + Step 3c 物种表行回填收口——双卡 default+autumn 两行；drift-lock 循环经 ASSET_IDS 已覆盖 metasequoia 完整对账）：default = 0x8ab65a（主语境 9 月末亮黄绿——s04 Observed + FoC "yellowish green"；三处同源之一：canopy 覆写行 ↔ meta presets swatch #8ab65a ↔ metasequoiaMaterials 羽卡构造色 default 行；覆写值 = 物种表 crownColor 同值，default 命中与未命中行为逐位一致——同 cedrus 先例）/ autumn = 0xa55d2c（锈橙-红褐四源中值偏红褐 + s10 Observed——与 metasequoiaMaterials autumn 卡基调同源同值）', () => {
+    expect(BROADLEAF_CANOPY_CROWN_PRESETS['asset_tree_metasequoia']?.['default']?.crownColor).toBe(0x8ab65a);
+    expect(BROADLEAF_CANOPY_CROWN_PRESETS['asset_tree_metasequoia']?.['autumn']?.crownColor).toBe(0xa55d2c);
+    expect(BROADLEAF_CANOPY_CROWN_PRESETS['asset_tree_metasequoia']?.['default']?.crownColor).toBe(BROADLEAF_CANOPY_MATERIAL_SPECIES['asset_tree_metasequoia']!.crownColor);
   });
 
   it('uTime 注入：提供时三材质（干柱/冠卡/深度程序）同引用；缺省自建——套内三材质同源、两套之间互相独立', () => {

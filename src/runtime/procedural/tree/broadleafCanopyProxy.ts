@@ -87,6 +87,8 @@ import { CAMPHOR_SHAPE_PROFILES } from './camphor/camphorShapeProfile';
 import { buildCedrusGeometry } from './cedrus/cedrusGeometry';
 import { CEDRUS_SHAPE_PROFILES } from './cedrus/cedrusShapeProfile';
 import type { ConiferShapeProfile } from './conifer/coniferShapeProfile';
+import { buildMetasequoiaGeometry } from './metasequoia/metasequoiaGeometry';
+import { METASEQUOIA_SHAPE_PROFILES } from './metasequoia/metasequoiaShapeProfile';
 import { buildCeltisGeometry } from './celtis/celtisGeometry';
 import { CELTIS_SHAPE_PROFILES } from './celtis/celtisShapeProfile';
 import { buildFraxinusGeometry } from './fraxinus/fraxinusGeometry';
@@ -149,7 +151,7 @@ function shellCardRandOf(cx: number, cy: number, cz: number, derive: number): nu
   return derive === 0 ? base : fract01(base * 7.31 + 0.37);
 }
 
-// ── 树种接入表（14 树种按 assetId 全可用——T011 阔叶 13 + T012.1 conifer 首例；buildLow = 该树种现有几何生成器 Low 档）──
+// ── 树种接入表（15 树种按 assetId 全可用——T011 阔叶 13 + T012.1 conifer 首例 cedrus + T012.2 conifer 转正例 metasequoia；buildLow = 该树种现有几何生成器 Low 档）──
 
 /** 树种 Low 档构建结果的结构消费面（各树种 XxxGeometryResult 结构兼容——只消费 geometry + 簇表） */
 interface CanopyLowResult {
@@ -163,7 +165,7 @@ interface BroadleafCanopySpecies {
   buildLow: (rng: () => number, profile: BroadleafShapeProfile) => CanopyLowResult;
 }
 
-/** 14 树种接入表（T011 阔叶 13 全量 + T012.1 conifer 首例 cedrus；新乔木树种接入 = 加一行，禁每树种远景算法） */
+/** 15 树种接入表（T011 阔叶 13 全量 + T012.1 conifer 首例 cedrus + T012.2 conifer 转正例 metasequoia；新乔木树种接入 = 加一行，禁每树种远景算法） */
 const CANOPY_SPECIES: Record<string, BroadleafCanopySpecies> = {
   asset_tree_3a: { profiles: TREE3A_SHAPE_PROFILES, buildLow: (rng, p) => buildTree3aGeometry(rng, p, 'low') },
   asset_tree_camphor: { profiles: CAMPHOR_SHAPE_PROFILES, buildLow: (rng, p) => buildCamphorGeometry(rng, p, 'low') },
@@ -188,12 +190,23 @@ const CANOPY_SPECIES: Record<string, BroadleafCanopySpecies> = {
     profiles: CEDRUS_SHAPE_PROFILES as unknown as BroadleafShapeProfile[],
     buildLow: (rng, p) => buildCedrusGeometry(rng, p as unknown as ConiferShapeProfile, 'low'),
   },
+  // conifer 转正例行（T012.2 Step 3c——数据驱动接入同 cedrus 先例，算法体零改动）：
+  // METASEQUOIA_SHAPE_PROFILES 为 ConiferShapeProfile（族契约定稿例——本任务转正），
+  // 双重 cast 语义同上（profileForSeed 只路由不消费）；运行时传出 profile 引用即
+  // METASEQUOIA_SHAPE_PROFILES[slot] 原件直喂 buildMetasequoiaGeometry Low 档
+  //（stats.clusters 同 BroadleafClusterRecord 扁平形态产出 { level, attach*, c*, radius,
+  // dir* }——harvest 派生假设逐项成立；Low 壳卡为隔簇抽取单卡〔stride 3——簇位量级
+  // 2500+ 的预算适配〕，canopy 卡直接派生全簇表不受其影响）
+  asset_tree_metasequoia: {
+    profiles: METASEQUOIA_SHAPE_PROFILES as unknown as BroadleafShapeProfile[],
+    buildLow: (rng, p) => buildMetasequoiaGeometry(rng, p as unknown as ConiferShapeProfile, 'low'),
+  },
 };
 
 /** canopy 可用树种 assetId 清单（测试 / 接线侧枚举面；顺序 = 接入表声明序） */
 export const BROADLEAF_CANOPY_ASSET_IDS: readonly string[] = Object.keys(CANOPY_SPECIES);
 
-/** 形态族槽位常量（14 树种 meta.shapeFamily.size 一致 = 8；与资产 profileForSeed 同枚举口径） */
+/** 形态族槽位常量（15 树种 meta.shapeFamily.size 一致 = 8；与资产 profileForSeed 同枚举口径） */
 const SLOT_COUNT = 8;
 
 /** morphSeed → shapeProfile 路由（与各资产 build 内 profileForSeed 同口径：枚举槽位

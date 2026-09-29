@@ -169,7 +169,7 @@ describe('createEditor（无头装配）', () => {
       'transform',
       'vertex-edit',
     ]);
-    // 预设注册表：插件 meta eager 收割（21 套）
+    // 预设注册表：插件 meta eager 收割（22 套——T012.2 水杉并入）
     expect(facade.registries.presets.list().length).toBeGreaterThan(0);
     // 命令工厂：全部注册类型均可经 CommandRegistry 构造
     const created = facade.registries.commands.create('ChangePropertyCommand', {
@@ -404,8 +404,8 @@ describe('registerAssets', () => {
     // createEditor 内 manifest→procedural 收割先行（glob 按文件名序：植物 asset_* 前缀 < 设施裸名 h/p/s/t；
     // T022 删 v1 四低模植物 flower/oak/pine/shrub——seedstack 后直接 tree_3a；T008.2 起各树按字典序
     // 追加：tree_3a < tree_bischofia < tree_camphor < tree_cedrus（T012.1 conifer 首例）< tree_celtis <
-    // tree_fraxinus < tree_ginkgo < tree_koelreuteria < tree_ligustrum < tree_platanus < tree_salix <
-    // tree_sophora < tree_triadica < tree_zelkova），追加注册在后
+    // tree_fraxinus < tree_ginkgo < tree_koelreuteria < tree_ligustrum < tree_metasequoia（T012.2 conifer
+    // 转正例）< tree_platanus < tree_salix < tree_sophora < tree_triadica < tree_zelkova），追加注册在后
     expect(facade.registries.assets.list().map((d) => d.asset.id)).toEqual([
       'asset_tree',
       'asset_seedstack',
@@ -418,6 +418,7 @@ describe('registerAssets', () => {
       'asset_tree_ginkgo',
       'asset_tree_koelreuteria',
       'asset_tree_ligustrum',
+      'asset_tree_metasequoia',
       'asset_tree_platanus',
       'asset_tree_salix',
       'asset_tree_sophora',

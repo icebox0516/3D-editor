@@ -21,7 +21,7 @@
  *
  * ── 风动契约（§6.3，档间同相位 = 身份一致）──
  * 同一 uTime 驱动 + 消费 aSeed / aBend / aLeafRand，**与该树种高中低档叶材质同公式同常数**
- *   （表 BROADLEAF_CANOPY_MATERIAL_SPECIES 逐树种转录 13 套风常数 / hue·luma·transVar 常数 /
+ *   （表 BROADLEAF_CANOPY_MATERIAL_SPECIES 逐树种转录 15 套风常数 / hue·luma·transVar 常数 /
  *   冠色 / 皮色——测试 broadleafCanopyMaterials.test.ts 以假 shader 注入逐数对账 species
  *   材质真实 GLSL，drift 即红：树种侧调参未同步 canopy 时 CI 拦截）。aSeed 恒 0 时相位 =
  *   常数相位且与该树种 High/Mid/Low 逐位相等（0=0 同相成立，散布链缺属性 GL 缺省 0 同口径）；
@@ -98,7 +98,7 @@ const f = (x: number): string => (Number.isInteger(x) ? `${x}.0` : String(x));
 /** vec3 字面量 */
 const f3 = (v: readonly [number, number, number]): string => `vec3(${v.map(f).join(', ')})`;
 
-// ── 树种材质参数表（14 树种逐树种转录自各 *Materials.ts；drift-lock 见测试）──────────
+// ── 树种材质参数表（15 树种逐树种转录自各 *Materials.ts；drift-lock 见测试）──────────
 
 /** 风动参数（与该树种高中低档叶材质同公式同常数——逐数对账锁定） */
 export interface BroadleafCanopyWindSpec {
@@ -149,7 +149,7 @@ export interface BroadleafCanopySpeciesMaterialSpec {
   variation: BroadleafCanopyVariationSpec;
 }
 
-/** 14 树种接入表（T011 阔叶 13 全量 + T012.1 conifer 首例 cedrus；键序与 broadleafCanopyProxy 接入表一致） */
+/** 15 树种接入表（T011 阔叶 13 全量 + T012.1 conifer 首例 cedrus + T012.2 conifer 转正例 metasequoia；键序与 broadleafCanopyProxy 接入表一致） */
 export const BROADLEAF_CANOPY_MATERIAL_SPECIES: Readonly<Record<string, BroadleafCanopySpeciesMaterialSpec>> = {
   asset_tree_3a: {
     wind: { heightScale: 0.1333, swayPhaseK: 78.233, swayPhaseC: 1.37, swayAmplitude: 0.045, swayFrequency: 1.15, flutterPhaseK: 51.171, flutterPhaseC: 4.7, flutterAmplitude: 0.011, flutterFrequencyBase: 14, flutterFrequencySpan: 9 },
@@ -244,6 +244,26 @@ export const BROADLEAF_CANOPY_MATERIAL_SPECIES: Readonly<Record<string, Broadlea
     crownColor: 0x6b8273,
     trunkColor: 0x555049,
     variation: { hueCold: [0.95, 1.0, 1.02], hueWarm: [1.05, 1.03, 0.92], hueK: 5.913, hueC: 0.23, lumaBase: 0.92, lumaSpan: 0.16, lumaK: 3.719, lumaC: 0.57, transBase: 0.55, transSpan: 0.45, transK: 9.117, transC: 0.47, transColor: [0.6, 0.92, 0.46], transPeak: 0.38 },
+  },
+  asset_tree_metasequoia: {
+    // conifer 转正例行（T012.2 Step 3c——逐数转录 metasequoiaMaterials METASEQUOIA_WIND /
+    // NEEDLE_HEAD / TRANSLUCENCY，drift-lock 见 broadleafCanopyMaterials.test）：风动**两成分
+    // → 两槽直录**（vs cedrus 三成分退化映射——水杉无顶梢成分〔windLeader* 零占位，leader
+    // 通直无点头——族内可选·雪松消费位〕，无需退化记档）：sway 槽 = 成分① 整冠低频小幅摆
+    //（windTierFrequency 0.32Hz = 2.0106 rad/s × windTierAmplitude 0.018m——密尖塔冠 + 通直
+    // 骨干）；flutter 槽 = 成分② 末级羽枝高频细颤主成分（windFringeFrequency 2.6Hz =
+    // 16.3363 rad/s——family 快颤链 9–23 内带 × windFringeAmplitude 0.055m，常频率——span 0
+    // = 水杉快颤无相位调频项，canopy 公式 0 系数退化逐位一致〔与 cedrus 同型〕）。相位 hash
+    // 107.317/5.7 与 84.931/7.9（与先例相位流去相关）、高度锚 1/20 = 0.05（GLSL 注入
+    // 0.05000 五位小数口径 = METASEQUOIA_TREE_HEIGHT_NOMINAL slot-0 totalHeight 同源）
+    // 逐数同源；sway 相位-高度耦合系数（近景 1.2 vs proxy 固定 1.4）= proxy 公式结构性简化
+    // 记档（与 cedrus 同位）。冠色 0x8ab65a = 羽卡构造色 default 行（= needleColorSun——
+    // 阳端锚定，三处同源之一：meta swatch ↔ 羽卡构造色 ↔ CROWN_PRESETS default 行）；皮色
+    // 0x7a5138 = 皮构造色（红褐-桂皮棕 barkBaseColor）。
+    wind: { heightScale: 0.05, swayPhaseK: 107.317, swayPhaseC: 5.7, swayAmplitude: 0.018, swayFrequency: 2.0106, flutterPhaseK: 84.931, flutterPhaseC: 7.9, flutterAmplitude: 0.055, flutterFrequencyBase: 16.3363, flutterFrequencySpan: 0 },
+    crownColor: 0x8ab65a,
+    trunkColor: 0x7a5138,
+    variation: { hueCold: [0.97, 1.0, 1.02], hueWarm: [1.04, 1.03, 0.94], hueK: 5.917, hueC: 0.27, lumaBase: 0.92, lumaSpan: 0.16, lumaK: 3.613, lumaC: 0.53, transBase: 0.55, transSpan: 0.45, transK: 9.317, transC: 0.43, transColor: [0.72, 0.94, 0.38], transPeak: 0.46 },
   },
 };
 
@@ -400,6 +420,27 @@ export const BROADLEAF_CANOPY_CROWN_PRESETS: Readonly<
       // 0x9db3a6 / shade 0x39503f 严格中点 ↔ meta presets swatch #6b8273 ↔ 本行——
       // 合并阶段自工程初值 0x6b8a72 ΔG 8 回写，T024 swatch = 叶构造色同源纪律）。
       crownColor: 0x6b8273,
+    },
+  },
+  asset_tree_metasequoia: {
+    default: {
+      // 水杉 default 冠卡（T012.2 Step 3a 先锁色——沿 cedrus inert 锚先例；**物种表行
+      // 随 metasequoiaMaterials 合并阶段落地回填**，drift-lock 测试随之覆盖）：主语境
+      // 9 月末**亮黄绿**（Spec §5.2 s04 Pisa 2024-09-30 Observed 实证 + FoC
+      // "yellowish green" Verified——default 卡时点锚）。冠色 0x8ab65a = **三处同源**
+      // 之一（meta presets swatch #8ab65a ↔ metasequoiaMaterials 羽卡构造色中心〔3b
+      // 对齐，冻结接口〕↔ 本行——swatch = needleColorSun 同值亮黄绿端中心，T024 纪律）。
+      crownColor: 0x8ab65a,
+    },
+    autumn: {
+      // 水杉 autumn 冠卡（落叶杉类秋相——012.2 待裁决位 4 + Spec §5.2 四源：FoC
+      // "turning orange or red" / MoBot "red-bronze" / NC "brownish copper" / Wiki
+      // "foxy reddish brown" 措辞中值偏红褐 + s10 10-26 锈橙/琥珀约半 Observed〔峰值
+      // 转色中、顶部先染、冠仍满〕）。冠色 0xa55d2c = 锈橙 0xc07632 × 红褐 0x8b4526
+      // 中值（hue ≈22° 锈橙红褐、暗于 zelkova 橙铜 / triadica 绯红的秋末深调）——与
+      // metasequoiaMaterials autumn 卡基调**同源同值**（远景冠色块与近景羽卡基调一致
+      // = 档间身份一致的色面；远景不随卡会破所见即所得）。
+      crownColor: 0xa55d2c,
     },
   },
 };
