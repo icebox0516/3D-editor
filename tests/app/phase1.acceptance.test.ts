@@ -154,10 +154,14 @@ describe('全链路验收流程（可执行版 · 阶段 6 形态）', () => {
     }
     // 注册表就位（T6.9：ElementRegistry/StyleRegistry 已随旧契约类型面删除）、
     // manifest 全量资产、12 个工具（T6.8 增 vertex-edit；T7.6 增 road-split）、21 套预设
-    expect(facade.registries.assets.list()).toHaveLength(manifestAssets.length + 26); // T002.4 设施 5 种 + T008.1 DEV 种子塔 + T008.2 夏栎 + T011.1 朴树 + T011.2 香樟 + T011.3 榉树 + T011.4 银杏 + T011.5 悬铃木 + T011.6 栾树 + T011.7 乌桕 + T011.8 重阳木 + T011.9 国槐 + T011.10 白蜡 + T011.11 女贞 + T011.12 垂柳 + T012.1 雪松 conifer 首例（同库混排；T022 删 T003.4 v1 四低模植物）+ T025.1 批 A 交通静态六件（防撞柱/人行护栏段/道路隔离栏/停车挡车器/交通锥/减速带）
+    expect(facade.registries.assets.list()).toHaveLength(manifestAssets.length + 30); // T002.4 设施 5 种 + T008.1 DEV 种子塔 + T008.2 夏栎 + T011.1 朴树 + T011.2 香樟 + T011.3 榉树 + T011.4 银杏 + T011.5 悬铃木 + T011.6 栾树 + T011.7 乌桕 + T011.8 重阳木 + T011.9 国槐 + T011.10 白蜡 + T011.11 女贞 + T011.12 垂柳 + T012.1 雪松 conifer 首例（同库混排；T022 删 T003.4 v1 四低模植物）+ T025.1 批 A 交通静态六件（防撞柱/人行护栏段/道路隔离栏/停车挡车器/交通锥/减速带）+ T025.2 批 B 休憩四件（花箱/休闲桌/遮阳伞/自行车架）
     expect(facade.registries.assets.findByKind('procedural').map((d) => d.asset.id)).toEqual([
+      'asset_bike_rack',
       'asset_bollard',
+      'asset_leisure_table',
+      'asset_parasol',
       'asset_pedestrian_barrier',
+      'asset_planter',
       'asset_road_barrier',
       'asset_seedstack',
       'asset_speedbump',

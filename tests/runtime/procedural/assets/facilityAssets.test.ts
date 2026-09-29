@@ -1,8 +1,8 @@
 /**
- * tests/runtime/procedural/assets/facilityAssets.test.ts —— 设施资产包（T002.4 五件 + T025.1 批 A 六件）几何与底材阶段测试。
+ * tests/runtime/procedural/assets/facilityAssets.test.ts —— 设施资产包（T002.4 五件 + T025.1 批 A 六件 + T025.2 批 B 四件）几何与底材阶段测试。
  *
- * 覆盖（table-driven，路灯/公园长椅/垃圾桶/消防栓/标识牌 + 批 A 交通静态六件同口径；零 mock——真实 THREE 对象）：
- * - meta 契约：id 前缀 asset_ 且 11 资产互不重复、name 中文、category='facility'、tags 非空、
+ * 覆盖（table-driven，路灯/公园长椅/垃圾桶/消防栓/标识牌 + 批 A 交通静态六件 + 批 B 休憩四件同口径；零 mock——真实 THREE 对象）：
+ * - meta 契约：id 前缀 asset_ 且 15 资产互不重复、name 中文、category='facility'、tags 非空、
  *   defaultScale/defaultRotation 字段齐、variants 若声明则数值合法（scaleJitter∈[0,1)、
  *   rotationJitter>0、hueJitter∈[0,30]）；
  * - build 语义：两次调用无共享（geometry 与 material 均新实例，杜绝模块级共享对象——
@@ -32,6 +32,10 @@ import { build as buildRoadBarrier, meta as roadBarrierMeta } from '../../../../
 import { build as buildWheelstop, meta as wheelstopMeta } from '../../../../src/runtime/procedural/assets/asset_wheelstop.asset';
 import { build as buildTrafficcone, meta as trafficconeMeta } from '../../../../src/runtime/procedural/assets/asset_trafficcone.asset';
 import { build as buildSpeedbump, meta as speedbumpMeta } from '../../../../src/runtime/procedural/assets/asset_speedbump.asset';
+import { build as buildPlanter, meta as planterMeta } from '../../../../src/runtime/procedural/assets/asset_planter.asset';
+import { build as buildLeisureTable, meta as leisureTableMeta } from '../../../../src/runtime/procedural/assets/asset_leisure_table.asset';
+import { build as buildParasol, meta as parasolMeta } from '../../../../src/runtime/procedural/assets/asset_parasol.asset';
+import { build as buildBikeRack, meta as bikeRackMeta } from '../../../../src/runtime/procedural/assets/asset_bike_rack.asset';
 
 interface FacilityCase {
   label: string;
@@ -51,6 +55,10 @@ const cases: FacilityCase[] = [
   { label: '停车挡车器', meta: wheelstopMeta, build: buildWheelstop },
   { label: '交通锥', meta: trafficconeMeta, build: buildTrafficcone },
   { label: '减速带', meta: speedbumpMeta, build: buildSpeedbump },
+  { label: '花箱', meta: planterMeta, build: buildPlanter },
+  { label: '休闲桌', meta: leisureTableMeta, build: buildLeisureTable },
+  { label: '遮阳伞', meta: parasolMeta, build: buildParasol },
+  { label: '自行车架', meta: bikeRackMeta, build: buildBikeRack },
 ];
 
 const built: InstanceSource[] = [];
@@ -75,7 +83,7 @@ afterEach(() => {
 });
 
 describe('设施资产包（T002.4）：meta 契约', () => {
-  it('id 前缀 asset_ 且 11 资产互不重复', () => {
+  it('id 前缀 asset_ 且 15 资产互不重复', () => {
     const ids = cases.map((c) => c.meta.id);
     for (const id of ids) expect(id.startsWith('asset_')).toBe(true);
     expect(new Set(ids).size).toBe(cases.length);

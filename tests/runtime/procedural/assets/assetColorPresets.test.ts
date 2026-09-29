@@ -22,7 +22,7 @@ import { DEFAULT_COLOR_PRESET_ID } from '../../../../src/domain/assets';
 import { collectProceduralAssetMetas } from '../../../../src/runtime/procedural/routes';
 import { BROADLEAF_CANOPY_CROWN_PRESETS } from '../../../../src/runtime/procedural/tree/broadleafCanopyMaterials';
 
-/** 26 资产色卡映射整表（值域依据 docs/procedural-assets/metadata-taxonomy.md §2.1；T024.3 批二收官 = **13 树卡集全量终态**：11 树双卡 default+autumn + camphor/ligustrum 常绿单卡终态；设施/DEV 空数组显式无卡；卡 id 域 = {'default','autumn'} + T025.1 增 'yellow'〔设施色卡首例——交通锥〕；T012.1 加行 = 针叶族首例 cedrus 常绿 default 单卡〔Spec §5 常绿季相 Verified——FRPS 终年常绿 + NC 无秋色字段阴性 + 冬季三点直证；swatch 0x6b8273 灰绿-蓝绿中调三处同源，3a meta 侧〕） */
+/** 30 资产色卡映射整表（值域依据 docs/procedural-assets/metadata-taxonomy.md §2.1；T024.3 批二收官 = **13 树卡集全量终态**：11 树双卡 default+autumn + camphor/ligustrum 常绿单卡终态；设施/DEV 空数组显式无卡；卡 id 域 = {'default','autumn'} + T025.1 增 'yellow'〔设施色卡首例——交通锥〕+ T025.2 增 'dark-green'/'wine-red'〔遮阳伞伞面素色相副卡，Spec §3.5 厂家标准三色聚簇〕；T012.1 加行 = 针叶族首例 cedrus 常绿 default 单卡〔Spec §5 常绿季相 Verified——FRPS 终年常绿 + NC 无秋色字段阴性 + 冬季三点直证；swatch 0x6b8273 灰绿-蓝绿中调三处同源，3a meta 侧〕） */
 const EXPECTED_PRESETS: Record<string, readonly string[]> = {
   asset_tree_3a: [DEFAULT_COLOR_PRESET_ID, 'autumn'], // T024.3 批二：秋·黄褐（Forestry England + Spec §6）
   asset_tree_celtis: [DEFAULT_COLOR_PRESET_ID, 'autumn'], // T024.3 批二：秋·黄（OSU + 温州照片——黄主相不入橙红）
@@ -49,6 +49,10 @@ const EXPECTED_PRESETS: Record<string, readonly string[]> = {
   asset_wheelstop: [], // T025.1 批 A：显式无卡
   asset_trafficcone: [DEFAULT_COLOR_PRESET_ID, 'yellow'], // T025.1：**首个设施色卡**——default 红（GB/T 24720 5.3 宜红 + P8 橙红判读）+ 'yellow' 黄（停车场语境副卡，厂家专文 Medium）；锥变环不变；卡 id 'yellow' 入域（§2.1 记档）
   asset_speedbump: [], // T025.1 批 A：显式无卡
+  asset_planter: [], // T025.2 批 B：显式无卡
+  asset_leisure_table: [], // T025.2 批 B：显式无卡
+  asset_parasol: [DEFAULT_COLOR_PRESET_ID, 'dark-green', 'wine-red'], // T025.2：伞面色卡（default 米白 = 园区外摆实拍主流素色 + 'dark-green' 墨绿 / 'wine-red' 酒红 = 厂家标准三色双证 Spec §3.5）；卡变只动伞面基调材质（骨架/柱/底座不变——D44 #1 同则）；swatch 与底色同源（asset 模块头 CANOPY_FABRIC_PRESETS）
+  asset_bike_rack: [], // T025.2 批 B：显式无卡
   asset_seedstack: [], // DEV 管线验证资产：显式无卡
 };
 
@@ -57,7 +61,7 @@ const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 describe('程序化资产色卡契约（T024.1，D44 #2 整表锁）', () => {
   const metas = collectProceduralAssetMetas();
 
-  it('26 资产色卡映射整表：卡 id 集合与 EXPECTED_PRESETS 逐资产全等', () => {
+  it('30 资产色卡映射整表：卡 id 集合与 EXPECTED_PRESETS 逐资产全等', () => {
     expect(metas.length).toBe(Object.keys(EXPECTED_PRESETS).length); // 双向：多登/漏登皆红
     for (const meta of metas) {
       expect(Object.keys(EXPECTED_PRESETS)).toContain(meta.id);

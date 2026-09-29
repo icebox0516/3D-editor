@@ -4,7 +4,7 @@
  * 覆盖：
  * - 枚举值域约束：全部收割 meta 的 taxonomy.category ∈ ASSET_TAXONOMY_CATEGORIES、
  *   family（如有）∈ ASSET_TAXONOMY_FAMILIES——锁「所有程序化资产 meta 满足新枚举约束」；
- * - 26 资产归类映射整表锁定：新资产不登记映射 = 测试红（配合 taxonomy 必填的编译
+ * - 30 资产归类映射整表锁定：新资产不登记映射 = 测试红（配合 taxonomy 必填的编译
  *   约束，双闸——忘声明过不了 typecheck，声明了不登表过不了本测试）；
  * - family ↔ 大类配对约束（broadleaf/conifer/shrub → plant；三个设施细分 → facility）；
  * - proceduralProfile 数值纪律：min ≤ max、正数、有限；实测包围盒落带（细模档、
@@ -31,7 +31,7 @@ import { collectProceduralAssetMetas, getProceduralBuild } from '../../../../src
 import type { InstanceSource } from '../../../../src/runtime/instancing/InstancedAssetPool';
 import * as THREE from 'three';
 
-/** 26 资产归类映射表（整表锁——值域依据与 GLB 侧映射见 docs/procedural-assets/metadata-taxonomy.md；T022 删 v1 四低模植物 flower/shrub/oak/pine 后 23→19；T012.1 雪松 conifer 首例 19→20；T025.1 批 A 交通静态六件后 20→26） */
+/** 30 资产归类映射表（整表锁——值域依据与 GLB 侧映射见 docs/procedural-assets/metadata-taxonomy.md；T022 删 v1 四低模植物 flower/shrub/oak/pine 后 23→19；T012.1 雪松 conifer 首例 19→20；T025.1 批 A 交通静态六件后 20→26；T025.2 批 B 休憩四件后 26→30） */
 const EXPECTED_TAXONOMY: Record<string, { category: AssetTaxonomyCategory; family?: AssetTaxonomyFamily }> = {
   asset_tree_3a: { category: 'plant', family: 'broadleaf' },
   asset_tree_celtis: { category: 'plant', family: 'broadleaf' }, // T011.1 朴树——阔叶家族第二实例
@@ -58,6 +58,10 @@ const EXPECTED_TAXONOMY: Record<string, { category: AssetTaxonomyCategory; famil
   asset_wheelstop: { category: 'facility', family: 'road-facility' }, // T025.1 批 A：停车挡车器（橡胶梯形，550×150×100 聚簇）
   asset_trafficcone: { category: 'facility', family: 'road-facility' }, // T025.1 批 A：交通锥（GB/T 24720 锚；首个设施色卡资产——红/黄双卡）
   asset_speedbump: { category: 'facility', family: 'road-facility' }, // T025.1 批 A：减速带（黄黑段式，350×40-50 聚簇）
+  asset_planter: { category: 'facility', family: 'public-facility' }, // T025.2 批 B：花箱（矩形主形态，隔离高 80cm 锚）
+  asset_leisure_table: { category: 'facility', family: 'public-facility' }, // T025.2 批 B：休闲桌（桌+凳组合位单体，桌高 720mm 锚）
+  asset_parasol: { category: 'facility', family: 'public-facility' }, // T025.2 批 B：遮阳伞（中柱立伞；设施色卡资产——default 米白 + 墨绿/酒红双副卡）
+  asset_bike_rack: { category: 'facility', family: 'public-facility' }, // T025.2 批 B：自行车架（卡位式段 1.2m 锚；停放姿态记 T026 联动）
   asset_seedstack: { category: 'dev' }, // DEV 管线验证资产：无族可归，不填 family / proceduralProfile
 };
 

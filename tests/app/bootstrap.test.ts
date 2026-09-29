@@ -406,12 +406,17 @@ describe('registerAssets', () => {
     // 追加：tree_3a < tree_bischofia < tree_camphor < tree_cedrus（T012.1 conifer 首例）< tree_celtis <
     // tree_fraxinus < tree_ginkgo < tree_koelreuteria < tree_ligustrum < tree_platanus < tree_salix <
     // tree_sophora < tree_triadica < tree_zelkova；T025 设施六件按文件名字母序与树交错：bollard <
-    // pedestrian_barrier < road_barrier < seedstack < speedbump < trafficcone < tree_* < wheelstop），
-    // 追加注册在后
+    // pedestrian_barrier < road_barrier < seedstack < speedbump < trafficcone < tree_* < wheelstop；
+    // T025.2 批 B 四件同字母序插入：bike_rack < bollard 前、leisure_table 在 bollard 后、
+    // parasol 在 pedestrian_barrier 前、planter 在 pedestrian_barrier 后），追加注册在后
     expect(facade.registries.assets.list().map((d) => d.asset.id)).toEqual([
       'asset_tree',
+      'asset_bike_rack',
       'asset_bollard',
+      'asset_leisure_table',
+      'asset_parasol',
       'asset_pedestrian_barrier',
+      'asset_planter',
       'asset_road_barrier',
       'asset_seedstack',
       'asset_speedbump',
