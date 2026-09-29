@@ -154,7 +154,7 @@ describe('全链路验收流程（可执行版 · 阶段 6 形态）', () => {
     }
     // 注册表就位（T6.9：ElementRegistry/StyleRegistry 已随旧契约类型面删除）、
     // manifest 全量资产、12 个工具（T6.8 增 vertex-edit；T7.6 增 road-split）、22 套预设
-    expect(facade.registries.assets.list()).toHaveLength(manifestAssets.length + 21); // T002.4 设施 5 种 + T008.1 DEV 种子塔 + T008.2 夏栎 + T011.1 朴树 + T011.2 香樟 + T011.3 榉树 + T011.4 银杏 + T011.5 悬铃木 + T011.6 栾树 + T011.7 乌桕 + T011.8 重阳木 + T011.9 国槐 + T011.10 白蜡 + T011.11 女贞 + T011.12 垂柳 + T012.1 雪松 conifer 首例 + T012.2 水杉 conifer 转正例（同库混排；T022 删 T003.4 v1 四低模植物）
+    expect(facade.registries.assets.list()).toHaveLength(manifestAssets.length + 22); // T002.4 设施 5 种 + T008.1 DEV 种子塔 + T008.2 夏栎 + T011.1 朴树 + T011.2 香樟 + T011.3 榉树 + T011.4 银杏 + T011.5 悬铃木 + T011.6 栾树 + T011.7 乌桕 + T011.8 重阳木 + T011.9 国槐 + T011.10 白蜡 + T011.11 女贞 + T011.12 垂柳 + T012.1 雪松 conifer 首例 + T012.2 水杉 conifer 转正例 + T012.3 圆柏 conifer 第三例（同库混排；T022 删 T003.4 v1 四低模植物）
     expect(facade.registries.assets.findByKind('procedural').map((d) => d.asset.id)).toEqual([
       'asset_seedstack',
       'asset_tree_3a',
@@ -164,6 +164,7 @@ describe('全链路验收流程（可执行版 · 阶段 6 形态）', () => {
       'asset_tree_celtis',
       'asset_tree_fraxinus',
       'asset_tree_ginkgo',
+      'asset_tree_juniperus',
       'asset_tree_koelreuteria',
       'asset_tree_ligustrum',
       'asset_tree_metasequoia',

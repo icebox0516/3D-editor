@@ -98,7 +98,7 @@ const f = (x: number): string => (Number.isInteger(x) ? `${x}.0` : String(x));
 /** vec3 字面量 */
 const f3 = (v: readonly [number, number, number]): string => `vec3(${v.map(f).join(', ')})`;
 
-// ── 树种材质参数表（15 树种逐树种转录自各 *Materials.ts；drift-lock 见测试）──────────
+// ── 树种材质参数表（16 树种逐树种转录自各 *Materials.ts；drift-lock 见测试）──────────
 
 /** 风动参数（与该树种高中低档叶材质同公式同常数——逐数对账锁定） */
 export interface BroadleafCanopyWindSpec {
@@ -149,7 +149,7 @@ export interface BroadleafCanopySpeciesMaterialSpec {
   variation: BroadleafCanopyVariationSpec;
 }
 
-/** 15 树种接入表（T011 阔叶 13 全量 + T012.1 conifer 首例 cedrus + T012.2 conifer 转正例 metasequoia；键序与 broadleafCanopyProxy 接入表一致） */
+/** 16 树种接入表（T011 阔叶 13 全量 + T012.1 conifer 首例 cedrus + T012.2 conifer 转正例 metasequoia + T012.3 conifer 第三例 juniperus；键序与 broadleafCanopyProxy 接入表一致） */
 export const BROADLEAF_CANOPY_MATERIAL_SPECIES: Readonly<Record<string, BroadleafCanopySpeciesMaterialSpec>> = {
   asset_tree_3a: {
     wind: { heightScale: 0.1333, swayPhaseK: 78.233, swayPhaseC: 1.37, swayAmplitude: 0.045, swayFrequency: 1.15, flutterPhaseK: 51.171, flutterPhaseC: 4.7, flutterAmplitude: 0.011, flutterFrequencyBase: 14, flutterFrequencySpan: 9 },
@@ -264,6 +264,30 @@ export const BROADLEAF_CANOPY_MATERIAL_SPECIES: Readonly<Record<string, Broadlea
     crownColor: 0x8ab65a,
     trunkColor: 0x7a5138,
     variation: { hueCold: [0.97, 1.0, 1.02], hueWarm: [1.04, 1.03, 0.94], hueK: 5.917, hueC: 0.27, lumaBase: 0.92, lumaSpan: 0.16, lumaK: 3.613, lumaC: 0.53, transBase: 0.55, transSpan: 0.45, transK: 9.317, transC: 0.43, transColor: [0.72, 0.94, 0.38], transPeak: 0.46 },
+  },
+  asset_tree_juniperus: {
+    // conifer 第三例行（T012.3 Step 3c——逐数转录 juniperusMaterials JUNIPERUS_WIND /
+    // NEEDLE_HEAD / TRANSLUCENCY，drift-lock 见 broadleafCanopyMaterials.test）：风动
+    // **两成分直录两槽**（同 metasequoia——圆柏无顶梢成分〔windLeader* 零占位，主干
+    // 通直无点头第三例〕，无需退化记档）：sway 槽 = 成分① 整冠低频小幅摆**主成分**
+    //（windTierFrequency 0.30Hz = 1.8850 rad/s × windTierAmplitude 0.022m——密实圆柱/
+    // 卵圆质量冠读向）；flutter 槽 = 成分② 末级鳞枝细幅微颤（windFringeFrequency
+    // 1.9Hz = 11.9381 rad/s——family 快颤链 9–23 内带 × windFringeAmplitude 0.018m，
+    // 幅度频率均低于水杉羽状〔硬质密质读向〕，常频率——span 0 = 圆柏快颤无相位调频项，
+    // canopy 公式 0 系数退化逐位一致〔与 cedrus/metasequoia 同型〕）。相位 hash
+    // 111.413/6.3 与 88.523/8.4（与先例相位流去相关）、高度锚 1/8 = 0.125（GLSL 注入
+    // 0.12500 五位小数口径 = JUNIPERUS_TREE_HEIGHT_NOMINAL slot-0 totalHeight 8 同源
+    //——6–10m 级锚同步轮）逐数同源；sway 相位-高度耦合系数（近景 1.2 vs proxy 固定
+    // 1.4）= proxy 公式结构性简化记档（与两先例同位）。冠色 0x4a5d47 = 绳卡构造色
+    // needleColorSun 0x64785e / needleColorShade 0x2f4230 **严格中点**（cedrus 常绿
+    // 构造中点式——三处同源之一：meta presets swatch #4a5d47 ↔ juniperusMaterials
+    // 绳卡构造色 ↔ CROWN_PRESETS default 行；覆写值 = 物种表同值，default 命中与未
+    // 命中行为逐位一致）；皮色 0x595955 = 皮构造色（barkBaseColor 深灰——FRPS「树皮
+    // 深灰色，纵裂，成条片开裂」第 16 语言基调）。
+    wind: { heightScale: 0.125, swayPhaseK: 111.413, swayPhaseC: 6.3, swayAmplitude: 0.022, swayFrequency: 1.885, flutterPhaseK: 88.523, flutterPhaseC: 8.4, flutterAmplitude: 0.018, flutterFrequencyBase: 11.9381, flutterFrequencySpan: 0 },
+    crownColor: 0x4a5d47,
+    trunkColor: 0x595955,
+    variation: { hueCold: [0.96, 1.0, 1.03], hueWarm: [1.04, 1.03, 0.94], hueK: 5.913, hueC: 0.23, lumaBase: 0.92, lumaSpan: 0.16, lumaK: 3.719, lumaC: 0.57, transBase: 0.55, transSpan: 0.45, transK: 9.117, transC: 0.47, transColor: [0.42, 0.7, 0.48], transPeak: 0.28 },
   },
 };
 
@@ -441,6 +465,21 @@ export const BROADLEAF_CANOPY_CROWN_PRESETS: Readonly<
       // metasequoiaMaterials autumn 卡基调**同源同值**（远景冠色块与近景羽卡基调一致
       // = 档间身份一致的色面；远景不随卡会破所见即所得）。
       crownColor: 0xa55d2c,
+    },
+  },
+  asset_tree_juniperus: {
+    default: {
+      // 圆柏 default 冠卡（T012.3 Step 3a 先锁色——沿 cedrus 常绿单卡 inert 锚先例；
+      // **物种表行随 3c 合并阶段落地回填**〔沿 cedrus/metasequoia 接线先例〕，
+      // drift-lock 测试随之覆盖）：常绿 default 单卡终态（012.3 待裁决位 4——常绿
+      // 无季相证据不建卡：FRPS/FoC/NC 三源无秋色语句〔阴性〕+「deep green」全年稳定
+      // 〔NC Verified〕）。冠色 0x4a5d47 = **深绿-暗绿带灰蓝霜调**（Spec §5.1
+      // Verified+Observed——「密实无层冠体 + 深绿-蓝绿灰色调」远景第一读向）=
+      // needleColorSun 0x64785e / needleColorShade 0x2f4230 **严格中点**（cedrus
+      // 常绿构造中点式——阳灰绿亮/荫深绿暗受光 ramp 的中距积分读向）——**三处同源**
+      // 之一（meta presets swatch #4a5d47 ↔ juniperusMaterials 绳卡构造色 0x4a5d47
+      // 〔3b 已同值交付〕↔ 本行，T024 纪律）。
+      crownColor: 0x4a5d47,
     },
   },
 };

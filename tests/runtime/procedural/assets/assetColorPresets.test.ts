@@ -2,7 +2,7 @@
  * tests/runtime/procedural/assets/assetColorPresets.test.ts —— 程序化资产色卡契约测试（T024.1，D44 #2 双钩之②）。
  *
  * 覆盖：
- * - 21 资产色卡声明整表锁定：新资产不登记映射 = 测试红（配合 presets 必填的编译
+ * - 22 资产色卡声明整表锁定：新资产不登记映射 = 测试红（配合 presets 必填的编译
  *   约束，双闸——忘声明过不了 typecheck，声明了不登表过不了本测试；assetTaxonomy
  *   式先例）；
  * - 卡 id 纪律：资产内唯一、default 卡必在且居首（DEFAULT_COLOR_PRESET_ID 单一真相源）；
@@ -10,9 +10,10 @@
  *   锁定（植物/车辆各族族门承接此断言，D44 #2 / D30 不预防性泛化——本表只锁现役）；
  * - 三字段浏览语义：label 非空、swatch 合法 hex 数据色（缩略图不随卡重渲——swatch
  *   即色点唯一视觉来源）；
- * - 秋卡声明面与 canopy 冠色覆写表同源（broadleafCanopyMaterials 私有表 13 行 =
+ * - 秋卡声明面与 canopy 冠色覆写表同源（broadleafCanopyMaterials 私有表 14 行 =
  *   ginkgo 试点 + 批一 6 树 + 批二 4 树 + cedrus 常绿单卡 + metasequoia 双卡
- *   〔T012.2〕——两处卡集一致防漂移；camphor/ligustrum 常绿无冠卡行）。
+ *   〔T012.2〕+ juniperus 常绿单卡〔T012.3〕——两处卡集一致防漂移；
+ *   camphor/ligustrum 常绿无冠卡行）。
  * 边界：本文件只锁声明面值域与映射，不测行为（渲染/缓存/放置归各自测试）；色值配方
  *      归各树材质工厂私有域（D44 #2），本文件不断言配方数值。
  * 隔离：collectProceduralAssetMetas 只含插件文件收割清单（seam 注入不进清单，
@@ -23,7 +24,7 @@ import { DEFAULT_COLOR_PRESET_ID } from '../../../../src/domain/assets';
 import { collectProceduralAssetMetas } from '../../../../src/runtime/procedural/routes';
 import { BROADLEAF_CANOPY_CROWN_PRESETS } from '../../../../src/runtime/procedural/tree/broadleafCanopyMaterials';
 
-/** 21 资产色卡映射整表（值域依据 docs/procedural-assets/metadata-taxonomy.md §2.1；T024.3 批二收官 = **13 树卡集全量终态**：11 树双卡 default+autumn + camphor/ligustrum 常绿单卡终态；设施/DEV 空数组显式无卡；卡 id 域 024.2 定稿 = {'default','autumn'}；T012.1 加行 = 针叶族首例 cedrus 常绿 default 单卡〔Spec §5 常绿季相 Verified——FRPS 终年常绿 + NC 无秋色字段阴性 + 冬季三点直证；swatch 0x6b8273 灰绿-蓝绿中调三处同源，3a meta 侧〕；T012.2 加行 = 水杉双卡〔落叶证据建卡——Spec §5.2 四源 + s10/s04 照片；default 亮黄绿 #8ab65a / autumn 锈橙-红褐 #a55d2c 三处同源〕） */
+/** 22 资产色卡映射整表（值域依据 docs/procedural-assets/metadata-taxonomy.md §2.1；T024.3 批二收官 = **13 树卡集全量终态**：11 树双卡 default+autumn + camphor/ligustrum 常绿单卡终态；设施/DEV 空数组显式无卡；卡 id 域 024.2 定稿 = {'default','autumn'}；T012.1 加行 = 针叶族首例 cedrus 常绿 default 单卡〔Spec §5 常绿季相 Verified——FRPS 终年常绿 + NC 无秋色字段阴性 + 冬季三点直证；swatch 0x6b8273 灰绿-蓝绿中调三处同源，3a meta 侧〕；T012.2 加行 = 水杉双卡〔落叶证据建卡——Spec §5.2 四源 + s10/s04 照片；default 亮黄绿 #8ab65a / autumn 锈橙-红褐 #a55d2c 三处同源〕；T012.3 加行 = 圆柏常绿 default 单卡〔鳞叶首例——常绿无季相证据不建卡；swatch #4a5d47 深绿-灰蓝霜调三处同源〕） */
 const EXPECTED_PRESETS: Record<string, readonly string[]> = {
   asset_tree_3a: [DEFAULT_COLOR_PRESET_ID, 'autumn'], // T024.3 批二：秋·黄褐（Forestry England + Spec §6）
   asset_tree_celtis: [DEFAULT_COLOR_PRESET_ID, 'autumn'], // T024.3 批二：秋·黄（OSU + 温州照片——黄主相不入橙红）
@@ -40,6 +41,7 @@ const EXPECTED_PRESETS: Record<string, readonly string[]> = {
   asset_tree_salix: [DEFAULT_COLOR_PRESET_ID, 'autumn'], // T024.2 批一：秋·黄绿（Spec 1.1 增量：NC greenish-yellow 主相——弱秋色不造金黄）
   asset_tree_cedrus: [DEFAULT_COLOR_PRESET_ID], // T012.1 针叶族首例：常绿 default 单卡（判定 8——无季相证据不建卡的正向应用；swatch 0x6b8273 三处同源）
   asset_tree_metasequoia: [DEFAULT_COLOR_PRESET_ID, 'autumn'], // T012.2 针叶族第二例：落叶证据双卡（012.2 待裁决位 4 + Spec §5.2 四源 + s10/s04 照片——default 亮黄绿 #8ab65a = needleColorSun 同值 / autumn 锈橙-红褐 #a55d2c = 锈橙×红褐中值；meta ↔ metasequoiaMaterials 构造色 ↔ CROWN_PRESETS 三处同源）
+  asset_tree_juniperus: [DEFAULT_COLOR_PRESET_ID], // T012.3 针叶族第三例：常绿 default 单卡（012.3 待裁决位 4——常绿无季相证据不建卡：三源无秋色语句阴性 + 深绿全年稳定；swatch #4a5d47 = needleColorSun/Shade 严格中点——cedrus 常绿构造中点式；meta ↔ juniperusMaterials 绳卡构造色 0x4a5d47 ↔ CROWN_PRESETS 三处同源〔3b 已同值交付〕）
   asset_signpost: [],
   asset_trashbin: [],
   asset_streetlamp: [],
@@ -53,7 +55,7 @@ const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 describe('程序化资产色卡契约（T024.1，D44 #2 整表锁）', () => {
   const metas = collectProceduralAssetMetas();
 
-  it('21 资产色卡映射整表：卡 id 集合与 EXPECTED_PRESETS 逐资产全等', () => {
+  it('22 资产色卡映射整表：卡 id 集合与 EXPECTED_PRESETS 逐资产全等', () => {
     expect(metas.length).toBe(Object.keys(EXPECTED_PRESETS).length); // 双向：多登/漏登皆红
     for (const meta of metas) {
       expect(Object.keys(EXPECTED_PRESETS)).toContain(meta.id);
@@ -92,8 +94,8 @@ describe('程序化资产色卡契约（T024.1，D44 #2 整表锁）', () => {
     }
   });
 
-  it('canopy 冠色覆写表与声明卡集同源：只覆盖已声明树种卡（13 行终态——ginkgo 试点 + 批一 6 树 + 批二 4 树 + cedrus 常绿单卡 + metasequoia 双卡〔T012.2〕，防两处卡集漂移）', () => {
-    expect(Object.keys(BROADLEAF_CANOPY_CROWN_PRESETS).length).toBe(13); // 行数锁：11 阔叶秋卡 + cedrus + metasequoia（水杉 default+autumn 两卡——卡 id 与 EXPECTED_PRESETS 冻结一致）
+  it('canopy 冠色覆写表与声明卡集同源：只覆盖已声明树种卡（14 行终态——ginkgo 试点 + 批一 6 树 + 批二 4 树 + cedrus 常绿单卡 + metasequoia 双卡〔T012.2〕+ juniperus 常绿单卡〔T012.3〕，防两处卡集漂移）', () => {
+    expect(Object.keys(BROADLEAF_CANOPY_CROWN_PRESETS).length).toBe(14); // 行数锁：11 阔叶秋卡 + cedrus + metasequoia + juniperus（圆柏 default 单卡——卡 id 与 EXPECTED_PRESETS 冻结一致）
     expect(Object.keys(BROADLEAF_CANOPY_CROWN_PRESETS.asset_tree_metasequoia ?? {}).sort()).toEqual(['autumn', 'default']); // 水杉双卡冻结（'default','autumn'——三处同源）
     for (const [assetId, cards] of Object.entries(BROADLEAF_CANOPY_CROWN_PRESETS)) {
       const declared = EXPECTED_PRESETS[assetId];

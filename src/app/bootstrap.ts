@@ -132,6 +132,8 @@ import { createCedrusHandle } from '../runtime/procedural/tree/cedrus/cedrusStag
 import type { CedrusHandle } from '../runtime/procedural/tree/cedrus/cedrusStage';
 import { createMetasequoiaHandle } from '../runtime/procedural/tree/metasequoia/metasequoiaStage';
 import type { MetasequoiaHandle } from '../runtime/procedural/tree/metasequoia/metasequoiaStage';
+import { createJuniperusHandle } from '../runtime/procedural/tree/juniperus/juniperusStage';
+import type { JuniperusHandle } from '../runtime/procedural/tree/juniperus/juniperusStage';
 import { clearStyleNotifier, setStyleNotifier } from '../runtime/styles/engine';
 import type { StyleNotice } from '../runtime/styles/engine';
 import { SceneSerializer } from '../io/SceneSerializer';
@@ -533,6 +535,7 @@ declare global {
     __salix?: SalixHandle;
     __cedrus?: CedrusHandle;
     __metasequoia?: MetasequoiaHandle;
+    __juniperus?: JuniperusHandle;
     __tree3aPerf?: Tree3aPerfHandle;
   }
 }
@@ -1353,6 +1356,23 @@ export function createEditor(canvas: HTMLCanvasElement | null, opts: CreateEdito
     });
     window.__metasequoia = metasequoia;
   }
+  // T012.3 DEV 出图面：window.__juniperus（圆柏 slot-0 锚点树直挂渲染场景——雪松/
+  // 水杉 __cedrus/__metasequoia 同构装配〔conifer 第三例·鳞叶首例〕：独立 group 挂
+  // scene 兄弟组不参与拾取；mount/mountSlots 8 槽批量 / mountLevels 三档对照 / 风动 /
+  // freezeTime / 固定机位 view 系供视觉取证与档位生成验证〔圆柏 8m 级——视心 4.5 /
+  // 网格 11m 实数版，见 juniperusStage 模块头「树高参考」〕。实现全在
+  // runtime/procedural/tree/juniperus/juniperusStage——组合根只装配，dispose 只摘
+  // 自己的实例）。
+  let juniperus: JuniperusHandle | null = null;
+  if (import.meta.env.DEV && renderer && typeof window !== 'undefined') {
+    juniperus = createJuniperusHandle({
+      scene: renderer.scene,
+      camera: renderer.camera,
+      controls: renderer.controls,
+      time: renderer.uTime,
+    });
+    window.__juniperus = juniperus;
+  }
   // T009.7 性能验收 DEV 驱动面：window.__tree3aPerf（import.meta.env.DEV 守卫，生产零痕迹；
   // 无 Renderer（无头）不挂）。经产品放置路径（真实命令管线 → SceneSync → 实例化池）批量
   // 放置/清除夏栎 + 帧采样/资源计数/太阳阴影 A/B/固定机位——句柄只给数据，阈值/环境归
@@ -1681,6 +1701,11 @@ export function createEditor(canvas: HTMLCanvasElement | null, opts: CreateEdito
       if (metasequoia && typeof window !== 'undefined' && window.__metasequoia === metasequoia) {
         metasequoia.dispose();
         delete window.__metasequoia;
+      }
+      // T012.3 DEV 出图面成对拆除（同上：仅摘自己的树与 window 槽）
+      if (juniperus && typeof window !== 'undefined' && window.__juniperus === juniperus) {
+        juniperus.dispose();
+        delete window.__juniperus;
       }
       // T009.7 性能验收驱动面成对拆除（clear 自己的对象——经命令；仅摘自己的 window 槽）
       if (tree3aPerf && typeof window !== 'undefined' && window.__tree3aPerf === tree3aPerf) {

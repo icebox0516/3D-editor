@@ -4,7 +4,7 @@
  * 覆盖：
  * - 枚举值域约束：全部收割 meta 的 taxonomy.category ∈ ASSET_TAXONOMY_CATEGORIES、
  *   family（如有）∈ ASSET_TAXONOMY_FAMILIES——锁「所有程序化资产 meta 满足新枚举约束」；
- * - 20 资产归类映射整表锁定：新资产不登记映射 = 测试红（配合 taxonomy 必填的编译
+ * - 22 资产归类映射整表锁定：新资产不登记映射 = 测试红（配合 taxonomy 必填的编译
  *   约束，双闸——忘声明过不了 typecheck，声明了不登表过不了本测试）；
  * - family ↔ 大类配对约束（broadleaf/conifer/shrub → plant；三个设施细分 → facility）；
  * - proceduralProfile 数值纪律：min ≤ max、正数、有限；实测包围盒落带（细模档、
@@ -31,7 +31,7 @@ import { collectProceduralAssetMetas, getProceduralBuild } from '../../../../src
 import type { InstanceSource } from '../../../../src/runtime/instancing/InstancedAssetPool';
 import * as THREE from 'three';
 
-/** 21 资产归类映射表（整表锁——值域依据与 GLB 侧映射见 docs/procedural-assets/metadata-taxonomy.md；T022 删 v1 四低模植物 23→19；T012.1 雪松 conifer 首例 19→20；T012.2 水杉 conifer 转正例 20→21） */
+/** 22 资产归类映射表（整表锁——值域依据与 GLB 侧映射见 docs/procedural-assets/metadata-taxonomy.md；T022 删 v1 四低模植物 23→19；T012.1 雪松 conifer 首例 19→20；T012.2 水杉 conifer 转正例 20→21；T012.3 圆柏 conifer 第三例 21→22〔conifer 计数 2→3〕） */
 const EXPECTED_TAXONOMY: Record<string, { category: AssetTaxonomyCategory; family?: AssetTaxonomyFamily }> = {
   asset_tree_3a: { category: 'plant', family: 'broadleaf' },
   asset_tree_celtis: { category: 'plant', family: 'broadleaf' }, // T011.1 朴树——阔叶家族第二实例
@@ -48,6 +48,7 @@ const EXPECTED_TAXONOMY: Record<string, { category: AssetTaxonomyCategory; famil
   asset_tree_salix: { category: 'plant', family: 'broadleaf' }, // T011.12 垂柳——阔叶家族第十三实例（杨柳科落叶阔叶第九例、家族首例**垂枝冠**（契约应力位①档实证——upturn 强负链域内表达）——Salix babylonica，喷泉状垂帘冠 + 狭披针细叶互生沿索簇记档见资产模块头）
   asset_tree_cedrus: { category: 'plant', family: 'conifer' }, // T012.1 雪松——**针叶家族 conifer 第一实例/首例**（tree/conifer/ 契约草案 D37.2 首证；松科裸子常绿乔木按家族形态域归 conifer——层状轮生骨架 + 长短枝双挂点，vs 银杏裸子归 broadleaf 的记档见资产模块头）
   asset_tree_metasequoia: { category: 'plant', family: 'conifer' }, // T012.2 水杉——**针叶家族第二实例/契约转正例**（族 1→2：柏科水杉属落叶裸子乔木按家族形态域归 conifer——对生轮生挂点 + 羽状小枝卡 + 密连续锥 + 双器官账目，契约草案经第二例真实消费转正定稿）
+  asset_tree_juniperus: { category: 'plant', family: 'conifer' }, // T012.3 圆柏——**针叶家族第三实例/定稿态增量消费例 + 鳞叶首例**（族 2→3：柏科刺柏属常绿裸子乔木按家族形态域归 conifer——高度域连续散生挂点〔层位退化消费〕+ 绳状鳞卡第 3 叶语言 + 刺叶 minority 双叶型并存〔族内首例〕+ 柱/卵双冠轮廓 + 浆果双熟度账目，契约定稿态 80 位增量消费）
   asset_signpost: { category: 'facility', family: 'road-facility' },
   asset_trashbin: { category: 'facility', family: 'public-facility' },
   asset_streetlamp: { category: 'facility', family: 'road-facility' },
