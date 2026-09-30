@@ -482,6 +482,22 @@ export const BROADLEAF_CANOPY_CROWN_PRESETS: Readonly<
       crownColor: 0x4a5d47,
     },
   },
+  asset_tree_bungeana: {
+    default: {
+      // 白皮松 default 冠卡（T012.4 Step 3a 先锁色——沿 cedrus/juniperus 常绿单卡
+      // inert 锚先例；**物种表行随 3c 合并阶段落地回填**〔沿 cedrus/metasequoia/
+      // juniperus 接线先例〕，drift-lock 测试随之覆盖）：常绿 default 单卡终态
+      // （012.4 待裁决位 4——常绿无季相证据不建卡：FRPS/FoC/NC 三源无秋色语句
+      // 〔阴性〕+ 深绿-中绿带黄绿/灰绿全年稳定〔NC Verified + 照片 Observed〕）。
+      // 冠色 0x606d47 = **深绿-中绿带黄绿调**（Spec §5.2——「疏散半透光冠体 +
+      // 黄绿-灰绿域」远景第一读向）= needleColorSun 0x77864f / needleColorShade
+      // 0x49543e **严格中点**（cedrus/juniperus 常绿构造中点式第三例——阳黄绿亮/
+      // 阴灰绿暗受光 ramp 的中距积分读向）——**三处同源**之一（meta presets
+      // swatch #606d47 ↔ bungeanaMaterials 束卡构造色 0x606d47〔3b 已同值交付——
+      // 对账一致〕↔ 本行，T024 纪律）。
+      crownColor: 0x606d47,
+    },
+  },
 };
 
 // ── GLSL 配方（参数化拼装——数值来自上表；公式逐字同 species 风动/hue·luma 形态）──────

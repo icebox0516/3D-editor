@@ -448,6 +448,16 @@ describe('色卡 preset（冠色覆写表）+ uTime 注入（T024.1；T024.2 批
     expect(BROADLEAF_CANOPY_CROWN_PRESETS['asset_tree_juniperus']?.['autumn']).toBeUndefined();
   });
 
+  it('conifer 第四例色锚（T012.4 Step 3a 先锁色——default 单卡〔常绿无季相证据不建卡，待裁决位 4〕；**物种表行随 3c 合并阶段落地回填 + 本 it 物种表对账句随之收口**——沿三先例同款两段式；drift-lock 循环经 ASSET_IDS 覆盖收口后完整对账）：default = 0x606d47（深绿-中绿带黄绿调——Spec §5.2「疏散半透光冠体 + 黄绿-灰绿域」远景第一读向；三处同源之一：canopy 覆写行 ↔ meta presets swatch #606d47 ↔ bungeanaMaterials 束卡构造色 needleColorSun 0x77864f / needleColorShade 0x49543e 严格中点〔cedrus/juniperus 常绿构造中点式第三例，3b 已同值交付对账一致〕；覆写值 = 物种表 crownColor 同值，default 命中与未命中行为逐位一致——同三先例）', () => {
+    expect(BROADLEAF_CANOPY_CROWN_PRESETS['asset_tree_bungeana']?.['default']?.crownColor).toBe(0x606d47);
+    // 收口 tripwire（3c）：物种表 bungeana 行落地后本句转红——届时替换为
+    // CROWN_PRESETS ↔ BROADLEAF_CANOPY_MATERIAL_SPECIES 同值对账（沿 cedrus/
+    // metasequoia/juniperus 三先例收口式；drift-lock 循环随之覆盖完整对账）
+    expect(BROADLEAF_CANOPY_MATERIAL_SPECIES['asset_tree_bungeana'], '物种表 bungeana 行尚未回填（3c 接线位）——回填后本 tripwire 应替换为同值对账断言').toBeUndefined();
+    // 常绿单卡终态：无 autumn 行（三源无秋色语句阴性 + 深绿-中绿全年稳定——D44 #1/#7 不投机建卡）
+    expect(BROADLEAF_CANOPY_CROWN_PRESETS['asset_tree_bungeana']?.['autumn']).toBeUndefined();
+  });
+
   it('uTime 注入：提供时三材质（干柱/冠卡/深度程序）同引用；缺省自建——套内三材质同源、两套之间互相独立', () => {
     const injected = { value: 7.5 };
     const set = createBroadleafCanopyMaterials('asset_tree_3a', undefined, injected);

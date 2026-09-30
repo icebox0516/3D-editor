@@ -62,7 +62,7 @@ proceduralProfile?: {                    // 可选；只收通用维度语义（
 
 | 值 | 中文 | 现有消费者 | 证据来源 |
 |---|---|---|---|
-| `plant` | 植物 | 程序化 16（tree_3a + T011 十二树种阔叶 + T012.1 雪松/T012.2 水杉/T012.3 圆柏 conifer 三例；T022 删 v1 四低模后程序化 plant 面全为乔木）+ GLB 3（plant 目录） | 21→22 资产 meta + manifest.json |
+| `plant` | 植物 | 程序化 17（tree_3a + T011 十二树种阔叶 + T012.1 雪松/T012.2 水杉/T012.3 圆柏/T012.4 白皮松 conifer 四例；T022 删 v1 四低模后程序化 plant 面全为乔木）+ GLB 3（plant 目录） | 21→22 资产 meta + manifest.json |
 | `building` | 建筑 | GLB 4（building 目录） | manifest.json |
 | `vehicle` | 车辆 | GLB 1（car.glb） | manifest.json |
 | `character` | 人物 | GLB 1（person.glb） | manifest.json |

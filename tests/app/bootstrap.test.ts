@@ -403,7 +403,7 @@ describe('registerAssets', () => {
     expect(registerAssets(facade, [treeAsset, other])).toBe(1);
     // createEditor 内 manifest→procedural 收割先行（glob 按文件名序：asset_* 前缀 < 设施裸名 h/p/s/t；
     // T022 删 v1 四低模植物 flower/oak/pine/shrub——seedstack 后直接 tree_3a；T008.2 起各树按字典序
-    // 追加：tree_3a < tree_bischofia < tree_camphor < tree_cedrus（T012.1 conifer 首例）< tree_celtis <
+    // 追加：tree_3a < tree_bischofia < tree_bungeana（T012.4 conifer 第四例）< tree_camphor < tree_cedrus（T012.1 conifer 首例）< tree_celtis <
     // tree_fraxinus < tree_ginkgo < tree_juniperus（T012.3 conifer 第三例）< tree_koelreuteria < tree_ligustrum
     // < tree_metasequoia（T012.2 conifer 转正例）< tree_platanus < tree_salix < tree_sophora < tree_triadica <
     // tree_zelkova）；T025 设施六件按文件名字母序与树交错：bollard <
@@ -429,6 +429,7 @@ describe('registerAssets', () => {
       'asset_trafficcone',
       'asset_tree_3a',
       'asset_tree_bischofia',
+      'asset_tree_bungeana',
       'asset_tree_camphor',
       'asset_tree_cedrus',
       'asset_tree_celtis',
