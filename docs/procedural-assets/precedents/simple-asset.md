@@ -24,6 +24,14 @@
 | 遮阳伞 | `assets/asset_parasol.asset.ts` | 中柱立伞 8 骨 + 波浪裙边（八片自建 uv：u 环绕 / v 顶→缘、接缝 u=0/1 重复顶点 = uv wrap 正确写法）；**设施第二色卡消费**（default 米白 + dark-green/wine-red——伞面 grain-fine + 卡底色，骨架/柱/底座结构面不变）；shapeFamily:{size:1} 声明位在 meta |
 | 自行车架 | `assets/asset_bike_rack.asset.ts` | 卡位式高低交替弯管圈口（前低后高错位、卡位走廊净宽比 1:1.6 承重照片判读）+ 长条法兰底板；弯管 metal-brush-pole（304 原色）+ 底板 metal-brush-worn；停放姿态记 T026 联动 |
 
+### 批 C 设备三件（2026-09-29）
+
+| 资产 | 入口 | 方法摘要（结构 × 配方 × 特别点） |
+|---|---|---|
+| 监控摄像头 | `assets/asset_cctv_camera.asset.ts` | 杆装枪机：锥形杆（顶 Φ80/底 Φ150，4.0m 带内裁量）+ 底方法兰 + 横臂（Φ60 净伸 0.40）+ 鸭嘴支架两段简化 + 白色枪机筒（半壳遮阳罩前伸 + 红外窗 6 点环阵）+ 顶装饰球；metal-brush-pole 杆系 + grain-fine 壳罩 + 纯底材深色视窗/不锈钢球；**taxonomy family 缺席先例**（设备域无诚实归属——裁定 2） |
+| 交流充电桩 | `assets/asset_ev_charger.asset.ts` | 一体柜 340×151×1400 直用 + **大圆角正面拼合**（主 Box + 两侧贴板 + 1/4 圆角柱 ×2）+ 黑面板/急停钮/灯带点缀 + 侧挂枪（锥头+握把+嘴环）+ CatmullRom+Tube 黑缆弧线（4–5m 不按 1:1——余缆语义）；paint-matte-fade 柜体 + cast-iron 踢脚枪座 + grain-fine 枪头；family 缺席同上 |
+| 井盖 | `assets/asset_manhole.asset.ts` | 宽边框环（Φ850/净开孔 Φ700）+ 内沉盖盘（十字网格 Box 条阵 + 字章环 + 抽象字样槽 ×2——不做文字）+ 浇筑**真凹孔** ×8；**整件单配方单值形态**（cast-iron，merge useGroups=false = 1 draw call）；**齐平贴地语义**（盖面 +0.005 / 框缘顶 +0.015 = maxY，埋深 80 不建露出） |
+
 ## 2. 配方谱系（facilityMaterials，10 配方）
 
 | 配方 | 语义 | 消费者 |
@@ -40,6 +48,8 @@
 | **rubber-mold**（T025.1 新增） | 橡胶模压：中低频胶料色斑（vnoise）+ 细颗粒（高频白噪，幅度收小） | **wheelstop 本体、speedbump 黄段/黑段**（双色同键共享 program） |
 
 > 批 B（T025.2）**零新配方**：全部复用谱系（paint-matte-fade / metal-brush-pole / metal-brush-worn / grain-fine / cast-iron）+ 纯底材不注入件（花箱内衬白/土面深褐）——「复用零新配方」为轻量批最省形态先例；双径柱同配方异底材（骨架 vs 柱底色差走 uniform）= 同键 program 共享的参数化消费面先例。
+>
+> 批 C（T025.3）**零新配方连例**：复用 metal-brush-pole / grain-fine / paint-matte-fade / cast-iron 四配方 + 纯底材不注入件 ×7（视窗深色/装饰球/黑面板/急停红/灯带 emissive/黑缆）——「零新配方」两批连例成立，轻量批配方谱系自洽的默认形态。
 
 ## 3. 结构先例（可复用模式）
 
@@ -51,6 +61,10 @@
 - **挤出开孔（批 B）**：面内真实开孔（休闲桌 Φ50 伞孔）= Shape + holes 挤出 → `mergeVertices` 焊接转索引（保与基元 mergeGeometries 兼容）；孔阵语义在面数预算内可减配（冲孔阵不建模）。
 - **曲面自建 uv（批 B）**：极坐标扇形面（伞面八片）u 环绕 / v 径向，接缝 u=0/1 重复顶点 = uv wrap 正确写法（Torus/Cylinder 基元 uv 恒 [0,1]² 同理满域）；极坐标 uv 上各向同性噪声配方有半径收缩条纹集中风险（批 B 伞顶亚阈值记档）。
 - **低仰角不可辨语义（批 B）**：顶部开口类件（花箱土面）在标准低机位被近壁遮挡 = 与真实物一致非缺陷——高仰角补图（view elevationDeg 50–55）取证，不因此改几何。
+- **贴地微凸安装语义（批 C）**：产品**埋深 ≠ 视觉露出高**——齐平安装类件（井盖）建露出语义（盖面 +齐平带中值、框缘微凸顶 = maxY、盖面低于框缘内沉读向），产品深度数字不消费为几何高度；Speedbump/Wheelstop「建视觉露出高」先例的判定式表达。埋深类部件（沉井筒壁/沉腔）以镜像法线内壁表达。
+- **真凹孔环带分段（批 C）**：平面环带上开凹孔 = Ring 弧段按孔位让位（切线角 asin 闭合）+ 沉孔筒 `scale(-1,1,1)` 镜像法线内壁 + 沉腔托板封底——孔不凸出、maxY 恒 = 环带顶（浇筑孔/泄水孔通用）。
+- **单值材质合批第二例（批 C）**：manhole 整件单配方 merge useGroups=false（批 A pedestrian_barrier 后第二例）——单相材质件（铸铁原色）1 draw call。
+- **设备件 family 缺席先例（批 C）**：taxonomy = `{category:'facility'}` 不填 family（无诚实归属——§8 不投机；GLB device 目录「同名大类无 family」同粒度）——EXPECTED_TAXONOMY 无 family 行第三例（seedstack 先例后），family 值扩展留消费者聚簇后（T028）。
 
 ## 4. 导航
 
@@ -60,3 +74,6 @@
 - 批 B Spec：`docs/research/rest-static-reference.md` @1.0（终审通过 2026-09-29——四路硬数值独立重拉；检索通道受限重拉经搜狗 + xwboo 替代通道）
 - 批 B 任务书与完成记录：`tasks/025.2-rest-static.md`
 - 批 B 取证：`docs/acceptance/T025/025.2/`
+- 批 C Spec：`docs/research/device-p1-reference.md` @1.0（终审通过 2026-09-29——三路硬数值独立重拉逐字一致；政府公文源 yixing.gov.cn 直拉为最强锚）
+- 批 C 任务书与完成记录：`tasks/025.3-device-p1.md`
+- 批 C 取证：`docs/acceptance/T025/025.3/`

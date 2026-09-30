@@ -62,6 +62,9 @@ const EXPECTED_TAXONOMY: Record<string, { category: AssetTaxonomyCategory; famil
   asset_leisure_table: { category: 'facility', family: 'public-facility' }, // T025.2 批 B：休闲桌（桌+凳组合位单体，桌高 720mm 锚）
   asset_parasol: { category: 'facility', family: 'public-facility' }, // T025.2 批 B：遮阳伞（中柱立伞；设施色卡资产——default 米白 + 墨绿/酒红双副卡）
   asset_bike_rack: { category: 'facility', family: 'public-facility' }, // T025.2 批 B：自行车架（卡位式段 1.2m 锚；停放姿态记 T026 联动）
+  asset_cctv_camera: { category: 'facility' }, // T025.3 批 C：监控摄像头——设备域无诚实 family 归属，缺席合法（任务书裁定 2；GLB device 目录「同名大类无 family」§6 同粒度；设备 family 值归 T028 聚簇扩展）
+  asset_ev_charger: { category: 'facility' }, // T025.3 批 C：交流充电桩——family 缺席（同 cctv_camera 裁定 2）；一体柜 340×151×1400 承重锚
+  asset_manhole: { category: 'facility', family: 'road-facility' }, // T025.3 批 C：井盖——路面附属语义（候选文档 §2.A 原文 road-facility；§7「GLB 三目录哪个会收它」）
   asset_seedstack: { category: 'dev' }, // DEV 管线验证资产：无族可归，不填 family / proceduralProfile
 };
 

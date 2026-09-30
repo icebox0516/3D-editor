@@ -66,7 +66,7 @@ proceduralProfile?: {                    // 可选；只收通用维度语义（
 | `building` | 建筑 | GLB 4（building 目录） | manifest.json |
 | `vehicle` | 车辆 | GLB 1（car.glb） | manifest.json |
 | `character` | 人物 | GLB 1（person.glb） | manifest.json |
-| `facility` | 公共设施 | 程序化 15（signpost/trashbin/streetlamp/parkbench/hydrant + T025.1 批 A 六件：bollard/pedestrian_barrier/road_barrier/wheelstop/trafficcone/speedbump + T025.2 批 B 四件：planter/leisure_table/parasol/bike_rack）+ GLB 三目录归并（§6） | 29 资产 meta + manifest.json |
+| `facility` | 公共设施 | 程序化 18（signpost/trashbin/streetlamp/parkbench/hydrant + T025.1 批 A 六件：bollard/pedestrian_barrier/road_barrier/wheelstop/trafficcone/speedbump + T025.2 批 B 四件：planter/leisure_table/parasol/bike_rack + T025.3 批 C 三件：cctv_camera/ev_charger/manhole）+ GLB 三目录归并（§6） | 32 资产 meta + manifest.json |
 | `device` | 设备 | GLB 1（sensor.glb） | manifest.json |
 | `nature` | 自然 | **预留值，当前 0 资产** | D21 点名近期消费者（固定尺寸湖泊，T016/T017 引入）——扩展依据 = 决策记录 |
 | `dev` | DEV | 程序化 1（asset_seedstack；浏览器产品栏按 category 'dev' 过滤） | 19 资产 meta + ui/panels/browserModel |
@@ -110,6 +110,9 @@ proceduralProfile?: {                    // 可选；只收通用维度语义（
 | asset_leisure_table | facility | public-facility | 0.72 | 1.12 | T025.2；桌高 720 三源锚，宽 = 凳缘径（桌 Φ0.70 + 四凳环绕连体） |
 | asset_parasol | facility | public-facility | 2.43 | 2.43 | T025.2；**色卡资产**（default 米白 + dark-green/wine-red 双副卡，Spec §3.5）；宽 = 骨端微露向（伞径 2.4 主流档） |
 | asset_bike_rack | facility | public-facility | 0.36 | 1.20 | T025.2；宽 = 段长向（卡位式 1.2×0.53×0.36 三源聚簇；停放姿态记 T026 联动） |
+| asset_cctv_camera | facility | — | 4.02 | 0.76 | T025.3；**family 缺席**（设备域无诚实归属——裁定 2；GLB device 目录「同名大类无 family」§6 同粒度；设备 family 值归 T028 按家族立项聚簇扩展）；宽含横臂外伸与法兰对边 |
+| asset_ev_charger | facility | — | 1.40 | 0.47 | T025.3；**family 缺席**（同 cctv_camera 裁定 2）；高 = 一体柜 1400 承重锚，宽含侧挂枪缆外扬（柜体本体 0.34） |
+| asset_manhole | facility | road-facility | 0.02 | 0.85 | T025.3；高 = 框缘顶 0.015 舍入（齐平安装微凸剪影——80 产品埋深不消费为露出高，Spec §3.2 齐平 ±3–5mm 承重）；宽 = 框外径 Φ850（净开孔 Φ700 主流档） |
 | asset_seedstack | dev | — | — | — | DEV 资产不进产品浏览，不声明 profile（不投机造数） |
 
 数值纪律：全部为细模档（level 'high'）源几何包围盒实测（T010.2 探针，2026-09-19，逐资产跨槽取证），两位小数舍入；单形态资产 min=max。契约测试以 ε=0.01 容差锁「实测落带」——几何演化导致越带即测试红，逼声明同步。

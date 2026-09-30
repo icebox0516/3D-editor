@@ -9,6 +9,7 @@
 - [ ] T025 园区设施扩充（**立项 2026-09-28**：批 A 交通静态六件首例批次〔simple-asset workflow 本立项时创建——D36 第 5 条真实消费者触发 + D43 创建纪律〕；立项必答两问收口〔一批一合并 Spec + 批内逐资产 Gate 留痕 / category 双轨现状即终态——程序化 facility 单栏 + taxonomy.family 细分 + GLB 目录 slug 维持〕；批次 A/B/C/D + 道闸独立子任务 + 收官门顺延——候选文档 §3 承接，D33 同构开放式批次集合）→ [tasks/025-facility-expansion.md](tasks/025-facility-expansion.md)
   - [x] T025.1 批 A 交通静态六件（done 2026-09-29：六件交付 + shapeFamily 缺口发现→修复→验证闭环〔锥双卡黄卡生效〕+ 冒烟/取证/README；四门槛 280 文件/4348 测全绿）→ [tasks/025.1-traffic-static.md](tasks/025.1-traffic-static.md)
   - [x] T025.2 批 B 休憩四件套（done 2026-09-29：四件交付 + 遮阳伞三卡色卡链〔设施第二色卡消费〕+ Spec 终审四路硬数值重拉 + 冒烟/取证/README；四门槛 285 文件/4486 测全绿）→ [tasks/025.2-rest-static.md](tasks/025.2-rest-static.md)
+  - [x] T025.3 批 C 设备 P1 三件（done 2026-09-29：三件交付〔cctv 768 / ev_charger 616 / manhole 1224 tri，零新配方〕+ family 裁定收口〔井盖 road-facility；摄像头/充电桩 family 缺席归 T028〕+ Spec 终审三路硬数值重拉逐字一致 + manhole 总高语义修正 + 冒烟/取证/README；四门槛 285 文件/4507 测全绿）→ [tasks/025.3-device-p1.md](tasks/025.3-device-p1.md)
 
 ## Done（近）
 

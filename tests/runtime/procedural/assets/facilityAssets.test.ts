@@ -1,8 +1,8 @@
 /**
- * tests/runtime/procedural/assets/facilityAssets.test.ts —— 设施资产包（T002.4 五件 + T025.1 批 A 六件 + T025.2 批 B 四件）几何与底材阶段测试。
+ * tests/runtime/procedural/assets/facilityAssets.test.ts —— 设施资产包（T002.4 五件 + T025.1 批 A 六件 + T025.2 批 B 四件 + T025.3 批 C 三件）几何与底材阶段测试。
  *
- * 覆盖（table-driven，路灯/公园长椅/垃圾桶/消防栓/标识牌 + 批 A 交通静态六件 + 批 B 休憩四件同口径；零 mock——真实 THREE 对象）：
- * - meta 契约：id 前缀 asset_ 且 15 资产互不重复、name 中文、category='facility'、tags 非空、
+ * 覆盖（table-driven，路灯/公园长椅/垃圾桶/消防栓/标识牌 + 批 A 交通静态六件 + 批 B 休憩四件 + 批 C 设备三件同口径；零 mock——真实 THREE 对象）：
+ * - meta 契约：id 前缀 asset_ 且 18 资产互不重复、name 中文、category='facility'、tags 非空、
  *   defaultScale/defaultRotation 字段齐、variants 若声明则数值合法（scaleJitter∈[0,1)、
  *   rotationJitter>0、hueJitter∈[0,30]）；
  * - build 语义：两次调用无共享（geometry 与 material 均新实例，杜绝模块级共享对象——
@@ -36,6 +36,9 @@ import { build as buildPlanter, meta as planterMeta } from '../../../../src/runt
 import { build as buildLeisureTable, meta as leisureTableMeta } from '../../../../src/runtime/procedural/assets/asset_leisure_table.asset';
 import { build as buildParasol, meta as parasolMeta } from '../../../../src/runtime/procedural/assets/asset_parasol.asset';
 import { build as buildBikeRack, meta as bikeRackMeta } from '../../../../src/runtime/procedural/assets/asset_bike_rack.asset';
+import { build as buildCctvCamera, meta as cctvCameraMeta } from '../../../../src/runtime/procedural/assets/asset_cctv_camera.asset';
+import { build as buildEvCharger, meta as evChargerMeta } from '../../../../src/runtime/procedural/assets/asset_ev_charger.asset';
+import { build as buildManhole, meta as manholeMeta } from '../../../../src/runtime/procedural/assets/asset_manhole.asset';
 
 interface FacilityCase {
   label: string;
@@ -59,6 +62,9 @@ const cases: FacilityCase[] = [
   { label: '休闲桌', meta: leisureTableMeta, build: buildLeisureTable },
   { label: '遮阳伞', meta: parasolMeta, build: buildParasol },
   { label: '自行车架', meta: bikeRackMeta, build: buildBikeRack },
+  { label: '监控摄像头', meta: cctvCameraMeta, build: buildCctvCamera },
+  { label: '交流充电桩', meta: evChargerMeta, build: buildEvCharger },
+  { label: '井盖', meta: manholeMeta, build: buildManhole },
 ];
 
 const built: InstanceSource[] = [];
@@ -83,7 +89,7 @@ afterEach(() => {
 });
 
 describe('设施资产包（T002.4）：meta 契约', () => {
-  it('id 前缀 asset_ 且 15 资产互不重复', () => {
+  it('id 前缀 asset_ 且 18 资产互不重复', () => {
     const ids = cases.map((c) => c.meta.id);
     for (const id of ids) expect(id.startsWith('asset_')).toBe(true);
     expect(new Set(ids).size).toBe(cases.length);
