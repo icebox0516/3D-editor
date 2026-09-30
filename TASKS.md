@@ -9,6 +9,10 @@
   - [x] T012.2 水杉全链（done 2026-09-29：契约转正 + 羽状卡第 2 叶语言 + 第 15 树皮 + 落叶双卡 + 密度校准；三门槛 4524 全绿）→ [tasks/012.2-metasequoia.md](tasks/012.2-metasequoia.md)
   - [x] T012.3 圆柏全链（done 2026-09-30：鳞叶第三叶语言 + 二型叶同株 + 散生连续冠第三骨架型 + 柱/卵双型冠 + 浆果双熟度账目 + 第 16 树皮 + 导数感知亚像素退化门；T030 试金石全链；三门槛 4652 全绿）→ [tasks/012.3-juniperus.md](tasks/012.3-juniperus.md)
   - [~] T012.4 白皮松全链（in-progress 2026-09-30：立项完成——选型 D34.2 四标准用户确认〔针束第 4 挂点律/广圆冠空位/白皮第 17 树皮 identity/松球果第 4 果形态〕+ 命名 bungeana；待 Step 0 Research Gate）→ [tasks/012.4-bungeana.md](tasks/012.4-bungeana.md)
+- [ ] T025 园区设施扩充（**立项 2026-09-28**：批 A 交通静态六件首例批次〔simple-asset workflow 本立项时创建——D36 第 5 条真实消费者触发 + D43 创建纪律〕；立项必答两问收口〔一批一合并 Spec + 批内逐资产 Gate 留痕 / category 双轨现状即终态——程序化 facility 单栏 + taxonomy.family 细分 + GLB 目录 slug 维持〕；批次 A/B/C/D + 道闸独立子任务 + 收官门顺延——候选文档 §3 承接，D33 同构开放式批次集合）→ [tasks/025-facility-expansion.md](tasks/025-facility-expansion.md)
+  - [x] T025.1 批 A 交通静态六件（done 2026-09-29：六件交付 + shapeFamily 缺口发现→修复→验证闭环〔锥双卡黄卡生效〕+ 冒烟/取证/README；四门槛 280 文件/4348 测全绿）→ [tasks/025.1-traffic-static.md](tasks/025.1-traffic-static.md)
+  - [x] T025.2 批 B 休憩四件套（done 2026-09-29：四件交付 + 遮阳伞三卡色卡链〔设施第二色卡消费〕+ Spec 终审四路硬数值重拉 + 冒烟/取证/README；四门槛 285 文件/4486 测全绿）→ [tasks/025.2-rest-static.md](tasks/025.2-rest-static.md)
+  - [x] T025.3 批 C 设备 P1 三件（done 2026-09-29：三件交付〔cctv 768 / ev_charger 616 / manhole 1224 tri，零新配方〕+ family 裁定收口〔井盖 road-facility；摄像头/充电桩 family 缺席归 T028〕+ Spec 终审三路硬数值重拉逐字一致 + manhole 总高语义修正 + 冒烟/取证/README；四门槛 285 文件/4507 测全绿）→ [tasks/025.3-device-p1.md](tasks/025.3-device-p1.md)
 
 ## Done（近）
 
@@ -106,7 +110,6 @@
 - [ ] T004 Style Gallery（0/3）→ [tasks/004-style-gallery.md](tasks/004-style-gallery.md)
 - [ ] T005 Animation Pathway（0/3）→ [tasks/005-animation-pathway.md](tasks/005-animation-pathway.md)
 - [ ] T007 Bake Scatter（可选；启动前 grill 拷问门见任务书）→ [tasks/007-bake-scatter.md](tasks/007-bake-scatter.md)
-- [ ] T025 园区设施扩充【占位；花箱/防撞柱/护栏/停车设施/充电桩等；轻量批量任务制（T002.4 先例：同方法一批 3–5 个一会话，共用方法与测试基建）；首例批次触发创建 simple-asset workflow（引用 spine 只写差异剖面）；候选清单见 docs/research/facility-device-candidates.md §1（P1 骨架件 + 四批切分建议，规划级枚举、逐资产立项时过 Research Gate）；**立项必答**：批次 Spec 口径（建议一批一合并 Spec + 逐资产 Gate 留痕——T002.4 为 pre-Gate 时代先例不可直接沿用）/ category 值收敛策略（程序化 facility 单栏 vs GLB 细分 slug 分栏终态裁定）】
 - [ ] T026 人物与车辆【占位；行人/工作人员 + 轿车/SUV/接驳车/货车/自行车，少量高复用变体；车辆复用 preset 车身色；全新资产域，立项过 Research Gate + Family 判定】
 - [ ] T027 自然小物【占位；景观石/岩石/树桩等】
 - [ ] T028 建筑/设备【占位；扩充终段；设备库见 docs/research/facility-device-candidates.md §2 三线分层（A 户外可视进资产线 / B 室内机电几何暂缓——依赖室内场景线未立项 / C 嵌入式传感遥测点位归 T029）；偏建筑候选（廊架/岗亭/配电柜）届时重裁归属；生产时机可按需提前——Q13 穿插排期待定】

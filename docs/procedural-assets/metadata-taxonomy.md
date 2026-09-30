@@ -50,7 +50,7 @@ proceduralProfile?: {                    // 可选；只收通用维度语义（
 **声明纪律**：
 
 - **必填 + 空数组合法**：空数组 = 显式声明「本资产无色卡」（设施 / DEV 资产合法态）；乔木 / 植物族「非空且含 default 卡」的族级断言归各自 epic 族门定义（D30 不预防性泛化）。
-- **卡 id 纪律**：资产内唯一；**跨树同相卡 id 同名**（便于散布配方书写）。**id 域定稿（T024.2，2026-09-28 记档）**：现役域 = `'default'`（全资产统一默认卡）+ `'autumn'`（秋相卡，跨树同名）——试点 ginkgo `'autumn'` 保持不改名；后续新相（春/新叶相等）由引入它的任务增补，须同步更新本节记档与整表锁 EXPECTED_PRESETS。**13 树卡集终态（T024.2 批一 + T024.3 批二收官，2026-09-28）**：11 树双卡 `default`+`autumn`——ginkgo（秋·金黄）/ platanus（秋·黄褐）/ koelreuteria（秋·金黄）/ sophora（秋·金黄）/ triadica（秋·绯红）/ fraxinus（秋·金黄，Spec 1.1 补证）/ salix（秋·黄绿，Spec 1.1 补证·弱秋色晚相变体）/ tree3a（秋·黄褐）/ celtis（秋·黄）/ zelkova（秋·橙-铜橙）/ bischofia（秋·红-红橙，Spec 1.1 补证·文献四源红相裁决——与 triadica 绯红的种间分离轴记档于材质表注释）；camphor / ligustrum **default 单卡终态**（常绿不建秋卡——camphor 秋相证据为「基调不变 + 斑驳叠加信号」非基调变体、整冠移黄 = 误表达；ligustrum 无秋色相〔冬季四样木满叶浓绿 = 正面否定证据〕；裁定记档于各 asset meta 注释）；**cedrus default 单卡终态（T012.1，2026-09-29——conifer 首例同 camphor/ligustrum 常绿口径：FRPS「终年常绿」+ NC evergreen 无秋色字段〔阴性〕+ 冬季三点照片直证）**；**metasequoia default+autumn 双卡终态（T012.2，2026-09-29——落叶杉类秋相卡：default = 9 月末亮黄绿〔s04 Observed 主语境锚〕+ autumn = 锈橙-红褐〔四源措辞中值偏红褐 + s10 Observed〕，Spec §5.2）**。秋色谱系横向读向：triadica 绯红 ↔ bischofia 红-红橙 ↔ zelkova 橙-铜橙 ↔ metasequoia 锈橙红褐 ↔ celtis 黄 ↔ ginkgo/koelreuteria/sophora/fraxinus 金黄段 ↔ tree3a/platanus 黄褐 ↔ salix 黄绿。色值与证据锚归各树材质工厂私有域 + Reference Spec。
+- **卡 id 纪律**：资产内唯一；**跨树同相卡 id 同名**（便于散布配方书写）。**id 域（T024.2 定稿，T025.1/T025.2 增补）**：现役域 = `'default'`（全资产统一默认卡）+ `'autumn'`（秋相卡，跨树同名）+ `'yellow'`（设施色卡首例——T025.1 交通锥黄相副卡〔停车场语境，GB/T 24720 宜红为 default〕；后续设施色相卡跨资产同名复用）+ `'dark-green'`/`'wine-red'`（T025.2 遮阳伞伞面素色相副卡〔厂家标准三色聚簇——墨绿/酒红，Spec rest-static §3.5 四源；default = 米白园区外拍主流素色〕）——试点 ginkgo `'autumn'` 保持不改名；后续新相（春/新叶相等）由引入它的任务增补，须同步更新本节记档与整表锁 EXPECTED_PRESETS。**13 树卡集终态（T024.2 批一 + T024.3 批二收官，2026-09-28）**：11 树双卡 `default`+`autumn`——ginkgo（秋·金黄）/ platanus（秋·黄褐）/ koelreuteria（秋·金黄）/ sophora（秋·金黄）/ triadica（秋·绯红）/ fraxinus（秋·金黄，Spec 1.1 补证）/ salix（秋·黄绿，Spec 1.1 补证·弱秋色晚相变体）/ tree3a（秋·黄褐）/ celtis（秋·黄）/ zelkova（秋·橙-铜橙）/ bischofia（秋·红-红橙，Spec 1.1 补证·文献四源红相裁决——与 triadica 绯红的种间分离轴记档于材质表注释）；camphor / ligustrum **default 单卡终态**（常绿不建秋卡——camphor 秋相证据为「基调不变 + 斑驳叠加信号」非基调变体、整冠移黄 = 误表达；ligustrum 无秋色相〔冬季四样木满叶浓绿 = 正面否定证据〕；裁定记档于各 asset meta 注释）；**cedrus default 单卡终态（T012.1，2026-09-29——conifer 首例同 camphor/ligustrum 常绿口径：FRPS「终年常绿」+ NC evergreen 无秋色字段〔阴性〕+ 冬季三点照片直证）**；**metasequoia default+autumn 双卡终态（T012.2，2026-09-29——落叶杉类秋相卡：default = 9 月末亮黄绿〔s04 Observed 主语境锚〕+ autumn = 锈橙-红褐〔四源措辞中值偏红褐 + s10 Observed〕，Spec §5.2）**；**juniperus default 单卡终态（T012.3，2026-09-30——鳞叶首例同常绿口径：常绿无季相证据不建卡；swatch #4a5d47 深绿-灰蓝霜调三处同源）**。秋色谱系横向读向：triadica 绯红 ↔ bischofia 红-红橙 ↔ zelkova 橙-铜橙 ↔ metasequoia 锈橙红褐 ↔ celtis 黄 ↔ ginkgo/koelreuteria/sophora/fraxinus 金黄段 ↔ tree3a/platanus 黄褐 ↔ salix 黄绿。色值与证据锚归各树材质工厂私有域 + Reference Spec。
 - **证据纪律（D44 #7 无证据不建卡）**：每树至少 default 卡（= 现行生产相，天然有据）；季相卡逐树按 Reference Spec 季相记录定，卡数不设统一硬指标；缺证相先经 asset-research 补 Spec 增量再建卡——色值参数注释逐卡引 Spec 条目（同资产数值注释纪律）。
 - **swatch = 数据色**：CSS 色串，仅服务浏览器色点 UI（T024.4）；**缩略图不随卡重渲**。
 
@@ -62,11 +62,11 @@ proceduralProfile?: {                    // 可选；只收通用维度语义（
 
 | 值 | 中文 | 现有消费者 | 证据来源 |
 |---|---|---|---|
-| `plant` | 植物 | 程序化 15（tree_3a + T011 十二树种阔叶 + T012.1 雪松/T012.2 水杉 conifer 两例；T022 删 v1 四低模后程序化 plant 面全为乔木）+ GLB 3（plant 目录） | 20→21 资产 meta + manifest.json |
+| `plant` | 植物 | 程序化 16（tree_3a + T011 十二树种阔叶 + T012.1 雪松/T012.2 水杉/T012.3 圆柏 conifer 三例；T022 删 v1 四低模后程序化 plant 面全为乔木）+ GLB 3（plant 目录） | 21→22 资产 meta + manifest.json |
 | `building` | 建筑 | GLB 4（building 目录） | manifest.json |
 | `vehicle` | 车辆 | GLB 1（car.glb） | manifest.json |
 | `character` | 人物 | GLB 1（person.glb） | manifest.json |
-| `facility` | 公共设施 | 程序化 5（signpost/trashbin/streetlamp/parkbench/hydrant）+ GLB 三目录归并（§6） | 19 资产 meta + manifest.json |
+| `facility` | 公共设施 | 程序化 18（signpost/trashbin/streetlamp/parkbench/hydrant + T025.1 批 A 六件：bollard/pedestrian_barrier/road_barrier/wheelstop/trafficcone/speedbump + T025.2 批 B 四件：planter/leisure_table/parasol/bike_rack + T025.3 批 C 三件：cctv_camera/ev_charger/manhole）+ GLB 三目录归并（§6） | 32 资产 meta + manifest.json |
 | `device` | 设备 | GLB 1（sensor.glb） | manifest.json |
 | `nature` | 自然 | **预留值，当前 0 资产** | D21 点名近期消费者（固定尺寸湖泊，T016/T017 引入）——扩展依据 = 决策记录 |
 | `dev` | DEV | 程序化 1（asset_seedstack；浏览器产品栏按 category 'dev' 过滤） | 19 资产 meta + ui/panels/browserModel |
@@ -80,8 +80,8 @@ proceduralProfile?: {                    // 可选；只收通用维度语义（
 | `broadleaf` | 阔叶乔木 | plant | tree_3a（家族契约第一实例，`tree/broadleaf/`）+ T011 十二树种 | —（T022 后家族现役 13 实例） |
 | `conifer` | 针叶 | plant | tree_cedrus（T012.1 雪松——**conifer 家族契约第一实例** `tree/conifer/`，D37.2 草案首证；层状轮生骨架 + 长短枝双挂点 + 常绿 default 单卡）+ tree_metasequoia（T012.2 水杉——**契约转正例**，族 1→2：对生轮生挂点 + 羽状小枝卡 + 密连续锥 + 双器官账目 + 落叶 default/autumn 双卡） | T012 针叶族（后续树种） |
 | `shrub` | 灌木 | plant | —（T022 删 shrub 后 0 资产） | T014 灌木族 |
-| `public-facility` | 公共设施 | facility | parkbench、trashbin | GLB public-facility 目录（bench） |
-| `road-facility` | 道路设施 | facility | streetlamp、signpost | GLB road-facility 目录（streetlight） |
+| `public-facility` | 公共设施 | facility | parkbench、trashbin、T025.2 批 B 四件（planter/leisure_table/parasol/bike_rack） | GLB public-facility 目录（bench） |
+| `road-facility` | 道路设施 | facility | streetlamp、signpost、T025.1 批 A 六件（bollard/pedestrian_barrier/road_barrier/wheelstop/trafficcone/speedbump） | GLB road-facility 目录（streetlight） |
 | `fire-safety` | 消防设施 | facility | hydrant | GLB fire-safety 目录（extinguisher） |
 
 - 设施三 family 的粒度 = GLB models 目录既有粒度（`scripts/scan-assets.mjs` CATEGORY_LABELS 同源）：大类层归并为 `facility`，family 层保住细分（原 T016 三级浏览依据；T016 取消后为纯元数据粒度）。
@@ -100,6 +100,19 @@ proceduralProfile?: {                    // 可选；只收通用维度语义（
 | asset_streetlamp | facility | road-facility | 4.21 | 0.89 | 宽含悬臂外伸与灯头 |
 | asset_parkbench | facility | public-facility | 0.81 | 1.70 | 宽 = 座长向 |
 | asset_hydrant | facility | fire-safety | 0.73 | 0.38 | 宽含两侧横伸栓口 |
+| asset_bollard | facility | road-facility | 0.80 | 0.20 | T025.1；宽 = 法兰直径向（沪官方 φ114/露出 80cm 锚） |
+| asset_pedestrian_barrier | facility | road-facility | 1.10 | 2.05 | T025.1；宽含基座板外凸（立柱外缘 2.00，GB 50688 净高锚） |
+| asset_road_barrier | facility | road-facility | 1.10 | 3.12 | T025.1；宽含底座外缘（标称段长 3.0，GA/T 1567 中央档锚） |
+| asset_wheelstop | facility | road-facility | 0.11 | 0.55 | T025.1；高含反光条（本体 0.10，聚簇 550×150×100） |
+| asset_trafficcone | facility | road-facility | 0.70 | 0.38 | T025.1；**首个设施色卡资产**（default 红 + yellow 黄双卡）；宽 = 底座向 |
+| asset_speedbump | facility | road-facility | 0.05 | 2.00 | T025.1；宽 = 4 段总长（段 0.5 黄黑交替，拱高 0.045 舍入） |
+| asset_planter | facility | public-facility | 0.81 | 1.00 | T025.2；高含内衬翻边顶（隔离锚 80cm），宽 = 箱长向（1000×500×800） |
+| asset_leisure_table | facility | public-facility | 0.72 | 1.12 | T025.2；桌高 720 三源锚，宽 = 凳缘径（桌 Φ0.70 + 四凳环绕连体） |
+| asset_parasol | facility | public-facility | 2.43 | 2.43 | T025.2；**色卡资产**（default 米白 + dark-green/wine-red 双副卡，Spec §3.5）；宽 = 骨端微露向（伞径 2.4 主流档） |
+| asset_bike_rack | facility | public-facility | 0.36 | 1.20 | T025.2；宽 = 段长向（卡位式 1.2×0.53×0.36 三源聚簇；停放姿态记 T026 联动） |
+| asset_cctv_camera | facility | — | 4.02 | 0.76 | T025.3；**family 缺席**（设备域无诚实归属——裁定 2；GLB device 目录「同名大类无 family」§6 同粒度；设备 family 值归 T028 按家族立项聚簇扩展）；宽含横臂外伸与法兰对边 |
+| asset_ev_charger | facility | — | 1.40 | 0.47 | T025.3；**family 缺席**（同 cctv_camera 裁定 2）；高 = 一体柜 1400 承重锚，宽含侧挂枪缆外扬（柜体本体 0.34） |
+| asset_manhole | facility | road-facility | 0.02 | 0.85 | T025.3；高 = 框缘顶 0.015 舍入（齐平安装微凸剪影——80 产品埋深不消费为露出高，Spec §3.2 齐平 ±3–5mm 承重）；宽 = 框外径 Φ850（净开孔 Φ700 主流档） |
 | asset_seedstack | dev | — | — | — | DEV 资产不进产品浏览，不声明 profile（不投机造数） |
 
 数值纪律：全部为细模档（level 'high'）源几何包围盒实测（T010.2 探针，2026-09-19，逐资产跨槽取证），两位小数舍入；单形态资产 min=max。契约测试以 ε=0.01 容差锁「实测落带」——几何演化导致越带即测试红，逼声明同步。

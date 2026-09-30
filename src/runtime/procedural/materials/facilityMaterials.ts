@@ -1,5 +1,6 @@
 /**
- * runtime/procedural/materials/facilityMaterials —— 设施资产 shader 级程序化材质（T002.4 阶段二）。
+ * runtime/procedural/materials/facilityMaterials —— 设施资产 shader 级程序化材质（T002.4 阶段二；
+ * T025.1 批 A 增补 rubber-mold 橡胶模压面——挡车器黑体/减速带黄黑段同配方不同底色）。
  *
  * 技术路线：纯 onBeforeCompile 注入（L2）——MeshStandardMaterial 不换血，保留
  *   InstancedMesh 合批（instanceMatrix）、instanceColor 变体乘算（three r186 通路：
@@ -215,6 +216,18 @@ facColorMul = (1.0 + facFade) * vec3(0.97 + 0.03 * facPeel + 0.02 * (facSpeck - 
 facRoughDelta = (facPeel - 0.5) * 0.08 + (facSpeck - 0.5) * 0.05;`,
 };
 
+/** 橡胶模压件（挡车器黑体/减速带黄黑段）：中低频模压色斑（胶料不匀的柔和明度斑块）+ 细颗粒哑光
+ *  起伏（散布件远观为主——颗粒幅度收小，近观成立、远观不噪）；成本 4× hash21 等效（1× vnoise + 1× hash） */
+const PATTERN_RUBBER_MOLD: FacilityPattern = {
+  key: 'rubber-mold',
+  body: /* glsl */ `
+// molded rubber: soft mid/low-freq compound mottle (luminance patches) + fine matte grain (roughness-led, distance-stable)
+float facRubberMottle = facVnoise(vUv * vec2(2.4, 1.5));
+float facRubberGrain = facHash21(vUv * 520.0);
+facColorMul = vec3(0.94 + 0.09 * facRubberMottle + 0.025 * (facRubberGrain - 0.5));
+facRoughDelta = (facRubberGrain - 0.5) * 0.07 + (facRubberMottle - 0.5) * 0.05;`,
+};
+
 // ── 材质工厂（每次调用 new 材质 + 独立注入闭包；配方 key 不变则共享 program）──
 
 /** 长椅木条：底材暖褐 + 木纹配方（板间差异依赖资产侧板条 uv 烘偏移） */
@@ -260,4 +273,9 @@ export function createFacilityCastIronMaterial(params: FacilityBaseParams): THRE
 /** 哑光褪色漆（标识牌面/指路带）：底材 + 漆颗粒与轻褪色配方 */
 export function createFacilityMattePaintMaterial(params: FacilityBaseParams): THREE.MeshStandardMaterial {
   return injectFacilityPattern(new THREE.MeshStandardMaterial(params), PATTERN_MATTE_PAINT);
+}
+
+/** 橡胶模压件（挡车器黑体/减速带黄黑段——同配方不同底色，底色差异走材质 uniform 不占 program）：底材 + 模压色斑与细颗粒配方 */
+export function createFacilityRubberMoldMaterial(params: FacilityBaseParams): THREE.MeshStandardMaterial {
+  return injectFacilityPattern(new THREE.MeshStandardMaterial(params), PATTERN_RUBBER_MOLD);
 }

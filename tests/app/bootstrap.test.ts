@@ -401,15 +401,32 @@ describe('registerAssets', () => {
     // 假 GLB id 须避开真实资产 id 命名空间（manifest 的 asset_bench 与程序化的 asset_parkbench 等）
     const other: ModelAsset = { ...treeAsset, id: 'asset_pergola', name: '凉亭', category: 'public-facility' };
     expect(registerAssets(facade, [treeAsset, other])).toBe(1);
-    // createEditor 内 manifest→procedural 收割先行（glob 按文件名序：植物 asset_* 前缀 < 设施裸名 h/p/s/t；
+    // createEditor 内 manifest→procedural 收割先行（glob 按文件名序：asset_* 前缀 < 设施裸名 h/p/s/t；
     // T022 删 v1 四低模植物 flower/oak/pine/shrub——seedstack 后直接 tree_3a；T008.2 起各树按字典序
     // 追加：tree_3a < tree_bischofia < tree_camphor < tree_cedrus（T012.1 conifer 首例）< tree_celtis <
     // tree_fraxinus < tree_ginkgo < tree_juniperus（T012.3 conifer 第三例）< tree_koelreuteria < tree_ligustrum
     // < tree_metasequoia（T012.2 conifer 转正例）< tree_platanus < tree_salix < tree_sophora < tree_triadica <
-    // tree_zelkova），追加注册在后
+    // tree_zelkova）；T025 设施六件按文件名字母序与树交错：bollard <
+    // pedestrian_barrier < road_barrier < seedstack < speedbump < trafficcone < tree_* < wheelstop；
+    // T025.2 批 B 四件同字母序插入：bike_rack < bollard 前、leisure_table 在 bollard 后、
+    // parasol 在 pedestrian_barrier 前、planter 在 pedestrian_barrier 后）；T025.3 批 C 三件
+    // 同字母序插入：cctv_camera 在 bollard 后、ev_charger 在 cctv_camera 后 leisure_table 前、
+    // manhole 在 leisure_table 后 parasol 前），追加注册在后
     expect(facade.registries.assets.list().map((d) => d.asset.id)).toEqual([
       'asset_tree',
+      'asset_bike_rack',
+      'asset_bollard',
+      'asset_cctv_camera',
+      'asset_ev_charger',
+      'asset_leisure_table',
+      'asset_manhole',
+      'asset_parasol',
+      'asset_pedestrian_barrier',
+      'asset_planter',
+      'asset_road_barrier',
       'asset_seedstack',
+      'asset_speedbump',
+      'asset_trafficcone',
       'asset_tree_3a',
       'asset_tree_bischofia',
       'asset_tree_camphor',
@@ -426,6 +443,7 @@ describe('registerAssets', () => {
       'asset_tree_sophora',
       'asset_tree_triadica',
       'asset_tree_zelkova',
+      'asset_wheelstop',
       'asset_hydrant',
       'asset_parkbench',
       'asset_signpost',
