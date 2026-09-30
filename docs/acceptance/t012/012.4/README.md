@@ -88,3 +88,15 @@ node tools/t0124-crownband.mjs diag-empty.png baseline.png
 node tools/t0124-winmask.mjs diag-empty.png baseline.png        # 同式硬窗三口径
 node tools/t0124-vprofile.mjs slot2-empty.png slot2-m25.png     # 伞形平顶纵向剖面
 ```
+
+## 风动三证据（Step 4 疑点触发补采，2026-09-30 · threejs-runtime-agent——012.3 同式三帧对）
+
+> 配方两成分（bungeanaMaterials 头注）：整冠低频慢摆 0.30Hz×幅 0.02m + 末级枝/束高频颤 2.4Hz×幅 0.014m；树高锚 11.5。载体 `mountWindDemo(1)`（aSeed 0.13 正式风动排路径，单树落原点——与 012.2/012.3 mount() 单树帧同口径可比）。环境：vite 5183 + Chrome CDP 9333（1920×1080），会话自建自清。
+
+| 证据 | 数值（pixel-diff 实测） | 判定 |
+|---|---|---|
+| 运转（M25 · az35 · el8 run a/b，间隔 1.1s = 0.30Hz 相位差 0.33 周期） | 变更 1.27%（gt8 0.51%），质心 [954,528] = canvas 中心树位，行覆盖 28.3% 集中冠缘 | ✓ 整冠低幅慢摆自洽（介于圆柏 0.49% / 水杉 2.17% 同机位带内——0.02m 幅 × 疏散冠缘薄边量级） |
+| 冻结对照（freezeTime 后回 run 机位 frozen a/b） | **严格全零**（meanAbsDiff 0 / maxAbsDiff 0 / 0.00%） | ✓ 无云动/光照漂移/亚像素噪声假信号——run 差分确来自风相位 |
+| 近景颤（M12 · az35 · el8 flutter a/b，间隔 250ms = 2.4Hz 0.6 周期） | 变更 6.92%（gt8 3.55%），**63.1% 行**有变更（gt8 行 62.0%） | ✓ 高频颤行空间分化：天空带（行 0–179）**严格零**、冠区带（行 180–899）2.1–15.7%（峰值带 6 = 冠缘末级束带）、底部带（行 900+，地面/UI）gt8 = 0 |
+
+帧：`wind-run-a/b.png` / `wind-frozen-a/b.png` / `wind-flutter-a/b.png`。console 零噪声（wind 批捕获 []，金丝雀 `__bungeana` 存在 + 主 canvas 1292×932 ≈ 主视口非小地图）。工具：`tools/t0124-wind.mjs`（三帧对采集）+ `tools/t0124-windrows.mjs`（flutter 12 带行剖面，新增）+ 复用 `tools/pixel-diff.mjs`；复现 `node ../012.2/tools/cdp.mjs tools/t0124-wind.mjs && node tools/t0124-windrows.mjs wind-flutter-a.png wind-flutter-b.png`。
