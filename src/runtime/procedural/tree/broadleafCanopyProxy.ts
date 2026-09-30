@@ -91,6 +91,8 @@ import { buildMetasequoiaGeometry } from './metasequoia/metasequoiaGeometry';
 import { METASEQUOIA_SHAPE_PROFILES } from './metasequoia/metasequoiaShapeProfile';
 import { buildJuniperusGeometry } from './juniperus/juniperusGeometry';
 import { JUNIPERUS_SHAPE_PROFILES } from './juniperus/juniperusShapeProfile';
+import { buildBungeanaGeometry } from './bungeana/bungeanaGeometry';
+import { BUNGEANA_SHAPE_PROFILES } from './bungeana/bungeanaShapeProfile';
 import { buildCeltisGeometry } from './celtis/celtisGeometry';
 import { CELTIS_SHAPE_PROFILES } from './celtis/celtisShapeProfile';
 import { buildFraxinusGeometry } from './fraxinus/fraxinusGeometry';
@@ -153,7 +155,7 @@ function shellCardRandOf(cx: number, cy: number, cz: number, derive: number): nu
   return derive === 0 ? base : fract01(base * 7.31 + 0.37);
 }
 
-// ── 树种接入表（16 树种按 assetId 全可用——T011 阔叶 13 + T012.1 conifer 首例 cedrus + T012.2 conifer 转正例 metasequoia + T012.3 conifer 第三例 juniperus；buildLow = 该树种现有几何生成器 Low 档）──
+// ── 树种接入表（17 树种按 assetId 全可用——T011 阔叶 13 + T012.1 conifer 首例 cedrus + T012.2 conifer 转正例 metasequoia + T012.3 conifer 第三例 juniperus + T012.4 conifer 第四例 bungeana；buildLow = 该树种现有几何生成器 Low 档）──
 
 /** 树种 Low 档构建结果的结构消费面（各树种 XxxGeometryResult 结构兼容——只消费 geometry + 簇表） */
 interface CanopyLowResult {
@@ -167,7 +169,7 @@ interface BroadleafCanopySpecies {
   buildLow: (rng: () => number, profile: BroadleafShapeProfile) => CanopyLowResult;
 }
 
-/** 16 树种接入表（T011 阔叶 13 全量 + T012.1 conifer 首例 cedrus + T012.2 conifer 转正例 metasequoia + T012.3 conifer 第三例 juniperus；新乔木树种接入 = 加一行，禁每树种远景算法） */
+/** 17 树种接入表（T011 阔叶 13 全量 + T012.1 conifer 首例 cedrus + T012.2 conifer 转正例 metasequoia + T012.3 conifer 第三例 juniperus + T012.4 conifer 第四例 bungeana；新乔木树种接入 = 加一行，禁每树种远景算法） */
 const CANOPY_SPECIES: Record<string, BroadleafCanopySpecies> = {
   asset_tree_3a: { profiles: TREE3A_SHAPE_PROFILES, buildLow: (rng, p) => buildTree3aGeometry(rng, p, 'low') },
   asset_tree_camphor: { profiles: CAMPHOR_SHAPE_PROFILES, buildLow: (rng, p) => buildCamphorGeometry(rng, p, 'low') },
@@ -214,6 +216,20 @@ const CANOPY_SPECIES: Record<string, BroadleafCanopySpecies> = {
   asset_tree_juniperus: {
     profiles: JUNIPERUS_SHAPE_PROFILES as unknown as BroadleafShapeProfile[],
     buildLow: (rng, p) => buildJuniperusGeometry(rng, p as unknown as ConiferShapeProfile, 'low'),
+  },
+  // conifer 第四例行（T012.4 Step 3c——数据驱动接入同三先例，算法体零改动）：
+  // BUNGEANA_SHAPE_PROFILES 为 ConiferShapeProfile（契约定稿 80 位增量消费第四例），
+  // 双重 cast 语义同上（profileForSeed 只路由不消费）；运行时传出 profile 引用即
+  // BUNGEANA_SHAPE_PROFILES[slot] 原件直喂 buildBungeanaGeometry Low 档（stats.
+  // clusters 同 BroadleafClusterRecord 扁平形态产出 { level, attach*, c*, radius,
+  // dir* }——harvest 派生假设逐项成立；Low 壳卡为隔簇抽取单卡〔stride 5——束簇位
+  // 量级 5000+ 的预算适配，与 juniperus 同值；束卡 = 卡单元 2 tri〕，canopy 卡直接
+  // 派生全簇表不受其影响；果卡入皮组〔组 0〕不进簇场——canopy 无果同口径〔Mid/
+  // Low 果省略的族内同判，近景点彩级非身份信号〕；开张卵圆/伞形平顶冠 = 柱/卵
+  // 参数化外推零改动——待裁决位 3「预期零改动」成立，无公共能力变化）
+  asset_tree_bungeana: {
+    profiles: BUNGEANA_SHAPE_PROFILES as unknown as BroadleafShapeProfile[],
+    buildLow: (rng, p) => buildBungeanaGeometry(rng, p as unknown as ConiferShapeProfile, 'low'),
   },
 };
 

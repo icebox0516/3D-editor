@@ -1,17 +1,17 @@
 /**
- * tests/runtime/procedural/assets/treeCanopyChain.test.ts —— 16 乔木 canopy 能力声明
+ * tests/runtime/procedural/assets/treeCanopyChain.test.ts —— 17 乔木 canopy 能力声明
  * 与全链选档测试（T021.7 接线，D41 §三.2/§四；T012.1 起 conifer 首例 cedrus /
- * T012.2 转正例 metasequoia / T012.3 第三例 juniperus 入链）。
+ * T012.2 转正例 metasequoia / T012.3 第三例 juniperus / T012.4 第四例 bungeana 入链）。
  *
- * 覆盖（零 mock——真实 16 树种 meta + domain 纯函数选档）：
- * - 声明面：16 乔木 representations = ['high','mid','canopy']（链形 High → Mid →
+ * 覆盖（零 mock——真实 17 树种 meta + domain 纯函数选档）：
+ * - 声明面：17 乔木 representations = ['high','mid','canopy']（链形 High → Mid →
  *   Canopy → Culled）且 levels 三档保持 [high,mid,low]（构建面零触碰回归锁）；
  *   声明集与 BroadleafCanopyProxy 工厂接入表逐 id 一致（声明 ⊆ 工厂可产——canopy
  *   请求永不落防御路径）；
  * - 零变化锁：设施资产（hydrant/parkbench/trashbin/signpost）无 representations
  *   声明；seedstack（shapeFamily + 单档 levels）与 streetlamp（['high','low']）
  *   声明零变化（T022 删 v1 四低模植物后不再参与本锁）；
- * - 全链选档（it.each 16 树种，链 = effectiveRepresentationChain(真实声明)）：
+ * - 全链选档（it.each 17 树种，链 = effectiveRepresentationChain(真实声明)）：
  *   m ≤ highToMid → high / (highToMid, midToCanopy] → mid / (midToCanopy,
  *   canopyToCulled] → canopy（**canopy 可达——021.7 起预期行为变化**）/ 越过
  *   canopyToCulled → culled；升档迟滞：current=canopy 带内保持、越 (1−band) 线回 mid；
@@ -46,6 +46,7 @@ import { meta as salix } from '../../../../src/runtime/procedural/assets/asset_t
 import { meta as cedrus } from '../../../../src/runtime/procedural/assets/asset_tree_cedrus.asset';
 import { meta as metasequoia } from '../../../../src/runtime/procedural/assets/asset_tree_metasequoia.asset';
 import { meta as juniperus } from '../../../../src/runtime/procedural/assets/asset_tree_juniperus.asset';
+import { meta as bungeana } from '../../../../src/runtime/procedural/assets/asset_tree_bungeana.asset';
 import { meta as seedstack } from '../../../../src/runtime/procedural/assets/asset_seedstack.asset';
 import { meta as streetlamp } from '../../../../src/runtime/procedural/assets/streetlamp.asset';
 import { meta as hydrant } from '../../../../src/runtime/procedural/assets/hydrant.asset';
@@ -56,8 +57,8 @@ import { meta as signpost } from '../../../../src/runtime/procedural/assets/sign
 const T = LOD_THRESHOLDS;
 const ORIGIN: Vec3 = { x: 0, y: 0, z: 0 };
 
-/** 16 乔木 meta（顺序 = canopy 工厂接入表 CANOPY_SPECIES 声明序，与 BROADLEAF_CANOPY_ASSET_IDS 对照断言；T012.1 起含 conifer 首例 cedrus / T012.2 转正例 metasequoia / T012.3 第三例 juniperus） */
-const TREES = [tree3a, camphor, celtis, zelkova, ginkgo, bischofia, fraxinus, koelreuteria, ligustrum, platanus, salix, sophora, triadica, cedrus, metasequoia, juniperus];
+/** 17 乔木 meta（顺序 = canopy 工厂接入表 CANOPY_SPECIES 声明序，与 BROADLEAF_CANOPY_ASSET_IDS 对照断言；T012.1 起含 conifer 首例 cedrus / T012.2 转正例 metasequoia / T012.3 第三例 juniperus / T012.4 第四例 bungeana） */
+const TREES = [tree3a, camphor, celtis, zelkova, ginkgo, bischofia, fraxinus, koelreuteria, ligustrum, platanus, salix, sophora, triadica, cedrus, metasequoia, juniperus, bungeana];
 
 /** 正交视图：配 orthoHeight 使 r=1 时 m 恰为给定制 */
 function orthoAtM(m: number) {
@@ -78,9 +79,9 @@ function select(
   });
 }
 
-describe('16 乔木 canopy 能力声明（T021.7；T012.1 conifer 首例 / T012.2 转正例 / T012.3 第三例入链）', () => {
-  it('声明面：16 乔木 representations = ["high","mid","canopy"] 且 levels 三档保持 [high,mid,low]（构建面零触碰）——声明集与 canopy 工厂接入表逐 id 一致', () => {
-    expect(TREES).toHaveLength(16);
+describe('17 乔木 canopy 能力声明（T021.7；T012.1 conifer 首例 / T012.2 转正例 / T012.3 第三例 / T012.4 第四例入链）', () => {
+  it('声明面：17 乔木 representations = ["high","mid","canopy"] 且 levels 三档保持 [high,mid,low]（构建面零触碰）——声明集与 canopy 工厂接入表逐 id 一致', () => {
+    expect(TREES).toHaveLength(17);
     expect(TREES.map((meta) => meta.id)).toEqual(BROADLEAF_CANOPY_ASSET_IDS); // 声明 ⊆ 工厂可产
     for (const meta of TREES) {
       expect(meta.representations, `${meta.id} canopy 链声明`).toEqual(['high', 'mid', 'canopy']);
@@ -100,7 +101,7 @@ describe('16 乔木 canopy 能力声明（T021.7；T012.1 conifer 首例 / T012.
   });
 });
 
-describe('16 树种全链选档（真实声明链——021.7 起 canopy 可达的预期行为变化锁）', () => {
+describe('17 树种全链选档（真实声明链——021.7 起 canopy 可达的预期行为变化锁）', () => {
   it.each(TREES.map((meta) => ({ id: meta.id })))(
     '$id：m ≤ highToMid high / 至 midToCanopy mid / 至 canopyToCulled canopy / 越线 culled + 升档迟滞 + 退场分型',
     ({ id }) => {

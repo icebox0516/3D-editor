@@ -98,7 +98,7 @@ const f = (x: number): string => (Number.isInteger(x) ? `${x}.0` : String(x));
 /** vec3 字面量 */
 const f3 = (v: readonly [number, number, number]): string => `vec3(${v.map(f).join(', ')})`;
 
-// ── 树种材质参数表（16 树种逐树种转录自各 *Materials.ts；drift-lock 见测试）──────────
+// ── 树种材质参数表（17 树种逐树种转录自各 *Materials.ts；drift-lock 见测试）──────────
 
 /** 风动参数（与该树种高中低档叶材质同公式同常数——逐数对账锁定） */
 export interface BroadleafCanopyWindSpec {
@@ -149,7 +149,7 @@ export interface BroadleafCanopySpeciesMaterialSpec {
   variation: BroadleafCanopyVariationSpec;
 }
 
-/** 16 树种接入表（T011 阔叶 13 全量 + T012.1 conifer 首例 cedrus + T012.2 conifer 转正例 metasequoia + T012.3 conifer 第三例 juniperus；键序与 broadleafCanopyProxy 接入表一致） */
+/** 17 树种接入表（T011 阔叶 13 全量 + T012.1 conifer 首例 cedrus + T012.2 conifer 转正例 metasequoia + T012.3 conifer 第三例 juniperus + T012.4 conifer 第四例 bungeana；键序与 broadleafCanopyProxy 接入表一致） */
 export const BROADLEAF_CANOPY_MATERIAL_SPECIES: Readonly<Record<string, BroadleafCanopySpeciesMaterialSpec>> = {
   asset_tree_3a: {
     wind: { heightScale: 0.1333, swayPhaseK: 78.233, swayPhaseC: 1.37, swayAmplitude: 0.045, swayFrequency: 1.15, flutterPhaseK: 51.171, flutterPhaseC: 4.7, flutterAmplitude: 0.011, flutterFrequencyBase: 14, flutterFrequencySpan: 9 },
@@ -288,6 +288,31 @@ export const BROADLEAF_CANOPY_MATERIAL_SPECIES: Readonly<Record<string, Broadlea
     crownColor: 0x4a5d47,
     trunkColor: 0x595955,
     variation: { hueCold: [0.96, 1.0, 1.03], hueWarm: [1.04, 1.03, 0.94], hueK: 5.913, hueC: 0.23, lumaBase: 0.92, lumaSpan: 0.16, lumaK: 3.719, lumaC: 0.57, transBase: 0.55, transSpan: 0.45, transK: 9.117, transC: 0.47, transColor: [0.42, 0.7, 0.48], transPeak: 0.28 },
+  },
+  asset_tree_bungeana: {
+    // conifer 第四例行（T012.4 Step 3c——逐数转录 bungeanaMaterials BUNGEANA_WIND /
+    // needleHead / NEEDLE_TRANSLUCENCY，drift-lock 见 broadleafCanopyMaterials.test）：
+    // 风动**两成分直录两槽**（同 metasequoia/juniperus——白皮松无顶梢成分〔windLeader*
+    // 零占位，主干直立刚硬无点头第三例〕，无需退化记档）：sway 槽 = 成分① 整冠低频
+    // 慢摆（windTierFrequency 0.30Hz = 1.8850 rad/s × windTierAmplitude 0.02m——细长
+    // 斜展枝整冠质量体读向）；flutter 槽 = 成分② 末级枝/束高频小幅颤
+    //（windFringeFrequency 2.4Hz = 15.0796 rad/s——family 快颤链 9–23 内带 ×
+    // windFringeAmplitude 0.014m，**频 > 圆柏鳞枝 1.9Hz / 幅 < 其 0.018——硬针束
+    // 惯量小读向**，常频率——span 0 = 白皮松快颤无相位调频项，canopy 公式 0 系数
+    // 退化逐位一致〔与三先例同型〕）。相位 hash 95.137/5.7 与 72.311/7.9（与先例
+    // 相位流去相关）、高度锚 1/11.5 = 0.08696（GLSL 注入 0.08696 五位小数口径 =
+    // BUNGEANA_TREE_HEIGHT_NOMINAL slot-0 totalHeight 11.5 同源——锚同步轮 11–12m
+    // 域）逐数同源；sway 相位-高度耦合系数（近景 1.2 vs proxy 固定 1.4）= proxy
+    // 公式结构性简化记档（与三先例同位）。冠色 0x606d47 = 束卡构造色 needleColorSun
+    // 0x77864f / needleColorShade 0x49543e **严格中点**（cedrus/juniperus 常绿构造
+    // 中点式第三例——三处同源之一：meta presets swatch #606d47 ↔ bungeanaMaterials
+    // 束卡构造色 ↔ CROWN_PRESETS default 行；覆写值 = 物种表同值，default 命中与
+    // 未命中行为逐位一致）；皮色 0x6f675c = 皮构造色（barkBaseColor 灰褐——第 17
+    // 语言白基调多色斑驳的次要色带基面，远景剪影白干读向归光照非基色）。
+    wind: { heightScale: 0.08696, swayPhaseK: 95.137, swayPhaseC: 5.7, swayAmplitude: 0.02, swayFrequency: 1.885, flutterPhaseK: 72.311, flutterPhaseC: 7.9, flutterAmplitude: 0.014, flutterFrequencyBase: 15.0796, flutterFrequencySpan: 0 },
+    crownColor: 0x606d47,
+    trunkColor: 0x6f675c,
+    variation: { hueCold: [0.96, 1.0, 1.03], hueWarm: [1.05, 1.04, 0.93], hueK: 5.913, hueC: 0.23, lumaBase: 0.92, lumaSpan: 0.16, lumaK: 3.719, lumaC: 0.57, transBase: 0.55, transSpan: 0.45, transK: 9.117, transC: 0.47, transColor: [0.54, 0.82, 0.42], transPeak: 0.42 },
   },
 };
 
@@ -485,9 +510,9 @@ export const BROADLEAF_CANOPY_CROWN_PRESETS: Readonly<
   asset_tree_bungeana: {
     default: {
       // 白皮松 default 冠卡（T012.4 Step 3a 先锁色——沿 cedrus/juniperus 常绿单卡
-      // inert 锚先例；**物种表行随 3c 合并阶段落地回填**〔沿 cedrus/metasequoia/
+      // inert 锚先例；**物种表行已随 3c 合并阶段回填**〔沿 cedrus/metasequoia/
       // juniperus 接线先例〕，drift-lock 测试随之覆盖）：常绿 default 单卡终态
-      // （012.4 待裁决位 4——常绿无季相证据不建卡：FRPS/FoC/NC 三源无秋色语句
+      //（012.4 待裁决位 4——常绿无季相证据不建卡：FRPS/FoC/NC 三源无秋色语句
       // 〔阴性〕+ 深绿-中绿带黄绿/灰绿全年稳定〔NC Verified + 照片 Observed〕）。
       // 冠色 0x606d47 = **深绿-中绿带黄绿调**（Spec §5.2——「疏散半透光冠体 +
       // 黄绿-灰绿域」远景第一读向）= needleColorSun 0x77864f / needleColorShade
